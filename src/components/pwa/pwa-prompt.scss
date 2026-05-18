@@ -1,0 +1,186 @@
+.pwa-prompt-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 100000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: pwa-fade-in 0.3s ease;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.pwa-prompt-card {
+  width: 92%;
+  max-width: 420px;
+  background: rgba(243, 243, 243, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 12px 12px 0 0;
+  padding: 24px;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
+  animation: pwa-slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body[data-theme="dark"] .pwa-prompt-card {
+  background: rgba(32, 32, 32, 0.95);
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
+}
+
+.pwa-prompt-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.pwa-prompt-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  margin-right: 14px;
+  flex-shrink: 0;
+}
+
+.pwa-prompt-info {
+  flex: 1;
+}
+
+.pwa-prompt-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--dark-txt, #000);
+}
+
+.pwa-prompt-subtitle {
+  font-size: 12px;
+  color: var(--gray-txt, #555);
+  margin-top: 2px;
+}
+
+.pwa-prompt-features {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
+}
+
+body[data-theme="dark"] .pwa-prompt-features {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.pwa-prompt-feature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--txt-col, #222);
+}
+
+.pwa-feature-icon {
+  font-size: 16px;
+  width: 24px;
+  text-align: center;
+}
+
+.pwa-prompt-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.pwa-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.pwa-btn-dismiss {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--dark-txt, #000);
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.1);
+  }
+  &:active {
+    background: rgba(0, 0, 0, 0.14);
+  }
+}
+
+body[data-theme="dark"] .pwa-btn-dismiss {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+.pwa-btn-install {
+  background: var(--clrPrm, #0067c0);
+  color: #fff;
+
+  &:hover {
+    filter: brightness(1.1);
+  }
+  &:active {
+    filter: brightness(0.9);
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@keyframes pwa-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pwa-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Desktop: center the card */
+@media (min-width: 769px) {
+  .pwa-prompt-overlay {
+    align-items: center;
+  }
+
+  .pwa-prompt-card {
+    border-radius: 12px;
+    animation: pwa-scale-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes pwa-scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}

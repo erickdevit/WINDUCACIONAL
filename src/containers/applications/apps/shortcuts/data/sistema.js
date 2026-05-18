@@ -1,0 +1,20 @@
+export default {
+  id: "sistema",
+  title: "Sistema",
+  icon: "sistema",
+  items: [
+    { id: "win-e", name: "Explorador de Arquivos", combo: ["Windows", "E"] },
+    { id: "win-i", name: "Configurações", combo: ["Windows", "I"] },
+    { id: "win-r", name: "Executar", combo: ["Windows", "R"] },
+    { id: "win-s", name: "Pesquisa", combo: ["Windows", "S"] },
+    { id: "win-a", name: "Ações rápidas", combo: ["Windows", "A"] },
+    { id: "win-x", name: "Menu de links rápidos", combo: ["Windows", "X"] },
+    { id: "win-d", name: "Área de trabalho", combo: ["Windows", "D"] },
+    { id: "win-l", name: "Bloquear sessão", combo: ["Windows", "L"] },
+    { id: "win-m", name: "Minimizar tudo", combo: ["Windows", "M"] },
+    { id: "win-v", name: "Área de transferência", combo: ["Windows", "V"] },
+    { id: "win-h", name: "Ditado", combo: ["Windows", "H"] },
+    { id: "win-k", name: "Transmitir", combo: ["Windows", "K"] },
+    { id: "win-p", name: "Projetar", combo: ["Windows", "P"] },
+  ],
+};

@@ -1,0 +1,21 @@
+.calcApp {
+  --bg1: rgb(243, 243, 243);
+  --bg2: #ffffff;
+  --bg3: #f9f9f9;
+  --err-bg: rgb(255, 255, 255, 0.1);
+  --err-txt: #999;
+
+  background: var(--fakeMica);
+  color: var(--dark-txt);
+}
+body[data-theme="dark"] .calcApp {
+  --bg1: rgba(32, 32, 32);
+  --bg2: rgba(255, 255, 255, 0.12);
+  --bg3: rgba(255, 255, 255, 0.08);
+  --err-bg: rgba(255, 255, 255, 0.033);
+  --err-txt: #777;
+
+  .menuBars {
+    filter: invert(1);
+  }
+}

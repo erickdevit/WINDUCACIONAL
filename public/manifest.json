@@ -1,0 +1,37 @@
+{
+  "short_name": "Win11",
+  "name": "Win11 in React",
+  "description": "Windows 11 desktop experience recreated in React — available on any device.",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "favicon.png",
+      "type": "image/png",
+      "sizes": "174x174"
+    },
+    {
+      "src": "favicon.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "favicon.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#000000",
+  "background_color": "#010001",
+  "categories": ["entertainment", "utilities"],
+  "prefer_related_applications": false
+}

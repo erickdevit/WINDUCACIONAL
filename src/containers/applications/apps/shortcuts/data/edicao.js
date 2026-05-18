@@ -1,0 +1,21 @@
+export default {
+  id: "edicao",
+  title: "Edição",
+  icon: "edicao",
+  items: [
+    { id: "ctrl-c", name: "Copiar", combo: ["Ctrl", "C"] },
+    { id: "ctrl-v", name: "Colar", combo: ["Ctrl", "V"] },
+    { id: "ctrl-x", name: "Recortar", combo: ["Ctrl", "X"] },
+    { id: "ctrl-z", name: "Desfazer", combo: ["Ctrl", "Z"] },
+    { id: "ctrl-y", name: "Refazer", combo: ["Ctrl", "Y"] },
+    { id: "ctrl-a", name: "Selecionar tudo", combo: ["Ctrl", "A"] },
+    { id: "ctrl-f", name: "Localizar", combo: ["Ctrl", "F"] },
+    { id: "ctrl-h", name: "Substituir", combo: ["Ctrl", "H"] },
+    { id: "ctrl-b", name: "Negrito", combo: ["Ctrl", "B"] },
+    { id: "ctrl-i", name: "Itálico", combo: ["Ctrl", "I"] },
+    { id: "ctrl-u", name: "Sublinhado", combo: ["Ctrl", "U"] },
+    { id: "f2", name: "Renomear", combo: ["F2"] },
+    { id: "del", name: "Excluir para lixeira", combo: ["Delete"] },
+    { id: "shift-del", name: "Excluir permanente", combo: ["Shift", "Delete"] },
+  ],
+};

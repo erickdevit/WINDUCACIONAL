@@ -1,0 +1,9 @@
+{
+  "name": "Simulador Educacional",
+  "description": "Simulador educacional aberto baseado em uma experiência desktop web.",
+  "repository": "https://github.com/erickdevit/win11React",
+  "keywords": ["education", "simulation", "react", "open-source"],
+  "engines": {
+    "npm": ">=9"
+  }
+}

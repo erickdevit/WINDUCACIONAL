@@ -1,0 +1,37 @@
+name: Bug report
+description: Reporte um problema reproduzível
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Resumo
+      description: Descreva o problema de forma objetiva.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passos para reproduzir
+      description: Liste os passos, dados de entrada e estado esperado.
+      placeholder: |
+        1. Abrir ...
+        2. Clicar em ...
+        3. Observar ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Resultado esperado
+      description: Explique o comportamento correto esperado.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Ambiente
+      description: Informe navegador, sistema operacional, branch/commit e modo de execução.
+    validations:
+      required: false

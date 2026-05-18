@@ -1,0 +1,704 @@
+/* =============================================================================
+   MOBILE RESPONSIVE OVERRIDES
+   These rules ensure all Win11React content scales correctly on mobile devices.
+   No aesthetic changes — only layout/size adaptations.
+   Uses !important where needed to override component-level SCSS specificity.
+   ============================================================================= */
+
+/* ---- Safe area insets for notched phones ---- */
+:root {
+  --sai-top: env(safe-area-inset-top, 0px);
+  --sai-bottom: env(safe-area-inset-bottom, 0px);
+  --sai-left: env(safe-area-inset-left, 0px);
+  --sai-right: env(safe-area-inset-right, 0px);
+}
+
+/* ---- Prevent text size adjustments on orientation change ---- */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* ---- Touch improvements ---- */
+@media (pointer: coarse) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Larger touch targets for taskbar icons */
+  .tsIcon {
+    min-width: 42px;
+    min-height: 42px;
+  }
+
+  /* Better touch for desktop app icons */
+  .dskApp {
+    min-width: 70px;
+    min-height: 80px;
+  }
+}
+
+/* ===== TABLET LANDSCAPE & SMALLER (≤1024px) ===== */
+@media screen and (max-width: 1024px) {
+  /* Widget panel narrower */
+  .widPaneCont {
+    width: 420px !important;
+    max-width: 80vw !important;
+  }
+
+  .widPaneCont .widgetCont {
+    width: 92% !important;
+  }
+
+  .widPaneCont .topWidgets {
+    flex-direction: column !important;
+  }
+
+  .widPaneCont .topWidgets .weatherCont,
+  .widPaneCont .topWidgets .shortCont {
+    width: 100% !important;
+  }
+
+  .widPaneCont .allNewsCont {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ===== SMALL TABLETS & LARGE PHONES (≤768px) ===== */
+@media screen and (max-width: 768px) {
+  /* ===========================================================
+     TASKBAR
+     =========================================================== */
+  .taskbar {
+    height: 44px !important;
+  }
+
+  /* Make taskcont use flexbox so .taskright doesn't overlap */
+  .taskcont {
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  /* Let the tasks area shrink to leave room for taskright */
+  .tasksCont {
+    flex: 1 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Scrollable row if there are too many pinned apps */
+  .tsbar {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  /* taskright: remove absolute positioning, use flex */
+  .taskright {
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    flex-shrink: 0 !important;
+    height: 100% !important;
+  }
+
+  /* Fix widget button: remove absolute positioning */
+  .tasksCont[data-side="center"] {
+    align-items: flex-start !important;
+
+    .widget {
+      position: relative !important;
+      left: auto !important;
+    }
+  }
+
+  .tsIcon {
+    width: 36px !important;
+    height: 36px !important;
+    margin: auto 2px !important;
+    flex-shrink: 0;
+  }
+
+  .taskDate {
+    font-size: 10px !important;
+    padding: 0 4px !important;
+  }
+
+  /* Hide search, widget, and chevron on mobile */
+  .searchIcon {
+    display: none !important;
+  }
+
+  .tsbar .widget {
+    display: none !important;
+  }
+
+  .taskright > .px-2.prtclk {
+    display: none !important;
+  }
+
+  .desktop {
+    height: calc(100vh - 44px) !important;
+    height: calc(100dvh - 44px) !important;
+  }
+
+  /* ===========================================================
+     START MENU — force responsive sizing
+     =========================================================== */
+  .startMenu {
+    width: calc(100vw - 16px) !important;
+    max-width: 640px !important;
+    left: 8px !important;
+    right: 8px !important;
+    bottom: 8px !important;
+    height: min(100% - 16px, 70vh) !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .startMenu[data-align="center"] {
+    left: 8px !important;
+    right: 8px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Pinned apps padding so edge icons aren't clipped */
+  .pnApps {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    box-sizing: border-box !important;
+    justify-content: center !important;
+  }
+
+  .pnApps .pnApp {
+    width: 80px !important;
+    height: 74px !important;
+  }
+
+  .reApps .rnApp {
+    width: 100% !important;
+  }
+
+  .menuUp {
+    padding: 20px !important;
+  }
+
+  .stAcbar {
+    padding: 0 20px !important;
+  }
+
+  .menuBar {
+    padding: 0 20px !important;
+    height: 56px !important;
+  }
+
+  .allApps .allApp {
+    width: 100% !important;
+  }
+
+  .appCont {
+    padding: 20px !important;
+    padding-right: 0 !important;
+  }
+
+  /* Fix all-apps slide: use percentage instead of fixed 640px */
+  .allCont[data-allapps="true"],
+  .stmenu[data-allapps="true"] {
+    transform: translateX(-100%) !important;
+  }
+
+  .allCont {
+    width: 100% !important;
+  }
+
+  /* Pinned apps scrollable */
+  .stmenu {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  .recApps {
+    position: relative !important;
+    max-height: none !important;
+  }
+
+  /* ===========================================================
+     SEARCH MENU — force responsive
+     =========================================================== */
+  .searchMenu {
+    min-height: auto !important;
+    padding: 20px !important;
+  }
+
+  .rightSide {
+    display: none !important;
+  }
+
+  .leftSide {
+    width: 100% !important;
+  }
+
+  .leftSide[data-width="true"] {
+    width: 100% !important;
+  }
+
+  .topApp {
+    width: 23% !important;
+  }
+
+  /* ===========================================================
+     SIDE PANE (Quick Settings) — force responsive
+     =========================================================== */
+  .sidePane {
+    width: calc(100vw - 16px) !important;
+    max-width: 360px !important;
+    right: 8px !important;
+    bottom: 8px !important;
+  }
+
+  /* ===========================================================
+     CALENDAR PANE — force responsive
+     =========================================================== */
+  .calnpane {
+    width: calc(100vw - 16px) !important;
+    max-width: 21rem !important;
+    right: 8px !important;
+    bottom: 8px !important;
+  }
+
+  /* ===========================================================
+     BAND PANE (tray) — reposition
+     =========================================================== */
+  .bandpane {
+    right: 8px !important;
+    bottom: 50px !important;
+  }
+
+  /* ===========================================================
+     WIDGET PANEL — force fullscreen
+     =========================================================== */
+  .widPaneCont {
+    width: calc(100vw - 16px) !important;
+    max-width: 100vw !important;
+    left: 8px !important;
+    right: 8px !important;
+    top: 8px !important;
+    bottom: 54px !important;
+  }
+
+  /* ===========================================================
+     DESKTOP ICONS — Column layout for mobile portrait
+     =========================================================== */
+  .desktopCont {
+    width: auto !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-wrap: wrap !important;
+    align-content: flex-start !important;
+    gap: 0 !important;
+    padding: 8px !important;
+    padding-top: calc(8px + var(--sai-top)) !important;
+  }
+
+  .dskApp {
+    width: 74px !important;
+    height: 84px !important;
+    margin: 2px !important;
+  }
+
+  .dskApp .appName {
+    font-size: 0.72em !important;
+  }
+
+  /* ===========================================================
+     WINDOW APPS — force fullscreen on mobile
+     =========================================================== */
+  .floatTab {
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: calc(100vh - 44px) !important;
+    height: calc(100dvh - 44px) !important;
+    border-radius: 0 !important;
+    transform: none !important;
+  }
+
+  .floatTab[data-hide="true"] {
+    top: 0 !important;
+    left: 0 !important;
+    transform: scale(0.8) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  .floatTab[data-max="false"] {
+    top: calc(100% + 10px) !important;
+    transform: scale(0.6) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  .floatTab[data-size="mini"],
+  .floatTab[data-size="cstm"],
+  .floatTab[data-size="full"] {
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: calc(100vh - 44px) !important;
+    height: calc(100dvh - 44px) !important;
+    border-radius: 0 !important;
+  }
+
+  .windowScreen {
+    border-radius: 0 !important;
+  }
+
+  .toolbar {
+    border-radius: 0 !important;
+  }
+
+  .closeBtn {
+    border-radius: 0 !important;
+  }
+
+  /* Hide snap layout, resize handles, minimize, maximize */
+  .snapcont {
+    display: none !important;
+  }
+
+  .resizecont {
+    display: none !important;
+  }
+
+  .actbtns .uicon[data-payload="mnmz"] {
+    display: none !important;
+  }
+
+  .snapbox {
+    display: none !important;
+  }
+
+  /* Task preview (hover popups) */
+  .prevCont {
+    display: none !important;
+  }
+
+  /* ===========================================================
+     ABOUT APP — centered dialog
+     =========================================================== */
+  .aboutApp {
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: calc(100vw - 32px) !important;
+    max-width: 28rem !important;
+    height: auto !important;
+  }
+
+  /* ===========================================================
+     LOCK & BOOT SCREEN
+     =========================================================== */
+  .lockscreen .splashScreen {
+    margin-top: 25vh !important;
+  }
+
+  .lockscreen .fadeinScreen {
+    top: 20% !important;
+  }
+
+  .bottomInfo {
+    bottom: calc(16px + var(--sai-bottom)) !important;
+    right: 16px !important;
+  }
+
+  .bootscreen {
+    padding-bottom: var(--sai-bottom) !important;
+  }
+}
+
+/* ===== PHONES PORTRAIT (≤480px) ===== */
+@media screen and (max-width: 480px) {
+  /* --- Taskbar: compact for narrow screens --- */
+  .taskbar {
+    height: 42px !important;
+    padding-bottom: var(--sai-bottom) !important;
+  }
+
+  .desktop {
+    height: calc(100vh - 42px - var(--sai-bottom)) !important;
+    height: calc(100dvh - 42px - var(--sai-bottom)) !important;
+  }
+
+  .floatTab {
+    height: calc(100vh - 42px - var(--sai-bottom)) !important;
+    height: calc(100dvh - 42px - var(--sai-bottom)) !important;
+  }
+
+  .floatTab[data-size="mini"],
+  .floatTab[data-size="cstm"],
+  .floatTab[data-size="full"] {
+    height: calc(100vh - 42px - var(--sai-bottom)) !important;
+    height: calc(100dvh - 42px - var(--sai-bottom)) !important;
+  }
+
+  .tsIcon {
+    width: 34px !important;
+    height: 34px !important;
+    margin: auto 1px !important;
+  }
+
+  .taskDate {
+    font-size: 9px !important;
+    padding: 0 3px !important;
+  }
+
+  .taskIcon {
+    width: 18px !important;
+  }
+
+  /* --- Start menu: 50px smaller diagonally in portrait --- */
+  .startMenu {
+    width: calc(100vw - 58px) !important;
+    left: 29px !important;
+    right: 29px !important;
+    bottom: 29px !important;
+    height: min(100% - 58px, calc(72vh - 50px)) !important;
+  }
+
+  .startMenu[data-align="center"] {
+    left: 29px !important;
+    right: 29px !important;
+  }
+
+  .pnApps {
+    padding: 12px 4px !important;
+    min-height: 120px !important;
+    justify-content: center !important;
+  }
+
+  .pnApps .pnApp {
+    width: 68px !important;
+    height: 66px !important;
+  }
+
+  .pnApps .pnApp .appName {
+    font-size: 10px !important;
+  }
+
+  .menuUp {
+    padding: 16px !important;
+  }
+
+  .stAcbar {
+    padding: 0 16px !important;
+  }
+
+  .menuBar {
+    padding: 0 16px !important;
+    height: 52px !important;
+  }
+
+  .profile .usName {
+    font-size: 0.64em !important;
+  }
+
+  /* --- Side pane: 50px smaller diagonally in portrait --- */
+  .sidePane {
+    width: calc(100vw - 58px) !important;
+    max-width: none !important;
+    right: 29px !important;
+    bottom: 29px !important;
+  }
+
+  .quickSettings .qkCont {
+    gap: 8px !important;
+  }
+
+  .quickSettings .qkCont .qkGrp .qkbtn {
+    width: 5rem !important;
+    height: 2.6rem !important;
+  }
+
+  .quickSettings .qkCont .qkGrp .qktext {
+    font-size: 0.68em !important;
+  }
+
+  /* --- Calendar: 50px smaller diagonally in portrait --- */
+  .calnpane {
+    width: calc(100vw - 58px) !important;
+    max-width: none !important;
+    right: 29px !important;
+    bottom: 29px !important;
+  }
+
+  /* --- Search menu compact --- */
+  .searchMenu {
+    min-height: auto !important;
+    padding: 16px !important;
+  }
+
+  .topApp {
+    width: 30% !important;
+    font-size: 0.75em !important;
+  }
+
+  /* --- Desktop icons: compact column --- */
+  .desktopCont {
+    padding: 4px !important;
+    padding-top: calc(4px + var(--sai-top)) !important;
+  }
+
+  .dskApp {
+    width: 68px !important;
+    height: 78px !important;
+  }
+
+  .dskApp .appName {
+    font-size: 0.68em !important;
+  }
+
+  /* --- About app compact --- */
+  .aboutApp {
+    width: calc(100vw - 16px) !important;
+    font-size: 13px !important;
+  }
+
+  .aboutApp .content {
+    padding: 16px !important;
+  }
+
+  /* --- Lock screen --- */
+  .lockscreen .splashScreen {
+    margin-top: 20vh !important;
+  }
+
+  .lockscreen .text-6xl {
+    font-size: 3rem !important;
+  }
+
+  .lockscreen .text-lg {
+    font-size: 0.9rem !important;
+  }
+
+  .lockscreen .fadeinScreen {
+    top: 18% !important;
+  }
+
+  .lockscreen .fadeinScreen img {
+    width: 140px !important;
+    height: 140px !important;
+  }
+
+  .lockscreen .fadeinScreen .text-2xl {
+    font-size: 1.2rem !important;
+  }
+
+  /* --- Edge/Browser compact toolbar --- */
+  .addressBar .addCont {
+    width: 65% !important;
+  }
+
+  .overTool .btab {
+    width: 120px !important;
+    font-size: 0.64em !important;
+  }
+
+  /* --- Band pane reposition --- */
+  .bandpane {
+    right: 4px !important;
+    bottom: 46px !important;
+  }
+}
+
+/* ===== VERY SMALL PHONES (≤360px) ===== */
+@media screen and (max-width: 360px) {
+  .tsIcon {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .desktopCont {
+    padding: 2px !important;
+  }
+
+  .dskApp {
+    width: 62px !important;
+    height: 72px !important;
+  }
+
+  .dskApp .appName {
+    font-size: 0.64em !important;
+  }
+
+  .pnApps .pnApp {
+    width: 60px !important;
+    height: 60px !important;
+  }
+
+  .startMenu {
+    height: min(100% - 4px, 78vh) !important;
+  }
+
+  .quickSettings .qkCont .qkGrp .qkbtn {
+    width: 4.6rem !important;
+    height: 2.4rem !important;
+  }
+}
+
+/* ===== LANDSCAPE PHONE ===== */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  .taskbar {
+    height: 36px !important;
+  }
+
+  .desktop {
+    height: calc(100vh - 36px) !important;
+    height: calc(100dvh - 36px) !important;
+  }
+
+  .floatTab,
+  .floatTab[data-size="mini"],
+  .floatTab[data-size="cstm"],
+  .floatTab[data-size="full"] {
+    height: calc(100vh - 36px) !important;
+    height: calc(100dvh - 36px) !important;
+  }
+
+  .tsIcon {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .startMenu {
+    height: min(100% - 8px, calc(100vh - 44px)) !important;
+    height: min(100% - 8px, calc(100dvh - 44px)) !important;
+    bottom: 4px !important;
+  }
+
+  .lockscreen .splashScreen {
+    margin-top: 8vh !important;
+  }
+
+  .lockscreen .fadeinScreen {
+    top: 5% !important;
+  }
+
+  .lockscreen .fadeinScreen img {
+    width: 100px !important;
+    height: 100px !important;
+  }
+
+  .lockscreen .text-6xl {
+    font-size: 2.5rem !important;
+  }
+
+  .desktopCont {
+    /* landscape: keep column layout */
+  }
+}

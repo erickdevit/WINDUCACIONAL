@@ -1,0 +1,18 @@
+.msfiles {
+  --bg1: #ffffff;
+  --bg2: #f5f5f5;
+  --dsb-col: #aaa;
+  --gray1: #bbb;
+  --gray2: #ddd;
+  --hover-bg: rgba(0, 178, 255, 0.16);
+  --focus-bg: rgba(0, 183, 255, 0.25);
+}
+body[data-theme="dark"] .msfiles {
+  --bg1: #191919;
+  --bg2: #1c1c1c;
+  --dsb-col: #555;
+  --gray1: #444;
+  --gray2: #222;
+  --hover-bg: rgba(136, 136, 136, 0.5);
+  --focus-bg: rgba(228, 228, 228, 0.5);
+}

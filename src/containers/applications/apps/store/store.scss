@@ -1,0 +1,26 @@
+.wnstore {
+  --nav-btn-hov: #ffffff;
+  --page-bg: #f4f4f4;
+  --page-bg: rgb(255 255 255 / 50%);
+  --page-bd-col: #e2e2e2;
+  --rib-bg: #ffffffb8;
+  --rib2-bg: #fdfdfd;
+  --rib2-bg: #ffffff;
+
+  background: var(--fakeMica);
+
+  .win11Scroll {
+    overflow-y: overlay;
+  }
+}
+body[data-theme="dark"] .wnstore {
+  --nav-btn-hov: #454545;
+  --page-bg: rgb(255 255 255 / 3.33%);
+  --page-bd-col: #292828;
+  --rib-bg: #2f2e30b8;
+  --rib2-bg: rgb(255 255 255 / 5%);
+
+  .win11Scroll::-webkit-scrollbar {
+    --scroll: rgb(44 44 44 / 80%);
+  }
+}

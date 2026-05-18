@@ -1,0 +1,1940 @@
+.settingsApp {
+  --bg: #f3f3f3;
+
+  background: var(--fakeMica);
+  color: rgb(var(--txt_clr-rgb));
+  min-width: 720px;
+}
+
+@supports (container-type: inline-size) {
+  .settingsApp {
+    min-width: 360px;
+  }
+}
+
+.settingsApp .restWindow {
+  font-size: 14px;
+  height: 100%;
+
+  container-type: inline-size;
+  container-name: appWrapper;
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  nav {
+    position: absolute;
+    left: 0;
+    width: 300px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    .nav_top {
+      .account {
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 8px;
+        margin: 8px;
+
+        &:hover {
+          background: rgb(var(--txt_clr-rgb) / 3.33%);
+        }
+
+        div p {
+          &:first-child {
+            font-weight: 500;
+          }
+          &:last-child {
+            font-size: smaller;
+          }
+        }
+      }
+
+      .search {
+        background: white;
+        height: 32px;
+        width: calc(300px - 32px);
+        border: 0;
+        border-bottom: 1px solid var(--clrPrm);
+        border-radius: 4px;
+        padding: 8px;
+        margin: 8px 16px 20px;
+        color: var(--dark-txt);
+
+        &:hover {
+          background: rgb(255 255 255 / 33%);
+        }
+        &:focus {
+          border-bottom: 2px solid var(--clrPrm);
+        }
+        &:focus-visible {
+          outline: none;
+        }
+
+        &::placeholder {
+          color: rgb(var(--txt_clr-rgb) / 66%);
+        }
+      }
+    }
+
+    .nav_bottom {
+      display: flex;
+      flex-direction: column;
+      overflow: overlay;
+      position: relative;
+
+      .navLink {
+        position: relative;
+        overflow: hidden;
+        height: 36px;
+        padding-left: 7px;
+        margin: 2px 16px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+
+        &:hover,
+        &.selected {
+          background: rgb(var(--txt_clr-rgb) / 5%);
+        }
+
+        img {
+          margin: 0 10.5px 0 7px;
+        }
+      }
+
+      .marker {
+        position: absolute;
+        background: var(--clrPrm);
+        height: 16px;
+        width: 3px;
+        border-radius: 3px;
+        top: 0;
+        left: 16px;
+        transform: translateY(12px);
+        transition: transform 250ms cubic-bezier(1, 0, 0, 1);
+      }
+
+      @for $i from 1 to 12 {
+        .navLink:nth-child(#{$i}).selected ~ .marker {
+          transform: translateY(((40 * ($i - 1)) + 12) + px);
+        }
+      }
+    }
+  }
+
+  main {
+    position: relative;
+    margin-left: 300px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+
+    .sysTop {
+      width: min(100%, 1000px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      padding: 8px 0 14px;
+      gap: 8px;
+
+      .left {
+        display: flex;
+        align-items: center;
+
+        .device_img {
+          height: 70px;
+          border: 4px solid black;
+          border-radius: 4px;
+        }
+        .column_device {
+          margin-left: 16px;
+
+          .device_name {
+            font-size: 18px;
+            font-weight: 500;
+          }
+          .device_model {
+            color: rgb(var(--txt_clr-rgb) / 90%);
+          }
+          .device_rename {
+            color: var(--clrPrm);
+          }
+        }
+      }
+
+      .right {
+        display: flex;
+
+        .column {
+          display: flex;
+          align-items: center;
+          border-radius: 4px;
+          padding: 8px;
+          &:hover {
+            background: rgb(var(--txt_clr-rgb) / 5%);
+          }
+
+          p {
+            font-weight: 500;
+            padding: 0 12px;
+
+            .column_lower {
+              color: rgb(var(--txt_clr-rgb) / 60%);
+              font-size: 13px;
+              font-weight: 400;
+            }
+          }
+        }
+      }
+    }
+
+    .netTop {
+      width: min(100%, 1000px);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 1rem;
+
+      div:first-child {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .box {
+        display: flex;
+        padding: 8px;
+        gap: 10px;
+        align-items: center;
+        border-radius: 4px;
+
+        .settingsIcon {
+          margin: 0;
+        }
+
+        &:hover {
+          background: rgb(var(--txt_clr-rgb) / 5%);
+        }
+
+        h3 {
+          font-weight: 500;
+          font-size: 14px;
+        }
+        p {
+          font-size: 12px;
+          color: rgb(var(--txt_clr-rgb) / 67%);
+        }
+      }
+    }
+
+    .personaliseTop {
+      display: flex;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      gap: 12px;
+
+      .mainImg {
+        height: 200px;
+        border: 8px solid black;
+        border-radius: 1rem;
+        margin-right: 32px;
+      }
+
+      div {
+        h3 {
+          font-size: 14px;
+          font-weight: 500;
+          padding-bottom: 8px;
+        }
+        .bgBox {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          grid-template-rows: repeat(2, 1fr);
+          gap: 8px;
+
+          img {
+            width: 120px;
+            border-radius: 4px;
+          }
+
+          .selected {
+            box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--clrPrm);
+            border-radius: 2px;
+          }
+        }
+      }
+    }
+
+    .accountsTop {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin: 1rem 0;
+
+      div p {
+        &:first-child {
+          font-size: 16px;
+        }
+        &:nth-child(2),
+        &:last-child {
+          color: rgb(var(--txt_clr-rgb) / 67%);
+        }
+      }
+    }
+
+    .userAdminPanel {
+      width: min(100%, 1000px);
+      margin: 0 24px 20px;
+
+      h2 {
+        font-size: 20px;
+        font-weight: 600;
+      }
+
+      p {
+        color: rgb(var(--txt_clr-rgb) / 70%);
+        font-size: 13px;
+      }
+    }
+
+    .userAdminTopBar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .userAdminHero {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 18px;
+      margin-bottom: 16px;
+
+      p {
+        max-width: 620px;
+      }
+    }
+
+    .userAdminStats {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+
+      span {
+        display: inline-flex;
+        min-height: 28px;
+        align-items: center;
+        padding: 0 10px;
+        border: 1px solid rgb(0 0 0 / 10%);
+        border-radius: 4px;
+        background: rgb(255 255 255 / 58%);
+        color: rgb(var(--txt_clr-rgb) / 72%);
+        font-size: 12px;
+      }
+    }
+
+    .userAddRow {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      min-height: 68px;
+      margin-bottom: 10px;
+      padding: 14px 16px;
+      background: rgb(255 255 255 / 72%);
+      border: 1px solid rgb(0 0 0 / 10%);
+      border-radius: 4px;
+    }
+
+    .userAddInfo,
+    .userAddActions,
+    .userFormHeader,
+    .secondaryBtn,
+    .userCreateCard > button,
+    .userEditCard > button {
+      display: flex;
+      align-items: center;
+    }
+
+    .userAddInfo {
+      gap: 14px;
+
+      .uicon {
+        color: var(--clrPrm);
+      }
+
+      strong,
+      span {
+        display: block;
+      }
+
+      span {
+        color: rgb(var(--txt_clr-rgb) / 62%);
+        font-size: 12px;
+        margin-top: 2px;
+      }
+    }
+
+    .userAddActions {
+      gap: 8px;
+      flex-shrink: 0;
+
+      button {
+        min-height: 32px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgb(0 0 0 / 12%);
+        border-radius: 4px;
+        padding: 0 12px;
+        color: rgb(var(--txt_clr-rgb));
+        background: rgb(255 255 255 / 82%);
+
+        &.selected {
+          background: var(--clrPrm);
+          border-color: var(--clrPrm);
+          color: var(--alt-txt);
+        }
+      }
+    }
+
+    .userAdminGrid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+    }
+
+    .userAdminCard {
+      padding: 16px;
+      background: rgb(255 255 255 / 72%);
+      border: 1px solid rgb(0 0 0 / 10%);
+      border-radius: 4px;
+
+      h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 12px;
+      }
+
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 12px;
+        color: rgb(var(--txt_clr-rgb) / 82%);
+      }
+    }
+
+    .userCreateCard {
+      margin-bottom: 10px;
+    }
+
+    .userFormHeader {
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 12px;
+
+      h3 {
+        margin-bottom: 4px;
+      }
+    }
+
+    .userDialogLayer {
+      position: absolute;
+      inset: 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 36px;
+      background: rgb(243 243 243 / 54%);
+      backdrop-filter: blur(1.5px);
+    }
+
+    .userDialogWindow {
+      width: min(654px, 100%);
+      max-height: min(760px, calc(100% - 24px));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #fff;
+      border: 1px solid rgb(0 0 0 / 22%);
+      border-radius: 0;
+      box-shadow: 0 24px 52px rgb(0 0 0 / 22%);
+      color: #111;
+
+      h3 {
+        margin-bottom: 18px;
+        font-size: 23px;
+        font-weight: 400;
+      }
+
+      p {
+        color: #111;
+        font-size: 14px;
+      }
+
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 12px;
+        color: #111;
+      }
+
+      &.userCreateCard input,
+      &.userCreateCard select,
+      &.userEditCard input,
+      &.userEditCard select {
+        height: 32px;
+        width: min(384px, 100%);
+        border: 2px solid rgb(0 0 0 / 35%);
+        border-radius: 0;
+        background: #fff;
+        color: #111;
+        padding: 0 10px;
+
+        &:focus {
+          border-color: #0078d4;
+          outline: none;
+        }
+      }
+
+      .toggleRow input {
+        width: 18px !important;
+        height: 18px !important;
+      }
+
+      .formHint {
+        margin: -4px 0 12px;
+        color: rgb(0 0 0 / 62%) !important;
+        font-size: 12px;
+        line-height: 1.35;
+
+        &.usernameStatus {
+          margin-top: -8px;
+          font-weight: 600;
+
+          &.isOk {
+            color: #107c10 !important;
+          }
+
+          &.isChecking {
+            color: #005a9e !important;
+          }
+
+          &.isError {
+            color: #c42b1c !important;
+          }
+        }
+      }
+    }
+
+    .userDialogWindow.userCreateCard {
+      margin-bottom: 0;
+    }
+
+    .userDialogTitleBar {
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgb(0 0 0 / 10%);
+      background: #f3f3f3;
+      padding-left: 12px;
+      color: #111;
+      font-size: 12px;
+
+      button {
+        width: 42px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        background: transparent;
+        color: #111;
+
+        &:hover {
+          background: #e81123;
+          color: #fff;
+        }
+      }
+    }
+
+    .userDialogBody {
+      overflow-y: auto;
+      padding: 42px 36px 24px;
+    }
+
+    .userDialogMessage {
+      margin: 0 0 14px;
+      color: #005a9e !important;
+      font-weight: 500;
+    }
+
+    .userDialogActions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 16px 36px 34px;
+
+      button {
+        min-width: 120px;
+        min-height: 32px;
+        border-radius: 0;
+        padding: 0 18px;
+        border: 1px solid transparent;
+      }
+    }
+
+    .primaryDialogBtn {
+      background: #0078d4;
+      color: #fff;
+
+      &:disabled {
+        opacity: 0.6;
+      }
+    }
+
+    .secondaryDialogBtn {
+      background: #ccc;
+      color: #111;
+    }
+
+    .appDialogLayer {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      overflow: hidden;
+      background: rgb(243 243 243 / 32%);
+      backdrop-filter: blur(1px);
+    }
+
+    .appDialogWindow {
+      position: absolute;
+      min-width: 360px;
+      min-height: 360px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: 6px;
+      background: #fff;
+      color: #111;
+
+      &.maximized {
+        border-radius: 0;
+      }
+    }
+
+    .appDialogTitleBar {
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      background: #f3f3f3;
+      border-bottom: 1px solid rgb(0 0 0 / 8%);
+      cursor: move;
+      user-select: none;
+    }
+
+    .appDialogTitle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding-left: 12px;
+      font-size: 12px;
+
+      span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    .appDialogControls {
+      display: flex;
+      align-items: stretch;
+      align-self: stretch;
+
+      button {
+        width: 46px;
+        min-height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: #111;
+
+        &:hover {
+          background: rgb(0 0 0 / 8%);
+        }
+
+        &.closeBtn:hover {
+          background: #e81123;
+          color: #fff;
+        }
+      }
+    }
+
+    .appDialogContent {
+      flex: 1;
+      overflow-y: auto;
+      padding: 36px 36px 20px;
+
+      h3 {
+        margin-bottom: 16px;
+        font-size: 23px;
+        font-weight: 400;
+      }
+
+      p {
+        color: #111;
+        font-size: 14px;
+      }
+    }
+
+    .appDialogActions {
+      display: flex;
+      flex-shrink: 0;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 14px 36px 28px;
+      background: #fff;
+
+      button {
+        min-width: 120px;
+        min-height: 32px;
+        border-radius: 0;
+        padding: 0 18px;
+        border: 1px solid transparent;
+      }
+    }
+
+    .appDialogResize {
+      position: absolute;
+      z-index: 3;
+    }
+
+    .appDialogResize-n,
+    .appDialogResize-s {
+      left: 8px;
+      right: 8px;
+      height: 6px;
+      cursor: n-resize;
+    }
+
+    .appDialogResize-n {
+      top: 0;
+    }
+
+    .appDialogResize-s {
+      bottom: 0;
+    }
+
+    .appDialogResize-e,
+    .appDialogResize-w {
+      top: 8px;
+      bottom: 8px;
+      width: 6px;
+      cursor: w-resize;
+    }
+
+    .appDialogResize-e {
+      right: 0;
+    }
+
+    .appDialogResize-w {
+      left: 0;
+    }
+
+    .appDialogResize-ne,
+    .appDialogResize-nw,
+    .appDialogResize-se,
+    .appDialogResize-sw {
+      width: 10px;
+      height: 10px;
+    }
+
+    .appDialogResize-ne,
+    .appDialogResize-sw {
+      cursor: ne-resize;
+    }
+
+    .appDialogResize-nw,
+    .appDialogResize-se {
+      cursor: nw-resize;
+    }
+
+    .appDialogResize-ne {
+      top: 0;
+      right: 0;
+    }
+
+    .appDialogResize-nw {
+      top: 0;
+      left: 0;
+    }
+
+    .appDialogResize-se {
+      right: 0;
+      bottom: 0;
+    }
+
+    .appDialogResize-sw {
+      left: 0;
+      bottom: 0;
+    }
+
+    .appDialogMinimized {
+      position: absolute;
+      left: 24px;
+      bottom: 18px;
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: calc(100% - 48px);
+      padding: 0 10px;
+      border-radius: 6px;
+      background: #fff;
+      color: #111;
+
+      span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      button {
+        min-height: 28px;
+        border: 1px solid rgb(0 0 0 / 14%);
+        border-radius: 4px;
+        background: rgb(255 255 255 / 88%);
+        padding: 0 10px;
+      }
+    }
+
+    .userDialogForm {
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 12px;
+        color: #111;
+      }
+
+      input,
+      select {
+        height: 32px;
+        width: min(384px, 100%);
+        border: 2px solid rgb(0 0 0 / 35%);
+        border-radius: 0;
+        background: #fff;
+        color: #111;
+        padding: 0 10px;
+
+        &:focus {
+          border-color: #0078d4;
+          outline: none;
+        }
+
+        &:read-only {
+          background: #f5f5f5;
+          color: #333;
+        }
+      }
+
+      .toggleRow input {
+        width: 18px !important;
+        height: 18px !important;
+      }
+
+      .settingsPasswordInputWrapper {
+        position: relative;
+        width: min(384px, 100%);
+
+        input {
+          width: 100%;
+          padding-right: 42px;
+        }
+      }
+
+      .settingsPasswordToggle {
+        position: absolute;
+        top: 0;
+        right: 0;
+        display: grid;
+        width: 38px;
+        height: 32px;
+        place-items: center;
+        border: 0;
+        background: transparent;
+        color: #333;
+        cursor: pointer;
+
+        &:hover {
+          color: #0078d4;
+        }
+      }
+    }
+
+    .turmaDialogGrid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 0.9fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .turmaCode,
+    .turmaCodeLarge,
+    .turmaCodeBadge {
+      font-family: "Consolas", "Courier New", monospace;
+      letter-spacing: 0;
+    }
+
+    .turmaCodeBadge {
+      display: inline-flex;
+      min-width: 104px;
+      min-height: 36px;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgb(0 0 0 / 12%);
+      border-radius: 4px;
+      background: rgb(0 120 212 / 8%);
+      color: #005a9e;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .turmaCodeLarge {
+      display: inline-flex;
+      min-height: 30px;
+      align-items: center;
+      margin-bottom: 14px;
+      padding: 0 10px;
+      border: 1px solid rgb(0 0 0 / 12%);
+      border-radius: 4px;
+      background: rgb(0 120 212 / 8%);
+      color: #005a9e !important;
+      font-weight: 600;
+    }
+
+    .turmaStudentList {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .turmaStudentRow {
+      padding: 10px;
+      border: 1px solid rgb(0 0 0 / 8%);
+      border-radius: 4px;
+      background: rgb(0 0 0 / 3%);
+
+      span {
+        display: block;
+        margin-top: 2px;
+        color: rgb(0 0 0 / 60%);
+        font-size: 12px;
+      }
+    }
+
+    .userCreateCard:not(.userDialogForm),
+    .userEditCard:not(.userDialogForm) {
+      input,
+      select {
+        height: 38px;
+        border: 1px solid rgb(0 0 0 / 14%);
+        background: rgb(255 255 255 / 88%);
+        border-radius: 4px;
+        padding: 0 12px;
+        color: rgb(var(--txt_clr-rgb));
+      }
+    }
+
+    .secondaryBtn,
+    .userCreateCard > button,
+    .userEditCard > button {
+      min-height: 36px;
+      border: 1px solid rgb(0 0 0 / 14%);
+      border-radius: 4px;
+      padding: 0 14px;
+      gap: 8px;
+      transition: background 120ms ease;
+    }
+
+    .secondaryBtn {
+      background: rgb(255 255 255 / 76%);
+      border-color: rgb(0 0 0 / 12%);
+      color: rgb(var(--txt_clr-rgb));
+
+      &:hover {
+        background: rgb(255 255 255 / 92%);
+        border-color: rgb(0 0 0 / 18%);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--clrPrm);
+        outline-offset: 2px;
+      }
+    }
+
+    .primaryBtn {
+      min-height: 36px;
+      border: 1px solid var(--clrPrm);
+      border-radius: 4px;
+      padding: 0 14px;
+      background: var(--clrPrm);
+      color: var(--alt-txt);
+    }
+
+    .userCreateCard > button,
+    .userEditCard > button {
+      background: var(--clrPrm);
+      color: var(--alt-txt);
+      justify-content: center;
+    }
+
+    .iconOnlyBtn {
+      width: 32px;
+      min-height: 32px !important;
+      padding: 0 !important;
+      flex-shrink: 0;
+      background: transparent !important;
+      color: rgb(var(--txt_clr-rgb) / 70%) !important;
+
+      &:hover {
+        background: rgb(var(--txt_clr-rgb) / 8%) !important;
+      }
+    }
+
+    .secondaryBtn:disabled,
+    .userCreateCard > button:disabled,
+    .userEditCard > button:disabled {
+      opacity: 0.55;
+    }
+
+    .userAdminMessage {
+      margin-bottom: 10px;
+      color: var(--clrPrm);
+      font-weight: 500;
+    }
+
+    .userDirectoryCard {
+      min-height: 0;
+    }
+
+    .userDirectoryHeader {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+
+      h3 {
+        margin-bottom: 2px;
+      }
+
+      span {
+        display: block;
+        color: rgb(var(--txt_clr-rgb) / 62%);
+        font-size: 12px;
+      }
+    }
+
+    .userDirectoryToolbar {
+      display: grid;
+      grid-template-columns: minmax(170px, 0.8fr) minmax(220px, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+      padding: 10px;
+      border: 1px solid rgb(0 0 0 / 8%);
+      border-radius: 4px;
+      background: rgb(255 255 255 / 46%);
+
+      label {
+        gap: 5px;
+        margin-bottom: 0;
+        color: rgb(var(--txt_clr-rgb) / 74%);
+        font-size: 12px;
+      }
+
+      input,
+      select {
+        height: 32px;
+        min-width: 0;
+        border: 1px solid rgb(0 0 0 / 12%);
+        border-radius: 4px;
+        background: rgb(255 255 255 / 86%);
+        color: rgb(var(--txt_clr-rgb));
+        padding: 0 10px;
+        color-scheme: light;
+      }
+
+      select option {
+        background: #fff;
+        color: #1f1f1f;
+      }
+
+      input:focus,
+      select:focus {
+        border-color: var(--clrPrm);
+        outline: none;
+        box-shadow: inset 0 -1px 0 var(--clrPrm);
+      }
+    }
+
+    .userDirectoryList {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: clamp(260px, 44vh, 560px);
+      margin-right: -6px;
+      padding-right: 6px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-color: rgb(0 120 212 / 72%) rgb(0 0 0 / 5%);
+      scrollbar-width: thin;
+
+      &::-webkit-scrollbar {
+        width: 10px;
+      }
+
+      &::-webkit-scrollbar-track {
+        border-radius: 999px;
+        background: rgb(0 0 0 / 5%);
+      }
+
+      &::-webkit-scrollbar-thumb {
+        border: 3px solid transparent;
+        border-radius: 999px;
+        background: linear-gradient(180deg, var(--clrPrm), rgb(0 95 184))
+          padding-box;
+      }
+
+      &::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, rgb(32 144 236), rgb(0 95 184))
+          padding-box;
+      }
+
+      > p {
+        padding: 10px 2px;
+      }
+    }
+
+    .directoryRow {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) minmax(132px, auto);
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      min-height: 68px;
+      padding: 10px 12px;
+      text-align: left;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      color: rgb(var(--txt_clr-rgb));
+
+      &:hover,
+      &.selected {
+        background: rgb(255 255 255 / 64%);
+        border-color: rgb(0 0 0 / 9%);
+      }
+
+      &.selected {
+        border-color: var(--clrPrm);
+      }
+
+      .directoryMeta {
+        flex: 1;
+        min-width: 0;
+
+        strong,
+        span {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+
+      .directoryMeta,
+      .directoryStatus {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .directoryStatus {
+        align-items: flex-end;
+      }
+
+      .studentTypeBadge {
+        display: inline-flex;
+        width: fit-content;
+      }
+
+      span {
+        display: block;
+        color: rgb(var(--txt_clr-rgb) / 66%);
+        font-size: 12px;
+      }
+
+      .active {
+        color: #107c10;
+      }
+
+      .inactive {
+        color: #c42b1c;
+      }
+    }
+
+    .editUserHeader {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+
+      span {
+        display: block;
+        font-size: 12px;
+        color: rgb(var(--txt_clr-rgb) / 66%);
+      }
+    }
+
+    .editUserTags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+
+      small {
+        display: inline-flex;
+        min-height: 22px;
+        align-items: center;
+        padding: 0 8px;
+        border-radius: 4px;
+        background: rgb(var(--txt_clr-rgb) / 8%);
+        color: rgb(var(--txt_clr-rgb) / 72%);
+        font-size: 11px;
+      }
+    }
+
+    .studentTypeBadge {
+      display: inline-flex;
+      min-height: 22px;
+      align-items: center;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 2px 9px;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.2;
+
+      &.isNormal {
+        border-color: rgb(0 120 212 / 28%);
+        background: rgb(0 120 212 / 12%);
+        color: #005a9e;
+      }
+
+      &.isKids {
+        border-color: rgb(16 124 16 / 28%);
+        background: rgb(16 124 16 / 12%);
+        color: #0b6a0b;
+      }
+    }
+
+    .studentTypeField {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+      color: rgb(var(--txt_clr-rgb) / 82%);
+    }
+
+    .studentTypeOptions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+
+      label {
+        position: relative;
+        min-height: 62px;
+        margin: 0;
+        padding: 9px 10px;
+        border: 1px solid rgb(0 0 0 / 12%);
+        border-radius: 4px;
+        background: rgb(255 255 255 / 70%);
+        cursor: pointer;
+
+        &.selected {
+          border-color: var(--clrPrm);
+          box-shadow: inset 3px 0 0 var(--clrPrm);
+        }
+      }
+
+      input {
+        position: absolute;
+        width: 1px !important;
+        height: 1px !important;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      strong,
+      small {
+        display: block;
+      }
+
+      small {
+        margin-top: 3px;
+        color: rgb(var(--txt_clr-rgb) / 62%);
+        font-size: 11px;
+        line-height: 1.25;
+      }
+    }
+
+    .toggleRow {
+      flex-direction: row !important;
+      align-items: center;
+      gap: 10px !important;
+
+      input {
+        width: 18px;
+        height: 18px;
+      }
+    }
+
+    .secondaryBtn .uicon,
+    .userAddActions .uicon,
+    .userAddInfo .uicon,
+    .userCreateCard > button .uicon,
+    .userEditCard > button .uicon {
+      pointer-events: none;
+    }
+
+    .langSwitcherTile {
+      &::after {
+        display: none;
+      }
+
+      select {
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid rgb(238, 236, 235);
+        border-bottom: 1px solid rgb(212, 211, 210);
+        color: rgb(var(--txt_clr-rgb));
+        height: 32px;
+        padding-left: 8px;
+        border-radius: 6px;
+      }
+    }
+
+    .updateTop {
+      display: flex;
+      width: min(100%, 1000px);
+      align-items: center;
+      gap: 1rem;
+
+      .btn {
+        background: var(--clrPrm);
+        color: var(--alt-txt);
+        padding: 6px 12px;
+        border-radius: 4px;
+      }
+
+      .left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+
+        div {
+          h2 {
+            font-size: 18px;
+            font-weight: 600;
+          }
+          p {
+            font-size: 14px;
+            color: rgb(var(--txt_clr-rgb) / 67%);
+          }
+        }
+      }
+      .right {
+        flex-shrink: 0;
+        margin-left: auto;
+      }
+    }
+
+    h1 {
+      padding: 14px 24px;
+      font-weight: 500;
+      font-size: 28px;
+    }
+
+    .tilesCont {
+      padding: 0 24px 44px;
+      overflow-y: overlay;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      animation: slideUp 0.2s;
+
+      .settingsIcon {
+        font-size: 20px;
+        margin: 0 21px 0 17.5px;
+        font-family: SettingsIcons;
+      }
+
+      .tile {
+        width: min(100%, 1000px);
+        min-height: 67px;
+        display: flex;
+        align-items: center;
+        background: rgb(255 255 255 / 67%);
+        border-radius: 4px;
+        padding: 7px 42px 7px 0;
+        border: 1px solid rgb(0 0 0 / 10%);
+        position: relative;
+
+        &:hover {
+          background: rgb(255 255 255 / 33%);
+        }
+        &::after {
+          content: ">";
+          transform: scaleY(2);
+          position: absolute;
+          right: 16px;
+        }
+
+        .tile_content {
+          flex-grow: 1;
+        }
+        .tile_desc {
+          color: rgb(var(--txt_clr-rgb) / 66%);
+          font-size: 12.33px;
+        }
+
+        &.interactiveTile {
+          cursor: pointer;
+        }
+
+        &.square {
+          width: 220px;
+          height: 220px;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          padding: 0;
+          font-weight: 500;
+
+          .settingsIcon {
+            font-size: 48px;
+          }
+        }
+
+        &.thin-blue {
+          min-height: unset;
+          height: unset;
+          color: var(--clrPrm);
+          justify-content: center;
+          margin: 4px 0;
+        }
+
+        &.thin-blue::after,
+        &.square::after {
+          display: none;
+        }
+      }
+
+      .subHeading {
+        font-weight: 500;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+      }
+
+      .spacer {
+        padding: 8px;
+      }
+    }
+  }
+
+  .navMenuBtn {
+    display: none;
+  }
+
+  @container appWrapper (max-width: 800px) {
+    .userAdminGrid,
+    .userAddRow,
+    .directoryRow,
+    .userAdminTopBar {
+      grid-template-columns: 1fr;
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .userAdminHero,
+    .userAddActions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .userAdminStats {
+      justify-content: flex-start;
+    }
+
+    .userDirectoryToolbar {
+      grid-template-columns: 1fr;
+    }
+
+    .directoryRow .directoryStatus {
+      align-items: flex-start;
+    }
+
+    .studentTypeOptions {
+      grid-template-columns: 1fr;
+    }
+
+    .appDialogWindow {
+      min-width: 320px;
+    }
+
+    .appDialogContent {
+      padding: 28px 20px 18px;
+    }
+
+    .appDialogActions {
+      padding: 12px 20px 24px;
+      flex-direction: column;
+
+      button {
+        width: 100%;
+      }
+    }
+
+    .turmaDialogGrid {
+      grid-template-columns: 1fr;
+    }
+
+    .userDialogLayer {
+      padding: 12px;
+    }
+
+    .userDialogWindow {
+      max-height: calc(100% - 12px);
+    }
+
+    .userDialogBody {
+      padding: 28px 20px 18px;
+    }
+
+    .userDialogActions {
+      padding: 12px 20px 24px;
+      flex-direction: column;
+
+      button {
+        width: 100%;
+      }
+    }
+
+    .navMenuBtn {
+      display: flex;
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 12px;
+      border-radius: 6px;
+
+      &:hover {
+        background: rgb(var(--txt_clr-rgb) / 5%);
+      }
+
+      svg {
+        transition: all 0.1s;
+      }
+      &:active svg {
+        transform: scaleX(0.67);
+      }
+    }
+
+    main {
+      margin-left: 0;
+    }
+    nav {
+      background: var(--bg);
+      z-index: 999;
+      transform: translateX(-100%);
+      transition: all 0.2s cubic-bezier(0, 0, 0, 1);
+
+      &.open {
+        transform: translateX(0);
+      }
+    }
+  }
+}
+body[data-theme="dark"] .settingsApp {
+  --bg: #202020;
+
+  .restWindow {
+    nav .nav_top .search {
+      background: rgb(255 255 255 / 3.33%);
+
+      &:hover {
+        background: rgb(255 255 255 / 5%);
+      }
+    }
+
+    main .tilesCont .tile {
+      background: rgb(255 255 255 / 5%);
+
+      &:hover {
+        background: rgb(255 255 255 / 10%);
+      }
+      select {
+        background: rgb(255 255 255 / 7%);
+        border: 1px solid rgba(238, 236, 235, 0.071);
+        border-bottom: 1px solid rgba(212, 211, 210, 0.051);
+
+        option {
+          background: var(--bg);
+        }
+      }
+    }
+
+    main .turmaRow {
+      background: rgb(255 255 255 / 6%);
+      border-color: rgb(255 255 255 / 8%);
+
+      &:hover {
+        background: rgb(255 255 255 / 10%);
+      }
+    }
+
+    main .userAdminCard {
+      background: rgb(255 255 255 / 6%);
+      border-color: rgb(255 255 255 / 8%);
+    }
+
+    main .userDirectoryToolbar {
+      background: rgb(255 255 255 / 4%);
+      border-color: rgb(255 255 255 / 8%);
+    }
+
+    main .userDirectoryToolbar input,
+    main .userDirectoryToolbar select {
+      background: rgb(255 255 255 / 7%);
+      border-color: rgb(255 255 255 / 12%);
+      color: #fff;
+      color-scheme: dark;
+    }
+
+    main .userDirectoryToolbar select option {
+      background: #202020;
+      color: #fff;
+    }
+
+    main .userDirectoryToolbar input::placeholder {
+      color: rgb(255 255 255 / 52%);
+    }
+
+    main .secondaryBtn {
+      background: rgb(255 255 255 / 7%);
+      border-color: rgb(255 255 255 / 12%);
+      color: #fff;
+
+      &:hover {
+        background: rgb(255 255 255 / 12%);
+        border-color: rgb(255 255 255 / 18%);
+      }
+
+      &:disabled {
+        color: rgb(255 255 255 / 56%);
+      }
+    }
+
+    main .userDirectoryList {
+      scrollbar-color: rgb(76 194 255 / 70%) rgb(255 255 255 / 6%);
+
+      &::-webkit-scrollbar-track {
+        background: rgb(255 255 255 / 6%);
+      }
+    }
+
+    main .userAddRow,
+    main .userAdminStats span,
+    main .userAddActions button,
+    main .directoryRow:hover,
+    main .directoryRow.selected,
+    main .studentTypeOptions label {
+      background: rgb(255 255 255 / 6%);
+      border-color: rgb(255 255 255 / 8%);
+    }
+
+    main .userAddActions button.selected {
+      background: var(--clrPrm);
+      border-color: var(--clrPrm);
+    }
+
+    main .userDialogLayer {
+      background: rgb(32 32 32 / 58%);
+    }
+
+    main .userDialogWindow {
+      background: #202020;
+      border-color: rgb(255 255 255 / 14%);
+      color: #fff;
+
+      p,
+      label {
+        color: #fff;
+      }
+    }
+
+    main .userDialogTitleBar {
+      background: #2b2b2b;
+      border-color: rgb(255 255 255 / 10%);
+      color: #fff;
+
+      button {
+        color: #fff;
+      }
+    }
+
+    main .userDialogWindow.userCreateCard input,
+    main .userDialogWindow.userCreateCard select,
+    main .userDialogWindow.userEditCard input,
+    main .userDialogWindow.userEditCard select {
+      background: #1f1f1f;
+      border-color: rgb(255 255 255 / 34%);
+      color: #fff;
+    }
+
+    main .secondaryDialogBtn {
+      background: #3b3b3b;
+      color: #fff;
+    }
+
+    main .appDialogLayer {
+      background: rgb(32 32 32 / 32%);
+    }
+
+    main .appDialogWindow,
+    main .appDialogMinimized {
+      background: #202020;
+      color: #fff;
+    }
+
+    main .appDialogTitleBar {
+      background: #2b2b2b;
+      border-color: rgb(255 255 255 / 10%);
+    }
+
+    main .appDialogContent p,
+    main .userDialogForm label {
+      color: #fff;
+    }
+
+    main .appDialogActions {
+      background: #202020;
+    }
+
+    main .appDialogControls button {
+      color: #fff;
+
+      &:hover {
+        background: rgb(255 255 255 / 12%);
+      }
+    }
+
+    main .userDialogForm input,
+    main .userDialogForm select {
+      background: #1f1f1f;
+      border-color: rgb(255 255 255 / 34%);
+      color: #fff;
+
+      &:read-only {
+        background: #272727;
+        color: rgb(255 255 255 / 78%);
+      }
+    }
+
+    main .turmaCodeLarge {
+      border-color: rgb(255 255 255 / 12%);
+      background: rgb(76 194 255 / 12%);
+      color: var(--clrPrm) !important;
+    }
+
+    main .turmaCodeBadge {
+      border-color: rgb(255 255 255 / 12%);
+      background: rgb(76 194 255 / 12%);
+      color: var(--clrPrm);
+    }
+
+    main .turmaStudentRow {
+      background: rgb(255 255 255 / 6%);
+      border-color: rgb(255 255 255 / 8%);
+
+      span {
+        color: rgb(255 255 255 / 62%);
+      }
+    }
+
+    main .userCreateCard:not(.userDialogForm) input,
+    main .userCreateCard:not(.userDialogForm) select,
+    main .userEditCard:not(.userDialogForm) input,
+    main .userEditCard:not(.userDialogForm) select,
+    main .turmaCreateCard:not(.userDialogForm) input,
+    main .turmaEditCard:not(.userDialogForm) input {
+      background: rgb(255 255 255 / 7%);
+      border-color: rgb(255 255 255 / 10%);
+    }
+
+    main .turmaDeleteBtn {
+      border-color: rgb(255 255 255 / 10%);
+    }
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(70px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* --- Estilos do gerenciamento de turmas --- */
+
+.settingsApp .restWindow main {
+  .turmaAdminGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+  }
+
+  .turmaCreateCard:not(.userDialogForm),
+  .turmaEditCard:not(.userDialogForm) {
+    input {
+      height: 38px;
+      border: 1px solid rgb(0 0 0 / 14%);
+      background: rgb(255 255 255 / 88%);
+      border-radius: 10px;
+      padding: 0 12px;
+      color: rgb(var(--txt_clr-rgb));
+    }
+  }
+
+  .turmaList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .turmaRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: rgb(255 255 255 / 62%);
+    border: 1px solid rgb(0 0 0 / 8%);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: border-color 120ms ease, box-shadow 120ms ease;
+
+    &:hover {
+      background: rgb(255 255 255 / 50%);
+    }
+
+    &.selected {
+      border-color: var(--clrPrm);
+      box-shadow: 0 0 0 1px var(--clrPrm);
+    }
+  }
+
+  .turmaRowInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+
+    strong {
+      font-size: 14px;
+    }
+
+    span {
+      display: block;
+      color: rgb(var(--txt_clr-rgb) / 60%);
+      font-size: 12px;
+    }
+  }
+
+  .turmaRowActions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .turmaActive {
+    color: #107c10;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .turmaInactive {
+    color: rgb(var(--txt_clr-rgb) / 50%);
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .turmaDeleteBtn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgb(0 0 0 / 10%);
+    border-radius: 8px;
+    background: transparent;
+    color: rgb(var(--txt_clr-rgb) / 60%);
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 120ms ease, color 120ms ease;
+
+    &:hover {
+      background: #c42b1c;
+      color: #fff;
+      border-color: #c42b1c;
+    }
+  }
+}
+
+@container appWrapper (max-width: 800px) {
+  .settingsApp .restWindow main .turmaAdminGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,1661 @@
+.typingApp {
+  --bg1: #f9f9f9;
+  background: var(--fakeMica);
+  color: var(--dark-txt);
+
+  .restWindow {
+    background: var(--bg1);
+  }
+}
+.typingFeedbackPop {
+  animation: typing-pop 0.9s ease-out both;
+}
+.typingPenaltyShake {
+  animation: typing-shake 0.24s ease-in-out;
+}
+.typingPromptGlow {
+  text-shadow: 0 0 16px rgb(255 204 2 / 22%);
+}
+.typingTextCursor {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 1em;
+  vertical-align: -0.1em;
+  z-index: 20;
+}
+.typingTextCursor::after {
+  animation: typing-cursor-blink 0.85s steps(2, start) infinite;
+  background: #ffcc02;
+  border-radius: 999px;
+  box-shadow: 0 0 14px rgb(255 204 2 / 60%);
+  content: "";
+  height: 1.28em;
+  left: -3px;
+  position: absolute;
+  top: -0.12em;
+  width: 4px;
+}
+.typingLastTyped {
+  transform: scale(1.12);
+}
+.typingResultOverlay {
+  background: radial-gradient(
+      circle at 50% 32%,
+      rgb(255 204 2 / 18%),
+      transparent 28%
+    ),
+    rgb(255 255 255 / 96%);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.typingResultOverlay.isPass {
+  background: radial-gradient(
+      circle at 50% 30%,
+      rgb(34 197 94 / 24%),
+      transparent 30%
+    ),
+    radial-gradient(circle at 18% 80%, rgb(255 204 2 / 16%), transparent 26%),
+    rgb(255 255 255 / 96%);
+}
+.typingResultOverlay.isFail {
+  background: radial-gradient(
+      circle at 50% 30%,
+      rgb(239 68 68 / 24%),
+      transparent 28%
+    ),
+    linear-gradient(135deg, rgb(254 242 242 / 92%), rgb(255 255 255 / 96%));
+}
+.typingResultAtmosphere {
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+.typingResultParticle,
+.typingFailureSpark {
+  animation-delay: var(--delay);
+  animation-fill-mode: both;
+  left: 50%;
+  position: absolute;
+  top: 42%;
+}
+.typingResultParticle {
+  animation-name: typing-confetti-burst;
+  animation-duration: 1.35s;
+  animation-timing-function: cubic-bezier(0.15, 0.85, 0.2, 1);
+  background: linear-gradient(180deg, #22c55e, #ffcc02);
+  border-radius: 999px;
+  box-shadow: 0 0 18px rgb(255 204 2 / 30%);
+  height: 18px;
+  width: 7px;
+}
+.typingFailureSpark {
+  animation-name: typing-failure-spark;
+  animation-duration: 1.1s;
+  animation-timing-function: ease-out;
+  background: #ef4444;
+  border-radius: 999px;
+  box-shadow: 0 0 22px rgb(239 68 68 / 35%);
+  height: 7px;
+  width: 24px;
+}
+.typingResultCard {
+  backdrop-filter: blur(22px);
+  background: rgb(255 255 255 / 90%);
+}
+.typingResultCard.isPass {
+  border-color: rgb(34 197 94 / 35%);
+}
+.typingResultCard.isFail {
+  border-color: rgb(239 68 68 / 35%);
+}
+.typingResultScanline {
+  animation: typing-result-scan 2.6s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 255 255 / 58%),
+    transparent
+  );
+  height: 2px;
+  left: -30%;
+  position: absolute;
+  top: 0;
+  width: 60%;
+}
+.typingResultHalo {
+  animation: typing-result-pulse 1.5s ease-in-out infinite;
+  border-radius: 999px;
+  inset: 0;
+  position: absolute;
+}
+.typingResultHalo.isPass {
+  background: radial-gradient(circle, rgb(34 197 94 / 32%), transparent 68%);
+}
+.typingResultHalo.isFail {
+  background: radial-gradient(circle, rgb(239 68 68 / 34%), transparent 68%);
+}
+.typingResultIcon {
+  box-shadow: 0 22px 44px rgb(15 23 42 / 18%);
+}
+.typingResultIcon.isPass {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+}
+.typingResultIcon.isFail {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff;
+}
+.typingResultRibbon {
+  background: linear-gradient(
+    90deg,
+    rgb(34 197 94 / 12%),
+    rgb(255 204 2 / 20%)
+  );
+  border: 1px solid rgb(34 197 94 / 22%);
+  color: #166534;
+}
+.typingDeficitPill {
+  border: 1px solid;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 18px;
+}
+.typingDeficitPill span {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.typingDeficitPill strong {
+  font-size: 20px;
+  font-weight: 900;
+}
+.typingDeficitPill.isMissing {
+  background: rgb(254 242 242 / 78%);
+  border-color: rgb(239 68 68 / 25%);
+  color: #b91c1c;
+}
+.typingDeficitPill.isOk {
+  background: rgb(240 253 244 / 82%);
+  border-color: rgb(34 197 94 / 24%);
+  color: #15803d;
+}
+.typingResultMetric {
+  border: 1px solid;
+  border-radius: 18px;
+  padding: 22px 18px;
+}
+.typingResultMetric.isHot {
+  animation: typing-result-hot 1.2s ease-in-out infinite;
+  box-shadow: 0 0 0 2px rgb(239 68 68 / 55%);
+}
+.typingRankingScrollArea {
+  --ranking-scroll-accent: #ffcc02;
+  --ranking-scroll-accent-2: #f59e0b;
+  --ranking-scroll-track: rgb(15 23 42 / 7%);
+
+  position: relative;
+}
+.typingLessonsScroll {
+  scrollbar-width: thin;
+  scrollbar-color: #ffcc02 rgb(15 23 42 / 12%);
+}
+.typingLessonsScroll::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+.typingLessonsScroll::-webkit-scrollbar-track {
+  background: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 8%),
+    rgb(15 23 42 / 12%)
+  );
+  border-radius: 999px;
+  margin: 8px 0;
+}
+.typingLessonsScroll::-webkit-scrollbar-thumb {
+  min-height: 36px;
+  background: linear-gradient(180deg, #ffcc02, #f59e0b);
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 25%);
+}
+.typingLessonsScroll::-webkit-scrollbar-corner {
+  background: transparent;
+}
+.typingRankingScrollArea[data-variant="kids"] {
+  --ranking-scroll-accent: #fbbf24;
+  --ranking-scroll-accent-2: #38bdf8;
+  --ranking-scroll-track: rgb(251 191 36 / 12%);
+}
+.typingRankingScrollViewport {
+  max-height: clamp(260px, 52vh, 520px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ranking-scroll-accent) var(--ranking-scroll-track);
+}
+.typingRankingScrollViewport::-webkit-scrollbar {
+  width: 13px;
+  height: 13px;
+}
+.typingRankingScrollViewport::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, rgb(255 255 255 / 14%), transparent),
+    var(--ranking-scroll-track);
+  border-radius: 999px;
+  margin: 10px 0;
+}
+.typingRankingScrollViewport::-webkit-scrollbar-thumb {
+  min-height: 44px;
+  background: linear-gradient(
+    180deg,
+    var(--ranking-scroll-accent),
+    var(--ranking-scroll-accent-2)
+  );
+  border: 4px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 35%);
+}
+.typingRankingScrollViewport::-webkit-scrollbar-thumb:hover {
+  border-width: 3px;
+  background-clip: padding-box;
+}
+.typingRankingScrollViewport::-webkit-scrollbar-corner {
+  background: transparent;
+}
+.typingRankingScrollFade {
+  position: absolute;
+  left: 0;
+  right: 13px;
+  height: 18px;
+  pointer-events: none;
+  z-index: 12;
+}
+.typingRankingScrollFade.isTop {
+  top: 0;
+  background: linear-gradient(180deg, rgb(255 255 255 / 92%), transparent);
+}
+.typingRankingScrollFade.isBottom {
+  bottom: 0;
+  background: linear-gradient(0deg, rgb(255 255 255 / 92%), transparent);
+}
+body[data-theme="dark"] .typingRankingScrollFade.isTop,
+.typingApp[data-theme-lock="dark"] .typingRankingScrollFade.isTop,
+.typingKidsApp[data-theme-lock="dark"] .typingRankingScrollFade.isTop {
+  background: linear-gradient(180deg, rgb(24 24 27 / 95%), transparent);
+}
+body[data-theme="dark"] .typingRankingScrollFade.isBottom,
+.typingApp[data-theme-lock="dark"] .typingRankingScrollFade.isBottom,
+.typingKidsApp[data-theme-lock="dark"] .typingRankingScrollFade.isBottom {
+  background: linear-gradient(0deg, rgb(24 24 27 / 95%), transparent);
+}
+@keyframes typing-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.78);
+  }
+
+  20% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+@keyframes typing-confetti-burst {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(calc(var(--i) * 19deg)) scale(0.3);
+  }
+
+  18% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y)))
+      rotate(calc(var(--i) * 43deg)) scale(1);
+  }
+}
+@keyframes typing-failure-spark {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(calc(var(--i) * 24deg)) scaleX(0.1);
+  }
+
+  22% {
+    opacity: 0.95;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y)))
+      rotate(calc(var(--i) * 24deg)) scaleX(1);
+  }
+}
+@keyframes typing-result-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.88);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+@keyframes typing-result-warning {
+  0%,
+  100% {
+    transform: rotate(0) scale(1);
+  }
+
+  35% {
+    transform: rotate(-5deg) scale(1.04);
+  }
+
+  70% {
+    transform: rotate(5deg) scale(1.04);
+  }
+}
+@keyframes typing-result-hot {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+}
+@keyframes typing-result-scan {
+  0% {
+    left: -60%;
+    opacity: 0;
+  }
+
+  35% {
+    opacity: 0.9;
+  }
+
+  100% {
+    left: 110%;
+    opacity: 0;
+  }
+}
+@keyframes typing-shake {
+  0% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  50% {
+    transform: translateX(5px);
+  }
+
+  75% {
+    transform: translateX(-3px);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+@keyframes typing-cursor-blink {
+  0%,
+  52% {
+    opacity: 1;
+  }
+
+  53%,
+  100% {
+    opacity: 0.25;
+  }
+}
+body[data-theme="dark"] .typingApp {
+  --bg1: #282828;
+}
+// Theme overrides removed to ensure consistency with the global theme system.
+// Standard Tailwind classes and data-theme hooks now handle styling correctly.
+body[data-theme="dark"] .typingResultOverlay,
+.typingApp[data-theme-lock="dark"] .typingResultOverlay {
+  background: radial-gradient(
+      circle at 50% 30%,
+      rgb(255 204 2 / 16%),
+      transparent 30%
+    ),
+    rgb(18 18 18 / 96%);
+}
+body[data-theme="dark"] .typingResultOverlay.isPass,
+.typingApp[data-theme-lock="dark"] .typingResultOverlay.isPass {
+  background: radial-gradient(
+      circle at 50% 30%,
+      rgb(34 197 94 / 20%),
+      transparent 32%
+    ),
+    radial-gradient(circle at 18% 80%, rgb(255 204 2 / 12%), transparent 25%),
+    rgb(18 18 18 / 96%);
+}
+body[data-theme="dark"] .typingResultOverlay.isFail,
+.typingApp[data-theme-lock="dark"] .typingResultOverlay.isFail {
+  background: radial-gradient(
+      circle at 50% 30%,
+      rgb(239 68 68 / 24%),
+      transparent 30%
+    ),
+    rgb(18 18 18 / 96%);
+}
+body[data-theme="dark"] .typingResultCard,
+.typingApp[data-theme-lock="dark"] .typingResultCard {
+  background: rgb(24 24 27 / 88%);
+}
+body[data-theme="dark"] .typingResultRibbon {
+  color: #bbf7d0;
+}
+body[data-theme="dark"] .typingDeficitPill.isMissing {
+  background: rgb(127 29 29 / 24%);
+  color: #fecaca;
+}
+body[data-theme="dark"] .typingDeficitPill.isOk {
+  background: rgb(20 83 45 / 22%);
+  color: #bbf7d0;
+}
+.typingSpaceGame {
+  min-height: calc(100vh - 132px);
+  margin-top: 20px;
+  overflow: hidden;
+}
+.typingSpaceTabs,
+.typingSpaceScoreTabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 22px;
+  border: 1px solid rgb(148 163 184 / 20%);
+  border-radius: 10px;
+  background: rgb(15 23 42 / 76%);
+}
+.typingSpaceTabs button,
+.typingSpaceScoreTabs button,
+.typingSpacePvpHeader button,
+.typingSpaceResult button {
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 900;
+  color: #cbd5e1;
+  background: transparent;
+  transition: 160ms ease;
+}
+.typingSpaceTabs button.active,
+.typingSpaceTabs button:hover,
+.typingSpaceScoreTabs button.active,
+.typingSpaceScoreTabs button:hover,
+.typingSpaceResult button {
+  color: #111827;
+  background: #ffcc02;
+}
+.typingSpacePvpHeader button:disabled {
+  cursor: not-allowed;
+  color: #94a3b8;
+  background: rgb(148 163 184 / 12%);
+}
+.typingSpacePanel,
+.typingSpacePvp,
+.typingSpaceScores {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+.typingSpaceHero,
+.typingSpacePvpHeader {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  overflow: hidden;
+  gap: 28px;
+  padding: 28px;
+  border: 1px solid rgb(148 163 184 / 20%);
+  border-radius: 14px;
+  background: rgb(15 23 42 / 62%);
+  box-shadow: 0 28px 80px rgb(0 0 0 / 24%);
+}
+.typingSpaceHero > *,
+.typingSpacePvpHeader > *,
+.typingSpaceArena > *,
+.typingSpaceDuelPreview > * {
+  position: relative;
+  z-index: 1;
+}
+.typingSpaceEyebrow {
+  margin: 0 0 8px;
+  color: #67e8f9;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+.typingSpaceHero h2,
+.typingSpacePvpHeader h2,
+.typingSpaceScoresHeader h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 32px;
+  font-weight: 950;
+}
+.typingSpaceHero p,
+.typingSpacePvpHeader p {
+  max-width: 680px;
+  margin: 12px 0 0;
+  color: #cbd5e1;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.typingSpaceMissionGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+.typingSpaceMissionCard {
+  min-height: 140px;
+  padding: 24px;
+  text-align: left;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  color: #111827;
+}
+body[data-theme="dark"] .typingSpaceMissionCard,
+.typingApp[data-theme-lock="dark"] .typingSpaceMissionCard {
+  background: #18181b;
+  border-color: #1f2937;
+  color: #f3f4f6;
+}
+.typingSpaceMissionCard:hover {
+  transform: translateY(-2px);
+  border-color: #ffcc02;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+body[data-theme="dark"] .typingSpaceMissionCard:hover,
+.typingApp[data-theme-lock="dark"] .typingSpaceMissionCard:hover {
+  background: #1c1c1f;
+  border-color: #ffcc02;
+}
+.typingSpaceMissionCard span {
+  color: #6b7280;
+}
+body[data-theme="dark"] .typingSpaceMissionCard span,
+.typingApp[data-theme-lock="dark"] .typingSpaceMissionCard span {
+  color: #9ca3af;
+}
+.typingSpaceMissionCard strong {
+  color: inherit;
+  font-size: 20px;
+  font-weight: 800;
+  margin: 12px 0;
+}
+.typingSpaceMissionCard small {
+  color: #9ca3af;
+}
+.typingSpaceArena {
+  position: relative;
+  width: 900px;
+  height: 600px;
+  margin: 0 auto;
+  overflow: hidden;
+  outline: none;
+  border: 1px solid rgb(148 163 184 / 22%);
+  border-radius: 16px;
+  background: linear-gradient(
+    180deg,
+    #050816,
+    #0d1325 40%,
+    #111827 68%,
+    #020617
+  );
+  box-shadow: inset 0 0 90px rgb(14 165 233 / 8%), 0 28px 90px rgb(0 0 0 / 35%);
+}
+.typingSpaceBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.typingSpaceBackdropStars {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.typingSpaceBackdropStars::before,
+.typingSpaceBackdropStars::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background-image: radial-gradient(
+      1px 1px at 8% 12%,
+      rgb(255 255 255 / 85%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 22% 38%,
+      rgb(200 220 255 / 70%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1.5px 1.5px at 38% 65%,
+      rgb(255 255 255 / 90%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 56% 18%,
+      rgb(180 210 255 / 65%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1.5px 1.5px at 70% 42%,
+      rgb(255 255 255 / 75%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 85% 8%,
+      rgb(200 220 255 / 80%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 94% 58%,
+      rgb(255 255 255 / 70%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1.5px 1.5px at 5% 78%,
+      rgb(255 255 255 / 82%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 48% 88%,
+      rgb(180 210 255 / 68%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 62% 72%,
+      rgb(255 255 255 / 72%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1.5px 1.5px at 28% 52%,
+      rgb(255 255 255 / 78%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 76% 95%,
+      rgb(200 220 255 / 75%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 14% 22%,
+      rgb(255 255 255 / 65%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1.5px 1.5px at 52% 35%,
+      rgb(255 255 255 / 85%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 88% 28%,
+      rgb(180 210 255 / 70%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 32% 85%,
+      rgb(255 255 255 / 80%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1.5px 1.5px at 67% 58%,
+      rgb(200 220 255 / 75%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 4% 48%,
+      rgb(255 255 255 / 68%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 45% 5%,
+      rgb(255 255 255 / 72%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 78% 72%,
+      rgb(180 210 255 / 80%) 0%,
+      transparent 100%
+    );
+  animation: typing-space-stars 24s linear infinite;
+}
+.typingSpaceBackdropStars::after {
+  background-image: radial-gradient(
+      1px 1px at 12% 28%,
+      rgb(255 255 255 / 60%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1.5px 1.5px at 35% 8%,
+      rgb(200 220 255 / 75%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 58% 92%,
+      rgb(255 255 255 / 68%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 82% 55%,
+      rgb(180 210 255 / 65%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1.5px 1.5px at 18% 72%,
+      rgb(255 255 255 / 78%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 42% 45%,
+      rgb(200 220 255 / 70%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 68% 15%,
+      rgb(255 255 255 / 72%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 92% 85%,
+      rgb(180 210 255 / 68%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1.5px 1.5px at 25% 5%,
+      rgb(255 255 255 / 80%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 55% 68%,
+      rgb(200 220 255 / 75%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 72% 38%,
+      rgb(255 255 255 / 65%) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1px 1px at 8% 92%,
+      rgb(180 210 255 / 72%) 0%,
+      transparent 100%
+    );
+  animation: typing-space-stars-slow 38s linear infinite;
+  opacity: 0.7;
+}
+@keyframes typing-space-stars {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-100%);
+  }
+}
+@keyframes typing-space-stars-slow {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-120%);
+  }
+}
+.typingSpaceBackdrop::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: radial-gradient(
+      circle at 18% 18%,
+      rgb(255 255 255 / 0.1),
+      transparent 18%
+    ),
+    linear-gradient(180deg, rgb(2 6 23 / 0.12), rgb(2 6 23 / 0.4));
+}
+.typingSpaceBackdropLayer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+}
+.typingSpaceBackdropImage {
+  object-fit: cover;
+  transform: scale(1.04);
+}
+.typingSpaceBackdrop--arena .typingSpaceBackdropImage {
+  opacity: 0.28;
+  transform: none;
+  width: 100%;
+  height: 100%;
+}
+.typingSpaceBackdrop--hero {
+  opacity: 0.78;
+}
+.typingSpaceBackdrop--arena {
+  opacity: 0.96;
+}
+.typingSpaceBackdrop--duel {
+  opacity: 0.9;
+}
+.typingSpaceBottomHud {
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  z-index: 8;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 24px;
+  pointer-events: none;
+}
+.typingSpaceLives {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.typingSpaceLivesDots {
+  display: flex;
+  gap: 5px;
+}
+.typingSpaceLivesDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgb(148 163 184 / 18%);
+  transition: background 200ms ease, box-shadow 200ms ease;
+}
+.typingSpaceLivesDot.active {
+  background: #ef4444;
+  box-shadow: 0 0 8px rgb(239 68 68 / 60%);
+}
+.typingSpaceGauges {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 24px;
+}
+.typingSpaceGauge {
+  position: relative;
+  width: 90px;
+  height: 60px;
+}
+.typingSpaceGaugeSvg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.typingSpaceGaugeInner {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+.typingSpaceGaugeValue {
+  font-size: 18px;
+  font-weight: 950;
+  line-height: 1;
+}
+.typingSpaceGaugeLabel {
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+.typingSpaceComboGauge .typingSpaceGaugeValue {
+  font-size: 18px;
+}
+.typingSpaceField {
+  position: absolute;
+  inset: 0;
+}
+.typingSpaceWord {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  gap: 3px;
+  transform: translateX(-50%);
+  padding: 5px;
+  border: 1px solid rgb(148 163 184 / 20%);
+  border-radius: 10px;
+  background: rgb(15 23 42 / 74%);
+  box-shadow: 0 14px 34px rgb(0 0 0 / 22%);
+  transition: z-index 0ms;
+}
+.typingSpaceWord.isTarget {
+  position: absolute;
+  z-index: 10;
+  border-color: rgb(255 204 2 / 74%);
+  box-shadow: 0 0 28px rgb(255 204 2 / 24%);
+}
+.typingSpaceWord.isShort.isTarget {
+  border-color: rgb(74 222 128 / 74%);
+  box-shadow: 0 0 28px rgb(74 222 128 / 24%);
+}
+.typingSpaceWord.isLong.isTarget {
+  border-color: rgb(239 68 68 / 74%);
+  box-shadow: 0 0 28px rgb(239 68 68 / 24%);
+}
+.typingSpaceWord span {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 34px;
+  border-radius: 7px;
+  color: #dbeafe;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 17px;
+  font-weight: 950;
+  background: linear-gradient(180deg, #1e293b, #0f172a);
+}
+.typingSpaceWord span.isNext {
+  color: #111827;
+  background: #ffcc02;
+}
+.typingSpaceWord.isShort span.isNext {
+  background: #4ade80;
+}
+.typingSpaceWord.isLong span.isNext {
+  background: #ef4444;
+  color: #f8fafc;
+}
+.typingSpaceWord span.isDestroyed {
+  animation: typing-space-letter-out 230ms ease-out forwards;
+}
+.typingSpaceWord span.isImpacting {
+  animation: typing-space-letter-hit 230ms ease-out both;
+}
+.typingSpaceWord span.isImpacting::after {
+  position: absolute;
+  inset: -3px;
+  content: "";
+  border-radius: 7px;
+  border: 1px solid rgb(255 255 255 / 56%);
+  box-shadow: 0 0 0 6px rgb(255 204 2 / 24%), 0 0 18px rgb(255 204 2 / 60%);
+  animation: typing-space-impact-ring 230ms ease-out forwards;
+  pointer-events: none;
+}
+.typingSpaceWord span.isDestroyed,
+.typingSpaceWord span.isImpacting {
+  transform: scale(0.4);
+  opacity: 0;
+}
+.typingSpaceShipPreview {
+  position: relative;
+  width: 220px;
+  height: 120px;
+}
+.typingSpaceShip {
+  position: absolute;
+  bottom: 18px;
+  z-index: 4;
+  width: 112px;
+  height: 92px;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 0 18px rgb(56 189 248 / 36%));
+}
+.typingSpaceShipSprite {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: translateZ(0);
+}
+.typingSpaceShip span {
+  position: absolute;
+  left: 43%;
+  bottom: -18px;
+  width: 14%;
+  height: 34px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fef08a, #f97316, transparent);
+  animation: typing-space-thrust 180ms ease-in-out infinite alternate;
+}
+.typingSpaceShot {
+  position: absolute;
+  z-index: 4;
+  width: 0;
+  height: 0;
+  transform-origin: left center;
+  pointer-events: none;
+}
+.typingSpaceShotCore {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: var(--shot-distance, 120px);
+  height: 3px;
+  transform: translateY(-50%);
+  background: linear-gradient(
+    90deg,
+    rgb(125 211 252 / 0),
+    rgb(200 235 255 / 95%) 30%,
+    #ffffff 70%,
+    rgb(200 235 255 / 95%) 85%,
+    rgb(56 189 248 / 82%) 100%
+  );
+  border-radius: 999px;
+  box-shadow: 0 0 4px 2px rgb(255 255 255 / 98%),
+    0 0 10px 4px rgb(125 211 252 / 88%), 0 0 20px 8px rgb(56 189 248 / 72%),
+    0 0 40px 14px rgb(14 165 233 / 45%);
+  filter: brightness(2.2) saturate(1.6);
+  mix-blend-mode: screen;
+  animation: typing-space-shot-core var(--shot-duration, 140ms)
+    cubic-bezier(0.08, 0.72, 0.18, 1) forwards;
+}
+.typingSpaceShotGlow {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: calc(var(--shot-distance, 120px) * 0.92);
+  height: 14px;
+  content: "";
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: radial-gradient(
+    ellipse,
+    rgb(255 255 255 / 88%) 0 20%,
+    rgb(200 235 255 / 68%) 35%,
+    rgb(125 211 252 / 48%) 60%,
+    transparent 100%
+  );
+  box-shadow: 0 0 12px 4px rgb(255 255 255 / 72%),
+    0 0 28px 10px rgb(125 211 252 / 62%);
+  mix-blend-mode: screen;
+  animation: typing-space-shot-glow var(--shot-duration, 140ms) ease-out
+    forwards;
+}
+.typingSpaceShotCore::before {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  content: "";
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 6px 3px #ffffff, 0 0 14px 6px rgb(200 235 255 / 92%),
+    0 0 24px 10px rgb(125 211 252 / 78%);
+}
+@keyframes typing-space-shot-core {
+  0% {
+    opacity: 1;
+    clip-path: inset(0 100% 0 0);
+  }
+  100% {
+    opacity: 0.08;
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes typing-space-shot-glow {
+  0% {
+    opacity: 1;
+    transform: translateY(-50%) scaleX(0.2) scaleY(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50%) scaleX(1) scaleY(1.4);
+  }
+}
+.typingSpaceComboPop {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 20;
+  pointer-events: none;
+}
+.typingSpaceComboPopInner {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 10px;
+  animation: typing-space-combo-pop 1100ms ease-out forwards;
+}
+.typingSpaceComboPopInner.isReward {
+  background: linear-gradient(135deg, #ffcc02, #ff9500);
+  color: #111827;
+  box-shadow: 0 0 0 2px rgb(255 204 2 / 60%), 0 0 40px rgb(255 153 0 / 40%),
+    0 28px 70px rgb(0 0 0 / 28%);
+}
+.typingSpaceComboPopInner.isWarning {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #ffffff;
+  box-shadow: 0 0 0 2px rgb(239 68 68 / 60%), 0 0 40px rgb(239 68 68 / 40%),
+    0 28px 70px rgb(0 0 0 / 28%);
+}
+.typingSpaceComboPopMessage {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+.typingSpaceComboPopCombo {
+  font-size: 15px;
+  font-weight: 950;
+  line-height: 1;
+  margin-top: 0;
+}
+@keyframes typing-space-combo-pop {
+  0% {
+    transform: translateY(0) scale(0.7);
+    opacity: 0;
+  }
+  12% {
+    transform: translateY(0) scale(1.06);
+    opacity: 1;
+  }
+  22% {
+    transform: translateY(0) scale(1);
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-12px) scale(0.9);
+    opacity: 0;
+  }
+}
+.typingSpaceExplosion {
+  position: absolute;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 950;
+  background: radial-gradient(
+    circle,
+    #ffffff 0 14%,
+    #fffbcb 15% 24%,
+    #ffcc02 25% 42%,
+    rgb(249 115 22 / 0) 72%
+  );
+  animation: typing-space-explosion 180ms ease-out forwards;
+}
+.typingSpaceFeedback {
+  position: absolute;
+  left: 50%;
+  bottom: 126px;
+  z-index: 6;
+  transform: translateX(-50%);
+  padding: 12px 16px;
+  border-radius: 10px;
+  color: #111827;
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+  background: #ffcc02;
+  box-shadow: 0 18px 42px rgb(0 0 0 / 24%);
+  animation: typing-space-feedback 650ms ease-out forwards;
+}
+.typingSpaceFeedback.danger {
+  color: #ffffff;
+  background: #ef4444;
+}
+.typingSpaceResultBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  backdrop-filter: blur(6px);
+  background: rgb(2 6 23 / 72%);
+  animation: typing-space-result-fadein 400ms ease-out;
+}
+.typingSpaceResultBackdrop.won {
+  background: linear-gradient(180deg, rgb(34 197 94 / 18%), rgb(2 6 23 / 82%));
+}
+.typingSpaceResultBackdrop.lost {
+  background: linear-gradient(180deg, rgb(239 68 68 / 18%), rgb(2 6 23 / 82%));
+}
+@keyframes typing-space-result-fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.typingSpaceArena.isFinished .typingSpaceWord {
+  filter: blur(2px);
+  opacity: 0.6;
+}
+.typingSpaceArena.isFinished .typingSpaceWord.isTarget {
+  filter: blur(4px);
+  opacity: 0.4;
+}
+.typingSpaceResult {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 12;
+  width: min(380px, calc(100% - 40px));
+  padding: 32px 28px;
+  text-align: center;
+  border-radius: 20px;
+  background: rgb(15 23 42 / 94%);
+  box-shadow: 0 28px 90px rgb(0 0 0 / 45%), inset 0 1px 0 rgb(255 255 255 / 8%);
+  animation: typing-space-result-enter 480ms cubic-bezier(0.16, 0.78, 0.18, 1)
+    forwards;
+}
+.typingSpaceResult.won {
+  border: 1px solid rgb(34 197 94 / 40%);
+  box-shadow: 0 28px 90px rgb(0 0 0 / 45%), 0 0 60px rgb(34 197 94 / 22%),
+    inset 0 1px 0 rgb(255 255 255 / 8%);
+}
+.typingSpaceResult.lost {
+  border: 1px solid rgb(239 68 68 / 40%);
+  box-shadow: 0 28px 90px rgb(0 0 0 / 45%), 0 0 60px rgb(239 68 68 / 22%),
+    inset 0 1px 0 rgb(255 255 255 / 8%);
+}
+@keyframes typing-space-result-enter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+.typingSpaceResultIcon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 20px;
+}
+.typingSpaceResultIcon svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 8px 24px rgb(0 0 0 / 30%));
+  animation: typing-space-result-icon-bounce 600ms
+    cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes typing-space-result-icon-bounce {
+  0% {
+    transform: scale(0) rotate(-20deg);
+  }
+  60% {
+    transform: scale(1.12) rotate(8deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+.typingSpaceResult span {
+  display: block;
+  color: #67e8f9;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+.typingSpaceResult strong {
+  display: block;
+  margin: 8px 0 24px;
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 950;
+  line-height: 1.2;
+}
+.typingSpaceResult.won strong {
+  color: #4ade80;
+}
+.typingSpaceResult.lost strong {
+  color: #f87171;
+}
+.typingSpaceResultStats {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+.typingSpaceResultStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: rgb(30 41 59 / 40%);
+}
+.typingSpaceResultStatLabel {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.typingSpaceResultStatValue {
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 950;
+  line-height: 1;
+}
+.typingSpaceResultStatValue small {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+.typingSpaceResultStatGap {
+  color: #ef4444;
+  font-size: 10px;
+  font-weight: 800;
+  margin-top: 2px;
+}
+.typingSpaceResult button {
+  width: 100%;
+  padding: 14px 24px;
+  border: 0;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.typingSpaceResult.won button {
+  color: #022c22;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  box-shadow: 0 8px 24px rgb(34 197 94 / 32%);
+}
+.typingSpaceResult.won button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgb(34 197 94 / 42%);
+}
+.typingSpaceResult.lost button {
+  color: #ffffff;
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  box-shadow: 0 8px 24px rgb(239 68 68 / 32%);
+}
+.typingSpaceResult.lost button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgb(239 68 68 / 42%);
+}
+.typingSpaceResult button:active {
+  transform: translateY(0);
+}
+.typingSpaceDuelPreview {
+  position: relative;
+  min-height: 430px;
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid rgb(148 163 184 / 20%);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #020617, #111827 50%, #020617);
+}
+.typingSpaceOpponentShip {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  width: 86px;
+  height: 70px;
+  transform: translateX(-50%) rotate(180deg);
+  clip-path: polygon(
+    50% 0,
+    68% 35%,
+    100% 64%,
+    70% 72%,
+    60% 100%,
+    50% 82%,
+    40% 100%,
+    30% 72%,
+    0 64%,
+    32% 35%
+  );
+  background: linear-gradient(180deg, #fee2e2, #fb7185 46%, #881337);
+  filter: drop-shadow(0 0 18px rgb(251 113 133 / 42%));
+}
+.typingSpaceDuelLines {
+  position: absolute;
+  inset: 120px 40px;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 12px;
+}
+.typingSpaceDuelLines p {
+  overflow: hidden;
+  margin: 0;
+  padding: 18px;
+  border: 1px solid rgb(148 163 184 / 20%);
+  border-radius: 12px;
+  color: #cbd5e1;
+  font-size: 16px;
+  line-height: 1.7;
+  background: rgb(15 23 42 / 70%);
+}
+.typingSpacePvpNotice,
+.typingSpaceEmptyScore {
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid rgb(250 204 21 / 24%);
+  border-radius: 10px;
+  color: #fde68a;
+  font-weight: 800;
+  background: rgb(113 63 18 / 20%);
+}
+.typingSpaceScoresHeader {
+  margin-bottom: 14px;
+}
+.typingSpaceScoreTabs {
+  margin-bottom: 12px;
+}
+.typingSpaceScoreSelect {
+  width: min(100%, 320px);
+  margin-bottom: 16px;
+  border: 1px solid rgb(148 163 184 / 26%);
+  border-radius: 8px;
+  background: rgb(15 23 42 / 72%);
+  color: #e5e7eb;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.typingSpaceScores table {
+  width: 100%;
+  overflow: hidden;
+  border-collapse: collapse;
+  border: 1px solid rgb(148 163 184 / 20%);
+  border-radius: 12px;
+  background: rgb(15 23 42 / 72%);
+}
+.typingSpaceScores th,
+.typingSpaceScores td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgb(148 163 184 / 14%);
+  color: #e2e8f0;
+  text-align: left;
+}
+.typingSpaceScores th {
+  color: #93c5fd;
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+@keyframes typing-space-thrust {
+  from {
+    transform: scaleY(0.7);
+    opacity: 0.75;
+  }
+  to {
+    transform: scaleY(1.15);
+    opacity: 1;
+  }
+}
+@keyframes typing-space-shot-core {
+  0% {
+    transform: translateX(0) scale(0.8);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(var(--shot-distance, 120px)) scale(1.15);
+    opacity: 0.12;
+  }
+}
+@keyframes typing-space-shot-glow {
+  0% {
+    transform: translateY(-50%) scale(0.7);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-50%) scale(1.5);
+    opacity: 0;
+  }
+}
+@keyframes typing-space-explosion {
+  to {
+    transform: translate(-50%, -50%) scale(2.9);
+    opacity: 0;
+  }
+}
+@keyframes typing-space-letter-hit {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  45% {
+    transform: scale(1.12) rotate(-8deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.12) rotate(18deg);
+    opacity: 0;
+  }
+}
+@keyframes typing-space-letter-out {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.18);
+    opacity: 0;
+  }
+}
+@keyframes typing-space-impact-ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+@keyframes typing-space-feedback {
+  to {
+    transform: translate(-50%, -28px);
+    opacity: 0;
+  }
+}
+@media (max-width: 900px) {
+  .typingSpaceGame {
+    padding: 16px;
+  }
+
+  .typingSpaceHero,
+  .typingSpacePvpHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .typingSpaceMissionGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .typingSpaceHud {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .typingSpaceHud button {
+    min-height: 40px;
+  }
+}
+
+.typingLessonResultStats {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.typingLessonResultStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: rgb(241 245 249 / 50%);
+}
+
+[data-theme="dark"] .typingLessonResultStat {
+  background: rgb(30 41 59 / 40%);
+}
+
+.typingLessonResultStatLabel {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.typingLessonResultStatValue {
+  font-size: 28px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.typingLessonResultStatValue small {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.typingLessonResultStatGap {
+  color: #ef4444;
+  font-size: 10px;
+  font-weight: 800;
+  margin-top: 2px;
+}

@@ -1,0 +1,48 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgres://simulador:${POSTGRES_PASSWORD:-simulador}@postgres:5432/${POSTGRES_DB:-simulador_educacional}
+      PERSISTENT_DATA_DIR: /app/data
+      SESSION_DAYS: ${SESSION_DAYS:-7}
+      SEED_ADMIN_ENABLED: ${SEED_ADMIN_ENABLED:-true}
+      SEED_ADMIN_USERNAME: ${SEED_ADMIN_USERNAME:-Admin}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-Admin}
+      SEED_ADMIN_DISPLAY_NAME: ${SEED_ADMIN_DISPLAY_NAME:-Admin}
+      DB_RETRY_ATTEMPTS: ${DB_RETRY_ATTEMPTS:-20}
+      DB_RETRY_DELAY_MS: ${DB_RETRY_DELAY_MS:-3000}
+    ports:
+      - "${APP_PORT:-3001}:3001"
+    volumes:
+      - app_data:/app/data
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-simulador_educacional}
+      POSTGRES_USER: ${POSTGRES_USER:-simulador}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-simulador}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-simulador} -d ${POSTGRES_DB:-simulador_educacional}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  app_data:
+  postgres_data:

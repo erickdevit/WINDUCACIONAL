@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Avaliação">
+  <defs>
+    <linearGradient id="exam-blue" x1="8" x2="56" y1="7" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#35a7ff"/>
+      <stop offset="1" stop-color="#005fb8"/>
+    </linearGradient>
+    <linearGradient id="exam-paper" x1="18" x2="48" y1="12" y2="54" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eaf4ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#exam-blue)"/>
+  <path d="M18 14h24l8 8v28a5 5 0 0 1-5 5H18a5 5 0 0 1-5-5V19a5 5 0 0 1 5-5z" fill="url(#exam-paper)"/>
+  <path d="M42 14v7a3 3 0 0 0 3 3h5" fill="#cfe8ff"/>
+  <path d="M24 29h17M24 38h17M24 47h10" stroke="#2774b8" stroke-width="3" stroke-linecap="round"/>
+  <path d="m19 28 2 2 4-5M19 37l2 2 4-5M19 46l2 2 4-5" fill="none" stroke="#15a36d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="48" cy="48" r="10" fill="#18233a"/>
+  <path d="M48 42v7l4 2" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

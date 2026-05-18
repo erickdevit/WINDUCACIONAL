@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#89b4fa"/>
+      <stop offset="100%" stop-color="#74c7ec"/>
+    </linearGradient>
+    <linearGradient id="bg2" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#cba6f7"/>
+      <stop offset="100%" stop-color="#f38ba8"/>
+    </linearGradient>
+  </defs>
+  <!-- Balão principal -->
+  <rect x="4" y="8" width="44" height="32" rx="10" fill="url(#bg)"/>
+  <path d="M8 40 L4 52 L18 44" fill="url(#bg)"/>
+  <!-- Balão secundário -->
+  <rect x="20" y="26" width="40" height="28" rx="9" fill="url(#bg2)"/>
+  <path d="M24 54 L60 54 L56 62" fill="url(#bg2)"/>
+  <!-- Pontos conversa balão principal -->
+  <circle cx="16" cy="24" r="3" fill="white" opacity="0.85"/>
+  <circle cx="26" cy="24" r="3" fill="white" opacity="0.85"/>
+  <circle cx="36" cy="24" r="3" fill="white" opacity="0.85"/>
+  <!-- Pontos conversa balão secundário -->
+  <circle cx="32" cy="40" r="2.5" fill="white" opacity="0.85"/>
+  <circle cx="40" cy="40" r="2.5" fill="white" opacity="0.85"/>
+  <circle cx="48" cy="40" r="2.5" fill="white" opacity="0.85"/>
+</svg>

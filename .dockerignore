@@ -1,0 +1,12 @@
+node_modules
+build
+data
+.git
+.github
+.codex
+.agents
+docker-compose.yml
+docker-compose.prod.yml
+compose.dev.yml
+npm-debug.log*
+yarn-error.log*
