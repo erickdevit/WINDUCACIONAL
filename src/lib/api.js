@@ -336,6 +336,8 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   getExamSubmissions: (id) => request(`/api/exams/${id}/submissions`),
+  getSubmissionDetails: (examId, submissionId) =>
+    request(`/api/exams/${examId}/submissions/${submissionId}`),
   getExamAnalytics: () => request("/api/exams/analytics"),
   getExamApplications: () => request("/api/exams/applications"),
   deleteExamApplication: (id, payload = {}) =>

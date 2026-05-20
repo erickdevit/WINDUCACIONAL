@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { api } from "../../../../../lib/api";
 import { Icon } from "../../../../../utils/general";
+import { ExamReceipt } from "./ExamReceipt";
 
 export const StudentHistory = () => {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedSubmission, setSelectedSubmission] = useState(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -22,6 +24,16 @@ export const StudentHistory = () => {
     loadData();
   }, []);
 
+  if (selectedSubmission) {
+    return (
+      <ExamReceipt
+        examId={selectedSubmission.examId}
+        submissionId={selectedSubmission.id}
+        onBack={() => setSelectedSubmission(null)}
+      />
+    );
+  }
+
   return (
     <div className="animate-fade-in">
       <h2 className="text-2xl font-bold mb-6">Provas Realizadas</h2>
@@ -37,7 +49,12 @@ export const StudentHistory = () => {
           </thead>
           <tbody className="divide-y">
             {submissions.map(sub => (
-              <tr key={sub.id} className="hover:bg-gray-50 transition">
+              <tr
+                key={sub.id}
+                className="hover:bg-gray-50 transition cursor-pointer"
+                onClick={() => sub.status === "completed" && setSelectedSubmission(sub)}
+                title={sub.status === "completed" ? "Clique para ver o comprovante" : ""}
+              >
                 <td className="p-4">
                   <div className="font-bold text-blue-700">{sub.examTitle}</div>
                   <div className="text-[10px] text-gray-400 font-mono">{sub.id.slice(0, 8)}</div>

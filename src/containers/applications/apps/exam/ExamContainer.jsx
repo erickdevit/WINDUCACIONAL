@@ -9,7 +9,7 @@ import * as Applications from "../../../applications";
 import { FileDialog } from "../../../applications/apps/FileDialog";
 import { getGlobalShortcutAction } from "../../../../lib/keyboardShortcuts";
 
-export const ExamContainer = ({ initialState, onFinish, instructions, finishSignal = 0 }) => {
+export const ExamContainer = ({ initialState, onFinish, instructions, finishSignal = 0, onFinishClick }) => {
   const handledFinishSignal = useRef(0);
   // Criar uma store isolada para este container
   const isolatedStore = useMemo(() => {
@@ -51,6 +51,15 @@ export const ExamContainer = ({ initialState, onFinish, instructions, finishSign
     }
   }, [finishSignal, isolatedStore, onFinish]);
 
+  const handleFinishClick = () => {
+    if (onFinishClick) {
+      // O pai gerencia a confirmação; passa uma função que dispara o finish
+      onFinishClick(() => onFinish(isolatedStore.getState()));
+    } else {
+      onFinish(isolatedStore.getState());
+    }
+  };
+
   return (
     <div className="exam-container-root flex h-full w-full overflow-hidden bg-gray-900 fixed inset-0 z-[9999]">
 
@@ -59,7 +68,7 @@ export const ExamContainer = ({ initialState, onFinish, instructions, finishSign
         <div className="p-4 bg-blue-700 text-white font-bold flex justify-between items-center">
           <span>PARTE PRÁTICA</span>
           <button 
-            onClick={() => onFinish(isolatedStore.getState())}
+            onClick={handleFinishClick}
             className="px-3 py-1 bg-green-500 hover:bg-green-600 rounded text-xs transition"
           >
             Finalizar Prova

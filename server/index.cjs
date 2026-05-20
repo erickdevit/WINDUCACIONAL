@@ -1778,17 +1778,25 @@ app.get("/api/exams", requireAuth, async (req, res, next) => {
       result = await pool.query(
         "SELECT * FROM exams ORDER BY created_at DESC"
       );
+      res.json({ exams: result.rows.map(publicExam) });
     } else {
       result = await pool.query(
-        `SELECT e.* 
+        `SELECT e.*, s.status AS submission_status
          FROM exams e
          JOIN exam_assignments ea ON e.id = ea.exam_id
-         WHERE ea.user_id = $1 AND e.active = TRUE AND e.is_published = TRUE 
+         LEFT JOIN exam_submissions s
+           ON s.exam_id = e.id AND s.user_id = ea.user_id
+         WHERE ea.user_id = $1 AND e.active = TRUE AND e.is_published = TRUE
          ORDER BY e.created_at DESC`,
         [req.user.id]
       );
+      res.json({
+        exams: result.rows.map((row) => ({
+          ...publicExam(row),
+          submissionStatus: row.submission_status || "pending",
+        })),
+      });
     }
-    res.json({ exams: result.rows.map(publicExam) });
   } catch (error) {
     next(error);
   }
@@ -2575,6 +2583,73 @@ app.get(
         [req.params.id]
       );
       res.json({ submissions: result.rows.map(publicExamSubmission) });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.get(
+  "/api/exams/:examId/submissions/:submissionId",
+  requireAuth,
+  async (req, res, next) => {
+    try {
+      const { examId, submissionId } = req.params;
+      const subRes = await pool.query(
+        `SELECT s.*, u.username, u.display_name, u.turma_id,
+                e.title AS exam_title, e.description AS exam_description,
+                e.time_limit AS exam_time_limit,
+                t.nome AS turma_name, t.code AS turma_code
+         FROM exam_submissions s
+         JOIN users u ON u.id = s.user_id
+         JOIN exams e ON e.id = s.exam_id
+         LEFT JOIN turmas t ON t.id = u.turma_id
+         WHERE s.id = $1 AND s.exam_id = $2`,
+        [submissionId, examId]
+      );
+      if (subRes.rowCount === 0) {
+        return res.status(404).json({ error: "Submissão não encontrada." });
+      }
+      const sub = subRes.rows[0];
+
+      // Aluno só pode ver a própria submissão
+      if (req.user.role !== "professor" && sub.user_id !== req.user.id) {
+        return res.status(403).json({ error: "Acesso negado." });
+      }
+
+      const answersRes = await pool.query(
+        `SELECT a.*, q.type, q.text, q.options, q.correct_answer, q.points, q.order_index
+         FROM exam_answers a
+         JOIN exam_questions q ON q.id = a.question_id
+         WHERE a.submission_id = $1
+         ORDER BY q.order_index ASC`,
+        [submissionId]
+      );
+
+      const isProfessor = req.user.role === "professor";
+      const answers = answersRes.rows.map((a) => ({
+        questionId: a.question_id,
+        type: a.type,
+        text: a.text,
+        options: a.options,
+        correctAnswer: isProfessor ? a.correct_answer : undefined,
+        answerText: a.answer_text,
+        isCorrect: a.is_correct,
+        pointsAwarded: Number(a.points_awarded || 0),
+        pointsTotal: Number(a.points || 0),
+      }));
+
+      res.json({
+        submission: {
+          ...publicExamSubmission(sub),
+          examTitle: sub.exam_title,
+          examDescription: sub.exam_description,
+          examTimeLimit: Number(sub.exam_time_limit || 0),
+          turmaName: sub.turma_name || "",
+          turmaCode: sub.turma_code || "",
+        },
+        answers,
+      });
     } catch (error) {
       next(error);
     }
