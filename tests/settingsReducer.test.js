@@ -53,4 +53,31 @@ describe("settingsReducer", () => {
       color: "green",
     });
   });
+
+  it("limpa a identidade local no logout", () => {
+    const sessionState = settingsReducer(undefined, {
+      type: "SESSIONUSER",
+      payload: {
+        id: "professor-1",
+        displayName: "Professor Teste",
+        username: "professor",
+        role: "professor",
+        studentType: "normal",
+        turmaId: null,
+      },
+    });
+
+    const nextState = settingsReducer(sessionState, { type: "LOGOUT" });
+
+    expect(nextState.person).toMatchObject({
+      name: "Usuário",
+      username: "",
+      role: "aluno",
+      studentType: "normal",
+      turmaId: null,
+      theme: "light",
+      color: "blue",
+    });
+    expect(nextState.person.id).toBeUndefined();
+  });
 });

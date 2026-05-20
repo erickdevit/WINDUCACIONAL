@@ -25,7 +25,21 @@ defState.hz = 2;
 
 const appReducer = (state = defState, action) => {
   var tmpState = { ...state };
-  if (action.type == "EDGELINK") {
+  if (action.type === "LOGOUT") {
+    var keys = Object.keys(tmpState);
+    for (var i = 0; i < keys.length; i++) {
+      if (keys[i] === "hz") continue;
+      tmpState[keys[i]] = {
+        ...tmpState[keys[i]],
+        hide: true,
+        max: null,
+        z: 0,
+        payload: null
+      };
+    }
+    tmpState.hz = 2;
+    return tmpState;
+  } else if (action.type == "EDGELINK") {
     var obj = { ...tmpState["edge"] };
     if (action.payload && action.payload.startsWith("http")) {
       obj.url = action.payload;

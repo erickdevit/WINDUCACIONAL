@@ -40,7 +40,7 @@ export const ExamApp = () => {
 
   useEffect(() => {
     if (!wnapp.hide) loadInitialData();
-  }, [wnapp.hide]);
+  }, [wnapp.hide, user.id, user.role]);
 
   const loadInitialData = async () => {
     setLoading(true);

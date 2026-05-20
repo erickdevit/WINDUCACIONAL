@@ -94,4 +94,44 @@ describe("appReducer", () => {
     expect(nextState.chat.payload).toEqual(payload);
     expect(nextState.chat.z).toBe(nextState.hz);
   });
+
+  it("deve fechar janelas e limpar payloads no logout", () => {
+    const state = {
+      hz: 8,
+      edge: {
+        name: "Edge",
+        icon: "edge",
+        action: "EDGE",
+        hide: false,
+        max: true,
+        z: 7,
+        payload: { url: "https://example.com" },
+      },
+      exam: {
+        name: "Avaliação",
+        icon: "exam",
+        action: "EXAMAPP",
+        hide: false,
+        max: true,
+        z: 6,
+        payload: { examId: "prova-1" },
+      },
+    };
+
+    const nextState = appReducer(state, { type: "LOGOUT" });
+
+    expect(nextState.hz).toBe(2);
+    expect(nextState.edge).toMatchObject({
+      hide: true,
+      max: null,
+      z: 0,
+      payload: null,
+    });
+    expect(nextState.exam).toMatchObject({
+      hide: true,
+      max: null,
+      z: 0,
+      payload: null,
+    });
+  });
 });

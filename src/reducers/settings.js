@@ -98,6 +98,18 @@ const settReducer = (state = defState, action) => {
         turmaId: action.payload.turmaId || null,
       };
       break;
+    case "LOGOUT":
+      changed = true;
+      tmpState.person = {
+        name: "Usuário",
+        username: "",
+        role: "aluno",
+        studentType: "normal",
+        turmaId: null,
+        theme: "light",
+        color: "blue",
+      };
+      break;
     case "TOGGAIRPLNMD":
       changed = true;
       const airPlaneModeStatus = tmpState.network.airplane;

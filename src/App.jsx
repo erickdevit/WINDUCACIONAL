@@ -242,6 +242,7 @@ function App() {
     try {
       await api.logout();
     } finally {
+      dispatch({ type: "LOGOUT" });
       setSession({
         loading: false,
         saving: false,
