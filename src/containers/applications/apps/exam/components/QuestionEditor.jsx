@@ -277,9 +277,16 @@ export const QuestionEditor = ({ exam, onBack }) => {
                             }}
                           >
                             <option value="">Selecione a ação</option>
-                            <option value="EXPLORER">Abrir Explorer (Win+E)</option>
+                            <option value="EXPLORER">Abrir Explorador de Arquivos (Win+E)</option>
                             <option value="NOTEPAD">Abrir Bloco de Notas</option>
-                            <option value="TERMINAL">Abrir Terminal</option>
+                            <option value="TERMINAL">Abrir Terminal (Win+R)</option>
+                            <option value="SETTINGS">Abrir Configurações (Win+I)</option>
+                            <option value="CALCUAPP">Abrir Calculadora</option>
+                            <option value="CAMERA">Abrir Câmera</option>
+                            <option value="WHITEBOARD">Abrir Quadro Branco</option>
+                            <option value="CHATAPP">Abrir Chat</option>
+                            <option value="MSEDGE">Abrir Navegador</option>
+                            <option value="TASKMANAGER">Abrir Gerenciador de Tarefas (Ctrl+Shift+Esc)</option>
                           </select>
                         ) : (
                           <input 

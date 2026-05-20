@@ -2487,7 +2487,7 @@ app.post("/api/exams/:id/submit", requireAuth, async (req, res, next) => {
       Date.now() - new Date(submission.started_at).getTime() >
         Number(exam.time_limit) * 60 * 1000 + 30000;
 
-    if (isTimedOut && normalizedStatus !== "completed") {
+    if (isTimedOut) {
       await client.query("ROLLBACK");
       return res.status(400).json({ error: "O tempo da prova terminou." });
     }

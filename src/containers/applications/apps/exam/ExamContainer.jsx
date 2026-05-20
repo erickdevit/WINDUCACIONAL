@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useRef } from "react";
 import { Provider } from "react-redux";
-import { createStore } from "redux";
+import { createStore, applyMiddleware } from "redux";
 import { allReducers } from "../../../../reducers";
 import { Background } from "../../../background";
 import { DesktopApp } from "../../../../components/start";
@@ -9,12 +9,57 @@ import * as Applications from "../../../applications";
 import { FileDialog } from "../../../applications/apps/FileDialog";
 import { getGlobalShortcutAction } from "../../../../lib/keyboardShortcuts";
 
+/**
+ * Ações de apps que devem ser rastreadas automaticamente quando disparadas
+ * por qualquer meio (atalho, clique no ícone, menu iniciar, etc.).
+ */
+const TRACKABLE_APP_ACTIONS = new Set([
+  "EXPLORER",
+  "NOTEPAD",
+  "TERMINAL",
+  "SETTINGS",
+  "CALCUAPP",
+  "CAMERA",
+  "WHITEBOARD",
+  "CHATAPP",
+  "MSEDGE",
+  "TASKMANAGER",
+]);
+
+/**
+ * Middleware que intercepta dispatches na store isolada para rastrear
+ * aberturas de apps por qualquer caminho (clique, atalho, etc.).
+ */
+const createTrackingMiddleware = () => {
+  const tracked = new Set();
+
+  return (store) => (next) => (action) => {
+    if (
+      TRACKABLE_APP_ACTIONS.has(action.type) &&
+      action.payload !== "close" &&
+      action.payload !== "mnmz"
+    ) {
+      const key = `${action.type}`;
+      // Registrar a ação antes de processá-la
+      if (!tracked.has(key) || action.payload === "full" || action.payload === "togg") {
+        tracked.add(key);
+        next({
+          type: "TRACK_ACTION",
+          payload: { type: "app_open", name: action.type },
+        });
+      }
+    }
+
+    return next(action);
+  };
+};
+
 export const ExamContainer = ({ initialState, onFinish, instructions, finishSignal = 0, onFinishClick }) => {
   const handledFinishSignal = useRef(0);
-  // Criar uma store isolada para este container
+  // Criar uma store isolada com middleware de rastreamento
   const isolatedStore = useMemo(() => {
-    // Mesclar o estado inicial se fornecido
-    return createStore(allReducers, initialState);
+    const trackingMiddleware = createTrackingMiddleware();
+    return createStore(allReducers, initialState, applyMiddleware(trackingMiddleware));
   }, [initialState]);
 
   useEffect(() => {
@@ -30,12 +75,6 @@ export const ExamContainer = ({ initialState, onFinish, instructions, finishSign
         e.preventDefault();
         e.stopImmediatePropagation(); // Impedir que o App.jsx (store principal) receba
         isolatedStore.dispatch(shortcutAction);
-        
-        // Rastrear a ação
-        isolatedStore.dispatch({ 
-          type: "TRACK_ACTION", 
-          payload: { type: "shortcut", name: shortcutAction.type, key: e.key } 
-        });
       }
     };
 

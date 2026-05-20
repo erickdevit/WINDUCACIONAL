@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { api } from "../../../../../lib/api";
 import { Icon } from "../../../../../utils/general";
 
@@ -26,6 +26,16 @@ export const ExamAnalytics = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  const maxAvg = useMemo(() => {
+    if (stats.byTurma.length === 0) return 10;
+    return Math.max(...stats.byTurma.map(t => parseFloat(t.avg) || 0), 1);
+  }, [stats.byTurma]);
+
+  const maxCount = useMemo(() => {
+    if (stats.byTurma.length === 0) return 1;
+    return Math.max(...stats.byTurma.map(t => parseInt(t.count) || 0), 1);
+  }, [stats.byTurma]);
 
   if (loading) return <div className="p-20 text-center">Calculando métricas...</div>;
 
@@ -58,20 +68,27 @@ export const ExamAnalytics = () => {
             <Icon fafa="faChartBar" width={16} /> Média por Turma
           </h3>
           <div className="space-y-6">
-            {stats.byTurma.map((t, i) => (
-              <div key={i}>
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="font-medium text-gray-700">{t.name}</span>
-                  <span className="font-bold text-blue-600">{t.avg} / 10</span>
+            {stats.byTurma.map((t, i) => {
+              const avg = parseFloat(t.avg) || 0;
+              const pct = maxAvg > 0 ? (avg / maxAvg) * 100 : 0;
+              return (
+                <div key={i}>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="font-medium text-gray-700">{t.name}</span>
+                    <span className="font-bold text-blue-600">{t.avg} pts</span>
+                  </div>
+                  <div className="w-full bg-gray-100 h-4 rounded-full overflow-hidden">
+                    <div 
+                      className="bg-blue-500 h-full rounded-full transition-all duration-1000" 
+                      style={{ width: `${Math.min(pct, 100)}%` }}
+                    ></div>
+                  </div>
                 </div>
-                <div className="w-full bg-gray-100 h-4 rounded-full overflow-hidden">
-                  <div 
-                    className="bg-blue-500 h-full rounded-full transition-all duration-1000" 
-                    style={{ width: `${t.avg * 10}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
+            {stats.byTurma.length === 0 && (
+              <div className="text-center text-gray-400 py-8">Nenhuma turma com dados de avaliação.</div>
+            )}
           </div>
         </div>
 
@@ -80,17 +97,24 @@ export const ExamAnalytics = () => {
             <Icon fafa="faUsers" width={16} /> Volume de Alunos por Turma
           </h3>
           <div className="flex items-end justify-around h-48 pt-4">
-             {stats.byTurma.map((t, i) => (
-              <div key={i} className="flex flex-col items-center gap-2 w-16">
-                <div 
-                  className="w-full bg-blue-100 border-t-4 border-blue-500 rounded-t transition-all duration-1000" 
-                  style={{ height: `${(t.count / 20) * 100}%` }}
-                >
-                  <div className="text-[10px] font-bold text-blue-700 text-center mt-1">{t.count}</div>
+             {stats.byTurma.map((t, i) => {
+              const count = parseInt(t.count) || 0;
+              const pct = maxCount > 0 ? (count / maxCount) * 100 : 0;
+              return (
+                <div key={i} className="flex flex-col items-center gap-2 w-16">
+                  <div 
+                    className="w-full bg-blue-100 border-t-4 border-blue-500 rounded-t transition-all duration-1000" 
+                    style={{ height: `${Math.max(pct, 5)}%` }}
+                  >
+                    <div className="text-[10px] font-bold text-blue-700 text-center mt-1">{count}</div>
+                  </div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase truncate w-full text-center">{t.name}</span>
                 </div>
-                <span className="text-[10px] font-bold text-gray-400 uppercase truncate w-full text-center">{t.name}</span>
-              </div>
-            ))}
+              );
+            })}
+            {stats.byTurma.length === 0 && (
+              <div className="text-center text-gray-400 w-full">Sem dados.</div>
+            )}
           </div>
         </div>
       </div>
