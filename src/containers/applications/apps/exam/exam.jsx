@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { Icon } from "../../../../utils/general";
 import { AppWindow } from "../../../../components/shared/AppWindow";
@@ -27,6 +27,7 @@ export const ExamApp = () => {
   const [currentExam, setCurrentExam] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [mcqAnswers, setMcqAnswers] = useState({});
+  const mcqAnswersRef = useRef({});
   const [finalSubmission, setFinalSubmission] = useState(null);
   const [practicalFinishSignal, setPracticalFinishSignal] = useState(0);
   const [confirmModal, setConfirmModal] = useState(null);
@@ -307,12 +308,13 @@ export const ExamApp = () => {
     </div>
   );
 
-  const submitCurrentExam = async (practicalSnapshot = {}, mcqAnswerSnapshot = mcqAnswers) => {
+  const submitCurrentExam = async (practicalSnapshot = {}, mcqAnswerSnapshot) => {
+    const snapshot = mcqAnswerSnapshot || mcqAnswersRef.current;
     setLoading(true);
     try {
       const mcqResults = questions
         .filter(q => q.type === 'mcq')
-        .map(q => ({ questionId: q.id, answerText: mcqAnswerSnapshot[q.id] || "" }));
+        .map(q => ({ questionId: q.id, answerText: snapshot[q.id] || "" }));
 
       const res = await api.submitExam(currentExam.id, {
         status: 'completed', answers: mcqResults, practicalSnapshot
@@ -440,6 +442,7 @@ export const ExamApp = () => {
                   <div className="animate-fade-in">
                     {renderExamHeader()}
                     <MCQView questions={questions} onFinish={(ans) => {
+                      mcqAnswersRef.current = ans;
                       setMcqAnswers(ans);
                       if (practicalCount > 0) { savePartialProgress(ans); setExamFlow("practical"); }
                       else submitCurrentExam({}, ans);
