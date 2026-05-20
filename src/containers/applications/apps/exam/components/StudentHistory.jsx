@@ -35,9 +35,9 @@ export const StudentHistory = () => {
   }
 
   return (
-    <div className="animate-fade-in">
+    <div className="exam-student-history animate-fade-in">
       <h2 className="text-2xl font-bold mb-6">Provas Realizadas</h2>
-      <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
+      <div className="exam-results-panel bg-white border rounded-xl overflow-hidden shadow-sm">
         <table className="w-full text-left">
           <thead className="bg-gray-50 border-b">
             <tr>

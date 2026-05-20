@@ -28,7 +28,7 @@ export const MCQView = ({ questions, onFinish }) => {
   if (!q) return <div>Nenhuma questão teórica encontrada.</div>;
 
   return (
-    <div className="max-w-2xl mx-auto py-8">
+    <div className="mcq-view win11Scroll">
       <div className="mb-8">
         <div className="flex justify-between items-end mb-2">
           <div>

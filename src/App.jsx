@@ -106,6 +106,7 @@ function App() {
       const userConfig = await api.getUserConfig();
       if (userConfig?.config && Object.keys(userConfig.config).length > 0) {
         dispatch({ type: "SETTLOAD", payload: userConfig.config });
+        dispatch({ type: "SESSIONUSER", payload: user });
         if (userConfig.config.person?.theme !== "light") {
           const { changeTheme } = await import("./actions");
           changeTheme();

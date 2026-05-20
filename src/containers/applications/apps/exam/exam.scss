@@ -17,6 +17,8 @@
   color: var(--text);
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 0;
 
   button,
   input,
@@ -188,6 +190,8 @@
   .exam-flow-content {
     max-width: 1120px;
     margin: 0 auto;
+    width: 100%;
+    min-height: 0;
   }
 
   .exam-page-heading {
@@ -318,6 +322,11 @@
 
   .exam-panel {
     overflow: hidden;
+  }
+
+  .exam-results-panel {
+    max-height: min(640px, calc(100vh - 260px));
+    overflow: auto;
   }
 
   .exam-section-head {
@@ -1018,6 +1027,14 @@
 
   .exam-flow-content {
     padding: 12px 0;
+  }
+
+  .mcq-view {
+    max-width: 672px;
+    max-height: calc(100vh - 210px);
+    margin: 0 auto;
+    overflow-y: auto;
+    padding: 32px 8px 40px;
   }
 
   .exam-intro,

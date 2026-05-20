@@ -77,7 +77,14 @@ const settReducer = (state = defState, action) => {
       break;
     case "SETTLOAD":
       changed = true;
-      tmpState = { ...action.payload };
+      tmpState = {
+        ...action.payload,
+        person: {
+          ...tmpState.person,
+          theme: action.payload?.person?.theme || tmpState.person.theme,
+          color: action.payload?.person?.color || tmpState.person.color,
+        },
+      };
       break;
     case "SESSIONUSER":
       changed = true;

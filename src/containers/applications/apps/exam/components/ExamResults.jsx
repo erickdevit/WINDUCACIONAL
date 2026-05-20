@@ -62,7 +62,7 @@ export const ExamResults = () => {
         </div>
       </div>
 
-      <div className="exam-panel">
+      <div className="exam-panel exam-results-panel">
         <table className="application-table">
           <thead>
             <tr>
