@@ -145,6 +145,24 @@
     }
   }
 
+  .nav-badge {
+    margin-left: auto;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 10px;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .exam-sidebar.collapsed .nav-badge {
+    display: none;
+  }
+
   .exam-main {
     flex: 1;
     min-width: 0;
@@ -153,22 +171,6 @@
     overflow: hidden;
   }
 
-  .exam-topbar {
-    min-height: 56px;
-    padding: 10px 24px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--line-soft);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .exam-topbar strong {
-    display: block;
-    font-size: 15px;
-  }
-
-  .exam-topbar span,
   .exam-page-heading span,
   .exam-list-row small,
   .exam-card p {
@@ -240,6 +242,16 @@
 
   .stat-card {
     padding: 16px;
+
+    &.clickable {
+      cursor: pointer;
+      transition: border-color 140ms ease, box-shadow 140ms ease;
+
+      &:hover {
+        border-color: var(--accent);
+        box-shadow: 0 2px 8px rgba(23, 105, 170, 0.1);
+      }
+    }
   }
 
   .stat-label {
@@ -255,6 +267,24 @@
     font-size: 28px;
     font-weight: 800;
     line-height: 1;
+  }
+
+  .exam-loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 200px;
+    gap: 12px;
+
+    p {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
   }
 
   .exam-panel {
@@ -440,6 +470,12 @@
     min-height: 28px;
     padding: 5px 9px;
     font-size: 12px;
+
+    &.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent-strong);
+    }
   }
 
   .icon-button {
@@ -699,7 +735,7 @@
   }
 
   .application-list-scroll {
-    max-height: min(620px, calc(100vh - 370px));
+    max-height: min(620px, calc(100vh - 300px));
     overflow-y: auto;
   }
 
@@ -791,7 +827,7 @@
   }
 
   .application-table-wrap {
-    max-height: min(560px, calc(100vh - 430px));
+    max-height: min(560px, calc(100vh - 350px));
     overflow: auto;
   }
 

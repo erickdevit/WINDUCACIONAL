@@ -31,8 +31,10 @@ export const ExamApplications = () => {
   const [applications, setApplications] = useState([]);
   const [selectedApplicationId, setSelectedApplicationId] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [showCancelled, setShowCancelled] = useState(true);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [confirmModal, setConfirmModal] = useState(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -46,9 +48,7 @@ export const ExamApplications = () => {
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   useEffect(() => {
     if (!selectedApplicationId && applications.length > 0) {
@@ -56,23 +56,26 @@ export const ExamApplications = () => {
     }
   }, [applications, selectedApplicationId]);
 
-  const selectedApplication = applications.find(
+  const visibleApplications = useMemo(() => {
+    if (showCancelled) return applications;
+    return applications.filter(a => !a.cancelledAt);
+  }, [applications, showCancelled]);
+
+  useEffect(() => {
+    if (selectedApplicationId && !visibleApplications.find(a => a.id === selectedApplicationId)) {
+      setSelectedApplicationId(visibleApplications[0]?.id || "");
+    }
+  }, [visibleApplications, selectedApplicationId]);
+
+  const selectedApplication = visibleApplications.find(
     application => application.id === selectedApplicationId
   );
 
   const totals = useMemo(() => {
     const base = {
-      requested: 0,
-      created: 0,
-      existing: 0,
-      skipped: 0,
-      removed: 0,
-      retained: 0,
-      completed: 0,
-      inProgress: 0,
-      pending: 0,
+      requested: 0, created: 0, existing: 0, skipped: 0,
+      removed: 0, retained: 0, completed: 0, inProgress: 0, pending: 0,
     };
-
     return applications.reduce((acc, application) => {
       acc.requested += application.totalRequested || 0;
       acc.created += application.totalCreated || 0;
@@ -93,22 +96,27 @@ export const ExamApplications = () => {
   const visibleItems = useMemo(() => {
     const items = selectedApplication?.items || [];
     if (statusFilter === "all") return items;
-    if (statusFilter === "skipped") {
-      return items.filter(item => item.assignmentStatus === "skipped");
-    }
-    if (statusFilter === "removed") {
-      return items.filter(item => item.removalStatus === "removed");
-    }
-    if (statusFilter === "retained") {
-      return items.filter(item => item.removalStatus === "retained");
-    }
+    if (statusFilter === "skipped") return items.filter(item => item.assignmentStatus === "skipped");
+    if (statusFilter === "removed") return items.filter(item => item.removalStatus === "removed");
+    if (statusFilter === "retained") return items.filter(item => item.removalStatus === "retained");
     return items.filter(item => getSubmissionStatus(item) === statusFilter);
   }, [selectedApplication, statusFilter]);
 
+  const showConfirm = (title, message) => {
+    return new Promise((resolve) => {
+      setConfirmModal({
+        title, message,
+        onConfirm: () => { setConfirmModal(null); resolve(true); },
+        onCancel: () => { setConfirmModal(null); resolve(false); },
+      });
+    });
+  };
+
   const handleRemoveApplication = async () => {
     if (!selectedApplication || selectedApplication.cancelledAt) return;
-    const confirmed = confirm(
-      "Remover esta aplicação?\n\nApenas atribuições criadas nesta aplicação e ainda não iniciadas serão removidas. Provas já iniciadas, concluídas ou atribuições que já existiam serão mantidas com registro de auditoria."
+    const confirmed = await showConfirm(
+      "Remover aplicação",
+      "Apenas atribuições criadas nesta aplicação e ainda não iniciadas serão removidas. Provas já iniciadas, concluídas ou atribuições que já existiam serão mantidas."
     );
     if (!confirmed) return;
 
@@ -119,45 +127,45 @@ export const ExamApplications = () => {
       });
       await loadData();
     } catch (error) {
-      alert(error.message);
+      console.error(error);
     } finally {
       setActionLoading(false);
     }
   };
 
+  const cancelledCount = applications.filter(a => a.cancelledAt).length;
+
   if (loading) {
-    return <div className="p-20 text-center text-gray-400 font-bold">Carregando aplicações...</div>;
+    return <div className="exam-loader"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div><p>Carregando...</p></div>;
   }
 
   return (
     <div className="exam-applications animate-fade-in">
       <div className="exam-section-head">
-        <div>
-          <h2>Provas aplicadas</h2>
-          <span>Rastreabilidade por aplicação, aluno e submissão.</span>
+        <h2>Aplicadas</h2>
+        <div className="flex gap-2 items-center">
+          {cancelledCount > 0 && (
+            <button
+              type="button"
+              className={`btn-secondary compact ${!showCancelled ? 'active' : ''}`}
+              onClick={() => setShowCancelled(!showCancelled)}
+              title={showCancelled ? "Ocultar removidas" : "Mostrar removidas"}
+            >
+              <Icon fafa={showCancelled ? "faEyeSlash" : "faEye"} width={12} />
+              {showCancelled ? "Ocultar removidas" : "Mostrar removidas"} ({cancelledCount})
+            </button>
+          )}
+          <button type="button" className="btn-secondary compact" onClick={loadData}>
+            <Icon fafa="faRotateRight" width={12} />
+          </button>
         </div>
-        <button type="button" className="btn-secondary" onClick={loadData}>
-          <Icon fafa="faRotateRight" width={13} /> Atualizar
-        </button>
       </div>
 
       <div className="exam-stat-grid four">
-        <div className="stat-card">
-          <span className="stat-label">Solicitadas</span>
-          <span className="stat-value">{totals.requested}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Criadas</span>
-          <span className="stat-value">{totals.created}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Concluídas</span>
-          <span className="stat-value">{totals.completed}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Removidas</span>
-          <span className="stat-value">{totals.removed}</span>
-        </div>
+        <div className="stat-card"><span className="stat-label">Solicitadas</span><span className="stat-value">{totals.requested}</span></div>
+        <div className="stat-card"><span className="stat-label">Criadas</span><span className="stat-value">{totals.created}</span></div>
+        <div className="stat-card"><span className="stat-label">Concluídas</span><span className="stat-value">{totals.completed}</span></div>
+        <div className="stat-card"><span className="stat-label">Removidas</span><span className="stat-value">{totals.removed}</span></div>
       </div>
 
       <div className="application-layout">
@@ -166,7 +174,7 @@ export const ExamApplications = () => {
             <h3>Aplicações</h3>
           </div>
           <div className="application-list-scroll win11Scroll">
-            {applications.map(application => (
+            {visibleApplications.map(application => (
               <button
                 type="button"
                 key={application.id}
@@ -176,15 +184,17 @@ export const ExamApplications = () => {
                 <strong>{formatDateTime(application.createdAt)}</strong>
                 <span>{application.modeLabel}</span>
                 <small>
-                  {application.totalCreated} criada{application.totalCreated === 1 ? "" : "s"} · {application.totalExisting} existente{application.totalExisting === 1 ? "" : "s"} · {application.totalSkipped} ignorada{application.totalSkipped === 1 ? "" : "s"}
+                  {application.totalCreated} criada{application.totalCreated === 1 ? "" : "s"} · {application.totalExisting} existente{application.totalExisting === 1 ? "" : "s"}
                 </small>
                 {application.cancelledAt && (
                   <em>Removida em {formatDateTime(application.cancelledAt)}</em>
                 )}
               </button>
             ))}
-            {applications.length === 0 && (
-              <div className="exam-empty compact">Nenhuma aplicação registrada.</div>
+            {visibleApplications.length === 0 && (
+              <div className="exam-empty compact">
+                {showCancelled ? "Nenhuma aplicação registrada." : "Nenhuma aplicação ativa."}
+              </div>
             )}
           </div>
         </div>
@@ -203,10 +213,7 @@ export const ExamApplications = () => {
               )}
             </div>
             <div className="application-actions">
-              <select
-                value={statusFilter}
-                onChange={event => setStatusFilter(event.target.value)}
-              >
+              <select value={statusFilter} onChange={event => setStatusFilter(event.target.value)}>
                 <option value="all">Todos</option>
                 <option value="pending">Pendentes</option>
                 <option value="in_progress">Em andamento</option>
@@ -282,6 +289,23 @@ export const ExamApplications = () => {
           </div>
         </div>
       </div>
+
+      {confirmModal && (
+        <div className="question-modal-backdrop" role="presentation">
+          <div className="question-modal animate-scale-up" role="dialog" aria-modal="true" style={{ maxWidth: 420 }}>
+            <div className="question-modal-head">
+              <h3>{confirmModal.title}</h3>
+            </div>
+            <div style={{ padding: 20 }}>
+              <p style={{ marginBottom: 20, lineHeight: 1.6 }}>{confirmModal.message}</p>
+              <div className="flex gap-2 justify-end">
+                <button type="button" className="btn-secondary" onClick={confirmModal.onCancel}>Cancelar</button>
+                <button type="button" className="btn-primary" onClick={confirmModal.onConfirm}>Confirmar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

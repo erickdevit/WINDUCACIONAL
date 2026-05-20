@@ -23,34 +23,29 @@ export const ExamApp = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [examFlow, setExamFlow] = useState("none"); // none, intro, mcq, practical, finished, receipt
+  const [examFlow, setExamFlow] = useState("none");
   const [currentExam, setCurrentExam] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [mcqAnswers, setMcqAnswers] = useState({});
   const [finalSubmission, setFinalSubmission] = useState(null);
   const [practicalFinishSignal, setPracticalFinishSignal] = useState(0);
-  const [confirmModal, setConfirmModal] = useState(null); // { title, message, onConfirm }
+  const [confirmModal, setConfirmModal] = useState(null);
 
   const isProfessor = user.role === "professor";
-  const pendingExams = exams.filter((exam) => exam.submissionStatus !== "completed");
-  const completedExams = exams.filter((exam) => exam.submissionStatus === "completed");
-  const publishedCount = exams.filter((exam) => exam.isPublished).length;
+  const pendingExams = exams.filter((e) => e.submissionStatus !== "completed");
+  const completedExams = exams.filter((e) => e.submissionStatus === "completed");
+  const publishedCount = exams.filter((e) => e.isPublished).length;
   const draftCount = Math.max(exams.length - publishedCount, 0);
-  const timedCount = (isProfessor ? exams : pendingExams).filter(
-    (exam) => Number(exam.timeLimit || 0) > 0
-  ).length;
 
   useEffect(() => {
-    if (!wnapp.hide) {
-      loadInitialData();
-    }
+    if (!wnapp.hide) loadInitialData();
   }, [wnapp.hide]);
 
   const loadInitialData = async () => {
     setLoading(true);
     try {
-      const examsData = await api.getExams();
-      setExams(examsData.exams || []);
+      const data = await api.getExams();
+      setExams(data.exams || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -59,27 +54,15 @@ export const ExamApp = () => {
   };
 
   const showAlert = (message) => {
-    setConfirmModal({
-      title: "Aviso",
-      message,
-      onConfirm: () => setConfirmModal(null),
-      confirmOnly: true,
-    });
+    setConfirmModal({ title: "Aviso", message, onConfirm: () => setConfirmModal(null), confirmOnly: true });
   };
 
   const showConfirm = (title, message) => {
     return new Promise((resolve) => {
       setConfirmModal({
-        title,
-        message,
-        onConfirm: () => {
-          setConfirmModal(null);
-          resolve(true);
-        },
-        onCancel: () => {
-          setConfirmModal(null);
-          resolve(false);
-        },
+        title, message,
+        onConfirm: () => { setConfirmModal(null); resolve(true); },
+        onCancel: () => { setConfirmModal(null); resolve(false); },
       });
     });
   };
@@ -93,15 +76,14 @@ export const ExamApp = () => {
     { id: "analytics", label: "Análise", fafa: "faChartSimple" },
   ] : [
     { id: "dashboard", label: "Resumo", fafa: "faTableColumns" },
-    { id: "available", label: "Disponíveis", fafa: "faClipboardList" },
+    { id: "available", label: "Disponíveis", fafa: "faClipboardList", badge: pendingExams.length },
+    { id: "completed", label: "Concluídas", fafa: "faCircleCheck", badge: completedExams.length },
     { id: "history", label: "Histórico", fafa: "faListCheck" },
   ];
 
-  const currentNavItem = navItems.find((item) => item.id === activeTab);
-
   const handleStartExam = async (exam) => {
     if (exam.submissionStatus === "completed") {
-      showAlert("Esta avaliação já foi concluída. Consulte o histórico para ver o comprovante.");
+      showAlert("Esta avaliação já foi concluída.");
       return;
     }
     setLoading(true);
@@ -119,11 +101,8 @@ export const ExamApp = () => {
 
   const handleTimeUp = () => {
     showAlert("O tempo acabou! Sua prova será enviada automaticamente.");
-    if (examFlow === "mcq") {
-      setExamFlow("practical");
-    } else if (examFlow === "practical") {
-      setPracticalFinishSignal((value) => value + 1);
-    }
+    if (examFlow === "mcq") setExamFlow("practical");
+    else if (examFlow === "practical") setPracticalFinishSignal((v) => v + 1);
   };
 
   const renderConfirmModal = () => {
@@ -138,19 +117,9 @@ export const ExamApp = () => {
             <p style={{ marginBottom: 20, lineHeight: 1.6 }}>{confirmModal.message}</p>
             <div className="flex gap-2 justify-end">
               {!confirmModal.confirmOnly && (
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={confirmModal.onCancel}
-                >
-                  Cancelar
-                </button>
+                <button type="button" className="btn-secondary" onClick={confirmModal.onCancel}>Cancelar</button>
               )}
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={confirmModal.onConfirm}
-              >
+              <button type="button" className="btn-primary" onClick={confirmModal.onConfirm}>
                 {confirmModal.confirmOnly ? "OK" : "Confirmar"}
               </button>
             </div>
@@ -168,9 +137,7 @@ export const ExamApp = () => {
         </div>
         <div>
           <h3>{currentExam?.title}</h3>
-          <p>
-            {examFlow === 'mcq' ? 'Fase 1: Teoria' : 'Fase 2: Prática'}
-          </p>
+          <p>{examFlow === 'mcq' ? 'Fase 1: Teoria' : 'Fase 2: Prática'}</p>
         </div>
       </div>
       <ExamTimer minutes={currentExam?.timeLimit} onTimeUp={handleTimeUp} />
@@ -198,8 +165,9 @@ export const ExamApp = () => {
             onClick={() => setActiveTab(item.id)}
             title={item.label}
           >
-            {item.fafa ? <Icon fafa={item.fafa} width={16} /> : <Icon src={item.icon} width={18} />}
+            <Icon fafa={item.fafa} width={16} />
             <span className="nav-text">{item.label}</span>
+            {item.badge > 0 && <span className="nav-badge">{item.badge}</span>}
           </button>
         ))}
       </div>
@@ -216,77 +184,58 @@ export const ExamApp = () => {
   const renderDashboard = () => (
     <div className="exam-page animate-fade-in">
       <div className="exam-page-heading">
-        <div>
-          <p className="exam-kicker">Área do aluno</p>
-          <h2>Olá, {user.displayName}</h2>
-          <span>{pendingExams.length} avaliação{pendingExams.length === 1 ? "" : "ões"} pendente{pendingExams.length === 1 ? "" : "s"}.</span>
-        </div>
+        <h2>Olá, {user.displayName}</h2>
       </div>
 
       <div className="exam-stat-grid">
-        <div className="stat-card">
+        <button type="button" className="stat-card clickable" onClick={() => setActiveTab("available")}>
           <span className="stat-label">Pendentes</span>
           <span className="stat-value">{pendingExams.length}</span>
-        </div>
-        <div className="stat-card">
+        </button>
+        <button type="button" className="stat-card clickable" onClick={() => setActiveTab("completed")}>
           <span className="stat-label">Concluídas</span>
           <span className="stat-value">{completedExams.length}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Com tempo</span>
-          <span className="stat-value">{timedCount}</span>
-        </div>
+        </button>
+        <button type="button" className="stat-card clickable" onClick={() => setActiveTab("history")}>
+          <span className="stat-label">Histórico</span>
+          <span className="stat-value"><Icon fafa="faArrowRight" width={14} /></span>
+        </button>
       </div>
 
-      <div className="exam-panel">
-        <div className="exam-panel-header">
-          <h3>Próximas avaliações</h3>
-          <button type="button" className="btn-secondary" onClick={() => setActiveTab("available")}>Ver provas</button>
+      {pendingExams.length > 0 && (
+        <div className="exam-panel">
+          <div className="exam-panel-header">
+            <h3>Próximas avaliações</h3>
+          </div>
+          {pendingExams.slice(0, 5).map((exam) => (
+            <button type="button" key={exam.id} className="exam-list-row" onClick={() => handleStartExam(exam)}>
+              <span><strong>{exam.title}</strong></span>
+              <em>{exam.timeLimit > 0 ? `${exam.timeLimit} min` : "Sem limite"}</em>
+            </button>
+          ))}
         </div>
-        {pendingExams.slice(0, 4).map((exam) => (
-          <button type="button" key={exam.id} className="exam-list-row" onClick={() => handleStartExam(exam)}>
-            <span>
-              <strong>{exam.title}</strong>
-              <small>{exam.description || "Sem descrição."}</small>
-            </span>
-            <em>{exam.timeLimit > 0 ? `${exam.timeLimit} min` : "Sem limite"}</em>
-          </button>
-        ))}
-        {pendingExams.length === 0 && <div className="exam-empty compact">Nenhuma avaliação pendente.</div>}
-      </div>
+      )}
+
+      {pendingExams.length === 0 && (
+        <div className="exam-empty">Nenhuma avaliação pendente.</div>
+      )}
     </div>
   );
 
   const renderTeacherDashboard = () => (
     <div className="exam-page animate-fade-in">
       <div className="exam-page-heading">
-        <div>
-          <p className="exam-kicker">Área do professor</p>
-          <h2>Visão geral</h2>
-          <span>{exams.length} prova{exams.length === 1 ? "" : "s"} no catálogo.</span>
-        </div>
+        <h2>Visão geral</h2>
         <button type="button" className="btn-primary" onClick={() => setActiveTab("exams")}>
           <Icon fafa="faPlus" width={13} /> Nova prova
         </button>
       </div>
 
       <div className="exam-stat-grid four">
-        <div className="stat-card">
-          <span className="stat-label">Criadas</span>
-          <span className="stat-value">{exams.length}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Publicadas</span>
-          <span className="stat-value">{publishedCount}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Rascunhos</span>
-          <span className="stat-value">{draftCount}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Com tempo</span>
-          <span className="stat-value">{timedCount}</span>
-        </div>
+        <div className="stat-card"><span className="stat-label">Criadas</span><span className="stat-value">{exams.length}</span></div>
+        <div className="stat-card"><span className="stat-label">Publicadas</span><span className="stat-value">{publishedCount}</span></div>
+        <div className="stat-card"><span className="stat-label">Rascunhos</span><span className="stat-value">{draftCount}</span></div>
+        <div className="stat-card"><span className="stat-label">Com tempo</span><span className="stat-value">{exams.filter(e => Number(e.timeLimit || 0) > 0).length}</span></div>
       </div>
 
       <div className="exam-panel">
@@ -308,14 +257,10 @@ export const ExamApp = () => {
     </div>
   );
 
-  const renderExamList = () => (
+  const renderAvailableExams = () => (
     <div className="exam-page animate-fade-in">
       <div className="exam-page-heading">
-        <div>
-          <p className="exam-kicker">Aluno</p>
-          <h2>Provas disponíveis</h2>
-          <span>Abra uma avaliação para iniciar teoria e prática.</span>
-        </div>
+        <h2>Provas disponíveis</h2>
       </div>
       <div className="exam-grid">
         {pendingExams.map(exam => (
@@ -325,39 +270,38 @@ export const ExamApp = () => {
               <span className="exam-pill">{exam.timeLimit > 0 ? `${exam.timeLimit} min` : "Sem limite"}</span>
             </div>
             <h3>{exam.title}</h3>
-            <p>{exam.description || "Sem descrição."}</p>
-            <button className="btn-primary" onClick={() => handleStartExam(exam)}>
+            <button className="btn-primary mt-auto" onClick={() => handleStartExam(exam)}>
               Iniciar Avaliação
             </button>
           </div>
         ))}
-        {completedExams.length > 0 && (
-          <>
-            <div className="exam-grid-divider">
-              <span>Concluídas ({completedExams.length})</span>
-            </div>
-            {completedExams.map(exam => (
-              <div key={exam.id} className="exam-card completed">
-                <div className="exam-card-top">
-                  <div className="exam-card-icon"><Icon fafa="faCheck" width={18} /></div>
-                  <span className="exam-pill">Concluída</span>
-                </div>
-                <h3>{exam.title}</h3>
-                <p>{exam.description || "Sem descrição."}</p>
-                <button
-                  className="btn-secondary"
-                  onClick={() => setActiveTab("history")}
-                >
-                  Ver no histórico
-                </button>
-              </div>
-            ))}
-          </>
+        {pendingExams.length === 0 && !loading && (
+          <div className="exam-empty">Nenhuma prova pendente no momento.</div>
         )}
-        {pendingExams.length === 0 && completedExams.length === 0 && !loading && (
-          <div className="exam-empty">
-            Nenhuma prova disponível no momento.
+      </div>
+    </div>
+  );
+
+  const renderCompletedExams = () => (
+    <div className="exam-page animate-fade-in">
+      <div className="exam-page-heading">
+        <h2>Concluídas</h2>
+      </div>
+      <div className="exam-grid">
+        {completedExams.map(exam => (
+          <div key={exam.id} className="exam-card completed">
+            <div className="exam-card-top">
+              <div className="exam-card-icon"><Icon fafa="faCheck" width={18} /></div>
+              <span className="exam-pill">Concluída</span>
+            </div>
+            <h3>{exam.title}</h3>
+            <button className="btn-secondary mt-auto" onClick={() => setActiveTab("history")}>
+              Ver comprovante
+            </button>
           </div>
+        ))}
+        {completedExams.length === 0 && !loading && (
+          <div className="exam-empty">Nenhuma prova concluída ainda.</div>
         )}
       </div>
     </div>
@@ -368,15 +312,10 @@ export const ExamApp = () => {
     try {
       const mcqResults = questions
         .filter(q => q.type === 'mcq')
-        .map(q => ({
-          questionId: q.id,
-          answerText: mcqAnswerSnapshot[q.id] || ""
-        }));
+        .map(q => ({ questionId: q.id, answerText: mcqAnswerSnapshot[q.id] || "" }));
 
       const res = await api.submitExam(currentExam.id, {
-        status: 'completed',
-        answers: mcqResults,
-        practicalSnapshot
+        status: 'completed', answers: mcqResults, practicalSnapshot
       });
 
       setFinalSubmission(res.submission);
@@ -392,15 +331,8 @@ export const ExamApp = () => {
     try {
       const mcqResults = questions
         .filter(q => q.type === 'mcq')
-        .map(q => ({
-          questionId: q.id,
-          answerText: mcqAnswerSnapshot[q.id] || ""
-        }));
-
-      await api.submitExam(currentExam.id, {
-        status: 'in_progress',
-        answers: mcqResults,
-      });
+        .map(q => ({ questionId: q.id, answerText: mcqAnswerSnapshot[q.id] || "" }));
+      await api.submitExam(currentExam.id, { status: 'in_progress', answers: mcqResults });
     } catch (err) {
       console.error("Erro ao salvar progresso parcial:", err);
     }
@@ -418,29 +350,28 @@ export const ExamApp = () => {
       "Finalizar avaliação",
       "Tem certeza de que deseja finalizar a prova? Após a entrega, não será possível alterar as respostas."
     );
-    if (confirmed) {
-      getIsolatedState();
-    }
+    if (confirmed) getIsolatedState();
   };
 
   const renderContent = () => {
     if (loading) return (
-      <div className="flex flex-col items-center justify-center h-full gap-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Carregando...</p>
+      <div className="exam-loader">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+        <p>Carregando...</p>
       </div>
     );
 
     switch (activeTab) {
       case "dashboard": return isProfessor ? renderTeacherDashboard() : renderDashboard();
-      case "available": return renderExamList();
+      case "available": return renderAvailableExams();
+      case "completed": return renderCompletedExams();
       case "exams": return <ExamManagement />;
       case "apply": return <ExamAssignment />;
       case "applications": return <ExamApplications />;
       case "results": return <ExamResults />;
       case "analytics": return <ExamAnalytics />;
       case "history": return <StudentHistory />;
-      default: return <div className="text-center py-20 text-gray-400">Funcionalidade "{activeTab}" em desenvolvimento...</div>;
+      default: return null;
     }
   };
 
@@ -462,6 +393,9 @@ export const ExamApp = () => {
     );
   }
 
+  const mcqCount = questions.filter(q => q.type === "mcq").length;
+  const practicalCount = questions.filter(q => q.type === "practical").length;
+
   return (
     <AppWindow
       wnapp={wnapp}
@@ -475,57 +409,40 @@ export const ExamApp = () => {
       <div className="exam-layout">
         {examFlow === "none" && renderSidebar()}
         <div className="exam-main">
-          {examFlow === "none" && (
-            <div className="exam-topbar">
-              <div>
-                <strong>{currentNavItem?.label}</strong>
-                <span>{isProfessor ? "Gestão de avaliações" : "Avaliações do aluno"}</span>
-              </div>
-            </div>
-          )}
           <div className="exam-content win11Scroll">
             {examFlow === "none" ? renderContent() : (
               <div className="exam-flow-content">
                 {examFlow === "intro" && (
-                   <div className="exam-intro animate-scale-up">
-                   <div className="exam-intro-header">
+                  <div className="exam-intro animate-scale-up">
+                    <div className="exam-intro-header">
                       <div className="exam-app-icon large"><Icon src="exam" width={32} invert /></div>
-                      <span className="exam-pill">{currentExam?.timeLimit > 0 ? `${currentExam.timeLimit} minutos` : 'Sem limite'}</span>
-                   </div>
-                   <h2>{currentExam?.title}</h2>
-                   <p>{currentExam?.description || "Sem descrição."}</p>
-                   <div className="exam-rule-grid">
-                     <div><strong>Teoria</strong><span>{questions.filter(q => q.type === "mcq").length} questão{questions.filter(q => q.type === "mcq").length === 1 ? "" : "ões"}</span></div>
-                     <div><strong>Prática</strong><span>{questions.filter(q => q.type === "practical").length} tarefa{questions.filter(q => q.type === "practical").length === 1 ? "" : "s"}</span></div>
-                     <div><strong>Retorno</strong><span>A prática encerra a avaliação</span></div>
-                   </div>
-                   <button 
-                     onClick={() => {
-                       if (questions.some(q => q.type === "mcq")) {
-                         setExamFlow("mcq");
-                       } else if (questions.some(q => q.type === "practical")) {
-                         setExamFlow("practical");
-                       } else {
-                         submitCurrentExam();
-                       }
-                     }}
-                     className="btn-primary exam-start-button"
-                   >
-                     Iniciar avaliação
-                   </button>
-                 </div>
+                      <span className="exam-pill">{currentExam?.timeLimit > 0 ? `${currentExam.timeLimit} min` : 'Sem limite'}</span>
+                    </div>
+                    <h2>{currentExam?.title}</h2>
+                    <div className="exam-rule-grid">
+                      <div><strong>Teoria</strong><span>{mcqCount} questão{mcqCount === 1 ? "" : "ões"}</span></div>
+                      <div><strong>Prática</strong><span>{practicalCount} tarefa{practicalCount === 1 ? "" : "s"}</span></div>
+                      <div><strong>Entrega</strong><span>A prática encerra a avaliação</span></div>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        if (mcqCount > 0) setExamFlow("mcq");
+                        else if (practicalCount > 0) setExamFlow("practical");
+                        else submitCurrentExam();
+                      }}
+                      className="btn-primary exam-start-button"
+                    >
+                      Iniciar avaliação
+                    </button>
+                  </div>
                 )}
                 {examFlow === "mcq" && (
                   <div className="animate-fade-in">
                     {renderExamHeader()}
                     <MCQView questions={questions} onFinish={(ans) => {
                       setMcqAnswers(ans);
-                      if (questions.some(q => q.type === "practical")) {
-                        savePartialProgress(ans);
-                        setExamFlow("practical");
-                      } else {
-                        submitCurrentExam({}, ans);
-                      }
+                      if (practicalCount > 0) { savePartialProgress(ans); setExamFlow("practical"); }
+                      else submitCurrentExam({}, ans);
                     }} />
                   </div>
                 )}
@@ -533,7 +450,6 @@ export const ExamApp = () => {
                   <div className="exam-finished animate-scale-up">
                     <div className="exam-app-icon success"><Icon fafa="faCheck" width={28} /></div>
                     <h2>Avaliação entregue</h2>
-                    <p>As respostas foram corrigidas pelo servidor.</p>
                     <div className="exam-score-card">
                        <span>Nota final</span>
                        <strong>{finalSubmission?.totalScore}</strong>
@@ -543,18 +459,10 @@ export const ExamApp = () => {
                        </div>
                     </div>
                     <div className="exam-finished-actions">
-                      <button 
-                        className="btn-primary" 
-                        onClick={() => {
-                          setExamFlow("receipt");
-                        }}
-                      >
+                      <button className="btn-primary" onClick={() => setExamFlow("receipt")}>
                         <Icon fafa="faFileLines" width={14} /> Ver comprovante
                       </button>
-                      <button 
-                        className="btn-secondary" 
-                        onClick={() => { setExamFlow("none"); loadInitialData(); }}
-                      >
+                      <button className="btn-secondary" onClick={() => { setExamFlow("none"); loadInitialData(); }}>
                         Voltar ao início
                       </button>
                     </div>
