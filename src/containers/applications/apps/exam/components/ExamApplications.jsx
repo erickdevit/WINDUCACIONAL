@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { api } from "../../../../../lib/api";
 import { Icon } from "../../../../../utils/general";
+import { TurmaSelector } from "./TurmaSelector";
 
 const assignmentLabels = {
   created: "Criada",
@@ -32,15 +33,17 @@ export const ExamApplications = () => {
   const [selectedApplicationId, setSelectedApplicationId] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showCancelled, setShowCancelled] = useState(true);
+  const [selectedTurmaId, setSelectedTurmaId] = useState("");
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [confirmModal, setConfirmModal] = useState(null);
 
-  const loadData = async () => {
+  const loadData = async (turmaId) => {
     setLoading(true);
     try {
-      const data = await api.getExamApplications();
+      const data = await api.getExamApplications(turmaId || undefined);
       setApplications(data.applications || []);
+      setSelectedApplicationId("");
     } catch (error) {
       console.error(error);
     } finally {
@@ -48,7 +51,7 @@ export const ExamApplications = () => {
     }
   };
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(selectedTurmaId); }, [selectedTurmaId]);
 
   useEffect(() => {
     if (!selectedApplicationId && applications.length > 0) {
@@ -125,7 +128,7 @@ export const ExamApplications = () => {
       await api.deleteExamApplication(selectedApplication.id, {
         reason: "Aplicação removida pelo professor.",
       });
-      await loadData();
+      await loadData(selectedTurmaId);
     } catch (error) {
       console.error(error);
     } finally {
@@ -143,7 +146,9 @@ export const ExamApplications = () => {
     <div className="exam-applications animate-fade-in">
       <div className="exam-section-head">
         <h2>Aplicadas</h2>
-        <div className="flex gap-2 items-center">
+        <div className="exam-filters">
+          <TurmaSelector value={selectedTurmaId} onChange={setSelectedTurmaId} />
+          <div className="flex gap-2 items-center">
           {cancelledCount > 0 && (
             <button
               type="button"
@@ -155,9 +160,10 @@ export const ExamApplications = () => {
               {showCancelled ? "Ocultar removidas" : "Mostrar removidas"} ({cancelledCount})
             </button>
           )}
-          <button type="button" className="btn-secondary compact" onClick={loadData}>
+          <button type="button" className="btn-secondary compact" onClick={() => loadData(selectedTurmaId)}>
             <Icon fafa="faRotateRight" width={12} />
           </button>
+          </div>
         </div>
       </div>
 

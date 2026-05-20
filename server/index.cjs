@@ -1804,15 +1804,21 @@ app.get("/api/exams", requireAuth, async (req, res, next) => {
 
 app.get("/api/exams/analytics", requireAuth, requireProfessor, async (req, res, next) => {
   try {
+    const turmaId = req.query.turmaId || null;
+    const turmaFilter = turmaId ? " AND u.turma_id = $1" : "";
+    const turmaParams = turmaId ? [turmaId] : [];
+
     const statsRes = await pool.query(`
       SELECT 
         COUNT(s.id) FILTER (WHERE s.status = 'completed') as completed_submissions,
         COUNT(ea.id) as assigned_submissions,
         AVG(s.total_score) FILTER (WHERE s.status = 'completed') as average_score
       FROM exam_assignments ea
+      JOIN users u ON u.id = ea.user_id
       LEFT JOIN exam_submissions s
         ON s.exam_id = ea.exam_id AND s.user_id = ea.user_id
-    `);
+      WHERE 1=1${turmaFilter}
+    `, turmaParams);
     
     const byTurmaRes = await pool.query(`
       SELECT 
@@ -1820,11 +1826,11 @@ app.get("/api/exams/analytics", requireAuth, requireProfessor, async (req, res, 
         AVG(s.total_score) as avg,
         COUNT(s.id) as count
       FROM exam_submissions s
-      JOIN exams e ON e.id = s.exam_id
-      JOIN turmas t ON t.id = e.turma_id
-      WHERE s.status = 'completed'
+      JOIN users u ON u.id = s.user_id
+      JOIN turmas t ON t.id = u.turma_id
+      WHERE s.status = 'completed'${turmaId ? ' AND u.turma_id = $1' : ''}
       GROUP BY t.id, t.nome
-    `);
+    `, turmaParams);
 
     const stats = statsRes.rows[0];
     const assignedCount = Number(stats.assigned_submissions || 0);
@@ -1847,6 +1853,7 @@ app.get("/api/exams/analytics", requireAuth, requireProfessor, async (req, res, 
 
 app.get("/api/exams/applications", requireAuth, requireProfessor, async (req, res, next) => {
   try {
+    const turmaId = req.query.turmaId || null;
     const result = await pool.query(`
       SELECT
         b.id,
@@ -1900,8 +1907,9 @@ app.get("/api/exams/applications", requireAuth, requireProfessor, async (req, re
       LEFT JOIN users student ON student.id = i.user_id
       LEFT JOIN exam_submissions s
         ON s.exam_id = i.exam_id AND s.user_id = i.user_id
+      ${turmaId ? 'WHERE student.turma_id = $1' : ''}
       ORDER BY b.created_at DESC, i.created_at ASC
-    `);
+    `, turmaId ? [turmaId] : []);
 
     const batches = new Map();
     for (const row of result.rows) {
@@ -2574,13 +2582,16 @@ app.get(
   requireProfessor,
   async (req, res, next) => {
     try {
+      const turmaId = req.query.turmaId || null;
+      const turmaFilter = turmaId ? " AND u.turma_id = $2" : "";
+      const params = turmaId ? [req.params.id, turmaId] : [req.params.id];
       const result = await pool.query(
         `SELECT s.*, u.username, u.display_name
          FROM exam_submissions s
          JOIN users u ON u.id = s.user_id
-         WHERE s.exam_id = $1
+         WHERE s.exam_id = $1${turmaFilter}
          ORDER BY s.completed_at DESC`,
-        [req.params.id]
+        params
       );
       res.json({ submissions: result.rows.map(publicExamSubmission) });
     } catch (error) {

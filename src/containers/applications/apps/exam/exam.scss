@@ -287,6 +287,35 @@
     }
   }
 
+  .turma-select {
+    min-height: 32px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: var(--surface);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    padding: 4px 10px;
+    outline: 0;
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--accent);
+    }
+
+    &:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-soft);
+    }
+  }
+
+  .exam-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
   .exam-panel {
     overflow: hidden;
   }

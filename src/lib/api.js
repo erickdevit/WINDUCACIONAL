@@ -335,11 +335,20 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
-  getExamSubmissions: (id) => request(`/api/exams/${id}/submissions`),
+  getExamSubmissions: (id, turmaId) => {
+    const params = turmaId ? `?turmaId=${turmaId}` : '';
+    return request(`/api/exams/${id}/submissions${params}`);
+  },
   getSubmissionDetails: (examId, submissionId) =>
     request(`/api/exams/${examId}/submissions/${submissionId}`),
-  getExamAnalytics: () => request("/api/exams/analytics"),
-  getExamApplications: () => request("/api/exams/applications"),
+  getExamAnalytics: (turmaId) => {
+    const params = turmaId ? `?turmaId=${turmaId}` : '';
+    return request(`/api/exams/analytics${params}`);
+  },
+  getExamApplications: (turmaId) => {
+    const params = turmaId ? `?turmaId=${turmaId}` : '';
+    return request(`/api/exams/applications${params}`);
+  },
   deleteExamApplication: (id, payload = {}) =>
     request(`/api/exams/applications/${id}`, {
       method: "DELETE",
