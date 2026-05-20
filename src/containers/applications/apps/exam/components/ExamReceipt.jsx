@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { api } from "../../../../../lib/api";
 import { Icon } from "../../../../../utils/general";
+import { ActivityTimeline } from "./ActivityTimeline";
 
 export const ExamReceipt = ({ examId, submissionId, onBack }) => {
   const user = useSelector((state) => state.setting.person);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showTimeline, setShowTimeline] = useState(false);
   const receiptRef = useRef(null);
 
   useEffect(() => {
@@ -58,6 +60,7 @@ export const ExamReceipt = ({ examId, submissionId, onBack }) => {
           .correct { color: #16794c; font-weight: 800; }
           .incorrect { color: #b42318; font-weight: 800; }
           .receipt-footer { border-top: 1px solid #d9e1ea; padding-top: 12px; text-align: center; font-size: 11px; color: #637083; }
+          .validation-detail { font-size: 11px; color: #637083; margin-top: 4px; }
           @media print { body { padding: 0; } }
         </style>
       </head>
@@ -74,25 +77,26 @@ export const ExamReceipt = ({ examId, submissionId, onBack }) => {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-4 py-20">
+      <div className="exam-loader">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-        <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">Carregando comprovante...</p>
+        <p>Carregando comprovante...</p>
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div className="text-center py-20 text-gray-400">
+      <div className="exam-empty">
         Não foi possível carregar os detalhes da submissão.
       </div>
     );
   }
 
-  const { submission, answers } = data;
+  const { submission, answers, practicalSnapshot } = data;
   const isProfessor = user.role === "professor";
   const mcqAnswers = answers.filter((a) => a.type === "mcq");
   const practicalAnswers = answers.filter((a) => a.type === "practical");
+  const trackedActions = practicalSnapshot?.actions || [];
 
   const getOptionLabel = (options, letterAnswer) => {
     if (!letterAnswer || !Array.isArray(options)) return "—";
@@ -100,30 +104,52 @@ export const ExamReceipt = ({ examId, submissionId, onBack }) => {
     return options[index] != null ? `${letterAnswer}) ${options[index]}` : letterAnswer;
   };
 
+  const getValidationLabel = (rule) => {
+    if (!rule) return "";
+    if (rule.type === "ACTION_PERFORMED") return `Ação: ${rule.name || "—"}`;
+    if (rule.type === "FILE_CONTAINS") return `Arquivo: ${rule.path || "—"} contém "${rule.content || "—"}"`;
+    return rule.type;
+  };
+
   return (
     <div className="animate-fade-in">
-      <div className="flex items-center justify-between gap-4 mb-6">
+      <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
         <div className="flex items-center gap-3">
           <button onClick={onBack} className="icon-button" title="Voltar">
             <Icon fafa="faArrowLeft" width={16} />
           </button>
-          <div>
-            <h2 style={{ fontSize: 20 }}>Comprovante de Avaliação</h2>
-            <span style={{ color: "var(--muted)", fontSize: 12 }}>
-              Detalhamento completo da submissão.
-            </span>
-          </div>
+          <h2 style={{ fontSize: 20 }}>Comprovante</h2>
         </div>
-        <button className="btn-primary" onClick={handlePrint}>
-          <Icon fafa="faPrint" width={14} /> Imprimir / PDF
-        </button>
+        <div className="flex gap-2 items-center">
+          {isProfessor && trackedActions.length > 0 && (
+            <button
+              className={`btn-secondary compact ${showTimeline ? 'active' : ''}`}
+              onClick={() => setShowTimeline(!showTimeline)}
+            >
+              <Icon fafa="faTimeline" width={13} />
+              {showTimeline ? "Ocultar atividade" : "Ver atividade"}
+            </button>
+          )}
+          <button className="btn-primary" onClick={handlePrint}>
+            <Icon fafa="faPrint" width={14} /> Imprimir
+          </button>
+        </div>
       </div>
+
+      {showTimeline && (
+        <div className="exam-panel" style={{ marginBottom: 16, padding: 16 }}>
+          <h3 className="exam-card-title" style={{ marginBottom: 12 }}>
+            <Icon fafa="faTimeline" width={14} /> Atividade do aluno
+          </h3>
+          <ActivityTimeline actions={trackedActions} />
+        </div>
+      )}
 
       <div ref={receiptRef} className="receipt-printable">
         <div className="receipt-header">
           <div>
             <h1>Comprovante de Avaliação</h1>
-            <p>Documento gerado pelo Simulador Educacional</p>
+            <p>Simulador Educacional</p>
           </div>
           <p>
             {submission.completedAt
@@ -227,6 +253,7 @@ export const ExamReceipt = ({ examId, submissionId, onBack }) => {
                 <tr>
                   <th style={{ width: 40 }}>#</th>
                   <th>Instrução</th>
+                  {isProfessor && <th>Validação</th>}
                   <th style={{ width: 60, textAlign: "center" }}>Acerto</th>
                   <th style={{ width: 60, textAlign: "center" }}>Pontos</th>
                 </tr>
@@ -236,6 +263,15 @@ export const ExamReceipt = ({ examId, submissionId, onBack }) => {
                   <tr key={a.questionId}>
                     <td>{i + 1}</td>
                     <td>{a.text}</td>
+                    {isProfessor && (
+                      <td>
+                        {a.validationRules?.map((rule, ri) => (
+                          <div key={ri} className="validation-detail">
+                            {getValidationLabel(rule)}
+                          </div>
+                        )) || "—"}
+                      </td>
+                    )}
                     <td
                       className={a.isCorrect ? "correct" : "incorrect"}
                       style={{ textAlign: "center" }}

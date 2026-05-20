@@ -27,27 +27,87 @@ const TRACKABLE_APP_ACTIONS = new Set([
 ]);
 
 /**
+ * Ações de arquivo que devem ser rastreadas.
+ */
+const FILE_ACTIONS = new Set([
+  "ADDFILE", "ADDDIR", "DELFILE", "RENAME", "FILEDIALOG_CLOSE",
+]);
+
+/**
+ * Labels legíveis para cada ação rastreada.
+ */
+const ACTION_LABELS = {
+  EXPLORER: "Explorador de Arquivos",
+  NOTEPAD: "Bloco de Notas",
+  TERMINAL: "Terminal",
+  SETTINGS: "Configurações",
+  CALCUAPP: "Calculadora",
+  CAMERA: "Câmera",
+  WHITEBOARD: "Quadro Branco",
+  CHATAPP: "Chat",
+  MSEDGE: "Navegador",
+  TASKMANAGER: "Gerenciador de Tarefas",
+};
+
+/**
  * Middleware que intercepta dispatches na store isolada para rastrear
- * aberturas de apps por qualquer caminho (clique, atalho, etc.).
+ * aberturas/fechamentos de apps e operações de arquivo com timestamps.
  */
 const createTrackingMiddleware = () => {
-  const tracked = new Set();
+  const startTime = Date.now();
 
   return (store) => (next) => (action) => {
+    const elapsed = Date.now() - startTime;
+
+    // Rastrear abertura de apps
     if (
       TRACKABLE_APP_ACTIONS.has(action.type) &&
       action.payload !== "close" &&
       action.payload !== "mnmz"
     ) {
-      const key = `${action.type}`;
-      // Registrar a ação antes de processá-la
-      if (!tracked.has(key) || action.payload === "full" || action.payload === "togg") {
-        tracked.add(key);
-        next({
-          type: "TRACK_ACTION",
-          payload: { type: "app_open", name: action.type },
-        });
-      }
+      next({
+        type: "TRACK_ACTION",
+        payload: {
+          type: "app_open",
+          name: action.type,
+          label: ACTION_LABELS[action.type] || action.type,
+          timestamp: elapsed,
+        },
+      });
+    }
+
+    // Rastrear fechamento de apps
+    if (
+      TRACKABLE_APP_ACTIONS.has(action.type) &&
+      action.payload === "close"
+    ) {
+      next({
+        type: "TRACK_ACTION",
+        payload: {
+          type: "app_close",
+          name: action.type,
+          label: ACTION_LABELS[action.type] || action.type,
+          timestamp: elapsed,
+        },
+      });
+    }
+
+    // Rastrear operações de arquivo
+    if (FILE_ACTIONS.has(action.type)) {
+      next({
+        type: "TRACK_ACTION",
+        payload: {
+          type: "file_op",
+          name: action.type,
+          label: action.type === "ADDFILE" ? "Arquivo criado"
+            : action.type === "ADDDIR" ? "Pasta criada"
+            : action.type === "DELFILE" ? "Arquivo excluído"
+            : action.type === "RENAME" ? "Arquivo renomeado"
+            : action.type,
+          detail: action.payload?.name || action.payload?.path || "",
+          timestamp: elapsed,
+        },
+      });
     }
 
     return next(action);

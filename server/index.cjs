@@ -2558,9 +2558,9 @@ app.post("/api/exams/:id/submit", requireAuth, async (req, res, next) => {
 
         submissionRes = await client.query(
           `UPDATE exam_submissions 
-           SET score_mcq = $1, score_practical = $2, total_score = $3
-           WHERE id = $4 RETURNING *`,
-          [score_mcq || 0, score_practical || 0, totalScore, submission.id]
+           SET score_mcq = $1, score_practical = $2, total_score = $3, practical_snapshot = $4
+           WHERE id = $5 RETURNING *`,
+          [score_mcq || 0, score_practical || 0, totalScore, JSON.stringify(practicalSnapshot || null), submission.id]
         );
         submission = submissionRes.rows[0];
       }
@@ -2629,7 +2629,7 @@ app.get(
       }
 
       const answersRes = await pool.query(
-        `SELECT a.*, q.type, q.text, q.options, q.correct_answer, q.points, q.order_index
+        `SELECT a.*, q.type, q.text, q.options, q.correct_answer, q.validation_rules, q.points, q.order_index
          FROM exam_answers a
          JOIN exam_questions q ON q.id = a.question_id
          WHERE a.submission_id = $1
@@ -2644,6 +2644,7 @@ app.get(
         text: a.text,
         options: a.options,
         correctAnswer: isProfessor ? a.correct_answer : undefined,
+        validationRules: isProfessor && a.type === "practical" ? a.validation_rules : undefined,
         answerText: a.answer_text,
         isCorrect: a.is_correct,
         pointsAwarded: Number(a.points_awarded || 0),
@@ -2660,6 +2661,7 @@ app.get(
           turmaCode: sub.turma_code || "",
         },
         answers,
+        practicalSnapshot: isProfessor && sub.practical_snapshot ? sub.practical_snapshot : undefined,
       });
     } catch (error) {
       next(error);
