@@ -1,4 +1,9 @@
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, it, expect, vi } from "vitest";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Mock da API para não depender do servidor real durante os testes
 const mockApi = {
@@ -84,5 +89,15 @@ describe("EduExam Pro - Lógica de Avaliação", () => {
     expect(scoreMcq).toBe(2);
     expect(scorePractical).toBe(3);
     expect(scoreMcq + scorePractical).toBe(5);
+  });
+
+  it("deve finalizar múltipla escolha sem enviar o evento de clique como respostas", () => {
+    const mcqViewSource = fs.readFileSync(
+      path.resolve(__dirname, "../src/containers/applications/apps/exam/MCQView.jsx"),
+      "utf8"
+    );
+
+    expect(mcqViewSource).toContain("onClick={() => handleNext()}");
+    expect(mcqViewSource).not.toContain("onClick={handleNext}");
   });
 });

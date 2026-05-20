@@ -92,7 +92,7 @@ export const MCQView = ({ questions, onFinish }) => {
         <div className="mt-10 flex justify-end">
           <button 
             disabled={!answers[q.id]}
-            onClick={handleNext}
+            onClick={() => handleNext()}
             className={`px-8 py-3 rounded-lg font-bold text-white transition-all ${
               answers[q.id] 
                 ? 'bg-blue-600 hover:bg-blue-700 shadow-md transform hover:-translate-y-0.5' 
