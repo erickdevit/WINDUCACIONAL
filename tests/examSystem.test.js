@@ -27,19 +27,19 @@ describe("EduExam Pro - Lógica de Avaliação", () => {
       files: {
         data: {
           parsePath: (path) => {
-            if (path === "C:\\Users\\Blue\\Desktop\\teste.txt") return "file-123";
+            if (path === "C:\\Users\\Usuário\\Desktop\\teste.txt") return "file-123";
             return null;
           }
         }
       }
     };
 
-    const rule = { type: "FILE_EXISTS", path: "C:\\Users\\Blue\\Desktop\\teste.txt" };
+    const rule = { type: "FILE_EXISTS", path: "C:\\Users\\Usuário\\Desktop\\teste.txt" };
     const isCorrect = !!mockState.files.data.parsePath(rule.path);
     
     expect(isCorrect).toBe(true);
     
-    const ruleFail = { type: "FILE_EXISTS", path: "C:\\Users\\Blue\\Desktop\\nao_existe.txt" };
+    const ruleFail = { type: "FILE_EXISTS", path: "C:\\Users\\Usuário\\Desktop\\nao_existe.txt" };
     const isCorrectFail = !!mockState.files.data.parsePath(ruleFail.path);
     expect(isCorrectFail).toBe(false);
   });

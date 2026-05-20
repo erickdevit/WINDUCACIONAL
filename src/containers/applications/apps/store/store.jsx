@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Icon, Image, LazyComponent } from "../../../../utils/general";
 import "../assets/store.scss";
-import axios from "axios";
 import storedata from "../assets/store.json";
 import { installApp } from "../../../../actions";
 import { useTranslation } from "react-i18next";
@@ -36,7 +35,6 @@ const emap = (v) => {
 
 export const MicroStore = () => {
   const apps = useSelector((state) => state.apps);
-  const queryParams = new URLSearchParams(window.location.search);
   const wnapp = useSelector((state) => state.apps.store);
   const hide = useSelector((state) => state.apps.store.hide);
   const [tab, setTab] = useState("sthome");
@@ -116,21 +114,7 @@ export const MicroStore = () => {
 
   useEffect(() => {
     if (!wnapp.hide && fetchState == 0) {
-      var url = queryParams.get("customstore");
-      if (!url)
-        url =
-          "https://raw.githubusercontent.com/win11react/store/main/store/index.json";
-
-      axios
-        .get(url)
-        .then((res) => res.data)
-        .then((data) => {
-          if (data) setApps(data);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-
+      setApps(storedata);
       setFetch(1);
     }
   }, [hide]);
@@ -224,16 +208,6 @@ const DownPage = ({ action, apps }) => {
           onClick={() => setCatg("game")}
         >
           Games
-        </div>
-        <div className="absolute right-0 mr-4 text-sm">
-          <a
-            href="https://win11react-docs.andrewstech.me/docs/Store/add-app"
-            className="catbtn"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Add your own app
-          </a>
         </div>
       </div>
       <div className="appscont mt-8">

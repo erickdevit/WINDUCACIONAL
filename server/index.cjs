@@ -546,10 +546,6 @@ const ensureDirectories = async () => {
 
 const loadBaseTree = () => {
   const tree = JSON.parse(fs.readFileSync(sourceTreePath, "utf8"));
-  const users = tree["C:"]?.data?.Users;
-  if (users?.data?.Blue) {
-    delete users.data.Blue;
-  }
   return tree;
 };
 

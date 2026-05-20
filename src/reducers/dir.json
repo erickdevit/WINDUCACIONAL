@@ -74,9 +74,9 @@
               "Public Videos": {}
             }
           },
-          "Blue": {
+          "Usuário": {
             "type": "folder",
-            "name": "Blue",
+            "name": "Usuário",
             "info": {
               "spid": "%user%",
               "icon": "user"
@@ -177,8 +177,8 @@
                   "blueapi": {},
                   "BlueBlog": {},
                   "BlueBlogs---A-social-platform": {},
-                  "blueedgetechno": {},
-                  "blueedgetechno.github.io": {},
+                  "winducacional": {},
+                  "winducacional.local": {},
                   "blueimage": {},
                   "bluelab": {},
                   "blueothello": {},

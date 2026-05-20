@@ -2,6 +2,7 @@ import axios from "axios";
 import store from "../reducers";
 import { dfApps } from "../utils";
 import { gene_name } from "../utils/apps";
+import newsData from "../reducers/news.json";
 
 export const dispatchAction = (event) => {
   const action = {
@@ -232,19 +233,14 @@ const loadWidget = async () => {
     })
     .catch((error) => {});
 
-  // console.log('fetching NEWS');
-  await axios
-    .get("https://github.win11react.com/api-cache/news.json")
-    .then((res) => res.data)
-    .then((data) => {
-      var newsList = [];
-      data["articles"].forEach((e) => {
-        e.title = e["title"].split(`-`).slice(0, -1).join(`-`).trim();
-        newsList.push(e);
-      });
-      tmpWdgt.data.news = newsList;
-    })
-    .catch((error) => {});
+  var newsList = [];
+  newsData.articles.forEach((e) => {
+    newsList.push({
+      ...e,
+      title: e.title.split(`-`).slice(0, -1).join(`-`).trim() || e.title,
+    });
+  });
+  tmpWdgt.data.news = newsList;
 
   store.dispatch({
     type: "WIDGREST",

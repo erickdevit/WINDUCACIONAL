@@ -1,7 +1,7 @@
 {
-  "short_name": "Win11",
-  "name": "Win11 in React",
-  "description": "Windows 11 desktop experience recreated in React — available on any device.",
+  "short_name": "WINDUCACIONAL",
+  "name": "WINDUCACIONAL",
+  "description": "Simulador educacional aberto com experiência desktop web.",
   "icons": [
     {
       "src": "favicon.ico",
@@ -32,6 +32,6 @@
   "orientation": "any",
   "theme_color": "#000000",
   "background_color": "#010001",
-  "categories": ["entertainment", "utilities"],
+  "categories": ["education", "utilities"],
   "prefer_related_applications": false
 }

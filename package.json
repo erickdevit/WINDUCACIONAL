@@ -1,26 +1,19 @@
 {
-  "name": "simulador-educacional",
-  "description": "Simulador educacional aberto baseado em uma experiência desktop web.",
-  "repository": "https://github.com/erickdevit/win11React",
+  "name": "winducacional",
+  "description": "WINDUCACIONAL: simulador educacional aberto com experiência desktop web.",
+  "repository": "https://github.com/erickdevit/winducacional",
   "version": "0.1.1",
-  "private": true,
+  "private": false,
   "dependencies": {
-    "@crowdin/cli": "^3.19.4",
     "@fortawesome/fontawesome-svg-core": "^6.6.0",
     "@fortawesome/free-regular-svg-icons": "^6.6.0",
     "@fortawesome/free-solid-svg-icons": "^6.6.0",
     "@fortawesome/react-fontawesome": "^0.2.2",
-    "@sentry/react": "^7.118.0",
-    "@sentry/tracing": "^7.114.0",
-    "@tauri-apps/api": "^1.6.0",
-    "@widgetbot/react-embed": "1.5.0",
-    "@win11react/react-canvas-draw": "1.2.2",
     "axios": "^0.27.2",
     "eslint-config-react-app": "^7.0.1",
     "express": "^5.2.1",
     "i18next": "^21.10.0",
     "i18next-browser-languagedetector": "^6.1.8",
-    "i18next-http-backend": "^1.4.5",
     "i18next-xhr-backend": "^3.2.2",
     "pg": "^8.20.0",
     "react": "^18.3.1",
@@ -28,9 +21,7 @@
     "react-error-boundary": "^3.1.4",
     "react-i18next": "^11.18.6",
     "react-lazy-load-image-component": "^1.6.2",
-    "react-player": "^2.16.0",
     "react-redux": "^8.1.3",
-    "react-scripts": "^5.0.1",
     "redux": "^4.2.1",
     "sass": "^1.77.8",
     "translation-check": "^1.1.0"
@@ -43,9 +34,7 @@
     "test": "vitest run",
     "ghbuild": "CI=false vite build",
     "prettier": "prettier --write .",
-    "turbuild": "react-scripts build",
-    "tauri": "tauri",
-    "crowdin": "crowdin"
+    "audit:public": "! rg -n \"Win11React|win11React|win11\\\\.blueedge|blueedgetechno|blueedge\" . --glob '!node_modules' --glob '!build' --glob '!.git' --glob '!package-lock.json' --glob '!package.json'"
   },
   "eslintConfig": {
     "extends": [
@@ -66,7 +55,6 @@
     ]
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^1.6.0",
     "@testing-library/react": "^14.3.1",
     "@vitejs/plugin-react": "2.0.0",
     "autoprefixer": "^10.4.20",

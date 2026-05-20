@@ -10,8 +10,8 @@ import { AppWindow } from "../../../../components/shared/AppWindow";
 
 export const WnTerminal = () => {
   const wnapp = useSelector((state) => state.apps.terminal);
-  const [stack, setStack] = useState(["OS [Version 10.0.22000.51]", ""]);
-  const [pwd, setPwd] = useState("C:\\Users\\Blue");
+  const [stack, setStack] = useState(["WINDUCACIONAL [Versão 1.0]", ""]);
+  const [pwd, setPwd] = useState("C:\\Users\\Usuário");
   const [lastCmd, setLsc] = useState(0);
   const [wntitle, setWntitle] = useState("Terminal");
 
@@ -239,7 +239,7 @@ export const WnTerminal = () => {
           Math.floor(Math.random() * 100)
       );
     } else if (type == "exit") {
-      tmpStack = ["OS [Version 10.0.22000.51]", ""];
+      tmpStack = ["WINDUCACIONAL [Versão 1.0]", ""];
       dispatch({ type: wnapp.action, payload: "close" });
     } else if (type == "title") {
       setWntitle(arg.length ? arg : "Terminal");
@@ -252,23 +252,23 @@ export const WnTerminal = () => {
     } else if (type == "lang-test") {
       i18next.changeLanguage("fr-FR");
       tmpStack.push("French");
-    } else if (type == "blue") {
-      tmpStack.push("blueedgetechno");
+    } else if (type == "winducacional") {
+      tmpStack.push("WINDUCACIONAL");
     } else if (type == "dev") {
-      tmpStack.push("https://dev.blueedge.me/");
+      tmpStack.push("Ambiente local do simulador educacional.");
     } else if (type == "ver") {
-      tmpStack.push("OS [Version 10.0.22000.51]");
+      tmpStack.push("WINDUCACIONAL [Versão 1.0]");
     } else if (type == "systeminfo") {
       var dvInfo = [
-        "Nome do Host:              BLUE",
-        "Nome do SO:                Simulador ITB",
-        "OS Version:                10.0.22000 N/A Build 22000.51",
-        "OS Manufacturer:           ",
-        "OS Configuration:          Standalone Workstation",
-        "OS Build Type:             Multiprocessor Free",
-        "Registered Owner:          Blue",
-        "Registered Organization:   N/A",
-        "Product ID:                7H1S1-5AP1R-473DV-3R5I0N",
+        "Nome do Host:              WINDUCACIONAL",
+        "Nome do SO:                WINDUCACIONAL",
+        "Versão do Sistema:         1.0",
+        "Fabricante:                Projeto WINDUCACIONAL",
+        "Configuração:              Simulador educacional web",
+        "Tipo de Build:             Aplicação React/Vite",
+        "Proprietário Registrado:   Comunidade educacional",
+        "Organização Registrada:    N/A",
+        "ID do Produto:             WINDUCACIONAL-EDU",
       ];
 
       for (var i = 0; i < dvInfo.length; i++) {

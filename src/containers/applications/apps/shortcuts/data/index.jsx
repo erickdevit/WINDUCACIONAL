@@ -8,7 +8,6 @@ import captura from "./captura";
 import navegador from "./navegador";
 import terminal from "./terminal";
 import vscode from "./vscode";
-import discord from "./discord";
 import word from "./word";
 import excel from "./excel";
 
@@ -21,7 +20,6 @@ export const shortcutGroups = [
   navegador,
   terminal,
   vscode,
-  discord,
   word,
   excel,
 ];
@@ -86,13 +84,6 @@ export const CategoryIcons = {
     <svg {...svgProps}>
       <path d="M14 2L2 8l4 4-4 4 12 6V2z" />
       <path d="M6 12l8 6V2l-8 6" />
-    </svg>
-  ),
-  discord: (
-    <svg {...svgProps}>
-      <path d="M15 5c-1-1-2.5-1-2.5-1l-.5 1c2 .5 3 1.5 3 1.5s-1-.5-2.5-1-3-.5-4.5-.5-3 0-4.5.5S1.5 7.5 1.5 7.5 2.5 6.5 4.5 6l-.5-1s-1.5 0-2.5 1C.5 8 0 13 0 13s1 1.5 3 2c0 0 .5-1 1-1.5-1.5-.5-2-1.5-2-1.5s.5.5 1 1c1.5 1 3.5 1.5 5.5 1.5s4-.5 5.5-1.5c.5-.5 1-1 1-1s-.5 1-2 1.5c.5.5 1 1.5 1 1.5s2-.5 3-2c0 0-.5-5-1.5-7z" />
-      <circle cx="6.5" cy="10.5" r="1.5" />
-      <circle cx="11.5" cy="10.5" r="1.5" />
     </svg>
   ),
   word: (

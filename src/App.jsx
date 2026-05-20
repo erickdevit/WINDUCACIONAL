@@ -31,49 +31,26 @@ import { getGlobalShortcutAction } from "./lib/keyboardShortcuts";
 
 function ErrorFallback({ error, resetErrorBoundary }) {
   return (
-    <div>
-      <meta charSet="UTF-8" />
-      <title>404 - Page</title>
-      <script src="https://win11.blueedge.me/script.js"></script>
-      <link rel="stylesheet" href="https://win11.blueedge.me/style.css" />
-      {/* partial:index.partial.html */}
-      <div id="page">
-        <div id="container">
-          <h1>:(</h1>
-          <h2>
-            Seu computador encontrou um problema e precisa ser reiniciado.
-            Estamos coletando algumas informações de erro e reiniciaremos em
-            seguida.
-          </h2>
-          <h2>
-            <span id="percentage">0</span>% concluído
-          </h2>
-          <div id="details">
-            <div id="qr">
-              <div id="image">
-                <img src="https://win11.blueedge.me/img/qr.png" alt="QR Code" />
-              </div>
-            </div>
-            <div id="stopcode">
-              <h4>
-                Para mais informações sobre este problema e possíveis correções,
-                acesse
-                <br />{" "}
-                <a href="https://github.com/blueedgetechno/win11React/issues">
-                  https://github.com/blueedgetechno/win11React/issues
-                </a>{" "}
-              </h4>
-              <h5>
-                Se você acionar o suporte, informe:
-                <br />
-                Código de parada: {error.message}
-              </h5>
-              <button onClick={resetErrorBoundary}>Tentar novamente</button>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#0f172a] text-white flex items-center justify-center p-8">
+      <div className="max-w-xl rounded-lg border border-white/10 bg-white/10 p-8 shadow-2xl">
+        <h1 className="text-3xl font-bold mb-3">WINDUCACIONAL</h1>
+        <h2 className="text-xl font-semibold mb-4">
+          O simulador encontrou um problema.
+        </h2>
+        <p className="text-sm text-white/80 mb-6">
+          Recarregue a interface ou informe o código abaixo ao suporte técnico
+          do projeto.
+        </p>
+        <p className="mb-6 rounded bg-black/30 p-3 text-sm font-mono">
+          Código de parada: {error.message}
+        </p>
+        <button
+          className="rounded bg-white px-4 py-2 text-sm font-bold text-[#0f172a]"
+          onClick={resetErrorBoundary}
+        >
+          Tentar novamente
+        </button>
       </div>
-      {/* partial */}
     </div>
   );
 }

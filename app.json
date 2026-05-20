@@ -1,7 +1,7 @@
 {
-  "name": "Simulador Educacional",
-  "description": "Simulador educacional aberto baseado em uma experiência desktop web.",
-  "repository": "https://github.com/erickdevit/win11React",
+  "name": "WINDUCACIONAL",
+  "description": "Simulador educacional aberto com experiência desktop web.",
+  "repository": "https://github.com/erickdevit/winducacional",
   "keywords": ["education", "simulation", "react", "open-source"],
   "engines": {
     "npm": ">=9"

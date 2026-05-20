@@ -2,11 +2,11 @@
 
 ## Objetivo
 
-Construir um simulador educacional aberto que use uma interface inspirada em desktop para organizar experiências de aprendizagem, cenários guiados, ferramentas simuladas e progresso do usuário.
+Construir o WINDUCACIONAL, um simulador educacional aberto que use uma interface inspirada em desktop para organizar experiências de aprendizagem, cenários guiados, ferramentas simuladas e progresso do usuário.
 
 ## Baseline Atual
 
-A base atual é o Win11React: uma experiência visual de Windows 11 feita com React, Redux, SCSS e assets estáticos. Ela oferece uma boa fundação de interface para janelas, aplicativos, menus e interações de desktop, mas ainda não possui backend, banco de dados ou modelo educacional próprio.
+A base atual é uma aplicação React/Vite/Redux com backend Express, PostgreSQL, autenticação por sessão HTTP-only, turmas, usuários com papéis e discos virtuais persistidos. A experiência desktop é usada como ambiente visual para atividades educacionais.
 
 ## Direção
 
@@ -14,8 +14,8 @@ O novo produto deve deixar de ser apenas uma réplica visual e passar a ser uma 
 
 ## Escopo Inicial
 
-- Preservar a experiência frontend existente enquanto o novo domínio é especificado.
-- Documentar arquitetura, segurança, testes e deploy antes de implementar backend.
+- Preservar a experiência de janelas e aplicativos enquanto o domínio educacional evolui.
+- Manter documentação, segurança, testes e deploy atualizados junto das mudanças estruturais.
 - Identificar riscos técnicos da base atual que precisam ser tratados durante a evolução.
 
 ## Escopo Futuro
@@ -31,7 +31,4 @@ O novo produto deve deixar de ser apenas uma réplica visual e passar a ser uma 
 
 ## Fora De Escopo Por Enquanto
 
-- Implementar backend imediatamente.
-- Criar schema de banco definitivo.
-- Criar Dockerfile e Compose antes da decisão de runtime/backend.
 - Migrar todo o visual ou reescrever a aplicação sem especificação de produto.

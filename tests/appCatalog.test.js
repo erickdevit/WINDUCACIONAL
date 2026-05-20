@@ -69,14 +69,14 @@ describe("Catálogo de apps", () => {
 
   it("deve migrar o nome antigo e semear o atalho do ITB Ouro Moderno na área de trabalho", async () => {
     const localStorageMock = createStorage({
-      desktop: JSON.stringify(["Blue", "ITB Curso", "Loja"]),
+      desktop: JSON.stringify(["Usuário", "ITB Curso", "Loja"]),
     });
     vi.stubGlobal("localStorage", localStorageMock);
 
     const { desktopApps } = await import("../src/utils");
 
     expect(desktopApps.map((app) => app.name)).toEqual([
-      "Blue",
+      "Usuário",
       "ITB Ouro Moderno",
       "Loja",
       "Atalhos",
@@ -85,7 +85,7 @@ describe("Catálogo de apps", () => {
     ]);
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
       "desktop",
-      JSON.stringify(["Blue", "ITB Ouro Moderno", "Loja"])
+      JSON.stringify(["Usuário", "ITB Ouro Moderno", "Loja"])
     );
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
       "desktop-rename-itb-ouro-moderno-v1",

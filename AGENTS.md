@@ -4,7 +4,7 @@ Este é um arquivo vivo para agentes, automações e colaboradores que trabalham
 
 ## Resumo Do Projeto
 
-- Produto alvo: simulador educacional aberto, evoluindo a partir da base visual do Win11React.
+- Produto alvo: WINDUCACIONAL, simulador educacional aberto com experiência desktop web.
 - Estado atual: frontend React/Vite/Redux com PWA, assets estáticos e simulação de desktop.
 - Estado atual de backend: Express, PostgreSQL, sessões HTTP-only, usuários com papéis, classificação Kids/Normal para alunos, turmas com código de vínculo e discos virtuais persistidos por usuário.
 - Estado atual de deploy: `Dockerfile`, `docker-compose.yml`, `docker-compose.prod.yml` e `compose.dev.yml`.
@@ -39,7 +39,7 @@ Leia estes documentos antes de planejar mudanças estruturais:
 - Vite 3 como build/dev server.
 - SCSS/CSS e Tailwind configurado, sem design system formal.
 - PWA via `vite-plugin-pwa` e assets em `public/`.
-- Tauri existe em `src-tauri`, mas não é o foco da nova hospedagem em servidor dedicado.
+- O foco de distribuição é web/PWA com backend Express e Docker. Não manter empacotadores desktop sem decisão explícita.
 
 ## Comandos Atuais
 

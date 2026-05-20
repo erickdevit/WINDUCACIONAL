@@ -1,4 +1,4 @@
-const CACHE_NAME = "win11react-v2";
+const CACHE_NAME = "winducacional-v1";
 const urlsToCache = ["/", "/index.html", "/favicon.ico", "/favicon.png"];
 
 const self = this;

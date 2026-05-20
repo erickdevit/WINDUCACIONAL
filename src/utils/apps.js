@@ -58,7 +58,7 @@ const apps = [
     type: "app",
   },
   {
-    name: "Blue",
+    name: "Usuário",
     icon: "win/user",
     type: "app",
     action: "EXPLORER",
@@ -107,13 +107,6 @@ const apps = [
     type: "app",
   },
   {
-    name: "Ajuda",
-    icon: "help",
-    type: "app",
-    action: "EXTERNAL",
-    payload: "https://win11react-docs.andrewstech.me/",
-  },
-  {
     name: "Yammer",
     icon: "yammer",
     type: "app",
@@ -122,8 +115,6 @@ const apps = [
     name: "Email",
     icon: "mail",
     type: "app",
-    action: "EXTERNAL",
-    payload: "mailto:blueedgetechno@gmail.com",
   },
   {
     name: "Filmes",
@@ -187,13 +178,6 @@ const apps = [
     type: "app",
   },
   {
-    name: "Pinterest",
-    icon: "pinterest",
-    type: "app",
-    action: "EXTERNAL",
-    payload: "https://www.pinterest.com/blueedgetechno/",
-  },
-  {
     name: "Segurança",
     icon: "security",
     type: "app",
@@ -212,13 +196,6 @@ const apps = [
     name: "Snipping Tool",
     icon: "snip",
     type: "app",
-  },
-  {
-    name: "Twitter",
-    icon: "twitter",
-    type: "app",
-    action: "EXTERNAL",
-    payload: "https://twitter.com/blueedgetechno",
   },
   {
     name: "Teams",
@@ -257,21 +234,9 @@ const apps = [
     type: "app",
   },
   {
-    name: "Whiteboard",
-    icon: "board",
-    type: "app",
-    action: "WHITEBOARD",
-  },
-  {
     name: "Cortana",
     icon: "cortana",
     type: "app",
-  },
-  {
-    name: "Discord",
-    icon: "discord",
-    type: "app",
-    action: "DISCORD",
   },
   {
     name: "Digitação",

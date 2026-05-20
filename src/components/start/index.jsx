@@ -20,7 +20,7 @@ export const DesktopApp = () => {
     const user = state.setting?.person;
     tmpApps = filterAppsForUser(tmpApps, user);
     tmpApps = tmpApps.map((app) => {
-      if (app.name === "Blue") {
+      if (app.name === "Usuário") {
         return { ...app, name: user?.username || "Usuário" };
       }
       return app;

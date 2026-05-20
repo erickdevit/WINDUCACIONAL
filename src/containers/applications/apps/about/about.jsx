@@ -32,37 +32,8 @@ export const AboutWin = () => {
       <div className="content p-6">
         <div className="text-xl font-semibold">{t("about.title")}</div>
         <p>{t("about.opensource")}</p>
-        <p>
-          {t("about.licensed")}&nbsp;
-          <a
-            target="_blank"
-            href="https://github.com/blueedgetechno/win11React/blob/master/LICENSE"
-            rel="noreferrer"
-          >
-            {t("about.Creative-Commons")}
-          </a>
-          .
-        </p>
-        <p className="pl-4">
-          {t("about.contact")} :&nbsp;
-          <a target="_blank" href="mailto:blue@win11react.com" rel="noreferrer">
-            blue@win11react.com
-          </a>
-        </p>
-
+        <p>{t("about.licensed")}</p>
         <p>{t("about.notmicrosoft")}</p>
-        <p>
-          {t("about.alsonot")}&nbsp;
-          <a
-            target="_blank"
-            href="https://www.microsoft.com/en-in/windows-365"
-            rel="noreferrer"
-          >
-            Windows 365 cloud PC
-          </a>
-          .
-        </p>
-        <p>{t("about.microsoftcopywrite")}.</p>
       </div>
       <div className="okbtn px-6 py-4">
         <div data-allow={timer == 0} onClick={timer == 0 && action}>

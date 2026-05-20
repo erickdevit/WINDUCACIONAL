@@ -1,6 +1,6 @@
 # Contribuindo
 
-Este projeto está evoluindo para um simulador educacional aberto. A base atual ainda é majoritariamente frontend, portanto contribuições devem preservar o comportamento existente enquanto a arquitetura completa é definida.
+WINDUCACIONAL é um simulador educacional aberto. Contribuições devem preservar o comportamento existente e manter documentação, testes e segurança alinhados à evolução do produto.
 
 ## Antes De Começar
 
@@ -35,7 +35,3 @@ Todo PR deve informar:
 - Os arquivos ou áreas afetadas.
 - Como a mudança foi validada.
 - Se existe impacto em segurança, testes, documentação ou deploy.
-
-## Créditos
-
-Este repositório deriva da base open source Win11React. Contribuições novas devem preservar os créditos da base original e manter a nova direção educacional do projeto.

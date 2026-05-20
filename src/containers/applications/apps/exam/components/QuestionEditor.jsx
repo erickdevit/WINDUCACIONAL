@@ -283,7 +283,6 @@ export const QuestionEditor = ({ exam, onBack }) => {
                             <option value="SETTINGS">Abrir Configurações (Win+I)</option>
                             <option value="CALCUAPP">Abrir Calculadora</option>
                             <option value="CAMERA">Abrir Câmera</option>
-                            <option value="WHITEBOARD">Abrir Quadro Branco</option>
                             <option value="CHATAPP">Abrir Chat</option>
                             <option value="MSEDGE">Abrir Navegador</option>
                             <option value="TASKMANAGER">Abrir Gerenciador de Tarefas (Ctrl+Shift+Esc)</option>

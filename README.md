@@ -1,8 +1,8 @@
-# Simulador Educacional
+# WINDUCACIONAL
 
-Este projeto está sendo transformado em um simulador educacional aberto, construído a partir da base visual do Win11React. A versão atual ainda é majoritariamente frontend: uma SPA em React/Vite que simula uma área de trabalho com janelas, aplicativos, barra de tarefas, menu iniciar, widgets, PWA e assets estáticos.
+WINDUCACIONAL é um simulador educacional aberto com experiência desktop web. A aplicação combina frontend React/Vite/Redux, backend Express, PostgreSQL, sessões HTTP-only, turmas, papéis de usuário e discos virtuais persistidos para apoiar atividades de aprendizagem.
 
-O objetivo do novo contexto é evoluir essa base para uma plataforma completa de simulação, com cenários educacionais, usuários, progresso persistente e instalação em servidor dedicado via imagem Docker.
+O objetivo do produto é oferecer uma plataforma de simulação com cenários educacionais, usuários, progresso persistente e instalação em servidor dedicado via imagem Docker.
 
 ## Estado Atual
 
@@ -98,10 +98,6 @@ Novas mudanças devem seguir estes princípios:
 
 Os detalhes estão em [docs/security.md](docs/security.md) e [docs/testing-strategy.md](docs/testing-strategy.md).
 
-## Créditos
-
-Este projeto parte da base open source [Win11React](https://github.com/blueedgetechno/win11React), criada originalmente por BlueEdgeTechno e contribuidores. A nova direção educacional mantém o código aberto e preserva os créditos da base original.
-
 ## Licença
 
-A base original usa licença CC0-1.0. Antes de publicar distribuições derivadas, mantenha os créditos acima e revise a compatibilidade da licença com qualquer novo componente, asset ou dependência adicionada.
+Este repositório usa a licença CC0-1.0. Antes de publicar distribuições, revise a compatibilidade da licença com qualquer novo componente, asset ou dependência adicionada.
