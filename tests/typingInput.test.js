@@ -12,6 +12,9 @@ describe("Entrada de digitação com acentos", () => {
   it("deve compor acento morto com a letra seguinte", () => {
     expect(composeDeadKeyMark("~", "a")).toBe("ã");
     expect(composeDeadKeyMark("´", "e")).toBe("é");
+    expect(composeDeadKeyMark("^", "a")).toBe("â");
+    expect(composeDeadKeyMark("^", "e")).toBe("ê");
+    expect(composeDeadKeyMark("^", "o")).toBe("ô");
   });
 
   it("deve recompor pelo caractere esperado quando o game recebe tecla morta genérica", () => {
@@ -32,6 +35,30 @@ describe("Entrada de digitação com acentos", () => {
       })
     ).toBe("~");
     expect(resolveDeadKeyMarkFromEvent({ key: "´" })).toBe("´");
+  });
+
+  it("deve mapear tecla morta do circunflexo pelo codigo Digit6 como desconhecida", () => {
+    expect(
+      resolveDeadKeyMarkFromEvent({
+        key: "Dead",
+        code: "Digit6",
+        shiftKey: true,
+      })
+    ).toBe(UNKNOWN_DEAD_KEY_MARK);
+    expect(
+      resolveDeadKeyMarkFromEvent({
+        key: "Dead",
+        code: "Digit6",
+        shiftKey: false,
+      })
+    ).toBe(UNKNOWN_DEAD_KEY_MARK);
+    expect(
+      resolveDeadKeyMarkFromEvent({
+        key: "Dead",
+        code: "BracketRight",
+        shiftKey: true,
+      })
+    ).toBe("^");
   });
 
   it("deve ignorar acento isolado sem avançar nem contar caractere", () => {
@@ -99,6 +126,81 @@ describe("Entrada de digitação com acentos", () => {
     expect(result.ignored).toBe(false);
   });
 
+  it("não deve duplicar circunflexo quando o navegador já envia a letra composta", () => {
+    const result = normalizeTypingInputValue({
+      nextValue: "anâ",
+      previousValue: "an",
+      pendingMark: "^",
+      referenceText: "anâlise",
+    });
+
+    expect(result.value).toBe("anâ");
+    expect(result.pendingMark).toBe("");
+    expect(result.ignored).toBe(false);
+  });
+
+  it("deve compor circunflexo pendente com letra simples", () => {
+    const result = normalizeTypingInputValue({
+      nextValue: "ana",
+      previousValue: "an",
+      pendingMark: "^",
+      referenceText: "anâlise",
+    });
+
+    expect(result.value).toBe("anâ");
+    expect(result.pendingMark).toBe("");
+    expect(result.ignored).toBe(false);
+  });
+
+  it("deve compor circunflexo com e", () => {
+    expect(composeDeadKeyMark("^", "e")).toBe("ê");
+    const result = normalizeTypingInputValue({
+      nextValue: "e",
+      previousValue: "",
+      pendingMark: "^",
+      referenceText: "ênfase",
+    });
+    expect(result.value).toBe("ê");
+    expect(result.pendingMark).toBe("");
+  });
+
+  it("deve ignorar acento circunflexo isolado", () => {
+    const result = normalizeTypingInputValue({
+      nextValue: "a^",
+      previousValue: "a",
+      pendingMark: "",
+    });
+    expect(result.value).toBe("a");
+    expect(result.pendingMark).toBe("^");
+    expect(result.ignored).toBe(true);
+  });
+
+  it("deve compor trema com pending mark desconhecido pelo expectedChar", () => {
+    const result = normalizeTypingInputValue({
+      nextValue: "agu",
+      previousValue: "ag",
+      pendingMark: UNKNOWN_DEAD_KEY_MARK,
+      referenceText: "agüentar",
+    });
+
+    expect(result.value).toBe("agü");
+    expect(result.pendingMark).toBe("");
+    expect(result.ignored).toBe(false);
+  });
+
+  it("deve compor circunflexo com pending mark desconhecido pelo expectedChar", () => {
+    const result = normalizeTypingInputValue({
+      nextValue: "ana",
+      previousValue: "an",
+      pendingMark: UNKNOWN_DEAD_KEY_MARK,
+      referenceText: "anâlise",
+    });
+
+    expect(result.value).toBe("anâ");
+    expect(result.pendingMark).toBe("");
+    expect(result.ignored).toBe(false);
+  });
+
   it("deve aplicar acento pendente desconhecido conforme a letra esperada", () => {
     const result = normalizeTypingInputValue({
       nextValue: "ana",
@@ -108,6 +210,19 @@ describe("Entrada de digitação com acentos", () => {
     });
 
     expect(result.value).toBe("anã");
+    expect(result.pendingMark).toBe("");
+    expect(result.ignored).toBe(false);
+  });
+
+  it("deve aplicar acento circunflexo pendente desconhecido com letra esperada", () => {
+    const result = normalizeTypingInputValue({
+      nextValue: "ana",
+      previousValue: "an",
+      pendingMark: UNKNOWN_DEAD_KEY_MARK,
+      referenceText: "anâlise",
+    });
+
+    expect(result.value).toBe("anâ");
     expect(result.pendingMark).toBe("");
     expect(result.ignored).toBe(false);
   });

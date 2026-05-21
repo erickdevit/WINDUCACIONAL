@@ -23,7 +23,6 @@ const DEAD_KEY_CODE_MARKS = {
   Backquote: { default: "`", shift: "~" },
   BracketLeft: { default: "´", shift: "`" },
   BracketRight: { default: "~", shift: "^" },
-  Digit6: { default: "^", shift: "^" },
   Equal: { default: "´", shift: "`" },
   IntlBackslash: { default: "`", shift: "~" },
   Quote: { default: "´", shift: "¨" },
