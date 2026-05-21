@@ -166,7 +166,7 @@ export const ExamReceipt = ({ examId, submissionId, onBack }) => {
           <div className="receipt-info-item">
             <label>Aluno</label>
             <span>
-              {submission.displayName || "—"} (@{submission.username || "—"})
+              {submission.displayName || "—"}
             </span>
           </div>
           <div className="receipt-info-item">
