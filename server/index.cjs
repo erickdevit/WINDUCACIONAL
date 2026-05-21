@@ -2597,7 +2597,14 @@ app.get(
       const result = await pool.query(
         `SELECT s.*, u.username, u.display_name, u.turma_id,
                 e.title AS exam_title,
-                t.nome AS turma_name
+                t.nome AS turma_name,
+                (SELECT prof.display_name
+                 FROM exam_application_items eai
+                 JOIN exam_application_batches eab ON eab.id = eai.batch_id
+                 JOIN users prof ON prof.id = eab.applied_by
+                 WHERE eai.exam_id = s.exam_id AND eai.user_id = s.user_id
+                 ORDER BY eab.created_at DESC
+                 LIMIT 1) AS applied_by_name
          FROM exam_submissions s
          JOIN users u ON u.id = s.user_id
          JOIN exams e ON e.id = s.exam_id
@@ -2610,6 +2617,7 @@ app.get(
         ...publicExamSubmission(s),
         examTitle: s.exam_title || "",
         turmaName: s.turma_name || "",
+        appliedByName: s.applied_by_name || "",
       }));
       res.json({ submissions });
     } catch (error) {
