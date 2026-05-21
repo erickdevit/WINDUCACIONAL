@@ -150,8 +150,8 @@ export const ExamAssignment = () => {
             </div>
 
             {selectedTurmaId && (
-              <div className="border rounded-xl overflow-hidden">
-                <table className="w-full text-left text-sm">
+              <div className="exam-student-table-wrap win11Scroll">
+                <table className="exam-student-table">
                   <thead>
                     <tr>
                       <th className="p-3 w-10">
@@ -214,7 +214,7 @@ export const ExamAssignment = () => {
               </button>
             </div>
 
-            <div className="selected-exam-list">
+            <div className="selected-exam-list win11Scroll">
               {selectedExamIds.map(id => {
                 const exam = exams.find(item => item.id === id);
                 if (!exam) return null;

@@ -182,7 +182,7 @@
 
   .exam-content {
     flex: 1;
-    overflow-y: auto;
+    overflow: auto;
     padding: 24px;
   }
 
@@ -389,7 +389,12 @@
   }
 
   .exam-table-panel {
-    overflow: hidden;
+    max-height: min(640px, calc(100vh - 260px));
+    overflow: auto;
+
+    table {
+      min-width: 760px;
+    }
   }
 
   .exam-status-pill {
@@ -538,10 +543,36 @@
     margin-bottom: 12px;
   }
 
+  .exam-student-table-wrap {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    max-height: min(520px, calc(100vh - 330px));
+    overflow: auto;
+  }
+
+  .exam-student-table {
+    min-width: 620px;
+    width: 100%;
+    text-align: left;
+    font-size: 14px;
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+  }
+
+  .exam-results-panel table {
+    min-width: 760px;
+  }
+
   .selected-exam-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    max-height: min(340px, calc(100vh - 360px));
+    overflow: auto;
   }
 
   .selected-exam-row {
@@ -604,7 +635,7 @@
 
   .question-management-scroll {
     max-height: min(720px, calc(100vh - 230px));
-    overflow-y: auto;
+    overflow: auto;
     padding-right: 8px;
   }
 
@@ -774,7 +805,7 @@
 
   .application-list-scroll {
     max-height: min(620px, calc(100vh - 300px));
-    overflow-y: auto;
+    overflow: auto;
   }
 
   .application-row {
@@ -870,6 +901,7 @@
   }
 
   .application-table {
+    min-width: 760px;
     width: 100%;
     border-collapse: collapse;
     text-align: left;
@@ -1033,7 +1065,7 @@
     max-width: 672px;
     max-height: calc(100vh - 210px);
     margin: 0 auto;
-    overflow-y: auto;
+    overflow: auto;
     padding: 32px 8px 40px;
   }
 
@@ -1188,7 +1220,7 @@
     padding: 32px;
     box-shadow: 0 2px 8px rgba(20, 30, 40, 0.06);
     max-height: min(640px, calc(100vh - 260px));
-    overflow-y: auto;
+    overflow: auto;
   }
 
   .receipt-header {
@@ -1411,6 +1443,7 @@
 }
 
 .win11Scroll::-webkit-scrollbar {
+  height: 8px;
   width: 8px;
 }
 

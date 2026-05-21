@@ -101,7 +101,7 @@ export const ExamResults = () => {
         )}
       </div>
 
-      <div className="exam-panel exam-results-panel">
+      <div className="exam-panel exam-results-panel win11Scroll">
         <table className="application-table">
           <thead>
             <tr>

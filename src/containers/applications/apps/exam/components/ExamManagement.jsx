@@ -145,7 +145,7 @@ export const ExamManagement = ({ onBack }) => {
         </div>
       )}
 
-      <div className="exam-table-panel">
+      <div className="exam-table-panel win11Scroll">
         <table className="w-full text-left">
           <thead>
             <tr>
