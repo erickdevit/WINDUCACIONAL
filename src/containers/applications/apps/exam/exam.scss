@@ -1244,6 +1244,10 @@
     border-radius: 6px;
     overflow: hidden;
 
+    &.no-practical {
+      grid-template-columns: 1fr 1fr;
+    }
+
     > div {
       padding: 14px 8px;
 

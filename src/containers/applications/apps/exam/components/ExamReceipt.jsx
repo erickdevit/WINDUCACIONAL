@@ -187,15 +187,17 @@ export const ExamReceipt = ({ examId, submissionId, onBack }) => {
           </div>
         </div>
 
-        <div className="receipt-scores">
+        <div className={`receipt-scores ${practicalAnswers.length === 0 ? 'no-practical' : ''}`}>
           <div>
             <label>Nota Teoria</label>
             <div className="score-value">{submission.scoreMcq}</div>
           </div>
-          <div>
-            <label>Nota Prática</label>
-            <div className="score-value">{submission.scorePractical}</div>
-          </div>
+          {practicalAnswers.length > 0 && (
+            <div>
+              <label>Nota Prática</label>
+              <div className="score-value">{submission.scorePractical}</div>
+            </div>
+          )}
           <div>
             <label>Total Final</label>
             <div className="score-value score-total">{submission.totalScore}</div>
