@@ -303,6 +303,7 @@ export const getUserDisplayName = (user = {}) =>
 
 export const normalizeName = (name) => {
   if (!name) return "";
+  const hasTrailingSpace = String(name).endsWith(" ");
   return String(name)
     .trim()
     .split(/\s+/)
@@ -311,7 +312,7 @@ export const normalizeName = (name) => {
       if (word.length <= 1) return word.toUpperCase();
       return word[0].toUpperCase() + word.slice(1).toLowerCase();
     })
-    .join(" ");
+    .join(" ") + (hasTrailingSpace ? " " : "");
 };
 
 export const getUserInitials = (user = {}) => {
