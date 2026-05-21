@@ -136,6 +136,19 @@ const normalizeUsername = (username) =>
     .toLowerCase()
     .replace(/[^a-z0-9._-]/g, "");
 
+const normalizeDisplayName = (name) => {
+  if (!name) return "";
+  return String(name)
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => {
+      if (word.length <= 1) return word.toUpperCase();
+      return word[0].toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(" ");
+};
+
 const normalizeStudentType = (studentType, role) => {
   if (role !== "aluno") return "normal";
   const normalized = String(studentType || "normal")
@@ -1104,7 +1117,7 @@ const createUser = async ({
     [
       id,
       normalized,
-      String(displayName || normalized).trim(),
+      normalizeDisplayName(String(displayName || normalized)),
       role,
       normalizedStudentType,
       salt,
@@ -1410,7 +1423,7 @@ app.patch(
       };
 
       if (req.body.displayName != null)
-        add("display_name", String(req.body.displayName).trim());
+        add("display_name", normalizeDisplayName(String(req.body.displayName)));
       let nextRole = targetUser.role;
       let nextTurmaId = targetUser.turma_id;
       if (req.body.role != null) {

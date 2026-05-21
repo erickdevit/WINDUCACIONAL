@@ -301,6 +301,19 @@ export const getStudentTypeLabel = (studentType) =>
 export const getUserDisplayName = (user = {}) =>
   user.username || user.displayName || user.name || "Usuário";
 
+export const normalizeName = (name) => {
+  if (!name) return "";
+  return String(name)
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => {
+      if (word.length <= 1) return word.toUpperCase();
+      return word[0].toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(" ");
+};
+
 export const getUserInitials = (user = {}) => {
   const source = getUserDisplayName(user).trim();
   if (!source) return "U";

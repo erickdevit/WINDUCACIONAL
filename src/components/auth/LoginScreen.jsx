@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { api } from "../../lib/api";
+import { normalizeName } from "../../lib/ui";
 
 const initialForm = {
   username: "",
@@ -33,6 +34,8 @@ export const LoginScreen = ({
             .toUpperCase()
             .replace(/[^A-Z0-9]/g, "")
             .slice(0, 6)
+        : event.target.name === "displayName"
+        ? normalizeName(event.target.value)
         : event.target.value;
     setForm({
       ...form,

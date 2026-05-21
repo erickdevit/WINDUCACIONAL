@@ -10,6 +10,7 @@ import {
   getSettingText,
   getStudentTypeLabel,
   getUserDisplayName,
+  normalizeName,
   SETTINGS_PAGE_LABELS,
 } from "../../../../lib/ui";
 import { api } from "../../../../lib/api";
@@ -858,7 +859,7 @@ const UserManagement = ({ currentUser, onBack }) => {
     setCreateForm((state) => {
       const nextForm = {
         ...state,
-        [name]: value,
+        [name]: name === "displayName" ? normalizeName(value) : value,
       };
       if (name === "turmaId") {
         nextForm.studentType = turmaTypeById.get(value) || "normal";
@@ -893,7 +894,7 @@ const UserManagement = ({ currentUser, onBack }) => {
     const { name, value, type, checked } = event.target;
     const nextForm = {
       ...editForm,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: name === "displayName" ? normalizeName(value) : type === "checkbox" ? checked : value,
     };
     if (name === "role" && value === "professor") {
       nextForm.studentType = "normal";
