@@ -21,10 +21,24 @@ describe("App Frequência", () => {
   });
 
   it("deve oferecer filtros analíticos e impressão para professores", () => {
-    expect(source).toContain("Aplicar filtros");
+    expect(source).toContain("professorTabs");
+    expect(source).toContain("Visão Geral");
+    expect(source).toContain("Por Dia");
+    expect(source).toContain("Registros");
+    expect(source).toContain("Aplicar");
     expect(source).toContain("printReport");
     expect(source).toContain("Relatório de frequência");
     expect(source).toContain("Resumo por aluno");
+  });
+
+  it("deve organizar a experiência com menu lateral e telas separadas", () => {
+    expect(source).toContain("attendance-sidebar");
+    expect(source).toContain("attendance-nav-link");
+    expect(source).toContain("renderActiveContent");
+    expect(source).toContain("renderStudents");
+    expect(source).toContain("renderDaily");
+    expect(source).toContain("renderRecords");
+    expect(source).toContain("renderPrint");
   });
 
   it("deve mostrar histórico individual para alunos", () => {
