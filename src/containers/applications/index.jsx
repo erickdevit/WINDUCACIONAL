@@ -20,6 +20,7 @@ export * from "./apps/typingKids";
 export * from "./apps/chat";
 export * from "./apps/shortcuts";
 export * from "./apps/Gestor";
+export * from "./apps/attendance";
 export * from "./apps/exam";
 
 export const ScreenPreview = () => {

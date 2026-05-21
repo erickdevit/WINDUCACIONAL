@@ -125,6 +125,29 @@ describe("Backend - endpoints de turmas", () => {
   });
 });
 
+describe("Backend - frequência", () => {
+  it("deve registrar presença automaticamente ao criar sessão de aluno", () => {
+    expect(serverCode).toContain("recordAttendanceForLogin");
+    expect(serverCode).toContain("INSERT INTO attendance_records");
+    expect(serverCode).toContain("WHERE u.id = $1 AND u.role = 'aluno'");
+    expect(serverCode).toContain("ON CONFLICT (user_id, attendance_date)");
+    expect(serverCode).toContain("await recordAttendanceForLogin(userId)");
+  });
+
+  it("deve expor resumo de frequência apenas para professores", () => {
+    expect(serverCode).toContain('"/api/attendance/summary"');
+    expect(serverCode).toContain("requireProfessor");
+    expect(serverCode).toContain("attendanceRate");
+    expect(serverCode).toContain("totalDays");
+  });
+
+  it("deve permitir que aluno consulte apenas a própria frequência", () => {
+    expect(serverCode).toContain('"/api/attendance/me"');
+    expect(serverCode).toContain("WHERE ar.user_id = $1");
+    expect(serverCode).toContain("req.user.id");
+  });
+});
+
 describe("Backend - cadastro público de aluno", () => {
   it("deve ter endpoint POST /api/auth/register", () => {
     expect(serverCode).toContain('"/api/auth/register"');

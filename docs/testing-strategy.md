@@ -43,6 +43,8 @@ Criar uma suíte objetiva, rápida e útil para proteger a evolução do simulad
 - Professor salva metas de PPM e precisão dos apps de digitação Normal e Kids, e alunos recebem os novos valores em tempo real mesmo com uma lição aberta.
 - Game solo do app de Digitação Normal usa missões separadas das lições, aceita apenas palavras, calcula vidas, PPM e precisão, recebe configurações próprias em tempo real e mantém rankings global e por turma separados das lições.
 - PVP de digitação valida pareamento por turma, sincroniza progresso em tempo real, finaliza por conclusão ou perda de vidas, exibe o placar final dos dois jogadores e grava histórico próprio do modo.
+- Backend registra presença automaticamente ao criar sessão de aluno, mantendo um registro único por aluno/data com primeiro login, último login e contador de logins.
+- Professor filtra frequência por turma e período, confere métricas de presença/ausência e imprime relatório; aluno visualiza apenas o próprio histórico.
 - Professor cria prova com tempo global, configura tempo por questão, publica, atribui a alunos e acompanha resultados.
 - Aluno confirma o nome completo antes de iniciar a avaliação, com autoformatação no cliente, normalização no backend e snapshot salvo na submissão.
 - Aluno só abre avaliações atribuídas, responde múltipla escolha, executa a prática em container simulado e recebe nota calculada pelo backend.

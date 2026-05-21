@@ -283,6 +283,12 @@ const apps = [
     professorOnly: true,
   },
   {
+    name: "Frequência",
+    icon: "attendance",
+    type: "app",
+    action: "ATTENDANCEAPP",
+  },
+  {
     name: "Avaliação",
     icon: "exam",
     type: "app",

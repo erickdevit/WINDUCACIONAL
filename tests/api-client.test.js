@@ -98,4 +98,11 @@ describe("API client - endpoints existentes", () => {
     expect(apiCode).toContain("/api/exams/applications");
     expect(apiCode).toContain('method: "DELETE"');
   });
+
+  it("deve expor endpoints de frequência", () => {
+    expect(apiCode).toContain("getMyAttendance");
+    expect(apiCode).toContain("getAttendanceSummary");
+    expect(apiCode).toContain("/api/attendance/me");
+    expect(apiCode).toContain("/api/attendance/summary");
+  });
 });

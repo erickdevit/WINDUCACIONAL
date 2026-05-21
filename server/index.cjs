@@ -38,6 +38,8 @@ const app = express();
 app.disable("x-powered-by");
 app.use(express.json({ limit: "1mb" }));
 
+const ATTENDANCE_TIME_ZONE = "America/Sao_Paulo";
+
 // Edge browser proxy - remove X-Frame-Options to allow Google/YouTube in iframe
 app.get("/api/edge-proxy", async (req, res) => {
   const targetUrl = req.query.url;
@@ -395,8 +397,65 @@ const publicExamApplicationItem = (item) => ({
   completedAt: item.completed_at,
 });
 
+const publicAttendanceRecord = (record) => ({
+  id: record.id,
+  userId: record.user_id,
+  attendanceDate:
+    record.attendance_date instanceof Date
+      ? record.attendance_date.toISOString().slice(0, 10)
+      : String(record.attendance_date || ""),
+  firstLoginAt: record.first_login_at,
+  lastLoginAt: record.last_login_at,
+  loginCount: Number(record.login_count || 0),
+  username: record.username,
+  displayName: record.display_name,
+  turmaId: record.turma_id || null,
+  turmaNome: record.turma_nome || "",
+});
+
 const normalizeExamText = (value, fallback = "") =>
   String(value ?? fallback).trim();
+
+const normalizeDateParam = (value) => {
+  const text = String(value || "").trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : "";
+};
+
+const formatDateInAttendanceZone = (date) => {
+  const parts = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: ATTENDANCE_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const values = Object.fromEntries(
+    parts.map((part) => [part.type, part.value])
+  );
+  return `${values.year}-${values.month}-${values.day}`;
+};
+
+const getDefaultDateRange = () => {
+  const now = new Date();
+  const startDate = new Date(now);
+  startDate.setDate(startDate.getDate() - 29);
+  return {
+    startDate: formatDateInAttendanceZone(startDate),
+    endDate: formatDateInAttendanceZone(now),
+  };
+};
+
+const getDateList = (startDate, endDate) => {
+  const dates = [];
+  const current = new Date(`${startDate}T00:00:00.000Z`);
+  const end = new Date(`${endDate}T00:00:00.000Z`);
+
+  while (current <= end) {
+    dates.push(current.toISOString().slice(0, 10));
+    current.setUTCDate(current.getUTCDate() + 1);
+  }
+
+  return dates;
+};
 
 const normalizeExamTimeLimit = (value) => clampInteger(value, 0, 0, 1440);
 
@@ -1085,6 +1144,27 @@ const clearSessionCookie = (res) => {
   );
 };
 
+const recordAttendanceForLogin = async (userId) => {
+  await pool.query(
+    `INSERT INTO attendance_records
+       (id, user_id, attendance_date, first_login_at, last_login_at, login_count)
+     SELECT
+       $2,
+       u.id,
+       (NOW() AT TIME ZONE $3)::date,
+       NOW(),
+       NOW(),
+       1
+     FROM users u
+     WHERE u.id = $1 AND u.role = 'aluno'
+     ON CONFLICT (user_id, attendance_date) DO UPDATE
+     SET last_login_at = EXCLUDED.last_login_at,
+         login_count = attendance_records.login_count + 1,
+         updated_at = NOW()`,
+    [userId, crypto.randomUUID(), ATTENDANCE_TIME_ZONE]
+  );
+};
+
 const createSession = async (userId) => {
   await pool.query("DELETE FROM sessions WHERE user_id = $1", [userId]);
   sendUserNotification(userId, {
@@ -1099,6 +1179,7 @@ const createSession = async (userId) => {
      VALUES ($1, $2, $3, NOW() + ($4::int * INTERVAL '1 day'))`,
     [crypto.randomUUID(), userId, hashToken(token), config.sessionDays]
   );
+  await recordAttendanceForLogin(userId);
   return token;
 };
 
@@ -1451,6 +1532,214 @@ app.post(
       }
 
       res.status(204).end();
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// --- Endpoints de Frequência ---
+
+app.get("/api/attendance/me", requireAuth, async (req, res, next) => {
+  try {
+    if (req.user.role !== "aluno") {
+      return res
+        .status(403)
+        .json({ error: "Histórico individual disponível apenas para alunos." });
+    }
+
+    const result = await pool.query(
+      `SELECT ar.id,
+              ar.user_id,
+              to_char(ar.attendance_date, 'YYYY-MM-DD') AS attendance_date,
+              ar.first_login_at,
+              ar.last_login_at,
+              ar.login_count,
+              u.username,
+              u.display_name,
+              u.turma_id,
+              t.nome AS turma_nome
+       FROM attendance_records ar
+       JOIN users u ON u.id = ar.user_id
+       LEFT JOIN turmas t ON t.id = u.turma_id
+       WHERE ar.user_id = $1
+       ORDER BY ar.attendance_date DESC
+       LIMIT 90`,
+      [req.user.id]
+    );
+
+    const records = result.rows.map(publicAttendanceRecord);
+    const todayResult = await pool.query(
+      "SELECT to_char((NOW() AT TIME ZONE $1)::date, 'YYYY-MM-DD') AS today",
+      [ATTENDANCE_TIME_ZONE]
+    );
+    const today = todayResult.rows[0].today;
+
+    res.json({
+      today,
+      todayRecord:
+        records.find((record) => record.attendanceDate === today) || null,
+      records,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get(
+  "/api/attendance/summary",
+  requireAuth,
+  requireProfessor,
+  async (req, res, next) => {
+    try {
+      const defaults = getDefaultDateRange();
+      const startDate =
+        normalizeDateParam(req.query.startDate) || defaults.startDate;
+      const endDate = normalizeDateParam(req.query.endDate) || defaults.endDate;
+      const turmaId = req.query.turmaId || "";
+
+      if (startDate > endDate) {
+        return res
+          .status(400)
+          .json({ error: "Data inicial não pode ser maior que a final." });
+      }
+
+      const days = getDateList(startDate, endDate);
+      if (days.length > 366) {
+        return res.status(400).json({
+          error: "O período de frequência não pode passar de 366 dias.",
+        });
+      }
+
+      const studentParams = [];
+      let studentFilter = "WHERE u.role = 'aluno' AND u.active = TRUE";
+      if (turmaId) {
+        studentParams.push(turmaId);
+        studentFilter += ` AND u.turma_id = $${studentParams.length}`;
+      }
+
+      const studentsResult = await pool.query(
+        `SELECT u.id,
+                u.username,
+                u.display_name,
+                u.turma_id,
+                t.nome AS turma_nome
+         FROM users u
+         LEFT JOIN turmas t ON t.id = u.turma_id
+         ${studentFilter}
+         ORDER BY t.nome ASC NULLS LAST, u.display_name ASC`,
+        studentParams
+      );
+
+      const recordParams = [startDate, endDate];
+      let recordFilter = "WHERE ar.attendance_date BETWEEN $1 AND $2";
+      if (turmaId) {
+        recordParams.push(turmaId);
+        recordFilter += ` AND u.turma_id = $${recordParams.length}`;
+      }
+
+      const recordsResult = await pool.query(
+        `SELECT ar.id,
+                ar.user_id,
+                to_char(ar.attendance_date, 'YYYY-MM-DD') AS attendance_date,
+                ar.first_login_at,
+                ar.last_login_at,
+                ar.login_count,
+                u.username,
+                u.display_name,
+                u.turma_id,
+                t.nome AS turma_nome
+         FROM attendance_records ar
+         JOIN users u ON u.id = ar.user_id
+         LEFT JOIN turmas t ON t.id = u.turma_id
+         ${recordFilter}
+         ORDER BY ar.attendance_date DESC, u.display_name ASC`,
+        recordParams
+      );
+
+      const records = recordsResult.rows.map(publicAttendanceRecord);
+      const recordsByStudent = new Map();
+      records.forEach((record) => {
+        if (!recordsByStudent.has(record.userId)) {
+          recordsByStudent.set(record.userId, []);
+        }
+        recordsByStudent.get(record.userId).push(record);
+      });
+
+      const dailyMap = new Map(
+        days.map((date) => [
+          date,
+          {
+            date,
+            present: 0,
+            absent: studentsResult.rows.length,
+            attendanceRate: 0,
+          },
+        ])
+      );
+
+      records.forEach((record) => {
+        const day = dailyMap.get(record.attendanceDate);
+        if (day) day.present += 1;
+      });
+
+      const students = studentsResult.rows.map((student) => {
+        const studentRecords = recordsByStudent.get(student.id) || [];
+        const presentDays = new Set(
+          studentRecords.map((record) => record.attendanceDate)
+        ).size;
+        const absentDays = Math.max(days.length - presentDays, 0);
+        const lastLoginAt = studentRecords.reduce(
+          (latest, record) =>
+            !latest || new Date(record.lastLoginAt) > new Date(latest)
+              ? record.lastLoginAt
+              : latest,
+          null
+        );
+
+        return {
+          id: student.id,
+          username: student.username,
+          displayName: student.display_name,
+          turmaId: student.turma_id || null,
+          turmaNome: student.turma_nome || "",
+          presentDays,
+          absentDays,
+          attendanceRate:
+            days.length > 0 ? Math.round((presentDays / days.length) * 100) : 0,
+          lastLoginAt,
+          records: studentRecords,
+        };
+      });
+
+      const daily = Array.from(dailyMap.values()).map((day) => ({
+        ...day,
+        absent: Math.max(students.length - day.present, 0),
+        attendanceRate:
+          students.length > 0
+            ? Math.round((day.present / students.length) * 100)
+            : 0,
+      }));
+
+      const totalPossible = students.length * days.length;
+      const totalPresences = records.length;
+      const totalAbsences = Math.max(totalPossible - totalPresences, 0);
+
+      res.json({
+        range: { startDate, endDate, totalDays: days.length },
+        totals: {
+          students: students.length,
+          presences: totalPresences,
+          absences: totalAbsences,
+          attendanceRate:
+            totalPossible > 0
+              ? Math.round((totalPresences / totalPossible) * 100)
+              : 0,
+        },
+        students,
+        daily,
+        records,
+      });
     } catch (error) {
       next(error);
     }

@@ -119,6 +119,23 @@ CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
 CREATE INDEX IF NOT EXISTS idx_users_turma_id ON users(turma_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_turmas_code ON turmas(code);
 
+CREATE TABLE IF NOT EXISTS attendance_records (
+  id UUID PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  attendance_date DATE NOT NULL,
+  first_login_at TIMESTAMPTZ NOT NULL,
+  last_login_at TIMESTAMPTZ NOT NULL,
+  login_count INTEGER NOT NULL DEFAULT 1,
+  source TEXT NOT NULL DEFAULT 'login',
+  CONSTRAINT attendance_records_source_check CHECK (source IN ('login')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(user_id, attendance_date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_attendance_records_user ON attendance_records(user_id);
+CREATE INDEX IF NOT EXISTS idx_attendance_records_date ON attendance_records(attendance_date);
+
 CREATE TABLE IF NOT EXISTS app_metadata (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL,

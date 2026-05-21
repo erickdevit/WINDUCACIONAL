@@ -294,6 +294,16 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+  // --- Frequência ---
+  getMyAttendance: () => request("/api/attendance/me"),
+  getAttendanceSummary: ({ startDate, endDate, turmaId } = {}) => {
+    const params = new URLSearchParams();
+    if (startDate) params.set("startDate", startDate);
+    if (endDate) params.set("endDate", endDate);
+    if (turmaId) params.set("turmaId", turmaId);
+    const suffix = params.toString() ? `?${params.toString()}` : "";
+    return request(`/api/attendance/summary${suffix}`);
+  },
   // --- Avaliação (Exams) ---
   getExams: () => request("/api/exams"),
   getExamDetails: (id) => request(`/api/exams/${id}`),

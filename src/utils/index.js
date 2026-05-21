@@ -130,6 +130,13 @@ desktop = seedStoredApps(
 
 desktop = seedStoredApps(
   "desktop",
+  "desktop-seed-attendance-v1",
+  ["Frequência"],
+  desktop
+);
+
+desktop = seedStoredApps(
+  "desktop",
   "desktop-seed-exam-v1",
   ["Avaliação"],
   desktop
