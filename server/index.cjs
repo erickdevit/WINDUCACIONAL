@@ -2582,14 +2582,23 @@ app.get(
       const turmaFilter = turmaId ? " AND u.turma_id = $2" : "";
       const params = turmaId ? [req.params.id, turmaId] : [req.params.id];
       const result = await pool.query(
-        `SELECT s.*, u.username, u.display_name
+        `SELECT s.*, u.username, u.display_name, u.turma_id,
+                e.title AS exam_title,
+                t.nome AS turma_name
          FROM exam_submissions s
          JOIN users u ON u.id = s.user_id
+         JOIN exams e ON e.id = s.exam_id
+         LEFT JOIN turmas t ON t.id = u.turma_id
          WHERE s.exam_id = $1${turmaFilter}
          ORDER BY s.completed_at DESC`,
         params
       );
-      res.json({ submissions: result.rows.map(publicExamSubmission) });
+      const submissions = result.rows.map((s) => ({
+        ...publicExamSubmission(s),
+        examTitle: s.exam_title || "",
+        turmaName: s.turma_name || "",
+      }));
+      res.json({ submissions });
     } catch (error) {
       next(error);
     }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { api } from "../../../../../lib/api";
 import { ExamReceipt } from "./ExamReceipt";
 import { TurmaSelector } from "./TurmaSelector";
+import { ResultsPrintStub } from "./ResultsPrintStub";
 
 export const ExamResults = () => {
   const [submissions, setSubmissions] = useState([]);
@@ -9,6 +10,7 @@ export const ExamResults = () => {
   const [selectedExamId, setSelectedExamId] = useState("all");
   const [selectedTurmaId, setSelectedTurmaId] = useState("");
   const [selectedSubmission, setSelectedSubmission] = useState(null);
+  const [selectedIds, setSelectedIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { loadData(); }, []);
@@ -34,6 +36,24 @@ export const ExamResults = () => {
       setSubmissions([]);
     }
   }, [selectedExamId, selectedTurmaId]);
+
+  const selectedExam = exams.find(e => e.id === selectedExamId);
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selectedIds.size === submissions.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(submissions.map(s => s.id)));
+    }
+  };
 
   if (selectedSubmission) {
     return (
@@ -62,10 +82,30 @@ export const ExamResults = () => {
         </div>
       </div>
 
+      <div className="flex items-center gap-3 mb-4">
+        <label className="flex items-center gap-2 text-sm font-bold cursor-pointer select-none" style={{ color: "var(--muted)" }}>
+          <input
+            type="checkbox"
+            checked={submissions.length > 0 && selectedIds.size === submissions.length}
+            onChange={toggleAll}
+            className="w-4 h-4"
+          />
+          Selecionar todos
+        </label>
+        {selectedIds.size > 0 && (
+          <ResultsPrintStub
+            submissions={submissions.filter(s => selectedIds.has(s.id))}
+            examTitle={selectedExam?.title || "Avaliação"}
+            turmaName={submissions.find(s => s.turmaName)?.turmaName || ""}
+          />
+        )}
+      </div>
+
       <div className="exam-panel exam-results-panel">
         <table className="application-table">
           <thead>
             <tr>
+              <th style={{ width: 32 }}></th>
               <th>Aluno</th>
               <th>Status</th>
               <th style={{ textAlign: "center" }}>MCQ</th>
@@ -82,6 +122,14 @@ export const ExamResults = () => {
                 onClick={() => setSelectedSubmission(sub)}
                 title="Clique para ver o comprovante"
               >
+                <td style={{ width: 32 }} onClick={e => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(sub.id)}
+                    onChange={() => toggleSelect(sub.id)}
+                    className="w-4 h-4"
+                  />
+                </td>
                 <td>
                   <strong>{sub.displayName}</strong>
                   <small>@{sub.username}</small>
@@ -101,7 +149,7 @@ export const ExamResults = () => {
             ))}
             {submissions.length === 0 && (
               <tr>
-                <td colSpan={6}>
+                <td colSpan={7}>
                   <div className="exam-empty compact">
                     {selectedExamId === 'all' ? 'Selecione uma prova para ver os resultados.' : 'Nenhuma submissão encontrada.'}
                   </div>
