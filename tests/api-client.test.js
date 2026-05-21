@@ -28,6 +28,8 @@ describe("API client - endpoints existentes", () => {
   it("deve manter endpoints de autenticação", () => {
     expect(apiCode).toContain("/api/app/version");
     expect(apiCode).toContain("/api/auth/me");
+    expect(apiCode).toContain("updateMyDisplayName");
+    expect(apiCode).toContain("/api/auth/me/display-name");
     expect(apiCode).toContain("/api/auth/login");
     expect(apiCode).toContain("/api/auth/register");
     expect(apiCode).toContain("/api/auth/logout");

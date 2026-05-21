@@ -18,6 +18,12 @@ describe("Backend - publicUser", () => {
   it("deve incluir studentType no objeto público de usuário", () => {
     expect(serverCode).toContain("studentType: user.student_type");
   });
+
+  it("deve permitir ao usuário atualizar o próprio nome normalizado", () => {
+    expect(serverCode).toContain('"/api/auth/me/display-name"');
+    expect(serverCode).toContain("normalizeDisplayName");
+    expect(serverCode).toContain("SET display_name = $1");
+  });
 });
 
 describe("Backend - queries SQL de usuário", () => {
@@ -64,8 +70,8 @@ describe("Backend - queries SQL de usuário", () => {
 
   it("deve incluir turma_id e student_type no RETURNING do UPDATE de usuário", () => {
     const updateBlock = serverCode.substring(
-      serverCode.indexOf("UPDATE users SET"),
-      serverCode.indexOf("UPDATE users SET") + 300
+      serverCode.indexOf('"/api/users/:id"'),
+      serverCode.indexOf('"/api/users/:id"') + 3000
     );
     expect(updateBlock).toContain("turma_id");
     expect(updateBlock).toContain("student_type");
@@ -139,8 +145,12 @@ describe("Backend - cadastro público de aluno", () => {
 describe("Backend - avaliações", () => {
   it("deve calcular notas no servidor sem confiar em pontuação do cliente", () => {
     expect(serverCode).toContain("gradePracticalRules");
-    expect(serverCode).toContain("pointsAwarded = isCorrect ? Number(question.points || 0) : 0");
-    expect(serverCode).not.toContain("const { questionId, answerText, isCorrect, pointsAwarded } = ans");
+    expect(serverCode).toContain(
+      "pointsAwarded = isCorrect ? Number(question.points || 0) : 0"
+    );
+    expect(serverCode).not.toContain(
+      "const { questionId, answerText, isCorrect, pointsAwarded } = ans"
+    );
   });
 
   it("deve exigir atribuição para aluno abrir ou enviar prova", () => {
@@ -157,6 +167,19 @@ describe("Backend - avaliações", () => {
     expect(detailsBlock).toContain('forSubmit: req.user.role !== "professor"');
     expect(submitBlock).toContain("ensureExamAccess");
     expect(serverCode).toContain("Esta prova não foi atribuída ao aluno.");
+  });
+
+  it("deve gravar o nome confirmado do aluno na submissão", () => {
+    const submitBlock = serverCode.substring(
+      serverCode.indexOf('app.post("/api/exams/:id/submit"'),
+      serverCode.indexOf('app.get(\n  "/api/exams/:id/submissions"')
+    );
+
+    expect(submitBlock).toContain("student_display_name");
+    expect(submitBlock).toContain(
+      "normalizeDisplayName(req.user.display_name)"
+    );
+    expect(serverCode).toContain("normalizeExistingDisplayNames");
   });
 
   it("deve publicar apenas provas com questões", () => {
@@ -177,7 +200,7 @@ describe("Backend - avaliações", () => {
     expect(serverCode).toContain("total_created");
     expect(serverCode).toContain("total_existing");
     expect(serverCode).toContain("total_skipped");
-    expect(serverCode).toContain('app.delete("/api/exams/applications/:id"');
+    expect(serverCode).toContain('"/api/exams/applications/:id"');
     expect(serverCode).toContain("total_removed");
     expect(serverCode).toContain("removal_status = 'removed'");
     expect(serverCode).toContain("O aluno já iniciou ou concluiu esta prova.");

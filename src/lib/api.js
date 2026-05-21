@@ -26,6 +26,11 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   me: () => request("/api/auth/me"),
+  updateMyDisplayName: (displayName) =>
+    request("/api/auth/me/display-name", {
+      method: "PATCH",
+      body: JSON.stringify({ displayName }),
+    }),
   login: (payload) =>
     request("/api/auth/login", {
       method: "POST",
@@ -336,17 +341,17 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   getExamSubmissions: (id, turmaId) => {
-    const params = turmaId ? `?turmaId=${turmaId}` : '';
+    const params = turmaId ? `?turmaId=${turmaId}` : "";
     return request(`/api/exams/${id}/submissions${params}`);
   },
   getSubmissionDetails: (examId, submissionId) =>
     request(`/api/exams/${examId}/submissions/${submissionId}`),
   getExamAnalytics: (turmaId) => {
-    const params = turmaId ? `?turmaId=${turmaId}` : '';
+    const params = turmaId ? `?turmaId=${turmaId}` : "";
     return request(`/api/exams/analytics${params}`);
   },
   getExamApplications: (turmaId) => {
-    const params = turmaId ? `?turmaId=${turmaId}` : '';
+    const params = turmaId ? `?turmaId=${turmaId}` : "";
     return request(`/api/exams/applications${params}`);
   },
   deleteExamApplication: (id, payload = {}) =>

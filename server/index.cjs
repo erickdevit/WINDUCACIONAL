@@ -338,13 +338,14 @@ const publicExamSubmission = (s) => ({
   startedAt: s.started_at,
   completedAt: s.completed_at,
   username: s.username, // Se disponível via join
-  displayName: s.display_name, // Se disponível via join
+  displayName: s.student_display_name || s.display_name, // Se disponível via join
 });
 
 const publicExamApplication = (batch, items = []) => ({
   id: batch.id,
   mode: batch.mode,
-  modeLabel: batch.mode === "balanced" ? "Distribuir versões" : "Todas para todos",
+  modeLabel:
+    batch.mode === "balanced" ? "Distribuir versões" : "Todas para todos",
   totalRequested: Number(batch.total_requested || 0),
   totalCreated: Number(batch.total_created || 0),
   totalExisting: Number(batch.total_existing || 0),
@@ -402,7 +403,9 @@ const normalizeExamTimeLimit = (value) => clampInteger(value, 0, 0, 1440);
 const normalizeQuestionPoints = (value) => clampInteger(value, 1, 0, 1000);
 
 const normalizeExamQuestionType = (value) => {
-  const type = String(value || "").trim().toLowerCase();
+  const type = String(value || "")
+    .trim()
+    .toLowerCase();
   if (!["mcq", "practical"].includes(type)) {
     const err = new Error("Tipo de questão inválido.");
     err.status = 400;
@@ -421,7 +424,9 @@ const normalizeValidationRules = (rules) => {
 
   return rules
     .map((rule) => ({
-      type: String(rule?.type || "").trim().toUpperCase(),
+      type: String(rule?.type || "")
+        .trim()
+        .toUpperCase(),
       path: String(rule?.path || "").trim(),
       content: String(rule?.content || ""),
       name: String(rule?.name || "").trim(),
@@ -494,7 +499,12 @@ const gradePracticalRules = (rules, practicalSnapshot = {}) => {
   });
 };
 
-const ensureExamAccess = async (client, user, examId, { forSubmit = false } = {}) => {
+const ensureExamAccess = async (
+  client,
+  user,
+  examId,
+  { forSubmit = false } = {}
+) => {
   const examRes = await client.query("SELECT * FROM exams WHERE id = $1", [
     examId,
   ]);
@@ -533,7 +543,6 @@ const ensureExamAccess = async (client, user, examId, { forSubmit = false } = {}
 
   return exam;
 };
-
 
 const hashPassword = (
   password,
@@ -615,7 +624,8 @@ const defaultHomeData = () => ({
 
 const userDir = (storageKey) => path.join(config.dataDir, "users", storageKey);
 const diskPath = (storageKey) => path.join(userDir(storageKey), "disk.json");
-const configPath = (storageKey) => path.join(userDir(storageKey), "config.json");
+const configPath = (storageKey) =>
+  path.join(userDir(storageKey), "config.json");
 
 const loadUserConfig = async (storageKey) => {
   const file = configPath(storageKey);
@@ -751,6 +761,48 @@ const listUsers = async ({ includeInactive = true } = {}) => {
      ORDER BY u.role DESC, u.username ASC`
   );
   return result.rows;
+};
+
+const normalizeExistingDisplayNames = async () => {
+  const usersResult = await pool.query("SELECT id, display_name FROM users");
+  let updatedUsers = 0;
+
+  for (const user of usersResult.rows) {
+    const normalized = normalizeDisplayName(user.display_name);
+    if (normalized && normalized !== user.display_name) {
+      await pool.query(
+        "UPDATE users SET display_name = $1, updated_at = NOW() WHERE id = $2",
+        [normalized, user.id]
+      );
+      updatedUsers += 1;
+    }
+  }
+
+  const submissionsResult = await pool.query(
+    `SELECT s.id, s.student_display_name, u.display_name
+     FROM exam_submissions s
+     JOIN users u ON u.id = s.user_id`
+  );
+  let updatedSubmissions = 0;
+
+  for (const submission of submissionsResult.rows) {
+    const normalized = normalizeDisplayName(
+      submission.student_display_name || submission.display_name
+    );
+    if (normalized && normalized !== submission.student_display_name) {
+      await pool.query(
+        "UPDATE exam_submissions SET student_display_name = $1 WHERE id = $2",
+        [normalized, submission.id]
+      );
+      updatedSubmissions += 1;
+    }
+  }
+
+  if (updatedUsers > 0 || updatedSubmissions > 0) {
+    console.log(
+      `Nomes normalizados: ${updatedUsers} usuário(s), ${updatedSubmissions} submissão(ões).`
+    );
+  }
 };
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -1189,6 +1241,29 @@ app.get("/api/auth/me", requireAuth, (req, res) => {
   res.json({ user: publicUser(req.user) });
 });
 
+app.patch("/api/auth/me/display-name", requireAuth, async (req, res, next) => {
+  try {
+    const displayName = normalizeDisplayName(
+      String(req.body.displayName || "")
+    );
+    if (displayName.length < 2) {
+      return res.status(400).json({ error: "Informe o nome completo." });
+    }
+
+    const result = await pool.query(
+      `UPDATE users
+       SET display_name = $1, updated_at = NOW()
+       WHERE id = $2
+       RETURNING id, username, display_name, role, student_type, storage_key, turma_id, active, created_at, updated_at`,
+      [displayName, req.user.id]
+    );
+
+    res.json({ user: publicUser(result.rows[0]) });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.post("/api/auth/login", async (req, res) => {
   const username = normalizeUsername(req.body.username);
   const result = await pool.query(
@@ -1290,10 +1365,14 @@ app.get("/api/users", requireAuth, requireProfessor, async (req, res) => {
 
 // --- Endpoints de Gestão de Sessões ---
 
-app.get("/api/gestor/sessions", requireAuth, requireProfessor, async (req, res, next) => {
-  try {
-    const result = await pool.query(
-      `SELECT s.id as session_id, s.created_at as login_at,
+app.get(
+  "/api/gestor/sessions",
+  requireAuth,
+  requireProfessor,
+  async (req, res, next) => {
+    try {
+      const result = await pool.query(
+        `SELECT s.id as session_id, s.created_at as login_at,
               u.id as user_id, u.username, u.display_name,
               t.id as turma_id, t.nome as turma_nome
        FROM sessions s
@@ -1301,74 +1380,82 @@ app.get("/api/gestor/sessions", requireAuth, requireProfessor, async (req, res, 
        LEFT JOIN turmas t ON t.id = u.turma_id
        WHERE u.role = 'aluno' AND s.expires_at > NOW()
        ORDER BY t.nome ASC, u.username ASC`
-    );
+      );
 
-    res.json({
-      sessions: result.rows.map(row => ({
-        sessionId: row.session_id,
-        loginAt: row.login_at,
-        userId: row.user_id,
-        username: row.username,
-        displayName: row.display_name,
-        turmaId: row.turma_id,
-        turmaNome: row.turma_nome
-      }))
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.post("/api/gestor/sessions/logout", requireAuth, requireProfessor, async (req, res, next) => {
-  try {
-    const { target, turmaId, userId } = req.body;
-
-    if (target === "all") {
-      const result = await pool.query(
-        "SELECT DISTINCT user_id FROM sessions WHERE user_id IN (SELECT id FROM users WHERE role = 'aluno')"
-      );
-      await pool.query(
-        `DELETE FROM sessions WHERE user_id IN (SELECT id FROM users WHERE role = 'aluno')`
-      );
-      result.rows.forEach((row) => {
-        sendUserNotification(row.user_id, {
-          type: "force_logout",
-          title: "Sessão Encerrada",
-          body: "Sua sessão foi encerrada por um administrador.",
-        });
+      res.json({
+        sessions: result.rows.map((row) => ({
+          sessionId: row.session_id,
+          loginAt: row.login_at,
+          userId: row.user_id,
+          username: row.username,
+          displayName: row.display_name,
+          turmaId: row.turma_id,
+          turmaNome: row.turma_nome,
+        })),
       });
-    } else if (target === "turma" && turmaId) {
-      const result = await pool.query(
-        "SELECT DISTINCT user_id FROM sessions WHERE user_id IN (SELECT id FROM users WHERE turma_id = $1)",
-        [turmaId]
-      );
-      await pool.query(
-        `DELETE FROM sessions WHERE user_id IN (SELECT id FROM users WHERE turma_id = $1)`,
-        [turmaId]
-      );
-      result.rows.forEach((row) => {
-        sendUserNotification(row.user_id, {
-          type: "force_logout",
-          title: "Sessão Encerrada",
-          body: "Sua sessão foi encerrada por um administrador.",
-        });
-      });
-    } else if (target === "user" && userId) {
-      await pool.query(`DELETE FROM sessions WHERE user_id = $1`, [userId]);
-      sendUserNotification(userId, {
-        type: "force_logout",
-        title: "Sessão Encerrada",
-        body: "Sua sessão foi encerrada por um administrador.",
-      });
-    } else {
-      return res.status(400).json({ error: "Alvo de logout inválido ou incompleto." });
+    } catch (error) {
+      next(error);
     }
-
-    res.status(204).end();
-  } catch (error) {
-    next(error);
   }
-});
+);
+
+app.post(
+  "/api/gestor/sessions/logout",
+  requireAuth,
+  requireProfessor,
+  async (req, res, next) => {
+    try {
+      const { target, turmaId, userId } = req.body;
+
+      if (target === "all") {
+        const result = await pool.query(
+          "SELECT DISTINCT user_id FROM sessions WHERE user_id IN (SELECT id FROM users WHERE role = 'aluno')"
+        );
+        await pool.query(
+          `DELETE FROM sessions WHERE user_id IN (SELECT id FROM users WHERE role = 'aluno')`
+        );
+        result.rows.forEach((row) => {
+          sendUserNotification(row.user_id, {
+            type: "force_logout",
+            title: "Sessão Encerrada",
+            body: "Sua sessão foi encerrada por um administrador.",
+          });
+        });
+      } else if (target === "turma" && turmaId) {
+        const result = await pool.query(
+          "SELECT DISTINCT user_id FROM sessions WHERE user_id IN (SELECT id FROM users WHERE turma_id = $1)",
+          [turmaId]
+        );
+        await pool.query(
+          `DELETE FROM sessions WHERE user_id IN (SELECT id FROM users WHERE turma_id = $1)`,
+          [turmaId]
+        );
+        result.rows.forEach((row) => {
+          sendUserNotification(row.user_id, {
+            type: "force_logout",
+            title: "Sessão Encerrada",
+            body: "Sua sessão foi encerrada por um administrador.",
+          });
+        });
+      } else if (target === "user" && userId) {
+        await pool.query(`DELETE FROM sessions WHERE user_id = $1`, [userId]);
+        sendUserNotification(userId, {
+          type: "force_logout",
+          title: "Sessão Encerrada",
+          body: "Sua sessão foi encerrada por um administrador.",
+        });
+      } else {
+        return res
+          .status(400)
+          .json({ error: "Alvo de logout inválido ou incompleto." });
+      }
+
+      res.status(204).end();
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 app.post(
   "/api/users",
@@ -1784,9 +1871,7 @@ app.get("/api/exams", requireAuth, async (req, res, next) => {
   try {
     let result;
     if (req.user.role === "professor") {
-      result = await pool.query(
-        "SELECT * FROM exams ORDER BY created_at DESC"
-      );
+      result = await pool.query("SELECT * FROM exams ORDER BY created_at DESC");
       res.json({ exams: result.rows.map(publicExam) });
     } else {
       result = await pool.query(
@@ -1811,13 +1896,18 @@ app.get("/api/exams", requireAuth, async (req, res, next) => {
   }
 });
 
-app.get("/api/exams/analytics", requireAuth, requireProfessor, async (req, res, next) => {
-  try {
-    const turmaId = req.query.turmaId || null;
-    const turmaFilter = turmaId ? " AND u.turma_id = $1" : "";
-    const turmaParams = turmaId ? [turmaId] : [];
+app.get(
+  "/api/exams/analytics",
+  requireAuth,
+  requireProfessor,
+  async (req, res, next) => {
+    try {
+      const turmaId = req.query.turmaId || null;
+      const turmaFilter = turmaId ? " AND u.turma_id = $1" : "";
+      const turmaParams = turmaId ? [turmaId] : [];
 
-    const statsRes = await pool.query(`
+      const statsRes = await pool.query(
+        `
       SELECT 
         COUNT(s.id) FILTER (WHERE s.status = 'completed') as completed_submissions,
         COUNT(ea.id) as assigned_submissions,
@@ -1827,9 +1917,12 @@ app.get("/api/exams/analytics", requireAuth, requireProfessor, async (req, res, 
       LEFT JOIN exam_submissions s
         ON s.exam_id = ea.exam_id AND s.user_id = ea.user_id
       WHERE 1=1${turmaFilter}
-    `, turmaParams);
-    
-    const byTurmaRes = await pool.query(`
+    `,
+        turmaParams
+      );
+
+      const byTurmaRes = await pool.query(
+        `
       SELECT 
         t.nome as name,
         AVG(s.total_score) as avg,
@@ -1837,33 +1930,43 @@ app.get("/api/exams/analytics", requireAuth, requireProfessor, async (req, res, 
       FROM exam_submissions s
       JOIN users u ON u.id = s.user_id
       JOIN turmas t ON t.id = u.turma_id
-      WHERE s.status = 'completed'${turmaId ? ' AND u.turma_id = $1' : ''}
+      WHERE s.status = 'completed'${turmaId ? " AND u.turma_id = $1" : ""}
       GROUP BY t.id, t.nome
-    `, turmaParams);
+    `,
+        turmaParams
+      );
 
-    const stats = statsRes.rows[0];
-    const assignedCount = Number(stats.assigned_submissions || 0);
-    const completedCount = Number(stats.completed_submissions || 0);
-    res.json({
-      totalSubmissions: completedCount,
-      averageScore: parseFloat(stats.average_score || 0).toFixed(1),
-      completionRate:
-        assignedCount > 0 ? Math.round((completedCount / assignedCount) * 100) : 0,
-      byTurma: byTurmaRes.rows.map(r => ({
-        name: r.name,
-        avg: parseFloat(r.avg || 0).toFixed(1),
-        count: parseInt(r.count)
-      }))
-    });
-  } catch (error) {
-    next(error);
+      const stats = statsRes.rows[0];
+      const assignedCount = Number(stats.assigned_submissions || 0);
+      const completedCount = Number(stats.completed_submissions || 0);
+      res.json({
+        totalSubmissions: completedCount,
+        averageScore: parseFloat(stats.average_score || 0).toFixed(1),
+        completionRate:
+          assignedCount > 0
+            ? Math.round((completedCount / assignedCount) * 100)
+            : 0,
+        byTurma: byTurmaRes.rows.map((r) => ({
+          name: r.name,
+          avg: parseFloat(r.avg || 0).toFixed(1),
+          count: parseInt(r.count),
+        })),
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
-app.get("/api/exams/applications", requireAuth, requireProfessor, async (req, res, next) => {
-  try {
-    const turmaId = req.query.turmaId || null;
-    const result = await pool.query(`
+app.get(
+  "/api/exams/applications",
+  requireAuth,
+  requireProfessor,
+  async (req, res, next) => {
+    try {
+      const turmaId = req.query.turmaId || null;
+      const result = await pool.query(
+        `
       SELECT
         b.id,
         b.mode,
@@ -1916,116 +2019,128 @@ app.get("/api/exams/applications", requireAuth, requireProfessor, async (req, re
       LEFT JOIN users student ON student.id = i.user_id
       LEFT JOIN exam_submissions s
         ON s.exam_id = i.exam_id AND s.user_id = i.user_id
-      ${turmaId ? 'WHERE student.turma_id = $1' : ''}
+      ${turmaId ? "WHERE student.turma_id = $1" : ""}
       ORDER BY b.created_at DESC, i.created_at ASC
-    `, turmaId ? [turmaId] : []);
+    `,
+        turmaId ? [turmaId] : []
+      );
 
-    const batches = new Map();
-    for (const row of result.rows) {
-      if (!batches.has(row.id)) {
-        batches.set(row.id, {
-          batch: row,
-          items: [],
-        });
+      const batches = new Map();
+      for (const row of result.rows) {
+        if (!batches.has(row.id)) {
+          batches.set(row.id, {
+            batch: row,
+            items: [],
+          });
+        }
+        if (row.item_id) {
+          batches.get(row.id).items.push(publicExamApplicationItem(row));
+        }
       }
-      if (row.item_id) {
-        batches.get(row.id).items.push(publicExamApplicationItem(row));
-      }
+
+      res.json({
+        applications: Array.from(batches.values()).map(({ batch, items }) =>
+          publicExamApplication(batch, items)
+        ),
+      });
+    } catch (error) {
+      next(error);
     }
-
-    res.json({
-      applications: Array.from(batches.values()).map(({ batch, items }) =>
-        publicExamApplication(batch, items)
-      ),
-    });
-  } catch (error) {
-    next(error);
   }
-});
+);
 
-app.delete("/api/exams/applications/:id", requireAuth, requireProfessor, async (req, res, next) => {
-  const client = await pool.connect();
-  try {
-    await client.query("BEGIN");
+app.delete(
+  "/api/exams/applications/:id",
+  requireAuth,
+  requireProfessor,
+  async (req, res, next) => {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
 
-    const batchRes = await client.query(
-      `SELECT *
+      const batchRes = await client.query(
+        `SELECT *
        FROM exam_application_batches
        WHERE id = $1
        FOR UPDATE`,
-      [req.params.id]
-    );
-    if (batchRes.rowCount === 0) {
-      await client.query("ROLLBACK");
-      return res.status(404).json({ error: "Aplicação não encontrada." });
-    }
-    if (batchRes.rows[0].cancelled_at) {
-      await client.query("ROLLBACK");
-      return res.status(400).json({ error: "Esta aplicação já foi removida." });
-    }
+        [req.params.id]
+      );
+      if (batchRes.rowCount === 0) {
+        await client.query("ROLLBACK");
+        return res.status(404).json({ error: "Aplicação não encontrada." });
+      }
+      if (batchRes.rows[0].cancelled_at) {
+        await client.query("ROLLBACK");
+        return res
+          .status(400)
+          .json({ error: "Esta aplicação já foi removida." });
+      }
 
-    const itemsRes = await client.query(
-      `SELECT i.*, s.id as submission_id, s.status as submission_status
+      const itemsRes = await client.query(
+        `SELECT i.*, s.id as submission_id, s.status as submission_status
        FROM exam_application_items i
        LEFT JOIN exam_submissions s
          ON s.exam_id = i.exam_id AND s.user_id = i.user_id
        WHERE i.batch_id = $1
        FOR UPDATE OF i`,
-      [req.params.id]
-    );
-
-    let removedCount = 0;
-    let retainedCount = 0;
-    for (const item of itemsRes.rows) {
-      if (item.status !== "created") {
-        retainedCount += 1;
-        await client.query(
-          `UPDATE exam_application_items
-           SET removal_status = 'retained',
-               removal_reason = $1,
-               removed_at = NOW()
-           WHERE id = $2`,
-          [
-            item.status === "existing"
-              ? "A atribuição já existia antes desta aplicação."
-              : "A aplicação original já havia ignorado este item.",
-            item.id,
-          ]
-        );
-        continue;
-      }
-
-      if (item.submission_id) {
-        retainedCount += 1;
-        await client.query(
-          `UPDATE exam_application_items
-           SET removal_status = 'retained',
-               removal_reason = $1,
-               removed_at = NOW()
-           WHERE id = $2`,
-          ["O aluno já iniciou ou concluiu esta prova.", item.id]
-        );
-        continue;
-      }
-
-      await client.query(
-        "DELETE FROM exam_assignments WHERE exam_id = $1 AND user_id = $2",
-        [item.exam_id, item.user_id]
+        [req.params.id]
       );
-      await client.query(
-        `UPDATE exam_application_items
+
+      let removedCount = 0;
+      let retainedCount = 0;
+      for (const item of itemsRes.rows) {
+        if (item.status !== "created") {
+          retainedCount += 1;
+          await client.query(
+            `UPDATE exam_application_items
+           SET removal_status = 'retained',
+               removal_reason = $1,
+               removed_at = NOW()
+           WHERE id = $2`,
+            [
+              item.status === "existing"
+                ? "A atribuição já existia antes desta aplicação."
+                : "A aplicação original já havia ignorado este item.",
+              item.id,
+            ]
+          );
+          continue;
+        }
+
+        if (item.submission_id) {
+          retainedCount += 1;
+          await client.query(
+            `UPDATE exam_application_items
+           SET removal_status = 'retained',
+               removal_reason = $1,
+               removed_at = NOW()
+           WHERE id = $2`,
+            ["O aluno já iniciou ou concluiu esta prova.", item.id]
+          );
+          continue;
+        }
+
+        await client.query(
+          "DELETE FROM exam_assignments WHERE exam_id = $1 AND user_id = $2",
+          [item.exam_id, item.user_id]
+        );
+        await client.query(
+          `UPDATE exam_application_items
          SET removal_status = 'removed',
              removal_reason = $1,
              removed_at = NOW()
          WHERE id = $2`,
-        ["A atribuição criada nesta aplicação foi removida.", item.id]
-      );
-      removedCount += 1;
-    }
+          ["A atribuição criada nesta aplicação foi removida.", item.id]
+        );
+        removedCount += 1;
+      }
 
-    const reason = normalizeExamText(req.body?.reason, "Aplicação removida pelo professor.");
-    const updatedBatch = await client.query(
-      `UPDATE exam_application_batches
+      const reason = normalizeExamText(
+        req.body?.reason,
+        "Aplicação removida pelo professor."
+      );
+      const updatedBatch = await client.query(
+        `UPDATE exam_application_batches
        SET cancelled_at = NOW(),
            cancelled_by = $1,
            cancellation_reason = $2,
@@ -2033,36 +2148,40 @@ app.delete("/api/exams/applications/:id", requireAuth, requireProfessor, async (
            total_retained = $4
        WHERE id = $5
        RETURNING *`,
-      [req.user.id, reason, removedCount, retainedCount, req.params.id]
-    );
+        [req.user.id, reason, removedCount, retainedCount, req.params.id]
+      );
 
-    await client.query("COMMIT");
-    return res.json({
-      success: true,
-      application: publicExamApplication(updatedBatch.rows[0]),
-    });
-  } catch (error) {
-    await client.query("ROLLBACK");
-    return next(error);
-  } finally {
-    client.release();
+      await client.query("COMMIT");
+      return res.json({
+        success: true,
+        application: publicExamApplication(updatedBatch.rows[0]),
+      });
+    } catch (error) {
+      await client.query("ROLLBACK");
+      return next(error);
+    } finally {
+      client.release();
+    }
   }
-});
+);
 
 app.get("/api/exams/student/history", requireAuth, async (req, res, next) => {
   try {
-    const result = await pool.query(`
+    const result = await pool.query(
+      `
       SELECT s.*, e.title as exam_title
       FROM exam_submissions s
       JOIN exams e ON e.id = s.exam_id
       WHERE s.user_id = $1
       ORDER BY s.completed_at DESC NULLS LAST
-    `, [req.user.id]);
-    res.json({ 
-      submissions: result.rows.map(s => ({
+    `,
+      [req.user.id]
+    );
+    res.json({
+      submissions: result.rows.map((s) => ({
         ...publicExamSubmission(s),
-        examTitle: s.exam_title
-      })) 
+        examTitle: s.exam_title,
+      })),
     });
   } catch (error) {
     next(error);
@@ -2075,10 +2194,13 @@ app.post(
   requireProfessor,
   async (req, res, next) => {
     try {
-      const { title, description, turmaId, containerInitialState, timeLimit } = req.body;
+      const { title, description, turmaId, containerInitialState, timeLimit } =
+        req.body;
       const normalizedTitle = normalizeExamText(title);
       if (!normalizedTitle) {
-        return res.status(400).json({ error: "Título da prova é obrigatório." });
+        return res
+          .status(400)
+          .json({ error: "Título da prova é obrigatório." });
       }
 
       const id = crypto.randomUUID();
@@ -2134,11 +2256,20 @@ app.put(
   requireProfessor,
   async (req, res, next) => {
     try {
-      const { title, description, active, containerInitialState, timeLimit, isPublished } = req.body;
+      const {
+        title,
+        description,
+        active,
+        containerInitialState,
+        timeLimit,
+        isPublished,
+      } = req.body;
       const normalizedTitle =
         title === undefined ? undefined : normalizeExamText(title);
       if (title !== undefined && !normalizedTitle) {
-        return res.status(400).json({ error: "Título da prova é obrigatório." });
+        return res
+          .status(400)
+          .json({ error: "Título da prova é obrigatório." });
       }
 
       const result = await pool.query(
@@ -2154,10 +2285,14 @@ app.put(
          RETURNING *`,
         [
           normalizedTitle,
-          description === undefined ? undefined : normalizeExamText(description),
+          description === undefined
+            ? undefined
+            : normalizeExamText(description),
           active,
           containerInitialState ? JSON.stringify(containerInitialState) : null,
-          timeLimit === undefined ? undefined : normalizeExamTimeLimit(timeLimit),
+          timeLimit === undefined
+            ? undefined
+            : normalizeExamTimeLimit(timeLimit),
           isPublished,
           req.params.id,
         ]
@@ -2188,7 +2323,9 @@ app.patch(
         [Boolean(isPublished), req.params.id]
       );
       if (result.rowCount === 0) {
-        return res.status(400).json({ error: "Prova não encontrada ou sem questões." });
+        return res
+          .status(400)
+          .json({ error: "Prova não encontrada ou sem questões." });
       }
       res.json({ exam: publicExam(result.rows[0]) });
     } catch (error) {
@@ -2239,7 +2376,14 @@ app.post(
           await client.query(
             `INSERT INTO exam_application_items (id, batch_id, exam_id, user_id, status, reason)
              VALUES ($1, $2, $3, $4, $5, $6)`,
-            [crypto.randomUUID(), batchId, itemExamId, itemUserId, itemStatus, reason]
+            [
+              crypto.randomUUID(),
+              batchId,
+              itemExamId,
+              itemUserId,
+              itemStatus,
+              reason,
+            ]
           );
           continue;
         }
@@ -2259,7 +2403,14 @@ app.post(
           await client.query(
             `INSERT INTO exam_application_items (id, batch_id, exam_id, user_id, status, reason)
              VALUES ($1, $2, $3, $4, $5, $6)`,
-            [crypto.randomUUID(), batchId, itemExamId, itemUserId, itemStatus, reason]
+            [
+              crypto.randomUUID(),
+              batchId,
+              itemExamId,
+              itemUserId,
+              itemStatus,
+              reason,
+            ]
           );
           continue;
         }
@@ -2286,7 +2437,14 @@ app.post(
         await client.query(
           `INSERT INTO exam_application_items (id, batch_id, exam_id, user_id, status, reason)
            VALUES ($1, $2, $3, $4, $5, $6)`,
-          [crypto.randomUUID(), batchId, itemExamId, itemUserId, itemStatus, reason]
+          [
+            crypto.randomUUID(),
+            batchId,
+            itemExamId,
+            itemUserId,
+            itemStatus,
+            reason,
+          ]
         );
       }
 
@@ -2352,7 +2510,9 @@ app.post(
       const normalizedType = normalizeExamQuestionType(type);
       const normalizedText = normalizeExamText(text);
       if (!normalizedText) {
-        return res.status(400).json({ error: "Enunciado da questão é obrigatório." });
+        return res
+          .status(400)
+          .json({ error: "Enunciado da questão é obrigatório." });
       }
 
       const id = crypto.randomUUID();
@@ -2365,15 +2525,25 @@ app.post(
           req.params.id,
           normalizedType,
           normalizedText,
-          JSON.stringify(normalizedType === "mcq" ? normalizeQuestionOptions(options) : []),
-          normalizedType === "mcq" ? normalizeExamText(correctAnswer, "a") : null,
-          JSON.stringify(normalizedType === "practical" ? normalizeValidationRules(validationRules) : []),
+          JSON.stringify(
+            normalizedType === "mcq" ? normalizeQuestionOptions(options) : []
+          ),
+          normalizedType === "mcq"
+            ? normalizeExamText(correctAnswer, "a")
+            : null,
+          JSON.stringify(
+            normalizedType === "practical"
+              ? normalizeValidationRules(validationRules)
+              : []
+          ),
           normalizeQuestionPoints(points),
           normalizeExamTimeLimit(timeLimit),
           orderIndex || 0,
         ]
       );
-      res.status(201).json({ question: publicExamQuestionFull(result.rows[0]) });
+      res
+        .status(201)
+        .json({ question: publicExamQuestionFull(result.rows[0]) });
     } catch (error) {
       next(error);
     }
@@ -2401,7 +2571,9 @@ app.patch(
       const normalizedText =
         text === undefined ? undefined : normalizeExamText(text);
       if (text !== undefined && !normalizedText) {
-        return res.status(400).json({ error: "Enunciado da questão é obrigatório." });
+        return res
+          .status(400)
+          .json({ error: "Enunciado da questão é obrigatório." });
       }
 
       const result = await pool.query(
@@ -2420,10 +2592,16 @@ app.patch(
           normalizedType,
           normalizedText,
           options ? JSON.stringify(normalizeQuestionOptions(options)) : null,
-          correctAnswer === undefined ? undefined : normalizeExamText(correctAnswer, "a"),
-          validationRules ? JSON.stringify(normalizeValidationRules(validationRules)) : null,
+          correctAnswer === undefined
+            ? undefined
+            : normalizeExamText(correctAnswer, "a"),
+          validationRules
+            ? JSON.stringify(normalizeValidationRules(validationRules))
+            : null,
           points === undefined ? undefined : normalizeQuestionPoints(points),
-          timeLimit === undefined ? undefined : normalizeExamTimeLimit(timeLimit),
+          timeLimit === undefined
+            ? undefined
+            : normalizeExamTimeLimit(timeLimit),
           orderIndex,
           req.params.questionId,
           req.params.id,
@@ -2464,7 +2642,8 @@ app.post("/api/exams/:id/submit", requireAuth, async (req, res, next) => {
   try {
     await client.query("BEGIN");
     const { answers, status, practicalSnapshot } = req.body; // status: 'in_progress' ou 'completed'
-    const normalizedStatus = status === "completed" ? "completed" : "in_progress";
+    const normalizedStatus =
+      status === "completed" ? "completed" : "in_progress";
     const exam = await ensureExamAccess(client, req.user, req.params.id, {
       forSubmit: req.user.role !== "professor",
     });
@@ -2479,10 +2658,16 @@ app.post("/api/exams/:id/submit", requireAuth, async (req, res, next) => {
     if (submissionRes.rowCount === 0) {
       const id = crypto.randomUUID();
       submissionRes = await client.query(
-        `INSERT INTO exam_submissions (id, exam_id, user_id, status, completed_at)
-         VALUES ($1, $2, $3, $4, CASE WHEN $4 = 'completed' THEN NOW() ELSE NULL END)
+        `INSERT INTO exam_submissions (id, exam_id, user_id, status, student_display_name, completed_at)
+         VALUES ($1, $2, $3, $4, $5, CASE WHEN $4 = 'completed' THEN NOW() ELSE NULL END)
          RETURNING *`,
-        [id, req.params.id, req.user.id, normalizedStatus]
+        [
+          id,
+          req.params.id,
+          req.user.id,
+          normalizedStatus,
+          normalizeDisplayName(req.user.display_name),
+        ]
       );
       submission = submissionRes.rows[0];
     } else {
@@ -2492,8 +2677,17 @@ app.post("/api/exams/:id/submit", requireAuth, async (req, res, next) => {
         return res.status(400).json({ error: "Prova já finalizada." });
       }
       submissionRes = await client.query(
-        "UPDATE exam_submissions SET status = $1, completed_at = CASE WHEN $1 = 'completed' THEN NOW() ELSE completed_at END WHERE id = $2 RETURNING *",
-        [normalizedStatus, submission.id]
+        `UPDATE exam_submissions
+         SET status = $1,
+             student_display_name = $2,
+             completed_at = CASE WHEN $1 = 'completed' THEN NOW() ELSE completed_at END
+         WHERE id = $3
+         RETURNING *`,
+        [
+          normalizedStatus,
+          normalizeDisplayName(req.user.display_name),
+          submission.id,
+        ]
       );
       submission = submissionRes.rows[0];
     }
@@ -2561,15 +2755,22 @@ app.post("/api/exams/:id/submit", requireAuth, async (req, res, next) => {
            WHERE a.submission_id = $1`,
           [submission.id]
         );
-        
+
         const { score_mcq, score_practical } = scores.rows[0];
-        const totalScore = Number(score_mcq || 0) + Number(score_practical || 0);
+        const totalScore =
+          Number(score_mcq || 0) + Number(score_practical || 0);
 
         submissionRes = await client.query(
           `UPDATE exam_submissions 
            SET score_mcq = $1, score_practical = $2, total_score = $3, practical_snapshot = $4
            WHERE id = $5 RETURNING *`,
-          [score_mcq || 0, score_practical || 0, totalScore, JSON.stringify(practicalSnapshot || null), submission.id]
+          [
+            score_mcq || 0,
+            score_practical || 0,
+            totalScore,
+            JSON.stringify(practicalSnapshot || null),
+            submission.id,
+          ]
         );
         submission = submissionRes.rows[0];
       }
@@ -2595,7 +2796,7 @@ app.get(
       const turmaFilter = turmaId ? " AND u.turma_id = $2" : "";
       const params = turmaId ? [req.params.id, turmaId] : [req.params.id];
       const result = await pool.query(
-        `SELECT s.*, u.username, u.display_name, u.turma_id,
+        `SELECT s.*, u.username, COALESCE(NULLIF(s.student_display_name, ''), u.display_name) AS display_name, u.turma_id,
                 e.title AS exam_title,
                 t.nome AS turma_name,
                 (SELECT prof.display_name
@@ -2633,7 +2834,7 @@ app.get(
     try {
       const { examId, submissionId } = req.params;
       const subRes = await pool.query(
-        `SELECT s.*, u.username, u.display_name, u.turma_id,
+        `SELECT s.*, u.username, COALESCE(NULLIF(s.student_display_name, ''), u.display_name) AS display_name, u.turma_id,
                 e.title AS exam_title, e.description AS exam_description,
                 e.time_limit AS exam_time_limit,
                 t.nome AS turma_name, t.code AS turma_code,
@@ -2677,7 +2878,10 @@ app.get(
         text: a.text,
         options: a.options,
         correctAnswer: isProfessor ? a.correct_answer : undefined,
-        validationRules: isProfessor && a.type === "practical" ? a.validation_rules : undefined,
+        validationRules:
+          isProfessor && a.type === "practical"
+            ? a.validation_rules
+            : undefined,
         answerText: a.answer_text,
         isCorrect: a.is_correct,
         pointsAwarded: Number(a.points_awarded || 0),
@@ -2695,7 +2899,10 @@ app.get(
           appliedByName: sub.applied_by_name || "",
         },
         answers,
-        practicalSnapshot: isProfessor && sub.practical_snapshot ? sub.practical_snapshot : undefined,
+        practicalSnapshot:
+          isProfessor && sub.practical_snapshot
+            ? sub.practical_snapshot
+            : undefined,
       });
     } catch (error) {
       next(error);
@@ -2704,7 +2911,6 @@ app.get(
 );
 
 app.get("/api/notifications/events", requireAuth, async (req, res, next) => {
-
   try {
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache, no-transform");
@@ -3579,6 +3785,7 @@ const start = async () => {
   await ensureDatabaseConnection();
   const schema = await fs.promises.readFile(schemaPath, "utf8");
   await pool.query(schema);
+  await normalizeExistingDisplayNames();
   await syncAppBuildVersion();
   await ensureSeedAdmin();
   app.listen(config.port, () => {

@@ -180,17 +180,32 @@ describe("Schema SQL", () => {
     expect(schema).toContain("CREATE TABLE IF NOT EXISTS exam_questions");
     expect(schema).toContain("time_limit INTEGER NOT NULL DEFAULT 0");
     expect(schema).toContain("UNIQUE(exam_id, user_id)");
-    expect(schema).toContain("ALTER TABLE exam_questions ADD COLUMN time_limit");
+    expect(schema).toContain(
+      "ALTER TABLE exam_questions ADD COLUMN time_limit"
+    );
+  });
+
+  it("deve persistir o nome confirmado do aluno na submissão da avaliação", () => {
+    expect(schema).toContain("student_display_name TEXT NOT NULL DEFAULT ''");
+    expect(schema).toContain(
+      "ALTER TABLE exam_submissions ADD COLUMN student_display_name"
+    );
   });
 
   it("deve persistir rastreabilidade das aplicações de provas", () => {
-    expect(schema).toContain("CREATE TABLE IF NOT EXISTS exam_application_batches");
+    expect(schema).toContain(
+      "CREATE TABLE IF NOT EXISTS exam_application_batches"
+    );
     expect(schema).toContain("applied_by UUID REFERENCES users(id)");
     expect(schema).toContain("mode TEXT NOT NULL DEFAULT 'all'");
     expect(schema).toContain("cancelled_at TIMESTAMPTZ");
     expect(schema).toContain("total_removed INTEGER NOT NULL DEFAULT 0");
-    expect(schema).toContain("CREATE TABLE IF NOT EXISTS exam_application_items");
-    expect(schema).toContain("status TEXT NOT NULL CHECK (status IN ('created', 'existing', 'skipped'))");
+    expect(schema).toContain(
+      "CREATE TABLE IF NOT EXISTS exam_application_items"
+    );
+    expect(schema).toContain(
+      "status TEXT NOT NULL CHECK (status IN ('created', 'existing', 'skipped'))"
+    );
     expect(schema).toContain("removal_status TEXT NOT NULL DEFAULT 'active'");
     expect(schema).toContain("exam_application_items_removal_status_check");
     expect(schema).toContain("idx_exam_application_items_batch");

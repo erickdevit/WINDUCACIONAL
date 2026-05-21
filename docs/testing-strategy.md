@@ -44,6 +44,7 @@ Criar uma suíte objetiva, rápida e útil para proteger a evolução do simulad
 - Game solo do app de Digitação Normal usa missões separadas das lições, aceita apenas palavras, calcula vidas, PPM e precisão, recebe configurações próprias em tempo real e mantém rankings global e por turma separados das lições.
 - PVP de digitação valida pareamento por turma, sincroniza progresso em tempo real, finaliza por conclusão ou perda de vidas, exibe o placar final dos dois jogadores e grava histórico próprio do modo.
 - Professor cria prova com tempo global, configura tempo por questão, publica, atribui a alunos e acompanha resultados.
+- Aluno confirma o nome completo antes de iniciar a avaliação, com autoformatação no cliente, normalização no backend e snapshot salvo na submissão.
 - Aluno só abre avaliações atribuídas, responde múltipla escolha, executa a prática em container simulado e recebe nota calculada pelo backend.
 - Backend de avaliação ignora pontuação enviada pelo cliente e calcula acertos com base nas respostas, regras persistidas e snapshot prático.
 - Quando a build muda, sessões são invalidadas, caches são limpos e o cliente recarrega automaticamente para a nova versão.

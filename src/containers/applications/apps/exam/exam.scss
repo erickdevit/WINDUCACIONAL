@@ -1088,6 +1088,36 @@
     line-height: 1.5;
   }
 
+  .exam-name-confirmation {
+    display: block;
+    margin-top: 18px;
+
+    span {
+      color: var(--muted);
+      display: block;
+      font-size: 11px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 800;
+      outline: 0;
+      padding: 12px 14px;
+
+      &:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px var(--accent-soft);
+      }
+    }
+  }
+
   .exam-rule-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1267,9 +1297,15 @@
       font-weight: 900;
     }
 
-    &.high span { color: var(--success); }
-    &.mid span { color: #c4841d; }
-    &.low span { color: var(--danger); }
+    &.high span {
+      color: var(--success);
+    }
+    &.mid span {
+      color: #c4841d;
+    }
+    &.low span {
+      color: var(--danger);
+    }
   }
 
   .receipt-student-name {
@@ -1332,7 +1368,7 @@
       position: relative;
 
       &:not(:last-child)::after {
-        content: '';
+        content: "";
         position: absolute;
         right: 0;
         top: 20%;
@@ -1362,9 +1398,15 @@
       font-size: 28px;
       font-weight: 900;
 
-      &.high { color: var(--success); }
-      &.mid { color: #c4841d; }
-      &.low { color: var(--danger); }
+      &.high {
+        color: var(--success);
+      }
+      &.mid {
+        color: #c4841d;
+      }
+      &.low {
+        color: var(--danger);
+      }
     }
   }
 

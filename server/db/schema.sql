@@ -394,6 +394,7 @@ CREATE TABLE IF NOT EXISTS exam_submissions (
   score_mcq DECIMAL DEFAULT 0,
   score_practical DECIMAL DEFAULT 0,
   total_score DECIMAL DEFAULT 0,
+  student_display_name TEXT NOT NULL DEFAULT '',
   practical_snapshot JSONB,
   started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   completed_at TIMESTAMPTZ,
@@ -511,6 +512,9 @@ BEGIN
   END IF;
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'exam_submissions' AND column_name = 'practical_snapshot') THEN
     ALTER TABLE exam_submissions ADD COLUMN practical_snapshot JSONB;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'exam_submissions' AND column_name = 'student_display_name') THEN
+    ALTER TABLE exam_submissions ADD COLUMN student_display_name TEXT NOT NULL DEFAULT '';
   END IF;
 END $$;
 
