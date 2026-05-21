@@ -41,25 +41,31 @@ export const ExamReceipt = ({ examId, submissionId, onBack }) => {
         <title>Comprovante de Avaliação</title>
         <style>
           *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #1d2733; padding: 28px; font-size: 13px; line-height: 1.5; }
-          .receipt-header { border-bottom: 2px solid #1769aa; padding-bottom: 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
-          .receipt-header h1 { font-size: 20px; color: #1769aa; }
-          .receipt-header p { font-size: 11px; color: #637083; }
-          .receipt-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
-          .receipt-info-item label { display: block; font-size: 10px; color: #637083; text-transform: uppercase; font-weight: 800; margin-bottom: 2px; }
-          .receipt-info-item span { font-weight: 700; }
-          .receipt-scores { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 24px; text-align: center; border: 1px solid #d9e1ea; border-radius: 6px; overflow: hidden; }
-          .receipt-scores > div { padding: 14px 8px; }
-          .receipt-scores > div:not(:last-child) { border-right: 1px solid #d9e1ea; }
-          .receipt-scores label { display: block; font-size: 10px; color: #637083; text-transform: uppercase; font-weight: 800; margin-bottom: 4px; }
-          .receipt-scores .score-value { font-size: 22px; font-weight: 900; }
-          .receipt-scores .score-total { font-size: 28px; color: #1769aa; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; }
-          th { background: #f6f7f9; text-align: left; padding: 8px 10px; font-size: 10px; text-transform: uppercase; color: #637083; font-weight: 800; border-bottom: 1px solid #d9e1ea; }
-          td { padding: 8px 10px; border-bottom: 1px solid #edf1f5; vertical-align: top; }
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #1d2733; padding: 32px; font-size: 12px; line-height: 1.6; }
+          .receipt-header { border-bottom: 2px solid #1769aa; padding-bottom: 18px; margin-bottom: 22px; display: flex; justify-content: space-between; align-items: flex-end; }
+          .receipt-header h1 { font-size: 20px; color: #1769aa; font-weight: 800; margin: 0; letter-spacing: -0.01em; }
+          .receipt-header p { font-size: 11px; color: #637083; margin: 2px 0 0; }
+          .receipt-info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; margin-bottom: 24px; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+          .receipt-info-item { padding: 12px 14px; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; background: #fafbfc; }
+          .receipt-info-item:nth-child(3n) { border-right: 0; }
+          .receipt-info-item:nth-last-child(-n+3) { border-bottom: 0; }
+          .receipt-info-item label { display: block; font-size: 9px; color: #637083; text-transform: uppercase; font-weight: 800; margin-bottom: 3px; letter-spacing: 0.04em; }
+          .receipt-info-item span { font-weight: 700; font-size: 13px; color: #1d2733; }
+          .receipt-scores { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; margin-bottom: 28px; text-align: center; border: 1px solid #d9e1ea; border-radius: 8px; overflow: hidden; }
+          .receipt-scores.no-practical { grid-template-columns: 1fr 1fr; }
+          .receipt-scores > div { padding: 16px 12px; }
+          .receipt-scores > div:not(:last-child) { border-right: 1px solid #e2e8f0; }
+          .receipt-scores label { display: block; font-size: 10px; color: #637083; text-transform: uppercase; font-weight: 800; margin-bottom: 5px; letter-spacing: 0.03em; }
+          .receipt-scores .score-value { font-size: 24px; font-weight: 700; color: #1d2733; }
+          .receipt-scores .score-total { font-size: 30px; font-weight: 900; color: #1769aa; }
+          .receipt-section-title { font-size: 13px; font-weight: 800; color: #1d2733; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 22px; font-size: 12px; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+          th { background: #f6f8fa; text-align: left; padding: 9px 12px; font-size: 9px; text-transform: uppercase; color: #637083; font-weight: 800; letter-spacing: 0.04em; border-bottom: 1px solid #e2e8f0; }
+          td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+          tr:last-child td { border-bottom: 0; }
           .correct { color: #16794c; font-weight: 800; }
           .incorrect { color: #b42318; font-weight: 800; }
-          .receipt-footer { border-top: 1px solid #d9e1ea; padding-top: 12px; text-align: center; font-size: 11px; color: #637083; }
+          .receipt-footer { border-top: 1px solid #e2e8f0; padding-top: 14px; margin-top: 4px; text-align: center; font-size: 10px; color: #637083; }
           .validation-detail { font-size: 11px; color: #637083; margin-top: 4px; }
           @media print { body { padding: 0; } }
         </style>
@@ -165,17 +171,15 @@ export const ExamReceipt = ({ examId, submissionId, onBack }) => {
           </div>
           <div className="receipt-info-item">
             <label>Aluno</label>
-            <span>
-              {submission.displayName || "—"}
-            </span>
+            <span>{submission.displayName || "—"}</span>
           </div>
           <div className="receipt-info-item">
             <label>Turma</label>
-            <span>
-              {submission.turmaName
-                ? `${submission.turmaName} (${submission.turmaCode})`
-                : "Sem turma"}
-            </span>
+            <span>{submission.turmaName || "Sem turma"}</span>
+          </div>
+          <div className="receipt-info-item">
+            <label>Professor</label>
+            <span>{submission.appliedByName || "—"}</span>
           </div>
           <div className="receipt-info-item">
             <label>Tempo da prova</label>
@@ -206,7 +210,7 @@ export const ExamReceipt = ({ examId, submissionId, onBack }) => {
 
         {mcqAnswers.length > 0 && (
           <>
-            <h3 style={{ fontSize: 15, fontWeight: 900, marginBottom: 10 }}>
+            <h3 className="receipt-section-title">
               Questões Teóricas ({mcqAnswers.length})
             </h3>
             <table>
@@ -247,7 +251,7 @@ export const ExamReceipt = ({ examId, submissionId, onBack }) => {
 
         {practicalAnswers.length > 0 && (
           <>
-            <h3 style={{ fontSize: 15, fontWeight: 900, marginBottom: 10 }}>
+            <h3 className="receipt-section-title">
               Tarefas Práticas ({practicalAnswers.length})
             </h3>
             <table>

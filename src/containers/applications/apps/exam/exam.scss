@@ -1184,17 +1184,17 @@
     margin: 0 auto;
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 28px;
-    box-shadow: 0 1px 2px rgba(20, 30, 40, 0.04);
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(20, 30, 40, 0.06);
     max-height: min(640px, calc(100vh - 260px));
     overflow-y: auto;
   }
 
   .receipt-header {
     border-bottom: 2px solid var(--accent);
-    padding-bottom: 16px;
-    margin-bottom: 20px;
+    padding-bottom: 18px;
+    margin-bottom: 22px;
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
@@ -1203,34 +1203,55 @@
       font-size: 20px;
       color: var(--accent);
       margin: 0;
+      font-weight: 800;
+      letter-spacing: -0.01em;
     }
 
     p {
       font-size: 11px;
       color: var(--muted);
+      margin: 2px 0 0;
     }
   }
 
   .receipt-info-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0;
     margin-bottom: 24px;
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    overflow: hidden;
   }
 
   .receipt-info-item {
+    padding: 14px 16px;
+    border-right: 1px solid var(--line-soft);
+    border-bottom: 1px solid var(--line-soft);
+    background: #fafbfc;
+
+    &:nth-child(3n) {
+      border-right: 0;
+    }
+
+    &:nth-last-child(-n+3) {
+      border-bottom: 0;
+    }
+
     label {
       display: block;
-      font-size: 10px;
+      font-size: 9px;
       color: var(--muted);
       text-transform: uppercase;
       font-weight: 800;
-      margin-bottom: 2px;
+      margin-bottom: 4px;
+      letter-spacing: 0.04em;
     }
 
     span {
       font-weight: 700;
       font-size: 13px;
+      color: var(--text);
     }
   }
 
@@ -1238,21 +1259,29 @@
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 0;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
     text-align: center;
     border: 1px solid var(--line);
-    border-radius: 6px;
+    border-radius: 10px;
     overflow: hidden;
+    background: var(--surface);
 
     &.no-practical {
       grid-template-columns: 1fr 1fr;
     }
 
     > div {
-      padding: 14px 8px;
+      padding: 18px 12px;
+      position: relative;
 
-      &:not(:last-child) {
-        border-right: 1px solid var(--line);
+      &:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 20%;
+        height: 60%;
+        width: 1px;
+        background: var(--line-soft);
       }
     }
 
@@ -1262,22 +1291,66 @@
       color: var(--muted);
       text-transform: uppercase;
       font-weight: 800;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
+      letter-spacing: 0.03em;
     }
 
     .score-value {
-      font-size: 22px;
-      font-weight: 900;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text);
     }
 
     .score-total {
-      font-size: 28px;
+      font-size: 32px;
+      font-weight: 900;
       color: var(--accent);
     }
   }
 
+  .receipt-section-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line-soft);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
   .receipt-printable table {
-    margin-bottom: 20px;
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 22px;
+    font-size: 12px;
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    overflow: hidden;
+
+    th {
+      background: #f6f8fa;
+      text-align: left;
+      padding: 9px 12px;
+      font-size: 9px;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line-soft);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
 
     .correct {
       color: var(--success);
@@ -1291,10 +1364,11 @@
   }
 
   .receipt-footer {
-    border-top: 1px solid var(--line);
-    padding-top: 12px;
+    border-top: 1px solid var(--line-soft);
+    padding-top: 14px;
+    margin-top: 4px;
     text-align: center;
-    font-size: 11px;
+    font-size: 10px;
     color: var(--muted);
   }
 }

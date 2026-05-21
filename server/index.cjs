@@ -2606,7 +2606,14 @@ app.get(
         `SELECT s.*, u.username, u.display_name, u.turma_id,
                 e.title AS exam_title, e.description AS exam_description,
                 e.time_limit AS exam_time_limit,
-                t.nome AS turma_name, t.code AS turma_code
+                t.nome AS turma_name, t.code AS turma_code,
+                (SELECT prof.display_name
+                 FROM exam_application_items eai
+                 JOIN exam_application_batches eab ON eab.id = eai.batch_id
+                 JOIN users prof ON prof.id = eab.applied_by
+                 WHERE eai.exam_id = s.exam_id AND eai.user_id = s.user_id
+                 ORDER BY eab.created_at DESC
+                 LIMIT 1) AS applied_by_name
          FROM exam_submissions s
          JOIN users u ON u.id = s.user_id
          JOIN exams e ON e.id = s.exam_id
@@ -2655,6 +2662,7 @@ app.get(
           examTimeLimit: Number(sub.exam_time_limit || 0),
           turmaName: sub.turma_name || "",
           turmaCode: sub.turma_code || "",
+          appliedByName: sub.applied_by_name || "",
         },
         answers,
         practicalSnapshot: isProfessor && sub.practical_snapshot ? sub.practical_snapshot : undefined,
