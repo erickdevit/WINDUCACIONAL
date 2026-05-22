@@ -49,6 +49,7 @@ Criar uma suíte objetiva, rápida e útil para proteger a evolução do simulad
 - Aluno confirma o nome completo antes de iniciar a avaliação, com autoformatação no cliente, normalização no backend e snapshot salvo na submissão.
 - Aluno só abre avaliações atribuídas, responde múltipla escolha, executa a prática em container simulado e recebe nota calculada pelo backend.
 - Backend de avaliação ignora pontuação enviada pelo cliente e calcula acertos com base nas respostas, regras persistidas e snapshot prático.
+- Professor libera ou bloqueia módulos de apostilas, aluno enxerga somente módulos liberados e PDFs são abertos por rotas autenticadas sem expor caminho local.
 - Quando a build muda, sessões são invalidadas, caches são limpos e o cliente recarrega automaticamente para a nova versão.
 - Cenário educacional inicia, salva progresso e retoma.
 - Ações do usuário geram eventos consistentes no backend.

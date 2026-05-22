@@ -304,6 +304,13 @@ export const api = {
     const suffix = params.toString() ? `?${params.toString()}` : "";
     return request(`/api/attendance/summary${suffix}`);
   },
+  // --- Apostilas ---
+  getBookletModules: () => request("/api/booklets/modules"),
+  saveBookletAccess: (enabledModuleIds) =>
+    request("/api/booklets/modules/access", {
+      method: "PUT",
+      body: JSON.stringify({ enabledModuleIds }),
+    }),
   // --- Avaliação (Exams) ---
   getExams: () => request("/api/exams"),
   getExamDetails: (id) => request(`/api/exams/${id}`),

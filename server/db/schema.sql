@@ -136,6 +136,12 @@ CREATE TABLE IF NOT EXISTS attendance_records (
 CREATE INDEX IF NOT EXISTS idx_attendance_records_user ON attendance_records(user_id);
 CREATE INDEX IF NOT EXISTS idx_attendance_records_date ON attendance_records(attendance_date);
 
+CREATE TABLE IF NOT EXISTS booklet_module_access (
+  module_id TEXT PRIMARY KEY,
+  enabled BOOLEAN NOT NULL DEFAULT FALSE,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS app_metadata (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL,

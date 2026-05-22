@@ -6,7 +6,7 @@ Este é um arquivo vivo para agentes, automações e colaboradores que trabalham
 
 - Produto alvo: WINDUCACIONAL, simulador educacional aberto com experiência desktop web.
 - Estado atual: frontend React/Vite/Redux com PWA, assets estáticos e simulação de desktop.
-- Estado atual de backend: Express, PostgreSQL, sessões HTTP-only, usuários com papéis, classificação Kids/Normal para alunos, turmas com código de vínculo e discos virtuais persistidos por usuário.
+- Estado atual de backend: Express, PostgreSQL, sessões HTTP-only, usuários com papéis, classificação Kids/Normal para alunos, turmas com código de vínculo, discos virtuais persistidos por usuário e permissões de módulos de apostilas.
 - Estado atual de deploy: `Dockerfile`, `docker-compose.yml`, `docker-compose.prod.yml` e `compose.dev.yml`.
 - Estado futuro: ampliação para cenários educacionais, progresso e operação endurecida em servidor dedicado.
 - Prioridade técnica: boas práticas de código, segurança, testes objetivos e documentação viva.
@@ -83,6 +83,8 @@ docker compose -f compose.dev.yml up -d
 - Evite refatorações amplas que não estejam diretamente ligadas ao objetivo da tarefa.
 - Novas janelas internas do simulador devem seguir o padrão das janelas de apps: moldura própria, barra superior, foco visual, controles de janela, movimentação e redimensionamento, como no Windows.
 - Todo novo app com janela principal deve usar o wrapper compartilhado `src/components/shared/AppWindow.jsx`, preservando o shell padrão antigo antes de adicionar conteúdo específico.
+- O app Apostilas mantém os PDFs em `src/containers/applications/apps/booklets/library`; não deixe a biblioteca de apostilas solta na raiz do projeto.
+- O acesso de alunos a apostilas é controlado no backend pela tabela `booklet_module_access`; professores podem ver todos os módulos e alunos só podem abrir módulos liberados.
 - Games dentro do app de Digitação Normal devem ficar separados das lições tradicionais. O modo PVP só deve ser liberado como partida real depois de existir backend com convite, sincronização em tempo real, validação de mesma turma, cálculo de vencedor no servidor e ranking persistido separado.
 
 ## Regras De Segurança

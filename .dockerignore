@@ -10,3 +10,4 @@ docker-compose.prod.yml
 compose.dev.yml
 npm-debug.log*
 yarn-error.log*
+Thumbs.db

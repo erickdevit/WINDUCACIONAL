@@ -68,6 +68,21 @@ describe("Catálogo de apps", () => {
     expect(desktopApps.map((item) => item.name)).toContain("Frequência");
   });
 
+  it("deve registrar o app Apostilas na área de trabalho", async () => {
+    vi.stubGlobal("localStorage", createStorage());
+
+    const { allApps, desktopApps } = await import("../src/utils");
+    const app = allApps.find((item) => item.name === "Apostilas");
+
+    expect(app).toMatchObject({
+      name: "Apostilas",
+      icon: "booklets",
+      action: "BOOKLETSAPP",
+      type: "app",
+    });
+    expect(desktopApps.map((item) => item.name)).toContain("Apostilas");
+  });
+
   it("deve usar o ícone SVG local de frequência", () => {
     const iconSource = fs.readFileSync(
       new URL("../src/utils/general.jsx", import.meta.url),
@@ -76,6 +91,16 @@ describe("Catálogo de apps", () => {
 
     expect(iconSource).toContain('props.src === "attendance"');
     expect(iconSource).toContain("img/icon/attendance.svg");
+  });
+
+  it("deve usar o ícone SVG local de apostilas", () => {
+    const iconSource = fs.readFileSync(
+      new URL("../src/utils/general.jsx", import.meta.url),
+      "utf8"
+    );
+
+    expect(iconSource).toContain('props.src === "booklets"');
+    expect(iconSource).toContain("img/icon/booklets.svg");
   });
 
   it("deve manter logos separadas para Digitação e Digitação Kids", async () => {
@@ -108,6 +133,7 @@ describe("Catálogo de apps", () => {
       "Atalhos",
       "Gestor",
       "Frequência",
+      "Apostilas",
       "Avaliação",
     ]);
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
@@ -128,6 +154,10 @@ describe("Catálogo de apps", () => {
     );
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
       "desktop-seed-attendance-v1",
+      "true"
+    );
+    expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      "desktop-seed-booklets-v1",
       "true"
     );
   });

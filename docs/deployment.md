@@ -35,6 +35,7 @@ O ponto de hospedagem será um servidor dedicado. A aplicação deverá ser dist
 - Healthcheck de banco e healthcheck de aplicação no container.
 - Arquivo `.env.example` sem segredos reais.
 - O schema executado na inicialização inclui migrações idempotentes para colunas adicionadas em bancos já existentes.
+- A imagem final copia a biblioteca de PDFs de `src/containers/applications/apps/booklets/library`, usada pelo app Apostilas e servida pelo backend por rotas autenticadas.
 
 O arquivo `.env.example` documenta as variáveis mínimas atuais para execução do backend.
 

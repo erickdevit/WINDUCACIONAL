@@ -8,6 +8,15 @@ const rootDir = path.resolve(__dirname, "..");
 const buildDir = path.join(rootDir, "build");
 const schemaPath = path.join(__dirname, "db", "schema.sql");
 const sourceTreePath = path.join(rootDir, "src", "reducers", "dir.json");
+const bookletLibraryDir = path.join(
+  rootDir,
+  "src",
+  "containers",
+  "applications",
+  "apps",
+  "booklets",
+  "library"
+);
 
 const config = {
   port: Number(process.env.PORT || 3001),
@@ -186,6 +195,34 @@ const normalizeTypingStudentType = (studentType) => {
     throw err;
   }
   return normalized;
+};
+
+const normalizeBookletId = (value) => {
+  const normalized = String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return normalized || "item";
+};
+
+const compareBookletNames = (a, b) =>
+  String(a || "").localeCompare(String(b || ""), "pt-BR", {
+    numeric: true,
+    sensitivity: "base",
+  });
+
+const getBookletTitle = (value) =>
+  String(value || "")
+    .replace(/\.pdf$/i, "")
+    .replace(/^\d+\s*-\s*/, "")
+    .trim();
+
+const getBookletOrder = (value) => {
+  const match = String(value || "").match(/^(\d+)/);
+  return match ? Number(match[1]) : 0;
 };
 
 const clampInteger = (value, fallback, min, max) => {
@@ -938,6 +975,130 @@ const requireProfessor = (req, res, next) => {
   return next();
 };
 
+const buildBookletCatalog = async () => {
+  let moduleEntries = [];
+  try {
+    moduleEntries = await fs.promises.readdir(bookletLibraryDir, {
+      withFileTypes: true,
+    });
+  } catch (error) {
+    if (error.code === "ENOENT") return [];
+    throw error;
+  }
+
+  const usedModuleIds = new Set();
+  const modules = [];
+
+  for (const moduleEntry of moduleEntries
+    .filter((entry) => entry.isDirectory())
+    .sort((a, b) => compareBookletNames(a.name, b.name))) {
+    const modulePath = path.join(bookletLibraryDir, moduleEntry.name);
+    const moduleIdBase = normalizeBookletId(moduleEntry.name);
+    let moduleId = moduleIdBase;
+    if (usedModuleIds.has(moduleId)) {
+      const hash = crypto
+        .createHash("sha1")
+        .update(moduleEntry.name)
+        .digest("hex")
+        .slice(0, 6);
+      moduleId = `${moduleIdBase}-${hash}`;
+    }
+    usedModuleIds.add(moduleId);
+
+    const fileEntries = await fs.promises.readdir(modulePath, {
+      withFileTypes: true,
+    });
+    const usedFileIds = new Set();
+    const files = [];
+
+    for (const fileEntry of fileEntries
+      .filter(
+        (entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".pdf")
+      )
+      .sort((a, b) => compareBookletNames(a.name, b.name))) {
+      const fileIdBase = normalizeBookletId(fileEntry.name);
+      let fileId = fileIdBase;
+      if (usedFileIds.has(fileId)) {
+        const hash = crypto
+          .createHash("sha1")
+          .update(fileEntry.name)
+          .digest("hex")
+          .slice(0, 6);
+        fileId = `${fileIdBase}-${hash}`;
+      }
+      usedFileIds.add(fileId);
+
+      const filePath = path.join(modulePath, fileEntry.name);
+      const stat = await fs.promises.stat(filePath);
+      files.push({
+        id: fileId,
+        title: getBookletTitle(fileEntry.name),
+        fileName: fileEntry.name,
+        order: getBookletOrder(fileEntry.name),
+        size: stat.size,
+        url: `/api/booklets/modules/${encodeURIComponent(
+          moduleId
+        )}/files/${encodeURIComponent(fileId)}/pdf`,
+        absolutePath: filePath,
+      });
+    }
+
+    if (files.length === 0) continue;
+
+    modules.push({
+      id: moduleId,
+      title: getBookletTitle(moduleEntry.name),
+      folderName: moduleEntry.name,
+      order: getBookletOrder(moduleEntry.name),
+      totalFiles: files.length,
+      files,
+    });
+  }
+
+  return modules;
+};
+
+const getBookletCatalogWithAccess = async () => {
+  const modules = await buildBookletCatalog();
+  if (modules.length === 0) return [];
+
+  const result = await pool.query(
+    "SELECT module_id, enabled FROM booklet_module_access WHERE module_id = ANY($1)",
+    [modules.map((module) => module.id)]
+  );
+  const accessMap = new Map(
+    result.rows.map((row) => [row.module_id, row.enabled])
+  );
+
+  return modules.map((module) => ({
+    ...module,
+    enabled: accessMap.get(module.id) === true,
+  }));
+};
+
+const publicBookletModule = (module, { includeFiles = true } = {}) => {
+  const { absolutePath, ...safeModule } = module;
+  const files = includeFiles
+    ? module.files.map((file) => {
+        const { absolutePath: filePath, ...safeFile } = file;
+        return safeFile;
+      })
+    : [];
+
+  return {
+    ...safeModule,
+    files,
+  };
+};
+
+const findBookletFile = async (moduleId, fileId) => {
+  const modules = await getBookletCatalogWithAccess();
+  const module = modules.find((item) => item.id === moduleId);
+  if (!module) return { module: null, file: null };
+  const file = module.files.find((item) => item.id === fileId) || null;
+  return { module, file };
+};
+
 const getTypingSettings = async (studentType) => {
   const normalized = normalizeTypingStudentType(studentType);
   const result = await pool.query(
@@ -1443,6 +1604,109 @@ app.get("/api/users", requireAuth, requireProfessor, async (req, res) => {
   const users = await listUsers();
   res.json({ users: users.map(publicUser) });
 });
+
+// --- Endpoints de Apostilas ---
+
+app.get("/api/booklets/modules", requireAuth, async (req, res, next) => {
+  try {
+    const modules = await getBookletCatalogWithAccess();
+    const visibleModules =
+      req.user.role === "professor"
+        ? modules
+        : modules.filter((module) => module.enabled);
+
+    res.json({
+      modules: visibleModules.map((module) => publicBookletModule(module)),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.put(
+  "/api/booklets/modules/access",
+  requireAuth,
+  requireProfessor,
+  async (req, res, next) => {
+    try {
+      const enabledModuleIds = Array.isArray(req.body.enabledModuleIds)
+        ? req.body.enabledModuleIds.map((id) => String(id))
+        : [];
+      const modules = await buildBookletCatalog();
+      const knownIds = new Set(modules.map((module) => module.id));
+      const unknownId = enabledModuleIds.find((id) => !knownIds.has(id));
+
+      if (unknownId) {
+        return res.status(400).json({ error: "Módulo de apostila inválido." });
+      }
+
+      const enabledSet = new Set(enabledModuleIds);
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+        for (const module of modules) {
+          await client.query(
+            `INSERT INTO booklet_module_access (module_id, enabled, updated_at)
+             VALUES ($1, $2, NOW())
+             ON CONFLICT (module_id)
+             DO UPDATE SET enabled = EXCLUDED.enabled, updated_at = NOW()`,
+            [module.id, enabledSet.has(module.id)]
+          );
+        }
+        await client.query("COMMIT");
+      } catch (error) {
+        await client.query("ROLLBACK").catch(() => {});
+        throw error;
+      } finally {
+        client.release();
+      }
+
+      const updatedModules = await getBookletCatalogWithAccess();
+      res.json({
+        modules: updatedModules.map((module) => publicBookletModule(module)),
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.get(
+  "/api/booklets/modules/:moduleId/files/:fileId/pdf",
+  requireAuth,
+  async (req, res, next) => {
+    try {
+      const { module, file } = await findBookletFile(
+        req.params.moduleId,
+        req.params.fileId
+      );
+
+      if (!module || !file) {
+        return res.status(404).json({ error: "Apostila não encontrada." });
+      }
+
+      if (req.user.role !== "professor" && !module.enabled) {
+        return res.status(403).json({
+          error: "Esta apostila ainda não foi liberada para alunos.",
+        });
+      }
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      res.setHeader("Cache-Control", "private, max-age=300");
+      res.setHeader(
+        "Content-Disposition",
+        `inline; filename="${file.fileName.replace(
+          /"/g,
+          ""
+        )}"; filename*=UTF-8''${encodeURIComponent(file.fileName)}`
+      );
+      res.sendFile(file.absolutePath);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 // --- Endpoints de Gestão de Sessões ---
 

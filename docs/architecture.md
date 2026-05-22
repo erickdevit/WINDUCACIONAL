@@ -73,6 +73,8 @@ Notificações do usuário usam SSE autenticado em `/api/notifications/events` e
 
 O backend mantém a versão atual da build em `app_metadata`. Quando a versão muda, as sessões persistidas são apagadas, o frontend detecta `/api/app/version`, limpa caches de navegador/service worker e recarrega com parâmetro de versão para forçar o uso da nova build.
 
+O app Apostilas armazena os PDFs em `src/containers/applications/apps/booklets/library`, dentro da própria pasta do app. O backend faz a leitura desse diretório, expõe o catálogo em `/api/booklets/modules`, serve PDFs por IDs de módulo/arquivo validados e persiste em `booklet_module_access` quais módulos ficam visíveis para alunos. Professores veem todos os módulos e podem alterar permissões; alunos recebem apenas módulos liberados.
+
 ## Arquitetura Alvo
 
 A arquitetura alvo deve separar responsabilidades:

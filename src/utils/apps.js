@@ -289,6 +289,12 @@ const apps = [
     action: "ATTENDANCEAPP",
   },
   {
+    name: "Apostilas",
+    icon: "booklets",
+    type: "app",
+    action: "BOOKLETSAPP",
+  },
+  {
     name: "Avaliação",
     icon: "exam",
     type: "app",

@@ -148,6 +148,30 @@ describe("Backend - frequência", () => {
   });
 });
 
+describe("Backend - apostilas", () => {
+  it("deve ler apostilas da pasta interna do app", () => {
+    expect(serverCode).toContain("bookletLibraryDir");
+    expect(serverCode).toContain('"booklets"');
+    expect(serverCode).toContain('"library"');
+  });
+
+  it("deve expor catálogo e permissões de módulos com autenticação", () => {
+    expect(serverCode).toContain('"/api/booklets/modules"');
+    expect(serverCode).toContain('"/api/booklets/modules/access"');
+    expect(serverCode).toContain("requireProfessor");
+    expect(serverCode).toContain("booklet_module_access");
+  });
+
+  it("deve servir PDF apenas por módulo e arquivo validados", () => {
+    expect(serverCode).toContain(
+      '"/api/booklets/modules/:moduleId/files/:fileId/pdf"'
+    );
+    expect(serverCode).toContain("findBookletFile");
+    expect(serverCode).toContain("application/pdf");
+    expect(serverCode).toContain("Esta apostila ainda não foi liberada");
+  });
+});
+
 describe("Backend - cadastro público de aluno", () => {
   it("deve ter endpoint POST /api/auth/register", () => {
     expect(serverCode).toContain('"/api/auth/register"');
