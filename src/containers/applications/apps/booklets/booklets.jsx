@@ -285,24 +285,33 @@ export const BookletsApp = () => {
           placeholder="Buscar apostila"
         />
       </label>
-      <div className="booklets-actions">
-        <button
-          className="booklets-secondary"
-          type="button"
-          onClick={loadModules}
-          disabled={loading}
-          title="Atualizar"
-        >
-          <Icon fafa="faRotateRight" width={13} />
-          Atualizar
-        </button>
-        {actions}
-      </div>
+      {actions ? <div className="booklets-actions">{actions}</div> : null}
     </section>
   );
 
   const renderModuleSelector = () => (
     <section className="booklets-module-selector win11Scroll">
+      <select
+        className="booklets-module-select"
+        value={selectedModule?.id || ""}
+        onChange={(event) => {
+          const module = visibleModules.find(
+            (item) => item.id === event.target.value
+          );
+          if (module) selectModule(module);
+        }}
+        disabled={visibleModules.length === 0}
+        aria-label="Selecionar módulo"
+      >
+        {visibleModules.length === 0 ? (
+          <option value="">Nenhum módulo disponível</option>
+        ) : null}
+        {visibleModules.map((module) => (
+          <option key={module.id} value={module.id}>
+            {module.title} ({module.files.length})
+          </option>
+        ))}
+      </select>
       {visibleModules.map((module) => (
         <button
           key={module.id}

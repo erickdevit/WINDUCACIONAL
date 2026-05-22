@@ -93,6 +93,10 @@ describe("App Apostilas", () => {
   });
 
   it("deve otimizar a leitura mobile para exibir somente o PDF", () => {
+    const readerBlock = styles.substring(
+      styles.indexOf(".bookletsApp.readerMode")
+    );
+
     expect(source).toContain("readerMode");
     expect(styles).toContain("@media (max-width: 640px)");
     expect(styles).toContain(".bookletsApp.readerMode");
@@ -100,19 +104,26 @@ describe("App Apostilas", () => {
     expect(styles).toContain("display: none");
     expect(styles).toContain("height: 100%");
     expect(styles).toContain("width: max(100%, 560px)");
+    expect(readerBlock).not.toContain(".toolbar,");
   });
 
-  it("deve aplicar scroll vertical nas listagens mobile", () => {
+  it("deve usar seletor de módulos no mobile e scroll nas apostilas", () => {
     const mobileBlock = styles.substring(
       styles.indexOf("@media (max-width: 640px)"),
       styles.indexOf(".bookletsApp.readerMode")
     );
 
+    expect(source).toContain("booklets-module-select");
+    expect(source).toContain('aria-label="Selecionar módulo"');
+    expect(source).not.toContain("Atualizar");
     expect(mobileBlock).toContain(".booklets-module-selector");
-    expect(mobileBlock).toContain("max-height: 148px");
-    expect(mobileBlock).toContain("overflow-y: auto");
+    expect(mobileBlock).toContain("max-height: none");
+    expect(mobileBlock).toContain(".booklets-module-select");
+    expect(mobileBlock).toContain("display: block");
+    expect(mobileBlock).toContain("display: none");
     expect(mobileBlock).toContain(".booklets-tiles");
     expect(mobileBlock).toContain("max-height: calc(100dvh - 230px)");
+    expect(mobileBlock).toContain("overflow-y: auto");
   });
 
   it("deve manter a biblioteca de PDFs dentro da pasta do app", () => {
