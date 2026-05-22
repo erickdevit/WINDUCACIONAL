@@ -92,6 +92,16 @@ describe("App Apostilas", () => {
     expect(styles).toContain("overflow: auto");
   });
 
+  it("deve otimizar a leitura mobile para exibir somente o PDF", () => {
+    expect(source).toContain("readerMode");
+    expect(styles).toContain("@media (max-width: 640px)");
+    expect(styles).toContain(".bookletsApp.readerMode");
+    expect(styles).toContain(".booklets-reader-bar");
+    expect(styles).toContain("display: none");
+    expect(styles).toContain("height: 100%");
+    expect(styles).toContain("width: max(100%, 560px)");
+  });
+
   it("deve manter a biblioteca de PDFs dentro da pasta do app", () => {
     const libraryDir = path.resolve(
       __dirname,

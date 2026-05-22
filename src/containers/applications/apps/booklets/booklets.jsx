@@ -581,7 +581,7 @@ export const BookletsApp = () => {
       app={wnapp.action}
       icon={wnapp.icon}
       name="Apostilas"
-      className="bookletsApp"
+      className={`bookletsApp ${activeTab === "reader" ? "readerMode" : ""}`}
       toolbarProps={{ bg: "#ffffff", noinvert: true }}
       windowScreenClassName="flex flex-col"
       restWindowClassName="flex-grow flex flex-col"
