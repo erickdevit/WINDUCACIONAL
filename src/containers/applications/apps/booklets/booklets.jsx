@@ -6,12 +6,12 @@ import { Icon } from "../../../../utils/general";
 import "./booklets.scss";
 
 const professorTabs = [
-  { id: "library", label: "Biblioteca", icon: "faBookOpen" },
+  { id: "library", label: "Apostilas", icon: "faBookOpen" },
   { id: "access", label: "Permissões", icon: "faLockOpen" },
 ];
 
 const studentTabs = [
-  { id: "shelf", label: "Estante", icon: "faBook" },
+  { id: "shelf", label: "Apostilas", icon: "faBook" },
   { id: "reader", label: "Leitor", icon: "faFilePdf" },
 ];
 
@@ -40,16 +40,23 @@ export const BookletsApp = () => {
     () => (isProfessor ? modules : modules.filter((module) => module.enabled)),
     [isProfessor, modules]
   );
-  const filteredModules = useMemo(() => {
+  const bookletTiles = useMemo(
+    () =>
+      visibleModules.flatMap((module) =>
+        module.files.map((file) => ({
+          module,
+          file,
+          searchText:
+            `${module.title} ${module.folderName} ${file.title} ${file.fileName}`.toLowerCase(),
+        }))
+      ),
+    [visibleModules]
+  );
+  const filteredTiles = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return visibleModules;
-    return visibleModules.filter(
-      (module) =>
-        module.title.toLowerCase().includes(term) ||
-        module.folderName.toLowerCase().includes(term) ||
-        module.files.some((file) => file.title.toLowerCase().includes(term))
-    );
-  }, [search, visibleModules]);
+    if (!term) return bookletTiles;
+    return bookletTiles.filter((item) => item.searchText.includes(term));
+  }, [bookletTiles, search]);
 
   const selectedModule =
     visibleModules.find((module) => module.id === selectedModuleId) ||
@@ -60,10 +67,6 @@ export const BookletsApp = () => {
     selectedModule?.files[0] ||
     null;
   const enabledCount = modules.filter((module) => module.enabled).length;
-  const totalFiles = visibleModules.reduce(
-    (total, module) => total + module.files.length,
-    0
-  );
 
   const loadModules = async () => {
     setLoading(true);
@@ -104,10 +107,10 @@ export const BookletsApp = () => {
     }
   }, [visibleModules, selectedModuleId, selectedFileId]);
 
-  const selectFile = (module, file) => {
+  const selectFile = (module, file, openReader = true) => {
     setSelectedModuleId(module.id);
     setSelectedFileId(file.id);
-    if (!isProfessor) setActiveTab("reader");
+    if (openReader) setActiveTab("reader");
   };
 
   const toggleModuleAccess = (moduleId) => {
@@ -149,11 +152,7 @@ export const BookletsApp = () => {
   const renderSidebar = () => (
     <aside className="booklets-sidebar">
       <div className="booklets-brand">
-        <Icon src="booklets" width={28} />
-        <div>
-          <strong>Apostilas</strong>
-          <span>{isProfessor ? "Gestão de acesso" : "Biblioteca virtual"}</span>
-        </div>
+        <Icon src="booklets" width={24} />
       </div>
 
       <nav className="booklets-nav win11Scroll">
@@ -165,193 +164,165 @@ export const BookletsApp = () => {
             }`}
             type="button"
             onClick={() => setActiveTab(tab.id)}
+            title={tab.label}
           >
             <Icon fafa={tab.icon} width={15} />
             <span>{tab.label}</span>
           </button>
         ))}
       </nav>
-
-      <div className="booklets-sidebar-stats">
-        <span>{visibleModules.length} módulo(s)</span>
-        <strong>{totalFiles}</strong>
-        <small>apostila(s) em PDF</small>
-      </div>
     </aside>
   );
 
-  const renderHeader = (title, description, actions = null) => (
-    <header className="booklets-header">
-      <div>
-        <span className="booklets-kicker">Biblioteca de estudos</span>
-        <h1>{title}</h1>
-        <p>{description}</p>
-      </div>
+  const renderToolbar = (actions = null) => (
+    <section className="booklets-toolbar">
+      <label className="booklets-search">
+        <Icon fafa="faMagnifyingGlass" width={13} />
+        <input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Buscar apostila"
+        />
+      </label>
       <div className="booklets-actions">
         <button
           className="booklets-secondary"
           type="button"
           onClick={loadModules}
           disabled={loading}
+          title="Atualizar"
         >
           <Icon fafa="faRotateRight" width={13} />
           Atualizar
         </button>
         {actions}
       </div>
-    </header>
+    </section>
   );
 
-  const renderModuleCard = (module) => (
-    <button
-      key={module.id}
-      type="button"
-      className={`booklets-module-card ${
-        selectedModule?.id === module.id ? "selected" : ""
-      } ${module.enabled ? "enabled" : "locked"}`}
-      onClick={() => {
-        setSelectedModuleId(module.id);
-        setSelectedFileId(module.files[0]?.id || "");
+  const renderTilePreview = (file) => (
+    <div className="booklets-tile-preview" aria-hidden="true">
+      <object
+        data={`${file.url}#page=1&toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+        type="application/pdf"
+      >
+        <div className="booklets-preview-fallback">
+          <Icon fafa="faFilePdf" width={30} />
+        </div>
+      </object>
+    </div>
+  );
+
+  const renderBookletTile = ({ module, file }) => (
+    <div
+      key={`${module.id}-${file.id}`}
+      role="button"
+      tabIndex={0}
+      className={`booklets-tile ${
+        selectedModule?.id === module.id && selectedFile?.id === file.id
+          ? "selected"
+          : ""
+      }`}
+      onClick={() => selectFile(module, file)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          selectFile(module, file);
+        }
       }}
     >
-      <div className="booklets-book-cover">
-        <Icon fafa="faBookOpen" width={24} />
-      </div>
-      <div>
-        <strong>{module.title}</strong>
-        <span>{module.files.length} PDF(s)</span>
-        {isProfessor ? (
-          <small>{module.enabled ? "Liberado" : "Bloqueado"}</small>
-        ) : null}
-      </div>
-    </button>
+      {renderTilePreview(file)}
+      <span>{file.title}</span>
+      <small>{module.title}</small>
+      <em>{formatBytes(file.size)}</em>
+    </div>
   );
 
-  const renderFileList = () => (
-    <section className="booklets-panel booklets-file-panel">
-      <div className="booklets-panel-head">
-        <div>
-          <h2>{selectedModule?.title || "Apostilas"}</h2>
-          <span>{selectedModule?.folderName || "Selecione um módulo"}</span>
-        </div>
-      </div>
-      <div className="booklets-file-list win11Scroll">
-        {selectedModule?.files.map((file) => (
-          <button
-            key={file.id}
-            type="button"
-            className={`booklets-file-row ${
-              selectedFile?.id === file.id ? "active" : ""
-            }`}
-            onClick={() => selectFile(selectedModule, file)}
-          >
-            <Icon fafa="faFilePdf" width={18} />
-            <div>
-              <strong>{file.title}</strong>
-              <span>{formatBytes(file.size)}</span>
-            </div>
-          </button>
-        ))}
-        {!selectedModule && !loading ? (
-          <div className="booklets-empty">Nenhum módulo disponível.</div>
+  const renderTiles = () => (
+    <>
+      {renderToolbar()}
+      <section className="booklets-tiles win11Scroll">
+        {filteredTiles.map(renderBookletTile)}
+        {filteredTiles.length === 0 && !loading ? (
+          <div className="booklets-empty">Nenhuma apostila encontrada.</div>
         ) : null}
-      </div>
-    </section>
+      </section>
+    </>
+  );
+
+  const renderReaderList = () => (
+    <aside className="booklets-reader-list win11Scroll">
+      {visibleModules.map((module) => (
+        <div className="booklets-reader-module" key={module.id}>
+          {module.files.map((file) => (
+            <button
+              key={file.id}
+              type="button"
+              className={`booklets-reader-item ${
+                selectedModule?.id === module.id && selectedFile?.id === file.id
+                  ? "active"
+                  : ""
+              }`}
+              onClick={() => selectFile(module, file, false)}
+            >
+              <Icon fafa="faFilePdf" width={15} />
+              <span>{file.title}</span>
+            </button>
+          ))}
+        </div>
+      ))}
+    </aside>
   );
 
   const renderReader = () => (
-    <section className="booklets-reader">
-      <div className="booklets-reader-head">
-        <div>
-          <span>{selectedModule?.title || "Apostilas"}</span>
-          <strong>{selectedFile?.title || "Selecione uma apostila"}</strong>
+    <div className="booklets-reader-shell">
+      {renderReaderList()}
+      <section className="booklets-reader">
+        <div className="booklets-reader-bar">
+          <div>
+            <strong>{selectedFile?.title || "Selecione uma apostila"}</strong>
+            <span>{selectedModule?.title || "Apostilas"}</span>
+          </div>
+          {selectedFile ? (
+            <a
+              className="booklets-secondary"
+              href={selectedFile.url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Icon fafa="faUpRightFromSquare" width={12} />
+              Nova aba
+            </a>
+          ) : null}
         </div>
-        {selectedFile ? (
-          <a
-            className="booklets-secondary"
-            href={selectedFile.url}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Icon fafa="faUpRightFromSquare" width={12} />
-            Abrir em nova aba
-          </a>
-        ) : null}
-      </div>
-      <div className="booklets-pdf-frame">
-        {selectedFile ? (
-          <iframe
-            key={selectedFile.url}
-            src={selectedFile.url}
-            title={selectedFile.title}
-          />
-        ) : (
-          <div className="booklets-empty">Escolha um PDF para leitura.</div>
-        )}
-      </div>
-    </section>
-  );
-
-  const renderShelf = () => (
-    <>
-      {renderHeader(
-        isProfessor ? "Biblioteca de apostilas" : "Minha estante",
-        isProfessor
-          ? "Confira os módulos disponíveis e abra qualquer PDF para revisão."
-          : "Abra os módulos liberados pelo professor e leia as apostilas."
-      )}
-      <section className="booklets-toolbar">
-        <label className="booklets-search">
-          <Icon fafa="faMagnifyingGlass" width={13} />
-          <input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar módulo ou apostila"
-          />
-        </label>
+        <div className="booklets-pdf-scroll win11Scroll">
+          {selectedFile ? (
+            <object
+              key={selectedFile.url}
+              data={`${selectedFile.url}#toolbar=1&navpanes=0&view=FitH`}
+              type="application/pdf"
+              className="booklets-pdf-object"
+            >
+              <iframe
+                src={selectedFile.url}
+                title={selectedFile.title}
+                className="booklets-pdf-object"
+              />
+            </object>
+          ) : (
+            <div className="booklets-empty">Escolha um PDF para leitura.</div>
+          )}
+        </div>
       </section>
-      <div className="booklets-library-grid">
-        <section className="booklets-panel">
-          <div className="booklets-panel-head">
-            <div>
-              <h2>Módulos</h2>
-              <span>{filteredModules.length} encontrado(s)</span>
-            </div>
-          </div>
-          <div className="booklets-module-grid win11Scroll">
-            {filteredModules.map(renderModuleCard)}
-            {filteredModules.length === 0 && !loading ? (
-              <div className="booklets-empty">Nenhuma apostila encontrada.</div>
-            ) : null}
-          </div>
-        </section>
-        {renderFileList()}
-      </div>
-      {isProfessor ? renderReader() : null}
-    </>
+    </div>
   );
 
   const renderAccess = () => (
     <>
-      {renderHeader(
-        "Permissões dos alunos",
-        "Defina quais módulos aparecem na biblioteca dos alunos.",
-        <button
-          className="booklets-primary"
-          type="button"
-          onClick={saveAccess}
-          disabled={saving}
-        >
-          <Icon fafa="faFloppyDisk" width={13} />
-          Salvar
-        </button>
-      )}
-      <section className="booklets-access-summary">
-        <div>
-          <span>Liberados</span>
-          <strong>
-            {enabledCount}/{modules.length}
-          </strong>
+      <section className="booklets-access-toolbar">
+        <div className="booklets-access-counter">
+          <span>{enabledCount}</span>
+          <small>/ {modules.length}</small>
         </div>
         <div className="booklets-access-actions">
           <button type="button" onClick={() => setAllAccess(true)}>
@@ -360,48 +331,42 @@ export const BookletsApp = () => {
           <button type="button" onClick={() => setAllAccess(false)}>
             Bloquear todos
           </button>
+          <button
+            className="booklets-primary"
+            type="button"
+            onClick={saveAccess}
+            disabled={saving}
+          >
+            <Icon fafa="faFloppyDisk" width={13} />
+            Salvar
+          </button>
         </div>
       </section>
-      <section className="booklets-panel">
-        <div className="booklets-access-list win11Scroll">
-          {modules.map((module) => (
-            <label className="booklets-access-row" key={module.id}>
-              <input
-                type="checkbox"
-                checked={module.enabled}
-                onChange={() => toggleModuleAccess(module.id)}
-              />
-              <div>
-                <strong>{module.title}</strong>
-                <span>
-                  {module.files.length} apostila(s) em {module.folderName}
-                </span>
-              </div>
-              <em>{module.enabled ? "Visível para alunos" : "Oculto"}</em>
-            </label>
-          ))}
-        </div>
+      <section className="booklets-access-list win11Scroll">
+        {modules.map((module) => (
+          <label className="booklets-access-row" key={module.id}>
+            <input
+              type="checkbox"
+              checked={module.enabled}
+              onChange={() => toggleModuleAccess(module.id)}
+            />
+            <div>
+              <strong>{module.title}</strong>
+              <span>
+                {module.files.length} apostila(s) em {module.folderName}
+              </span>
+            </div>
+            <em>{module.enabled ? "Liberado" : "Bloqueado"}</em>
+          </label>
+        ))}
       </section>
-    </>
-  );
-
-  const renderStudentReader = () => (
-    <>
-      {renderHeader(
-        "Leitor de apostilas",
-        "Leia o PDF selecionado sem sair da biblioteca."
-      )}
-      <div className="booklets-reader-layout">
-        {renderFileList()}
-        {renderReader()}
-      </div>
     </>
   );
 
   const renderContent = () => {
     if (isProfessor && activeTab === "access") return renderAccess();
-    if (!isProfessor && activeTab === "reader") return renderStudentReader();
-    return renderShelf();
+    if (activeTab === "reader") return renderReader();
+    return renderTiles();
   };
 
   return (
@@ -411,12 +376,13 @@ export const BookletsApp = () => {
       icon={wnapp.icon}
       name="Apostilas"
       className="bookletsApp"
+      toolbarProps={{ bg: "#ffffff", noinvert: true }}
       windowScreenClassName="flex flex-col"
       restWindowClassName="flex-grow flex flex-col"
     >
       <div className="booklets-shell">
         {renderSidebar()}
-        <main className="booklets-main win11Scroll">
+        <main className="booklets-main">
           {message ? <div className="booklets-alert">{message}</div> : null}
           {loading ? (
             <div className="booklets-loading">Carregando...</div>

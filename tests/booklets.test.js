@@ -25,22 +25,41 @@ describe("App Apostilas", () => {
   it("deve separar a experiência de professor e aluno", () => {
     expect(source).toContain("professorTabs");
     expect(source).toContain("studentTabs");
-    expect(source).toContain("Permissões dos alunos");
-    expect(source).toContain("Minha estante");
-    expect(source).toContain("Leitor de apostilas");
+    expect(source).toContain('id: "access"');
+    expect(source).toContain('id: "reader"');
+    expect(source).toContain("renderAccess");
   });
 
   it("deve abrir PDFs em leitor interno sem expor caminho local", () => {
+    expect(source).toContain("<object");
     expect(source).toContain("<iframe");
     expect(source).toContain("selectedFile.url");
+    expect(source).toContain("booklets-pdf-scroll");
     expect(source).toContain('rel="noopener noreferrer"');
+  });
+
+  it("deve exibir apostilas em tiles com prévia de capa", () => {
+    expect(source).toContain("bookletTiles");
+    expect(source).toContain("renderBookletTile");
+    expect(source).toContain("booklets-tile-preview");
+    expect(source).toContain("#page=1");
+    expect(styles).toContain(".booklets-tiles");
+    expect(styles).toContain(".booklets-tile");
+    expect(styles).toContain(".booklets-tile-preview");
+  });
+
+  it("deve remover cabeçalhos descritivos superiores das views", () => {
+    expect(source).not.toContain("renderHeader");
+    expect(source).not.toContain("booklets-kicker");
+    expect(styles).not.toContain(".booklets-header");
+    expect(styles).not.toContain(".booklets-kicker");
   });
 
   it("deve manter navegação e rolagem próprias", () => {
     expect(styles).toContain(".booklets-sidebar");
     expect(styles).toContain(".booklets-nav");
-    expect(styles).toContain(".booklets-module-grid");
-    expect(styles).toContain(".booklets-file-list");
+    expect(styles).toContain(".booklets-reader-list");
+    expect(styles).toContain(".booklets-pdf-scroll");
     expect(styles).toContain("overflow: auto");
   });
 
