@@ -1058,21 +1058,38 @@ const buildBookletCatalog = async () => {
   return modules;
 };
 
-const getBookletCatalogWithAccess = async () => {
+const getBookletCatalogWithAccess = async (user = null) => {
   const modules = await buildBookletCatalog();
   if (modules.length === 0) return [];
 
-  const result = await pool.query(
+  const globalResult = await pool.query(
     "SELECT module_id, enabled FROM booklet_module_access WHERE module_id = ANY($1)",
     [modules.map((module) => module.id)]
   );
-  const accessMap = new Map(
-    result.rows.map((row) => [row.module_id, row.enabled])
+  const globalAccessMap = new Map(
+    globalResult.rows.map((row) => [row.module_id, row.enabled])
   );
+
+  let studentAccessMap = new Map();
+  if (user?.role === "aluno") {
+    const studentResult = await pool.query(
+      `SELECT module_id, enabled
+       FROM booklet_student_module_access
+       WHERE user_id = $1 AND module_id = ANY($2)`,
+      [user.id, modules.map((module) => module.id)]
+    );
+    studentAccessMap = new Map(
+      studentResult.rows.map((row) => [row.module_id, row.enabled])
+    );
+  }
 
   return modules.map((module) => ({
     ...module,
-    enabled: accessMap.get(module.id) === true,
+    globalEnabled: globalAccessMap.get(module.id) === true,
+    studentEnabled: studentAccessMap.get(module.id) === true,
+    enabled:
+      globalAccessMap.get(module.id) === true ||
+      studentAccessMap.get(module.id) === true,
   }));
 };
 
@@ -1091,12 +1108,48 @@ const publicBookletModule = (module, { includeFiles = true } = {}) => {
   };
 };
 
-const findBookletFile = async (moduleId, fileId) => {
-  const modules = await getBookletCatalogWithAccess();
+const findBookletFile = async (moduleId, fileId, user = null) => {
+  const modules = await getBookletCatalogWithAccess(user);
   const module = modules.find((item) => item.id === moduleId);
   if (!module) return { module: null, file: null };
   const file = module.files.find((item) => item.id === fileId) || null;
   return { module, file };
+};
+
+const listBookletStudentAccess = async (turmaId = "") => {
+  const values = [];
+  let turmaFilter = "";
+
+  if (turmaId) {
+    values.push(turmaId);
+    turmaFilter = "AND u.turma_id = $1";
+  }
+
+  const result = await pool.query(
+    `SELECT u.id, u.username, u.display_name, u.turma_id,
+            t.nome AS turma_nome,
+            COALESCE(
+              ARRAY_REMOVE(ARRAY_AGG(bsma.module_id ORDER BY bsma.module_id), NULL),
+              ARRAY[]::TEXT[]
+            ) AS module_ids
+     FROM users u
+     LEFT JOIN turmas t ON t.id = u.turma_id
+     LEFT JOIN booklet_student_module_access bsma
+       ON bsma.user_id = u.id AND bsma.enabled = TRUE
+     WHERE u.role = 'aluno' AND u.active = TRUE ${turmaFilter}
+     GROUP BY u.id, u.username, u.display_name, u.turma_id, t.nome
+     ORDER BY t.nome ASC NULLS LAST, u.display_name ASC, u.username ASC`,
+    values
+  );
+
+  return result.rows.map((student) => ({
+    id: student.id,
+    username: student.username,
+    displayName: student.display_name,
+    turmaId: student.turma_id,
+    turmaNome: student.turma_nome || "Sem turma",
+    moduleIds: student.module_ids || [],
+  }));
 };
 
 const getTypingSettings = async (studentType) => {
@@ -1609,7 +1662,7 @@ app.get("/api/users", requireAuth, requireProfessor, async (req, res) => {
 
 app.get("/api/booklets/modules", requireAuth, async (req, res, next) => {
   try {
-    const modules = await getBookletCatalogWithAccess();
+    const modules = await getBookletCatalogWithAccess(req.user);
     const visibleModules =
       req.user.role === "professor"
         ? modules
@@ -1672,13 +1725,100 @@ app.put(
 );
 
 app.get(
+  "/api/booklets/student-access",
+  requireAuth,
+  requireProfessor,
+  async (req, res, next) => {
+    try {
+      const turmaId = String(req.query.turmaId || "");
+      const students = await listBookletStudentAccess(turmaId);
+      res.json({ students });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.put(
+  "/api/booklets/student-access",
+  requireAuth,
+  requireProfessor,
+  async (req, res, next) => {
+    try {
+      const userIds = Array.isArray(req.body.userIds)
+        ? [...new Set(req.body.userIds.map((id) => String(id)))]
+        : [];
+      const moduleIds = Array.isArray(req.body.moduleIds)
+        ? [...new Set(req.body.moduleIds.map((id) => String(id)))]
+        : [];
+      const turmaId = String(req.body.turmaId || "");
+
+      if (userIds.length === 0) {
+        return res
+          .status(400)
+          .json({ error: "Selecione pelo menos um aluno." });
+      }
+
+      const modules = await buildBookletCatalog();
+      const knownIds = new Set(modules.map((module) => module.id));
+      const unknownId = moduleIds.find((id) => !knownIds.has(id));
+      if (unknownId) {
+        return res.status(400).json({ error: "Módulo de apostila inválido." });
+      }
+
+      const userResult = await pool.query(
+        "SELECT id FROM users WHERE id = ANY($1) AND role = 'aluno' AND active = TRUE",
+        [userIds]
+      );
+      if (userResult.rowCount !== userIds.length) {
+        return res.status(400).json({ error: "Aluno inválido." });
+      }
+
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+        await client.query(
+          "DELETE FROM booklet_student_module_access WHERE user_id = ANY($1)",
+          [userIds]
+        );
+
+        for (const userId of userIds) {
+          for (const moduleId of moduleIds) {
+            await client.query(
+              `INSERT INTO booklet_student_module_access
+                 (module_id, user_id, enabled, created_at, updated_at)
+               VALUES ($1, $2, TRUE, NOW(), NOW())
+               ON CONFLICT (module_id, user_id)
+               DO UPDATE SET enabled = TRUE, updated_at = NOW()`,
+              [moduleId, userId]
+            );
+          }
+        }
+        await client.query("COMMIT");
+      } catch (error) {
+        await client.query("ROLLBACK").catch(() => {});
+        throw error;
+      } finally {
+        client.release();
+      }
+
+      const students = await listBookletStudentAccess(turmaId);
+      res.json({ students });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.get(
   "/api/booklets/modules/:moduleId/files/:fileId/pdf",
   requireAuth,
   async (req, res, next) => {
     try {
       const { module, file } = await findBookletFile(
         req.params.moduleId,
-        req.params.fileId
+        req.params.fileId,
+        req.user
       );
 
       if (!module || !file) {

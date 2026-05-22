@@ -158,8 +158,10 @@ describe("Backend - apostilas", () => {
   it("deve expor catálogo e permissões de módulos com autenticação", () => {
     expect(serverCode).toContain('"/api/booklets/modules"');
     expect(serverCode).toContain('"/api/booklets/modules/access"');
+    expect(serverCode).toContain('"/api/booklets/student-access"');
     expect(serverCode).toContain("requireProfessor");
     expect(serverCode).toContain("booklet_module_access");
+    expect(serverCode).toContain("booklet_student_module_access");
   });
 
   it("deve servir PDF apenas por módulo e arquivo validados", () => {
@@ -169,6 +171,13 @@ describe("Backend - apostilas", () => {
     expect(serverCode).toContain("findBookletFile");
     expect(serverCode).toContain("application/pdf");
     expect(serverCode).toContain("Esta apostila ainda não foi liberada");
+  });
+
+  it("deve permitir liberação específica de módulos para alunos", () => {
+    expect(serverCode).toContain("listBookletStudentAccess");
+    expect(serverCode).toContain("userIds");
+    expect(serverCode).toContain("moduleIds");
+    expect(serverCode).toContain("WHERE user_id = $1 AND module_id = ANY");
   });
 });
 

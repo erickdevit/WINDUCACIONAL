@@ -27,12 +27,18 @@ export const BookletsApp = () => {
   const isProfessor = user.role === "professor";
 
   const [modules, setModules] = useState([]);
+  const [turmas, setTurmas] = useState([]);
+  const [studentAccess, setStudentAccess] = useState([]);
   const [activeTab, setActiveTab] = useState(isProfessor ? "library" : "shelf");
   const [selectedModuleId, setSelectedModuleId] = useState("");
   const [selectedFileId, setSelectedFileId] = useState("");
+  const [selectedAccessTurmaId, setSelectedAccessTurmaId] = useState("");
+  const [selectedStudentIds, setSelectedStudentIds] = useState([]);
+  const [selectedStudentModuleIds, setSelectedStudentModuleIds] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [savingStudentAccess, setSavingStudentAccess] = useState(false);
   const [message, setMessage] = useState("");
 
   const tabs = isProfessor ? professorTabs : studentTabs;
@@ -64,11 +70,30 @@ export const BookletsApp = () => {
     return bookletTiles.filter((item) => item.searchText.includes(term));
   }, [bookletTiles, search]);
   const enabledCount = modules.filter((module) => module.enabled).length;
+  const selectedAccessStudents = useMemo(
+    () =>
+      studentAccess.filter((student) =>
+        selectedStudentIds.includes(student.id)
+      ),
+    [studentAccess, selectedStudentIds]
+  );
 
   const loadModules = async () => {
     setLoading(true);
     setMessage("");
     try {
+      if (isProfessor) {
+        const [moduleData, turmaData, accessData] = await Promise.all([
+          api.getBookletModules(),
+          api.getTurmas(),
+          api.getBookletStudentAccess({ turmaId: selectedAccessTurmaId }),
+        ]);
+        setModules(moduleData.modules || []);
+        setTurmas(turmaData.turmas || []);
+        setStudentAccess(accessData.students || []);
+        return;
+      }
+
       const data = await api.getBookletModules();
       setModules(data.modules || []);
     } catch (error) {
@@ -88,6 +113,30 @@ export const BookletsApp = () => {
   }, [wnapp.hide]);
 
   useEffect(() => {
+    if (wnapp.hide || !isProfessor) return;
+
+    const loadAccess = async () => {
+      setMessage("");
+      try {
+        const data = await api.getBookletStudentAccess({
+          turmaId: selectedAccessTurmaId,
+        });
+        setStudentAccess(data.students || []);
+        setSelectedStudentIds((current) => {
+          const visibleIds = new Set(
+            (data.students || []).map((item) => item.id)
+          );
+          return current.filter((id) => visibleIds.has(id));
+        });
+      } catch (error) {
+        setMessage(error.message);
+      }
+    };
+
+    loadAccess();
+  }, [selectedAccessTurmaId, isProfessor, wnapp.hide]);
+
+  useEffect(() => {
     if (visibleModules.length === 0) {
       setSelectedModuleId("");
       setSelectedFileId("");
@@ -103,6 +152,22 @@ export const BookletsApp = () => {
       setSelectedFileId(nextModule.files[0]?.id || "");
     }
   }, [visibleModules, selectedModuleId, selectedFileId]);
+
+  useEffect(() => {
+    if (selectedAccessStudents.length === 0) {
+      setSelectedStudentModuleIds([]);
+      return;
+    }
+
+    const sharedModuleIds = modules
+      .filter((module) =>
+        selectedAccessStudents.every((student) =>
+          student.moduleIds.includes(module.id)
+        )
+      )
+      .map((module) => module.id);
+    setSelectedStudentModuleIds(sharedModuleIds);
+  }, [selectedAccessStudents, modules]);
 
   const selectFile = (module, file, openReader = true) => {
     setSelectedModuleId(module.id);
@@ -122,6 +187,22 @@ export const BookletsApp = () => {
           ? { ...module, enabled: !module.enabled }
           : module
       )
+    );
+  };
+
+  const toggleStudentSelection = (studentId) => {
+    setSelectedStudentIds((current) =>
+      current.includes(studentId)
+        ? current.filter((id) => id !== studentId)
+        : [...current, studentId]
+    );
+  };
+
+  const toggleStudentModuleAccess = (moduleId) => {
+    setSelectedStudentModuleIds((current) =>
+      current.includes(moduleId)
+        ? current.filter((id) => id !== moduleId)
+        : [...current, moduleId]
     );
   };
 
@@ -148,6 +229,24 @@ export const BookletsApp = () => {
       setMessage(error.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const saveStudentAccess = async () => {
+    setSavingStudentAccess(true);
+    setMessage("");
+    try {
+      const data = await api.saveBookletStudentAccess({
+        turmaId: selectedAccessTurmaId,
+        userIds: selectedStudentIds,
+        moduleIds: selectedStudentModuleIds,
+      });
+      setStudentAccess(data.students || []);
+      setMessage("Liberação específica salva.");
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setSavingStudentAccess(false);
     }
   };
 
@@ -286,7 +385,6 @@ export const BookletsApp = () => {
 
   const renderReaderList = () => (
     <aside className="booklets-reader-list win11Scroll">
-      {renderModuleSelector()}
       <div className="booklets-reader-module">
         {selectedModule?.files.map((file) => (
           <button
@@ -306,46 +404,49 @@ export const BookletsApp = () => {
   );
 
   const renderReader = () => (
-    <div className="booklets-reader-shell">
-      {renderReaderList()}
-      <section className="booklets-reader">
-        <div className="booklets-reader-bar">
-          <div>
-            <strong>{selectedFile?.title || "Selecione uma apostila"}</strong>
-            <span>{selectedModule?.title || "Apostilas"}</span>
+    <>
+      {renderModuleSelector()}
+      <div className="booklets-reader-shell">
+        {renderReaderList()}
+        <section className="booklets-reader">
+          <div className="booklets-reader-bar">
+            <div>
+              <strong>{selectedFile?.title || "Selecione uma apostila"}</strong>
+              <span>{selectedModule?.title || "Apostilas"}</span>
+            </div>
+            {selectedFile ? (
+              <a
+                className="booklets-secondary"
+                href={selectedFile.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Icon fafa="faUpRightFromSquare" width={12} />
+                Nova aba
+              </a>
+            ) : null}
           </div>
-          {selectedFile ? (
-            <a
-              className="booklets-secondary"
-              href={selectedFile.url}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Icon fafa="faUpRightFromSquare" width={12} />
-              Nova aba
-            </a>
-          ) : null}
-        </div>
-        <div className="booklets-pdf-scroll win11Scroll">
-          {selectedFile ? (
-            <object
-              key={selectedFile.url}
-              data={`${selectedFile.url}#toolbar=1&navpanes=0&view=FitH`}
-              type="application/pdf"
-              className="booklets-pdf-object"
-            >
-              <iframe
-                src={selectedFile.url}
-                title={selectedFile.title}
+          <div className="booklets-pdf-scroll win11Scroll">
+            {selectedFile ? (
+              <object
+                key={selectedFile.url}
+                data={`${selectedFile.url}#toolbar=1&navpanes=0&view=FitH`}
+                type="application/pdf"
                 className="booklets-pdf-object"
-              />
-            </object>
-          ) : (
-            <div className="booklets-empty">Escolha um PDF para leitura.</div>
-          )}
-        </div>
-      </section>
-    </div>
+              >
+                <iframe
+                  src={selectedFile.url}
+                  title={selectedFile.title}
+                  className="booklets-pdf-object"
+                />
+              </object>
+            ) : (
+              <div className="booklets-empty">Escolha um PDF para leitura.</div>
+            )}
+          </div>
+        </section>
+      </div>
+    </>
   );
 
   const renderAccess = () => (
@@ -373,24 +474,98 @@ export const BookletsApp = () => {
           </button>
         </div>
       </section>
-      <section className="booklets-access-list win11Scroll">
-        {modules.map((module) => (
-          <label className="booklets-access-row" key={module.id}>
-            <input
-              type="checkbox"
-              checked={module.enabled}
-              onChange={() => toggleModuleAccess(module.id)}
-            />
-            <div>
-              <strong>{module.title}</strong>
-              <span>
-                {module.files.length} apostila(s) em {module.folderName}
-              </span>
+      <div className="booklets-access-layout">
+        <section className="booklets-access-list win11Scroll">
+          {modules.map((module) => (
+            <label className="booklets-access-row" key={module.id}>
+              <input
+                type="checkbox"
+                checked={module.enabled}
+                onChange={() => toggleModuleAccess(module.id)}
+              />
+              <div>
+                <strong>{module.title}</strong>
+                <span>
+                  {module.files.length} apostila(s) em {module.folderName}
+                </span>
+              </div>
+              <em>{module.enabled ? "Liberado" : "Bloqueado"}</em>
+            </label>
+          ))}
+        </section>
+
+        <section className="booklets-student-access">
+          <div className="booklets-student-filter">
+            <select
+              value={selectedAccessTurmaId}
+              onChange={(event) => {
+                setSelectedAccessTurmaId(event.target.value);
+                setSelectedStudentIds([]);
+              }}
+            >
+              <option value="">Todas as turmas</option>
+              {turmas.map((turma) => (
+                <option key={turma.id} value={turma.id}>
+                  {turma.nome}
+                </option>
+              ))}
+            </select>
+            <button
+              className="booklets-primary"
+              type="button"
+              onClick={saveStudentAccess}
+              disabled={savingStudentAccess || selectedStudentIds.length === 0}
+            >
+              <Icon fafa="faFloppyDisk" width={13} />
+              Salvar alunos
+            </button>
+          </div>
+
+          <div className="booklets-student-access-grid">
+            <div className="booklets-student-list win11Scroll">
+              {studentAccess.map((student) => (
+                <button
+                  key={student.id}
+                  type="button"
+                  className={`booklets-student-row ${
+                    selectedStudentIds.includes(student.id) ? "active" : ""
+                  }`}
+                  onClick={() => toggleStudentSelection(student.id)}
+                >
+                  <strong>{student.displayName}</strong>
+                  <span>
+                    {student.turmaNome} · @{student.username}
+                  </span>
+                </button>
+              ))}
+              {studentAccess.length === 0 && !loading ? (
+                <div className="booklets-empty">Nenhum aluno encontrado.</div>
+              ) : null}
             </div>
-            <em>{module.enabled ? "Liberado" : "Bloqueado"}</em>
-          </label>
-        ))}
-      </section>
+
+            <div className="booklets-student-module-list win11Scroll">
+              {modules.map((module) => (
+                <label className="booklets-student-module-row" key={module.id}>
+                  <input
+                    type="checkbox"
+                    checked={selectedStudentModuleIds.includes(module.id)}
+                    disabled={selectedStudentIds.length === 0}
+                    onChange={() => toggleStudentModuleAccess(module.id)}
+                  />
+                  <div>
+                    <strong>{module.title}</strong>
+                    <span>
+                      {module.enabled
+                        ? "Liberado para todos"
+                        : "Liberação individual"}
+                    </span>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
     </>
   );
 

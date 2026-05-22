@@ -142,6 +142,18 @@ CREATE TABLE IF NOT EXISTS booklet_module_access (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS booklet_student_module_access (
+  module_id TEXT NOT NULL,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  enabled BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (module_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_booklet_student_module_access_user
+  ON booklet_student_module_access(user_id);
+
 CREATE TABLE IF NOT EXISTS app_metadata (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL,

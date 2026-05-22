@@ -85,7 +85,7 @@ docker compose -f compose.dev.yml up -d
 - Todo novo app com janela principal deve usar o wrapper compartilhado `src/components/shared/AppWindow.jsx`, preservando o shell padrão antigo antes de adicionar conteúdo específico.
 - Apps novos devem prever as barras de rolagem necessárias ao cenário, incluindo rolagem vertical e horizontal em painéis, listas, leitores, tabelas, grids ou conteúdos que possam exceder o espaço da janela.
 - O app Apostilas mantém os PDFs em `src/containers/applications/apps/booklets/library`; não deixe a biblioteca de apostilas solta na raiz do projeto.
-- O acesso de alunos a apostilas é controlado no backend pela tabela `booklet_module_access`; professores podem ver todos os módulos e alunos só podem abrir módulos liberados.
+- O acesso de alunos a apostilas é controlado no backend pelas tabelas `booklet_module_access` e `booklet_student_module_access`; professores podem ver todos os módulos, liberar módulos para todos ou conceder módulos específicos a alunos selecionados por turma.
 - Games dentro do app de Digitação Normal devem ficar separados das lições tradicionais. O modo PVP só deve ser liberado como partida real depois de existir backend com convite, sincronização em tempo real, validação de mesma turma, cálculo de vencedor no servidor e ranking persistido separado.
 
 ## Regras De Segurança

@@ -311,6 +311,17 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ enabledModuleIds }),
     }),
+  getBookletStudentAccess: ({ turmaId } = {}) => {
+    const params = new URLSearchParams();
+    if (turmaId) params.set("turmaId", turmaId);
+    const suffix = params.toString() ? `?${params.toString()}` : "";
+    return request(`/api/booklets/student-access${suffix}`);
+  },
+  saveBookletStudentAccess: (payload) =>
+    request("/api/booklets/student-access", {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
   // --- Avaliação (Exams) ---
   getExams: () => request("/api/exams"),
   getExamDetails: (id) => request(`/api/exams/${id}`),

@@ -20,6 +20,8 @@ describe("App Apostilas", () => {
     expect(source).toContain("state.apps.booklets");
     expect(source).toContain("api.getBookletModules");
     expect(source).toContain("api.saveBookletAccess");
+    expect(source).toContain("api.getBookletStudentAccess");
+    expect(source).toContain("api.saveBookletStudentAccess");
   });
 
   it("deve separar a experiência de professor e aluno", () => {
@@ -56,8 +58,21 @@ describe("App Apostilas", () => {
     expect(source.indexOf("{renderModuleSelector()}")).toBeLessThan(
       source.indexOf('<section className="booklets-tiles')
     );
+    expect(source.indexOf("const renderReader = ()")).toBeLessThan(
+      source.indexOf('<div className="booklets-reader-shell">')
+    );
     expect(styles).toContain(".booklets-module-selector");
-    expect(styles).toContain("overflow-x: auto");
+    expect(styles).toContain("overflow: auto");
+  });
+
+  it("deve permitir liberação específica por turma e aluno", () => {
+    expect(source).toContain("selectedAccessTurmaId");
+    expect(source).toContain("selectedStudentIds");
+    expect(source).toContain("selectedStudentModuleIds");
+    expect(source).toContain("Salvar alunos");
+    expect(styles).toContain(".booklets-student-access");
+    expect(styles).toContain(".booklets-student-list");
+    expect(styles).toContain(".booklets-student-module-list");
   });
 
   it("deve remover cabeçalhos descritivos superiores das views", () => {
@@ -73,6 +88,7 @@ describe("App Apostilas", () => {
     expect(styles).toContain(".booklets-reader-list");
     expect(styles).toContain(".booklets-pdf-scroll");
     expect(styles).toContain("width: max(100%, 760px)");
+    expect(styles).toContain(".booklets-main");
     expect(styles).toContain("overflow: auto");
   });
 
