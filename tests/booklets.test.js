@@ -102,6 +102,19 @@ describe("App Apostilas", () => {
     expect(styles).toContain("width: max(100%, 560px)");
   });
 
+  it("deve aplicar scroll vertical nas listagens mobile", () => {
+    const mobileBlock = styles.substring(
+      styles.indexOf("@media (max-width: 640px)"),
+      styles.indexOf(".bookletsApp.readerMode")
+    );
+
+    expect(mobileBlock).toContain(".booklets-module-selector");
+    expect(mobileBlock).toContain("max-height: 148px");
+    expect(mobileBlock).toContain("overflow-y: auto");
+    expect(mobileBlock).toContain(".booklets-tiles");
+    expect(mobileBlock).toContain("max-height: calc(100dvh - 230px)");
+  });
+
   it("deve manter a biblioteca de PDFs dentro da pasta do app", () => {
     const libraryDir = path.resolve(
       __dirname,

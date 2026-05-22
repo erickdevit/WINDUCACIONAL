@@ -876,8 +876,25 @@
   .bookletsApp {
     min-width: 280px;
 
+    .booklets-module-selector {
+      display: flex;
+      flex-direction: column;
+      max-height: 148px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      scroll-snap-type: none;
+    }
+
+    .booklets-module-chip {
+      width: 100%;
+      max-width: none;
+    }
+
     .booklets-tiles {
       grid-template-columns: 1fr;
+      max-height: calc(100dvh - 230px);
+      overflow-x: hidden;
+      overflow-y: auto;
     }
 
     .booklets-tile {
