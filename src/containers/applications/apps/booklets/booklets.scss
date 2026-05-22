@@ -110,6 +110,57 @@
     margin-bottom: 10px;
   }
 
+  .booklets-module-selector {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 8px;
+    max-width: 100%;
+    margin-bottom: 10px;
+    padding: 2px 2px 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .booklets-module-chip {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 7px;
+    max-width: 220px;
+    min-height: 34px;
+    padding: 7px 10px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 8px;
+    background: #ffffff;
+    color: #334155;
+
+    &.active,
+    &:hover {
+      border-color: rgba(37, 99, 235, 0.3);
+      background: #eaf1ff;
+      color: #174ea6;
+    }
+
+    span {
+      overflow: hidden;
+      font-size: 12px;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    small {
+      display: inline-grid;
+      min-width: 22px;
+      height: 20px;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.08);
+      font-size: 11px;
+      font-weight: 800;
+    }
+  }
+
   .booklets-search {
     display: flex;
     align-items: center;
@@ -256,13 +307,65 @@
     }
   }
 
-  .booklets-preview-fallback {
+  .booklets-preview-fallback,
+  .booklets-cover-preview {
     display: grid;
     width: 100%;
     height: 100%;
+  }
+
+  .booklets-preview-fallback {
     place-items: center;
     background: linear-gradient(135deg, #0f766e, #2563eb);
     color: #ffffff;
+  }
+
+  .booklets-cover-preview {
+    grid-template-columns: 12px minmax(0, 1fr);
+    background: #ffffff;
+  }
+
+  .booklets-cover-spine {
+    background: linear-gradient(180deg, #0f766e, #2563eb);
+  }
+
+  .booklets-cover-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: 0;
+    padding: 12px 10px;
+    background: linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+      #ffffff;
+    background-size: 100% 18px;
+    color: #1f2933;
+
+    .uicon {
+      color: #dc2626;
+    }
+
+    strong,
+    span {
+      display: -webkit-box;
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      white-space: normal;
+    }
+
+    strong {
+      -webkit-line-clamp: 4;
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.18;
+    }
+
+    span {
+      -webkit-line-clamp: 2;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
   }
 
   .booklets-reader-shell {
@@ -281,6 +384,10 @@
     border: 1px solid rgba(15, 23, 42, 0.1);
     border-radius: 8px;
     background: #ffffff;
+
+    .booklets-module-selector {
+      margin-bottom: 8px;
+    }
   }
 
   .booklets-reader-module {
@@ -369,7 +476,7 @@
 
   .booklets-pdf-object {
     display: block;
-    width: 100%;
+    width: max(100%, 760px);
     height: 100%;
     min-height: 760px;
     border: 0;

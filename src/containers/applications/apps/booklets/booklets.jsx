@@ -40,24 +40,6 @@ export const BookletsApp = () => {
     () => (isProfessor ? modules : modules.filter((module) => module.enabled)),
     [isProfessor, modules]
   );
-  const bookletTiles = useMemo(
-    () =>
-      visibleModules.flatMap((module) =>
-        module.files.map((file) => ({
-          module,
-          file,
-          searchText:
-            `${module.title} ${module.folderName} ${file.title} ${file.fileName}`.toLowerCase(),
-        }))
-      ),
-    [visibleModules]
-  );
-  const filteredTiles = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    if (!term) return bookletTiles;
-    return bookletTiles.filter((item) => item.searchText.includes(term));
-  }, [bookletTiles, search]);
-
   const selectedModule =
     visibleModules.find((module) => module.id === selectedModuleId) ||
     visibleModules[0] ||
@@ -66,6 +48,21 @@ export const BookletsApp = () => {
     selectedModule?.files.find((file) => file.id === selectedFileId) ||
     selectedModule?.files[0] ||
     null;
+  const bookletTiles = useMemo(
+    () =>
+      (selectedModule?.files || []).map((file) => ({
+        module: selectedModule,
+        file,
+        searchText:
+          `${selectedModule.title} ${selectedModule.folderName} ${file.title} ${file.fileName}`.toLowerCase(),
+      })),
+    [selectedModule]
+  );
+  const filteredTiles = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return bookletTiles;
+    return bookletTiles.filter((item) => item.searchText.includes(term));
+  }, [bookletTiles, search]);
   const enabledCount = modules.filter((module) => module.enabled).length;
 
   const loadModules = async () => {
@@ -111,6 +108,11 @@ export const BookletsApp = () => {
     setSelectedModuleId(module.id);
     setSelectedFileId(file.id);
     if (openReader) setActiveTab("reader");
+  };
+
+  const selectModule = (module) => {
+    setSelectedModuleId(module.id);
+    setSelectedFileId(module.files[0]?.id || "");
   };
 
   const toggleModuleAccess = (moduleId) => {
@@ -200,47 +202,79 @@ export const BookletsApp = () => {
     </section>
   );
 
-  const renderTilePreview = (file) => (
+  const renderModuleSelector = () => (
+    <section className="booklets-module-selector win11Scroll">
+      {visibleModules.map((module) => (
+        <button
+          key={module.id}
+          type="button"
+          className={`booklets-module-chip ${
+            selectedModule?.id === module.id ? "active" : ""
+          }`}
+          onClick={() => selectModule(module)}
+        >
+          <Icon fafa="faLayerGroup" width={14} />
+          <span>{module.title}</span>
+          <small>{module.files.length}</small>
+        </button>
+      ))}
+    </section>
+  );
+
+  const renderTilePreview = (module, file, isSelected) => (
     <div className="booklets-tile-preview" aria-hidden="true">
-      <object
-        data={`${file.url}#page=1&toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
-        type="application/pdf"
-      >
-        <div className="booklets-preview-fallback">
-          <Icon fafa="faFilePdf" width={30} />
+      {isSelected ? (
+        <object
+          data={`${file.url}#page=1&toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+          type="application/pdf"
+        >
+          <div className="booklets-preview-fallback">
+            <Icon fafa="faFilePdf" width={30} />
+          </div>
+        </object>
+      ) : (
+        <div className="booklets-cover-preview">
+          <div className="booklets-cover-spine" />
+          <div className="booklets-cover-content">
+            <Icon fafa="faFilePdf" width={24} />
+            <strong>{file.title}</strong>
+            <span>{module.title}</span>
+          </div>
         </div>
-      </object>
+      )}
     </div>
   );
 
-  const renderBookletTile = ({ module, file }) => (
-    <div
-      key={`${module.id}-${file.id}`}
-      role="button"
-      tabIndex={0}
-      className={`booklets-tile ${
-        selectedModule?.id === module.id && selectedFile?.id === file.id
-          ? "selected"
-          : ""
-      }`}
-      onClick={() => selectFile(module, file)}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          selectFile(module, file);
-        }
-      }}
-    >
-      {renderTilePreview(file)}
-      <span>{file.title}</span>
-      <small>{module.title}</small>
-      <em>{formatBytes(file.size)}</em>
-    </div>
-  );
+  const renderBookletTile = ({ module, file }) => {
+    const isSelected =
+      selectedModule?.id === module.id && selectedFile?.id === file.id;
+
+    return (
+      <div
+        key={`${module.id}-${file.id}`}
+        role="button"
+        tabIndex={0}
+        className={`booklets-tile ${isSelected ? "selected" : ""}`}
+        onClick={() => selectFile(module, file)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            selectFile(module, file);
+          }
+        }}
+      >
+        {renderTilePreview(module, file, isSelected)}
+        <span>{file.title}</span>
+        <small>{module.title}</small>
+        <em>{formatBytes(file.size)}</em>
+      </div>
+    );
+  };
 
   const renderTiles = () => (
     <>
       {renderToolbar()}
+      {renderModuleSelector()}
       <section className="booklets-tiles win11Scroll">
         {filteredTiles.map(renderBookletTile)}
         {filteredTiles.length === 0 && !loading ? (
@@ -252,25 +286,22 @@ export const BookletsApp = () => {
 
   const renderReaderList = () => (
     <aside className="booklets-reader-list win11Scroll">
-      {visibleModules.map((module) => (
-        <div className="booklets-reader-module" key={module.id}>
-          {module.files.map((file) => (
-            <button
-              key={file.id}
-              type="button"
-              className={`booklets-reader-item ${
-                selectedModule?.id === module.id && selectedFile?.id === file.id
-                  ? "active"
-                  : ""
-              }`}
-              onClick={() => selectFile(module, file, false)}
-            >
-              <Icon fafa="faFilePdf" width={15} />
-              <span>{file.title}</span>
-            </button>
-          ))}
-        </div>
-      ))}
+      {renderModuleSelector()}
+      <div className="booklets-reader-module">
+        {selectedModule?.files.map((file) => (
+          <button
+            key={file.id}
+            type="button"
+            className={`booklets-reader-item ${
+              selectedFile?.id === file.id ? "active" : ""
+            }`}
+            onClick={() => selectFile(selectedModule, file, false)}
+          >
+            <Icon fafa="faFilePdf" width={15} />
+            <span>{file.title}</span>
+          </button>
+        ))}
+      </div>
     </aside>
   );
 

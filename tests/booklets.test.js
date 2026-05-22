@@ -43,9 +43,21 @@ describe("App Apostilas", () => {
     expect(source).toContain("renderBookletTile");
     expect(source).toContain("booklets-tile-preview");
     expect(source).toContain("#page=1");
+    expect(source).toContain("isSelected ? (");
+    expect(source).toContain("booklets-cover-preview");
     expect(styles).toContain(".booklets-tiles");
     expect(styles).toContain(".booklets-tile");
     expect(styles).toContain(".booklets-tile-preview");
+  });
+
+  it("deve selecionar módulo antes de listar apostilas", () => {
+    expect(source).toContain("renderModuleSelector");
+    expect(source).toContain("selectModule");
+    expect(source.indexOf("{renderModuleSelector()}")).toBeLessThan(
+      source.indexOf('<section className="booklets-tiles')
+    );
+    expect(styles).toContain(".booklets-module-selector");
+    expect(styles).toContain("overflow-x: auto");
   });
 
   it("deve remover cabeçalhos descritivos superiores das views", () => {
@@ -60,6 +72,7 @@ describe("App Apostilas", () => {
     expect(styles).toContain(".booklets-nav");
     expect(styles).toContain(".booklets-reader-list");
     expect(styles).toContain(".booklets-pdf-scroll");
+    expect(styles).toContain("width: max(100%, 760px)");
     expect(styles).toContain("overflow: auto");
   });
 
