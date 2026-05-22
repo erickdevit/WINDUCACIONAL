@@ -392,70 +392,29 @@ export const BookletsApp = () => {
     </>
   );
 
-  const renderReaderList = () => (
-    <aside className="booklets-reader-list win11Scroll">
-      <div className="booklets-reader-module">
-        {selectedModule?.files.map((file) => (
-          <button
-            key={file.id}
-            type="button"
-            className={`booklets-reader-item ${
-              selectedFile?.id === file.id ? "active" : ""
-            }`}
-            onClick={() => selectFile(selectedModule, file, false)}
-          >
-            <Icon fafa="faFilePdf" width={15} />
-            <span>{file.title}</span>
-          </button>
-        ))}
-      </div>
-    </aside>
-  );
-
   const renderReader = () => (
-    <>
-      {renderModuleSelector()}
-      <div className="booklets-reader-shell">
-        {renderReaderList()}
-        <section className="booklets-reader">
-          <div className="booklets-reader-bar">
-            <div>
-              <strong>{selectedFile?.title || "Selecione uma apostila"}</strong>
-              <span>{selectedModule?.title || "Apostilas"}</span>
-            </div>
-            {selectedFile ? (
-              <a
-                className="booklets-secondary"
-                href={selectedFile.url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Icon fafa="faUpRightFromSquare" width={12} />
-                Nova aba
-              </a>
-            ) : null}
-          </div>
-          <div className="booklets-pdf-scroll win11Scroll">
-            {selectedFile ? (
-              <object
-                key={selectedFile.url}
-                data={`${selectedFile.url}#toolbar=1&navpanes=0&view=FitH`}
-                type="application/pdf"
+    <div className="booklets-reader-shell">
+      <section className="booklets-reader">
+        <div className="booklets-pdf-scroll win11Scroll">
+          {selectedFile ? (
+            <object
+              key={selectedFile.url}
+              data={`${selectedFile.url}#toolbar=1&navpanes=0&view=FitH`}
+              type="application/pdf"
+              className="booklets-pdf-object"
+            >
+              <iframe
+                src={selectedFile.url}
+                title={selectedFile.title}
                 className="booklets-pdf-object"
-              >
-                <iframe
-                  src={selectedFile.url}
-                  title={selectedFile.title}
-                  className="booklets-pdf-object"
-                />
-              </object>
-            ) : (
-              <div className="booklets-empty">Escolha um PDF para leitura.</div>
-            )}
-          </div>
-        </section>
-      </div>
-    </>
+              />
+            </object>
+          ) : (
+            <div className="booklets-empty">Escolha um PDF para leitura.</div>
+          )}
+        </div>
+      </section>
+    </div>
   );
 
   const renderAccess = () => (

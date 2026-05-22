@@ -37,7 +37,7 @@ describe("App Apostilas", () => {
     expect(source).toContain("<iframe");
     expect(source).toContain("selectedFile.url");
     expect(source).toContain("booklets-pdf-scroll");
-    expect(source).toContain('rel="noopener noreferrer"');
+    expect(source).not.toContain('target="_blank"');
   });
 
   it("deve exibir apostilas em tiles com prévia de capa", () => {
@@ -62,6 +62,8 @@ describe("App Apostilas", () => {
       source.indexOf('<div className="booklets-reader-shell">')
     );
     expect(styles).toContain(".booklets-module-selector");
+    expect(styles).toContain("align-items: flex-start");
+    expect(styles).toContain("align-self: flex-start");
     expect(styles).toContain("overflow: auto");
   });
 
@@ -85,22 +87,28 @@ describe("App Apostilas", () => {
   it("deve manter navegação e rolagem próprias", () => {
     expect(styles).toContain(".booklets-sidebar");
     expect(styles).toContain(".booklets-nav");
-    expect(styles).toContain(".booklets-reader-list");
     expect(styles).toContain(".booklets-pdf-scroll");
     expect(styles).toContain("width: max(100%, 760px)");
     expect(styles).toContain(".booklets-main");
     expect(styles).toContain("overflow: auto");
+    expect(styles).toContain("padding-bottom: 10%");
   });
 
-  it("deve otimizar a leitura mobile para exibir somente o PDF", () => {
+  it("deve deixar a leitura somente com o PDF", () => {
+    const readerSource = source.substring(
+      source.indexOf("const renderReader = ()"),
+      source.indexOf("const renderAccess = ()")
+    );
     const readerBlock = styles.substring(
       styles.indexOf(".bookletsApp.readerMode")
     );
 
     expect(source).toContain("readerMode");
+    expect(readerSource).not.toContain("renderModuleSelector()");
+    expect(readerSource).not.toContain("booklets-reader-bar");
+    expect(readerSource).not.toContain("Nova aba");
     expect(styles).toContain("@media (max-width: 640px)");
     expect(styles).toContain(".bookletsApp.readerMode");
-    expect(styles).toContain(".booklets-reader-bar");
     expect(styles).toContain("display: none");
     expect(styles).toContain("height: 100%");
     expect(styles).toContain("width: max(100%, 560px)");
