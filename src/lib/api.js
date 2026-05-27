@@ -304,6 +304,11 @@ export const api = {
     const suffix = params.toString() ? `?${params.toString()}` : "";
     return request(`/api/attendance/summary${suffix}`);
   },
+  saveAttendance: (payload) =>
+    request("/api/attendance/register", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
   // --- Apostilas ---
   getBookletModules: () => request("/api/booklets/modules"),
   saveBookletAccess: (enabledModuleIds) =>

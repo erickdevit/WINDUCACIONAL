@@ -359,6 +359,8 @@
     margin: 0 4px 10px;
     min-width: 0;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   .at-panel-head {
@@ -773,6 +775,9 @@
   .at-daily-list {
     display: flex;
     flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
   }
 
   .at-day-row {

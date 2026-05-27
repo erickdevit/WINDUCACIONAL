@@ -72,6 +72,7 @@ const professorTabs = [
   { id: "daily", label: "Por Dia", icon: "faCalendarDays" },
   { id: "records", label: "Registros", icon: "faListCheck" },
   { id: "print", label: "Impressão", icon: "faPrint" },
+  { id: "register", label: "Registrar", icon: "faUserCheck" },
 ];
 
 const studentTabs = [
@@ -234,19 +235,6 @@ const BarChartDays = ({ daily, maxBars = 30 }) => {
   );
 };
 
-/* ─── Barra de progresso inline ───────────────────────── */
-const SparkBar = ({ value, max = 100 }) => {
-  const pct = Math.min(100, Math.max(0, (value / max) * 100));
-  return (
-    <div className="at-sparkbar">
-      <div
-        className={`at-sparkbar-fill ${rateClass(value)}`}
-        style={{ width: `${pct}%` }}
-      />
-      <span>{value}%</span>
-    </div>
-  );
-};
 
 /* ─── Mini calendário de 7 dias ───────────────────────── */
 const WeekCalendar = ({ records }) => {
@@ -302,6 +290,11 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [registerDate, setRegisterDate] = useState(toDateInputValue(new Date()));
+  const [registerTurmaId, setRegisterTurmaId] = useState("");
+  const [registerStudents, setRegisterStudents] = useState([]);
+  const [savingRegister, setSavingRegister] = useState(false);
+  const [printDate, setPrintDate] = useState("");
 
   const tabs = isProfessor ? professorTabs : studentTabs;
   const totals = summary?.totals || {
@@ -553,6 +546,19 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
             <Icon fafa="faXmark" width={13} />
           </button>
         </div>
+        {activeTab === "print" ? (
+          <label style={{ gridColumn: "1 / -1", borderBottom: "1px dashed var(--at-line)", paddingBottom: "10px", marginBottom: "5px" }}>
+            <span>Data específica (opcional para impressão)</span>
+            <input
+              type="date"
+              value={printDate}
+              onChange={(event) => setPrintDate(event.target.value)}
+            />
+            <small style={{ color: "var(--at-muted)", display: "block", marginTop: "4px" }}>
+              Deixe em branco para imprimir o período todo. Preencha para ver presenças desse dia exato.
+            </small>
+          </label>
+        ) : null}
         <label>
           <span>Turma</span>
           <select
@@ -731,7 +737,9 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
                 <td className="at-num">{student.presentDays}</td>
                 <td className="at-num">{student.absentDays}</td>
                 <td>
-                  <SparkBar value={student.attendanceRate} />
+                  <span className={`at-badge at-badge--${rateClass(student.attendanceRate)}`}>
+                    {student.attendanceRate}%
+                  </span>
                 </td>
                 <td>{formatDateTime(student.lastLoginAt)}</td>
               </tr>
@@ -768,7 +776,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
           <div className="at-day-row" key={day.date}>
             <div className="at-day-info">
               <strong>{formatDate(day.date)}</strong>
-              <SparkBar value={rate} />
+              <span className={`at-badge at-badge--${rateClass(rate)}`}>{rate}%</span>
             </div>
             <div className="at-day-counts">
               <div className="at-day-count at-day-count--present">
@@ -954,7 +962,9 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               strongestDays.map((day) => (
                 <div className="at-day-mini" key={day.date}>
                   <span>{formatDate(day.date)}</span>
-                  <SparkBar value={Number(day.attendanceRate) || 0} />
+                  <span className={`at-badge at-badge--${rateClass(Number(day.attendanceRate) || 0)}`}>
+                    {Number(day.attendanceRate) || 0}%
+                  </span>
                 </div>
               ))
             )}
@@ -975,7 +985,9 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               weakestDays.map((day) => (
                 <div className="at-day-mini" key={day.date}>
                   <span>{formatDate(day.date)}</span>
-                  <SparkBar value={Number(day.attendanceRate) || 0} />
+                  <span className={`at-badge at-badge--${rateClass(Number(day.attendanceRate) || 0)}`}>
+                    {Number(day.attendanceRate) || 0}%
+                  </span>
                 </div>
               ))
             )}
@@ -1000,7 +1012,9 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
                       <strong>{s.displayName}</strong>
                       <small>{s.turmaNome || "Sem turma"}</small>
                     </div>
-                    <SparkBar value={s.attendanceRate} />
+                    <span className={`at-badge at-badge--${rateClass(s.attendanceRate)}`}>
+                      {s.attendanceRate}%
+                    </span>
                   </div>
                 ))
             )}
@@ -1078,6 +1092,143 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
       </section>
     </>
   );
+
+  /* ── Registrar ───────────────────────────────────────── */
+  const renderRegister = () => {
+    const handleToggleStudent = (studentId) => {
+      setRegisterStudents((prev) =>
+        prev.map((s) =>
+          s.id === studentId ? { ...s, isPresent: !s.isPresent } : s
+        )
+      );
+    };
+
+    const handleSelectAll = (val) => {
+      setRegisterStudents((prev) =>
+        prev.map((s) => ({ ...s, isPresent: val }))
+      );
+    };
+
+    const loadRegisterStudents = () => {
+      if (!registerTurmaId) {
+        setMessage("Selecione uma turma para registrar a frequência.");
+        setTimeout(() => setMessage(""), 3000);
+        return;
+      }
+      const turmaStudents = students.filter(s => s.turmaId === registerTurmaId || s.turmaNome === turmas.find(t=>t.id===registerTurmaId)?.nome);
+      setRegisterStudents(
+        turmaStudents.map((s) => ({
+          id: s.id,
+          displayName: s.displayName,
+          username: s.username,
+          isPresent: true,
+        }))
+      );
+    };
+
+    const handleSaveRegister = async () => {
+      setSavingRegister(true);
+      setMessage("");
+      try {
+        const payload = {
+          date: registerDate,
+          turmaId: registerTurmaId,
+          students: registerStudents.map(s => ({ id: s.id, isPresent: s.isPresent }))
+        };
+        await api.saveAttendance(payload);
+        setMessage("Frequência registrada com sucesso!");
+        setTimeout(() => setMessage(""), 3000);
+      } catch (err) {
+        setMessage("Atenção: " + err.message + " (backend pendente)");
+        setTimeout(() => setMessage(""), 5000);
+      } finally {
+        setSavingRegister(false);
+      }
+    };
+
+    return (
+      <>
+        {renderHeader("Registrar frequência")}
+        <section className="at-panel">
+          <div className="at-panel-head">
+            <h2>Configuração</h2>
+          </div>
+          <div className="at-panel-body at-panel-body--center">
+            <label>
+              <span style={{display: "block", marginBottom: "4px", fontSize: "12px", fontWeight: "700"}}>Data</span>
+              <input
+                type="date"
+                value={registerDate}
+                onChange={(e) => setRegisterDate(e.target.value)}
+                style={{padding: "6px 8px", borderRadius: "6px", border: "1px solid var(--at-line)"}}
+              />
+            </label>
+            <label>
+              <span style={{display: "block", marginBottom: "4px", fontSize: "12px", fontWeight: "700"}}>Turma</span>
+              <select
+                value={registerTurmaId}
+                onChange={(e) => setRegisterTurmaId(e.target.value)}
+                style={{padding: "6px 8px", borderRadius: "6px", border: "1px solid var(--at-line)"}}
+              >
+                <option value="">Selecione...</option>
+                {turmas.map((t) => (
+                  <option key={t.id} value={t.id}>{t.nome}</option>
+                ))}
+              </select>
+            </label>
+            <button className="attendance-primary" onClick={loadRegisterStudents} disabled={!registerTurmaId} style={{marginTop: "20px"}}>
+              Carregar alunos
+            </button>
+          </div>
+        </section>
+
+        {registerStudents.length > 0 && (
+          <section className="at-panel">
+            <div className="at-panel-head" style={{flexWrap: "wrap"}}>
+              <h2>Alunos da Turma ({registerStudents.length})</h2>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button className="attendance-secondary" onClick={() => handleSelectAll(true)}>Marcar Todos</button>
+                <button className="attendance-secondary" onClick={() => handleSelectAll(false)}>Desmarcar Todos</button>
+              </div>
+            </div>
+            <div className="attendance-table-wrap win11Scroll" style={{maxHeight: "400px"}}>
+              <table className="attendance-table wide">
+                <thead>
+                  <tr>
+                    <th style={{ width: "60px", textAlign: "center" }}>Status</th>
+                    <th>Aluno</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {registerStudents.map((s) => (
+                    <tr key={s.id} onClick={() => handleToggleStudent(s.id)} style={{ cursor: "pointer" }}>
+                      <td style={{ textAlign: "center" }}>
+                        <input
+                          type="checkbox"
+                          checked={s.isPresent}
+                          onChange={() => handleToggleStudent(s.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ transform: "scale(1.2)", cursor: "pointer" }}
+                        />
+                      </td>
+                      <td>
+                        <strong>{s.displayName}</strong> <small>@{s.username}</small>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="at-panel-body" style={{ textAlign: "right", borderTop: "1px solid var(--at-line)" }}>
+              <button className="attendance-primary" onClick={handleSaveRegister} disabled={savingRegister}>
+                <Icon fafa="faCheck" width={14} /> {savingRegister ? "Salvando..." : "Salvar Registro"}
+              </button>
+            </div>
+          </section>
+        )}
+      </>
+    );
+  };
 
   /* ── Impressão ───────────────────────────────────────── */
   const renderPrint = () => (
@@ -1257,40 +1408,85 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   );
 
   /* ── Relatório de impressão ──────────────────────────── */
-  const renderPrintReport = () => (
-    <div className="attendance-print-sheet">
-      <h1>Relatório de frequência</h1>
-      <p>
-        Turma: {filteredTurmaName} | Período:{" "}
-        {formatDate(summary?.range?.startDate)} até{" "}
-        {formatDate(summary?.range?.endDate)}
-      </p>
-      <table>
-        <thead>
-          <tr>
-            <th>Aluno</th>
-            <th>Turma</th>
-            <th>Presenças</th>
-            <th>Ausências</th>
-            <th>Aproveitamento</th>
-            <th>Último login</th>
-          </tr>
-        </thead>
-        <tbody>
-          {students.map((student) => (
-            <tr key={student.id}>
-              <td>{student.displayName}</td>
-              <td>{student.turmaNome || "Sem turma"}</td>
-              <td>{student.presentDays}</td>
-              <td>{student.absentDays}</td>
-              <td>{student.attendanceRate}%</td>
-              <td>{formatDateTime(student.lastLoginAt)}</td>
+  const renderPrintReport = () => {
+    if (printDate) {
+      const dayRecords = records.filter(r => r.attendanceDate === printDate);
+      return (
+        <div className="attendance-print-sheet">
+          <h1>Relatório de frequência diária</h1>
+          <p>
+            Turma: {filteredTurmaName} | Data: {formatDate(printDate)}
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Aluno</th>
+                <th>Turma</th>
+                <th>Status</th>
+                <th>Primeiro login</th>
+                <th>Último login</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((student) => {
+                const record = dayRecords.find(r => r.userId === student.id || r.username === student.username);
+                return (
+                  <tr key={student.id}>
+                    <td>{student.displayName}</td>
+                    <td>{student.turmaNome || "Sem turma"}</td>
+                    <td>
+                      {record ? (
+                        <span className="at-badge at-badge--good">Presente</span>
+                      ) : (
+                        <span className="at-badge at-badge--bad">Ausente</span>
+                      )}
+                    </td>
+                    <td>{record ? formatTime(record.firstLoginAt) : "-"}</td>
+                    <td>{record ? formatTime(record.lastLoginAt) : "-"}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    return (
+      <div className="attendance-print-sheet">
+        <h1>Relatório de frequência</h1>
+        <p>
+          Turma: {filteredTurmaName} | Período:{" "}
+          {formatDate(summary?.range?.startDate)} até{" "}
+          {formatDate(summary?.range?.endDate)}
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Aluno</th>
+              <th>Turma</th>
+              <th>Presenças</th>
+              <th>Ausências</th>
+              <th>Aproveitamento</th>
+              <th>Último login</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+          </thead>
+          <tbody>
+            {students.map((student) => (
+              <tr key={student.id}>
+                <td>{student.displayName}</td>
+                <td>{student.turmaNome || "Sem turma"}</td>
+                <td>{student.presentDays}</td>
+                <td>{student.absentDays}</td>
+                <td>{student.attendanceRate}%</td>
+                <td>{formatDateTime(student.lastLoginAt)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
 
   /* ── Despacho de conteúdo ────────────────────────────── */
   const renderActiveContent = () => {
@@ -1299,6 +1495,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
       if (activeTab === "daily") return renderDaily();
       if (activeTab === "records") return renderRecords();
       if (activeTab === "print") return renderPrint();
+      if (activeTab === "register") return renderRegister();
       return renderOverview();
     }
 
