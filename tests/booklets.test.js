@@ -33,10 +33,9 @@ describe("App Apostilas", () => {
   });
 
   it("deve abrir PDFs em leitor interno sem expor caminho local", () => {
-    expect(source).toContain("<object");
-    expect(source).toContain("<iframe");
-    expect(source).toContain("selectedFile.url");
-    expect(source).toContain("booklets-pdf-scroll");
+    expect(source).toContain("PdfViewer");
+    expect(source).toContain("url={selectedFile.url}");
+    expect(source).not.toContain("<iframe");
     expect(source).not.toContain('target="_blank"');
   });
 
@@ -88,7 +87,7 @@ describe("App Apostilas", () => {
     expect(styles).toContain(".booklets-sidebar");
     expect(styles).toContain(".booklets-nav");
     expect(styles).toContain(".booklets-pdf-scroll");
-    expect(styles).toContain("width: max(100%, 760px)");
+    expect(styles).toContain(".pdf-viewer-page");
     expect(styles).toContain(".booklets-main");
     expect(styles).toContain("overflow: auto");
     expect(styles).toContain("padding-bottom: 10%");
@@ -111,7 +110,7 @@ describe("App Apostilas", () => {
     expect(styles).toContain(".bookletsApp.readerMode");
     expect(styles).toContain("display: none");
     expect(styles).toContain("height: 100%");
-    expect(styles).toContain("width: max(100%, 560px)");
+    expect(styles).toContain(".pdf-viewer-page");
     expect(readerBlock).not.toContain(".toolbar,");
   });
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { AppWindow } from "../../../../components/shared/AppWindow";
+import PdfViewer from "../../../../components/shared/PdfViewer";
 import { api } from "../../../../lib/api";
 import { Icon } from "../../../../utils/general";
 import "./booklets.scss";
@@ -395,24 +396,11 @@ export const BookletsApp = () => {
   const renderReader = () => (
     <div className="booklets-reader-shell">
       <section className="booklets-reader">
-        <div className="booklets-pdf-scroll win11Scroll">
-          {selectedFile ? (
-            <object
-              key={selectedFile.url}
-              data={`${selectedFile.url}#toolbar=1&navpanes=0&view=FitH`}
-              type="application/pdf"
-              className="booklets-pdf-object"
-            >
-              <iframe
-                src={selectedFile.url}
-                title={selectedFile.title}
-                className="booklets-pdf-object"
-              />
-            </object>
-          ) : (
-            <div className="booklets-empty">Escolha um PDF para leitura.</div>
-          )}
-        </div>
+        {selectedFile ? (
+          <PdfViewer url={selectedFile.url} title={selectedFile.title} />
+        ) : (
+          <div className="booklets-empty">Escolha um PDF para leitura.</div>
+        )}
       </section>
     </div>
   );
