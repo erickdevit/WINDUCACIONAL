@@ -110,14 +110,14 @@ describe("Schema SQL", () => {
     );
   });
 
-  it("deve excluir professores dos rankings de digitação e do game", () => {
+  it("deve incluir apenas alunos nos rankings de digitação e do game", () => {
     const typingViewStart = schema.indexOf("CREATE VIEW typing_ranking AS");
     const typingViewEnd = schema.indexOf(
       "GROUP BY u.id, u.display_name, u.role, COALESCE(turma.student_type, u.student_type), u.turma_id;",
       typingViewStart
     );
     const typingViewBlock = schema.substring(typingViewStart, typingViewEnd);
-    expect(typingViewBlock).toContain("u.role != 'professor'");
+    expect(typingViewBlock).toContain("u.role = 'aluno'");
 
     const gameViewStart = schema.indexOf("CREATE VIEW typing_game_ranking AS");
     const gameViewEnd = schema.indexOf(
@@ -125,7 +125,7 @@ describe("Schema SQL", () => {
       gameViewStart
     );
     const gameViewBlock = schema.substring(gameViewStart, gameViewEnd);
-    expect(gameViewBlock).toContain("u.role != 'professor'");
+    expect(gameViewBlock).toContain("u.role = 'aluno'");
   });
 
   it("deve calcular ranking de digitação usando as metas salvas", () => {

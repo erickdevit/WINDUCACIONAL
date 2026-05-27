@@ -100,6 +100,7 @@ export const TypingApp = () => {
   const wnapp = useSelector((state) => state.apps.typing || {});
   const user = useSelector((state) => state.setting.person);
   const isProfessor = user.role === "professor";
+  const isStaff = user.role !== "aluno";
 
   const [view, setView] = useState("menu");
   const [currentLesson, setCurrentLesson] = useState(null);
@@ -134,11 +135,11 @@ export const TypingApp = () => {
   const [resettingGameRanking, setResettingGameRanking] = useState(false);
   const typingSettings = useTypingSettings({
     studentType: "normal",
-    isProfessor,
+    isProfessor: isStaff,
   });
   const typingGameSettings = useTypingGameSettings({
     studentType: "normal",
-    isProfessor,
+    isProfessor: isStaff,
   });
   const passMinWpm = typingSettings.settings.passMinWpm;
   const passMinAccuracy = typingSettings.settings.passMinAccuracy;
@@ -228,7 +229,7 @@ export const TypingApp = () => {
       fetchRanking();
     }
     if (
-      isProfessor &&
+      isStaff &&
       (view === "ranking" || view === "config" || view.startsWith("games"))
     ) {
       fetchTurmas();
@@ -273,7 +274,7 @@ export const TypingApp = () => {
       let turmaData;
 
       if (rankingTab === "turma") {
-        if (isProfessor && selectedTurmaId) {
+        if (isStaff && selectedTurmaId) {
           turmaData = await api.getTypingTurmaRankingById(
             selectedTurmaId,
             "normal"
@@ -648,7 +649,7 @@ export const TypingApp = () => {
   };
 
   const saveScore = async (finalWpm, finalAcc, finalMs) => {
-    if (isProfessor) return;
+    if (isStaff) return;
     try {
       await api.saveTypingScore({
         lessonId: currentLesson.id,
@@ -891,6 +892,7 @@ export const TypingApp = () => {
               >
                 Global
               </button>
+              {isStaff && (
               <button
                 className={`px-4 py-1.5 text-sm font-bold rounded-md transition-all ${
                   rankingTab === "turma"
@@ -899,8 +901,9 @@ export const TypingApp = () => {
                 }`}
                 onClick={() => setRankingTab("turma")}
               >
-                Turma
+                Por Turma
               </button>
+            )}
             </div>
           )}
 
@@ -948,7 +951,7 @@ export const TypingApp = () => {
                 const isLocked =
                   i !== 0 &&
                   !completedLessons.includes(TYPING_LESSONS[i - 1].id) &&
-                  !isProfessor;
+                  !isStaff;
                 const activeVariantIndex = getLessonVariantIndex(
                   lesson,
                   lessonVariants
@@ -1035,7 +1038,7 @@ export const TypingApp = () => {
               passMinAccuracy={gamePassMinAccuracy}
               gameSpeed={gameSpeed}
               gameSpeedBoost={gameSpeedBoost}
-              isProfessor={isProfessor}
+              isProfessor={isStaff}
               turmaId={user?.turmaId}
               turmas={turmas}
               gameTab={view}
@@ -1048,7 +1051,7 @@ export const TypingApp = () => {
             user={user}
             gameTab={view}
             rankingTab={rankingTab}
-            isProfessor={isProfessor}
+            isProfessor={isStaff}
             turmas={turmas}
             selectedTurmaId={selectedTurmaId}
             onSelectedTurmaChange={setSelectedTurmaId}
@@ -1104,9 +1107,9 @@ export const TypingApp = () => {
                 </div>
 
                 <div className="w-[140px] flex justify-end">
-                  {isProfessor && (
+                  {isStaff && (
                     <span className="text-[10px] text-purple-500 font-bold uppercase border border-purple-500/30 px-2 py-1 rounded">
-                      Modo Professor
+                      {isProfessor ? "Modo Professor" : "Modo Equipe"}
                     </span>
                   )}
                 </div>
@@ -1858,7 +1861,7 @@ export const TypingApp = () => {
                   </TypingRankingScrollArea>
                 ) : (
                   <div className="p-0">
-                    {isProfessor && turmas.length > 0 && (
+                    {isStaff && turmas.length > 0 && (
                       <div className="px-6 py-3 bg-gray-50 dark:bg-[#18181b] border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
                         <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Visualizar Turma:
@@ -1889,7 +1892,7 @@ export const TypingApp = () => {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                          {!user.turmaId && !isProfessor ? (
+                          {!user.turmaId && !isStaff ? (
                             <tr>
                               <td
                                 colSpan="6"

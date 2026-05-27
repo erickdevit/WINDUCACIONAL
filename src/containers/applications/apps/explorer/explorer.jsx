@@ -441,7 +441,7 @@ const NavPane = ({}) => {
           <Dropdown icon="pics" title="Imagens" spid="%pictures%" />
           <Dropdown icon="vid" title="Vídeos" spid="%videos%" />
           <Dropdown icon="disc" title="OS (C:)" spid="%cdrive%" />
-          {currentUser.role === "professor" ? (
+          {currentUser.role !== "aluno" ? (
             <Dropdown
               icon="folder"
               title="Usuários"

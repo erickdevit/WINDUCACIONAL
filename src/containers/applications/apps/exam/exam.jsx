@@ -36,7 +36,7 @@ export const ExamApp = () => {
   const [studentStartName, setStudentStartName] = useState("");
   const [savingStudentName, setSavingStudentName] = useState(false);
 
-  const isProfessor = user.role === "professor";
+  const isStaff = user.role !== "aluno";
   const currentUserDisplayName =
     user.name || user.displayName || user.username || "Usuário";
   const pendingExams = exams.filter((e) => e.submissionStatus !== "completed");
@@ -88,15 +88,19 @@ export const ExamApp = () => {
     });
   };
 
-  const navItems = isProfessor
-    ? [
-        { id: "dashboard", label: "Visão Geral", fafa: "faTableColumns" },
-        { id: "exams", label: "Provas", fafa: "faClipboardList" },
-        { id: "apply", label: "Aplicação", fafa: "faPaperPlane" },
-        { id: "applications", label: "Aplicadas", fafa: "faClockRotateLeft" },
-        { id: "results", label: "Resultados", fafa: "faListCheck" },
-        { id: "analytics", label: "Análise", fafa: "faChartSimple" },
-      ]
+  const professorNavItems = [
+    { id: "dashboard", label: "Visão Geral", fafa: "faTableColumns" },
+    { id: "exams", label: "Provas", fafa: "faClipboardList" },
+    { id: "apply", label: "Aplicação", fafa: "faPaperPlane" },
+    { id: "applications", label: "Aplicadas", fafa: "faClockRotateLeft" },
+    { id: "results", label: "Resultados", fafa: "faListCheck" },
+    { id: "analytics", label: "Análise", fafa: "faChartSimple" },
+  ];
+  
+  const navItems = isStaff
+    ? user.role === "professor" 
+      ? professorNavItems
+      : professorNavItems.filter((item) => ["dashboard", "applications", "results", "analytics"].includes(item.id))
     : [
         { id: "dashboard", label: "Resumo", fafa: "faTableColumns" },
         {
@@ -203,7 +207,7 @@ export const ExamApp = () => {
         </div>
         <div className="nav-text">
           <strong>Avaliação</strong>
-          <span>{isProfessor ? "Professor" : "Aluno"}</span>
+          <span>{isStaff ? "Equipe" : "Aluno"}</span>
         </div>
       </div>
 
@@ -307,13 +311,15 @@ export const ExamApp = () => {
     <div className="exam-page animate-fade-in">
       <div className="exam-page-heading">
         <h2>Visão geral</h2>
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={() => setActiveTab("exams")}
-        >
-          <Icon fafa="faPlus" width={13} /> Nova prova
-        </button>
+        {user.role === "professor" ? (
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => setActiveTab("exams")}
+          >
+            <Icon fafa="faPlus" width={13} /> Nova prova
+          </button>
+        ) : null}
       </div>
 
       <div className="exam-stat-grid four">
@@ -352,8 +358,8 @@ export const ExamApp = () => {
           <button
             type="button"
             key={exam.id}
-            className="exam-list-row"
-            onClick={() => setActiveTab("exams")}
+            className={`exam-list-row ${user.role !== "professor" ? "pointer-events-none" : ""}`}
+            onClick={() => user.role === "professor" && setActiveTab("exams")}
           >
             <span>
               <strong>{exam.title}</strong>
@@ -497,7 +503,7 @@ export const ExamApp = () => {
   const beginCurrentExam = async () => {
     const normalizedName = normalizeName(studentStartName).trim();
     if (
-      !isProfessor &&
+      !isStaff &&
       normalizedName.split(/\s+/).filter(Boolean).length < 2
     ) {
       showAlert("Informe seu nome completo antes de iniciar a avaliação.");
@@ -507,7 +513,7 @@ export const ExamApp = () => {
     setSavingStudentName(true);
     try {
       if (
-        !isProfessor &&
+        !isStaff &&
         normalizedName !== normalizeName(currentUserDisplayName).trim()
       ) {
         const result = await api.updateMyDisplayName(normalizedName);
@@ -536,7 +542,7 @@ export const ExamApp = () => {
 
     switch (activeTab) {
       case "dashboard":
-        return isProfessor ? renderTeacherDashboard() : renderDashboard();
+        return isStaff ? renderTeacherDashboard() : renderDashboard();
       case "available":
         return renderAvailableExams();
       case "completed":
@@ -610,7 +616,7 @@ export const ExamApp = () => {
                       </span>
                     </div>
                     <h2>{currentExam?.title}</h2>
-                    {!isProfessor && (
+                    {!isStaff && (
                       <label className="exam-name-confirmation">
                         <span>Nome completo do aluno</span>
                         <input

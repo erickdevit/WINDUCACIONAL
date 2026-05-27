@@ -136,6 +136,7 @@ const ConversationPanel = ({
   onRequestFilePicker,
   pendingAttachment,
   onClearAttachment,
+  isSecretaria,
 }) => {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
@@ -281,6 +282,7 @@ const ConversationPanel = ({
       )}
 
       {/* Barra de entrada */}
+      {!isSecretaria && (
       <div className="chat-input-bar">
         <button
           className="chat-input-action"
@@ -314,6 +316,7 @@ const ConversationPanel = ({
           ➤
         </button>
       </div>
+      )}
     </div>
   );
 };
@@ -326,6 +329,8 @@ export const ChatApp = () => {
   const dispatch = useDispatch();
 
   const isProfessor = person.role === "professor";
+  const isStaff = person.role !== "aluno";
+  const isSecretaria = person.role === "secretaria";
 
   // Turmas disponíveis
   const [turmas, setTurmas] = useState([]);
@@ -488,8 +493,8 @@ export const ChatApp = () => {
       <div className="chat-layout">
         {/* ── Sidebar ── */}
         <aside className="chat-sidebar">
-          {/* Seletor de turma (professor vê todas) */}
-          {isProfessor && turmas.length > 1 && (
+          {/* Seletor de turma (equipe vê todas) */}
+          {isStaff && turmas.length > 1 && (
             <div className="chat-turma-selector">
               <label className="chat-turma-label">Turma</label>
               <select
@@ -539,6 +544,9 @@ export const ChatApp = () => {
                     {m.role === "professor" && (
                       <span className="chat-member-badge">Prof.</span>
                     )}
+                    {m.role === "secretaria" && (
+                      <span className="chat-member-badge" style={{background: "#64748b"}}>Eqp.</span>
+                    )}
                   </div>
                 ))}
               </div>
@@ -565,6 +573,9 @@ export const ChatApp = () => {
                     {m.role === "professor" && (
                       <span className="chat-member-badge">Prof.</span>
                     )}
+                    {m.role === "secretaria" && (
+                      <span className="chat-member-badge" style={{background: "#64748b"}}>Eqp.</span>
+                    )}
                   </div>
                 ))}
               </div>
@@ -588,6 +599,7 @@ export const ChatApp = () => {
               onRequestFilePicker={handleRequestFilePicker}
               pendingAttachment={pendingAttachment}
               onClearAttachment={() => setPendingAttachment(null)}
+              isSecretaria={isSecretaria}
             />
           )}
         </main>

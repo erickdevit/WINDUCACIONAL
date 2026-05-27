@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY,
   username TEXT NOT NULL UNIQUE,
   display_name TEXT NOT NULL,
-  role TEXT NOT NULL CHECK (role IN ('aluno', 'professor')),
+  role TEXT NOT NULL CHECK (role IN ('aluno', 'professor', 'secretaria')),
   student_type TEXT NOT NULL DEFAULT 'normal',
   CONSTRAINT users_student_type_check CHECK (student_type IN ('kids', 'normal')),
   password_salt TEXT NOT NULL,
@@ -399,7 +399,7 @@ LEFT JOIN typing_scores t
   ON t.user_id = u.id
   AND t.accuracy >= COALESCE(s.pass_min_accuracy, 95)
   AND t.wpm >= COALESCE(s.pass_min_wpm, 40)
-WHERE u.role != 'professor' AND u.active = TRUE
+WHERE u.role = 'aluno' AND u.active = TRUE
 GROUP BY u.id, u.username, u.role, COALESCE(turma.student_type, u.student_type), u.turma_id;
 
 DROP VIEW IF EXISTS typing_game_ranking;
@@ -423,7 +423,7 @@ LEFT JOIN typing_game_scores t
   AND t.status = 'won'
   AND t.accuracy >= COALESCE(s.pass_min_accuracy, 95)
   AND t.wpm >= COALESCE(s.pass_min_wpm, 40)
-WHERE u.role != 'professor' AND u.active = TRUE
+WHERE u.role = 'aluno' AND u.active = TRUE
 GROUP BY u.id, u.display_name, u.role, COALESCE(turma.student_type, u.student_type), u.turma_id;
 
 CREATE TABLE IF NOT EXISTS typing_pvp_matches (

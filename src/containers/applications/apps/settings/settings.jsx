@@ -768,6 +768,7 @@ const UserManagement = ({ currentUser, onBack }) => {
   const [userSearch, setUserSearch] = useState("");
   const [turmaFilter, setTurmaFilter] = useState("all");
   const isProfessor = currentUser.role === "professor";
+  const isStaff = currentUser.role !== "aluno";
 
   const selectedUser = users.find((user) => user.id === selectedUserId) || null;
   const turmaNameById = useMemo(
@@ -818,7 +819,7 @@ const UserManagement = ({ currentUser, onBack }) => {
   };
 
   const loadUsers = async () => {
-    if (!isProfessor) return;
+    if (!isStaff) return;
     setLoading(true);
     try {
       const [usersResult, turmasResult] = await Promise.all([
@@ -847,7 +848,7 @@ const UserManagement = ({ currentUser, onBack }) => {
 
   useEffect(() => {
     loadUsers();
-  }, [isProfessor]);
+  }, [isStaff]);
 
   const openCreateForm = (role) => {
     setCreateMode(role);
@@ -1014,7 +1015,7 @@ const UserManagement = ({ currentUser, onBack }) => {
     </label>
   );
 
-  if (!isProfessor) {
+  if (!isStaff) {
     return (
       <section className="userAdminPanel">
         <div className="userAdminTopBar">
@@ -1076,33 +1077,35 @@ const UserManagement = ({ currentUser, onBack }) => {
         <p className="userAdminMessage">{message}</p>
       ) : null}
 
-      <div className="userAddRow">
-        <div className="userAddInfo">
-          <Icon fafa="faUserPlus" width={18} />
-          <div>
-            <strong>Adicionar outro usuário</strong>
-            <span>Escolha uma criação exclusiva para aluno ou professor.</span>
+      {isProfessor ? (
+        <div className="userAddRow">
+          <div className="userAddInfo">
+            <Icon fafa="faUserPlus" width={18} />
+            <div>
+              <strong>Adicionar outro usuário</strong>
+              <span>Escolha uma criação exclusiva para aluno ou professor.</span>
+            </div>
+          </div>
+          <div className="userAddActions">
+            <button
+              type="button"
+              className={createMode === "aluno" ? "selected" : ""}
+              onClick={() => openCreateForm("aluno")}
+            >
+              <Icon fafa="faUser" width={13} />
+              Criar aluno
+            </button>
+            <button
+              type="button"
+              className={createMode === "professor" ? "selected" : ""}
+              onClick={() => openCreateForm("professor")}
+            >
+              <Icon fafa="faUserTie" width={13} />
+              Criar professor
+            </button>
           </div>
         </div>
-        <div className="userAddActions">
-          <button
-            type="button"
-            className={createMode === "aluno" ? "selected" : ""}
-            onClick={() => openCreateForm("aluno")}
-          >
-            <Icon fafa="faUser" width={13} />
-            Criar aluno
-          </button>
-          <button
-            type="button"
-            className={createMode === "professor" ? "selected" : ""}
-            onClick={() => openCreateForm("professor")}
-          >
-            <Icon fafa="faUserTie" width={13} />
-            Criar professor
-          </button>
-        </div>
-      </div>
+      ) : null}
 
       <div className="userAdminGrid">
         <section className="userAdminCard userDirectoryCard">
@@ -1154,8 +1157,9 @@ const UserManagement = ({ currentUser, onBack }) => {
                 key={user.id}
                 className={`directoryRow ${
                   user.id === selectedUserId ? "selected" : ""
-                }`}
-                onClick={() => startEditing(user)}
+                } ${!isProfessor ? "readOnly" : ""}`}
+                onClick={() => isProfessor && startEditing(user)}
+                style={{ cursor: isProfessor ? "pointer" : "default" }}
               >
                 <UserAvatar user={user} size={42} />
                 <div className="directoryMeta">
@@ -1485,9 +1489,10 @@ const TurmaManagement = ({ currentUser, onBack }) => {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const isProfessor = currentUser.role === "professor";
+  const isStaff = currentUser.role !== "aluno";
 
   const loadData = async () => {
-    if (!isProfessor) return;
+    if (!isStaff) return;
     setLoading(true);
     try {
       const [turmasRes, usersRes] = await Promise.all([
@@ -1506,7 +1511,7 @@ const TurmaManagement = ({ currentUser, onBack }) => {
 
   useEffect(() => {
     loadData();
-  }, [isProfessor]);
+  }, [isStaff]);
 
   const viewDetails = (turma) => {
     setSelectedId(turma.id);
@@ -1659,7 +1664,7 @@ const TurmaManagement = ({ currentUser, onBack }) => {
     }
   };
 
-  if (!isProfessor) {
+  if (!isStaff) {
     return (
       <section className="userAdminPanel turmaManagementPanel win11Scroll">
         <div className="userAdminTopBar">
@@ -1698,30 +1703,32 @@ const TurmaManagement = ({ currentUser, onBack }) => {
       {message && view === "list" ? (
         <p className="userAdminMessage">{message}</p>
       ) : null}
-      <div className="userAddRow">
-        <div className="userAddInfo">
-          <Icon fafa="faUserPlus" width={18} />
-          <div>
-            <strong>Criar nova turma</strong>
-            <span>
-              Um código automático de 6 caracteres será usado no cadastro do
-              aluno.
-            </span>
+      {isProfessor ? (
+        <div className="userAddRow">
+          <div className="userAddInfo">
+            <Icon fafa="faUserPlus" width={18} />
+            <div>
+              <strong>Criar nova turma</strong>
+              <span>
+                Um código automático de 6 caracteres será usado no cadastro do
+                aluno.
+              </span>
+            </div>
+          </div>
+          <div className="userAddActions">
+            <button
+              type="button"
+              onClick={() => {
+                setCreateForm(getEmptyTurmaForm());
+                setView("create");
+                setMessage("");
+              }}
+            >
+              Criar turma
+            </button>
           </div>
         </div>
-        <div className="userAddActions">
-          <button
-            type="button"
-            onClick={() => {
-              setCreateForm(getEmptyTurmaForm());
-              setView("create");
-              setMessage("");
-            }}
-          >
-            Criar turma
-          </button>
-        </div>
-      </div>
+      ) : null}
       <div
         className="userAdminCard turmaListCard"
         style={{ marginTop: "14px" }}
@@ -1753,17 +1760,19 @@ const TurmaManagement = ({ currentUser, onBack }) => {
                   >
                     {turma.active ? "Ativa" : "Inativa"}
                   </span>
-                  <button
-                    type="button"
-                    className="turmaDeleteBtn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(turma.id);
-                    }}
-                    title="Excluir turma"
-                  >
-                    ✕
-                  </button>
+                  {isProfessor ? (
+                    <button
+                      type="button"
+                      className="turmaDeleteBtn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(turma.id);
+                      }}
+                      title="Excluir turma"
+                    >
+                      ✕
+                    </button>
+                  ) : null}
                 </div>
               </div>
             ))
@@ -1877,14 +1886,16 @@ const TurmaManagement = ({ currentUser, onBack }) => {
           defaultHeight={620}
           actions={
             <>
-              <button
-                type="submit"
-                form="edit-turma-form"
-                className="primaryDialogBtn"
-                disabled={loading}
-              >
-                Salvar alterações
-              </button>
+              {isProfessor ? (
+                <button
+                  type="submit"
+                  form="edit-turma-form"
+                  className="primaryDialogBtn"
+                  disabled={loading}
+                >
+                  Salvar alterações
+                </button>
+              ) : null}
               <button
                 type="button"
                 className="secondaryDialogBtn"
@@ -1893,7 +1904,7 @@ const TurmaManagement = ({ currentUser, onBack }) => {
                   setMessage("");
                 }}
               >
-                Cancelar
+                Voltar
               </button>
             </>
           }
@@ -1928,13 +1939,14 @@ const TurmaManagement = ({ currentUser, onBack }) => {
               </div>
             </section>
 
-            <form
-              id="edit-turma-form"
-              className="userDialogForm turmaEditCard"
-              onSubmit={submitEdit}
-            >
-              <h3>Editar turma</h3>
-              <label>
+            {isProfessor ? (
+              <form
+                id="edit-turma-form"
+                className="userDialogForm turmaEditCard"
+                onSubmit={submitEdit}
+              >
+                <h3>Editar turma</h3>
+                <label>
                 Nome da turma
                 <input
                   name="nome"
@@ -1994,7 +2006,8 @@ const TurmaManagement = ({ currentUser, onBack }) => {
                 />
                 <span>Turma ativa</span>
               </label>
-            </form>
+              </form>
+            ) : null}
           </div>
         </AppLikeDialog>
       ) : null}

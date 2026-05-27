@@ -34,7 +34,7 @@ export const TypingKidsApp = () => {
     if (view === "ranking") {
       fetchRanking();
     }
-    if (isProfessor && (view === "ranking" || view === "config")) {
+    if (isStaff && (view === "ranking" || view === "config")) {
       fetchTurmas();
     }
   }, [view, engine.currentLesson, rankingTab, selectedTurmaId]);
@@ -67,7 +67,7 @@ export const TypingKidsApp = () => {
       let turmaData;
 
       if (rankingTab === "turma") {
-        if (isProfessor && selectedTurmaId) {
+        if (isStaff && selectedTurmaId) {
           turmaData = await api.getTypingTurmaRankingById(
             selectedTurmaId,
             "kids"
@@ -134,7 +134,7 @@ export const TypingKidsApp = () => {
   };
 
   const isLessonLocked = (index) =>
-    !isProfessor &&
+    !isStaff &&
     index > 0 &&
     !engine.completedLessons.includes(TYPING_LESSONS[index - 1].id);
 
@@ -230,9 +230,9 @@ export const TypingKidsApp = () => {
           )}
 
           <div className="flex items-center space-x-4">
-            {isProfessor && (
+            {isStaff && (
               <span className="text-[10px] uppercase font-bold tracking-widest text-[#ffcc02] border border-[#ffcc02] px-2 py-1 rounded-full">
-                Professor
+                {isProfessor ? "Professor" : "Equipe"}
               </span>
             )}
             <div className="text-sm font-semibold text-gray-600 dark:text-gray-400">
@@ -319,7 +319,7 @@ export const TypingKidsApp = () => {
               </div>
             ) : (
               <div className="bg-white dark:bg-gray-900 border-4 border-amber-100 dark:border-gray-800 rounded-3xl overflow-hidden shadow-xl">
-                {rankingTab === "turma" && isProfessor && turmas.length > 0 && (
+                {rankingTab === "turma" && isStaff && turmas.length > 0 && (
                   <div className="px-6 py-4 bg-amber-50 dark:bg-gray-800 border-b-2 border-amber-100 dark:border-gray-700 flex items-center justify-between">
                     <span className="text-sm font-black text-amber-800 dark:text-amber-500 uppercase tracking-wider">
                       Ver Ranking da Turma:

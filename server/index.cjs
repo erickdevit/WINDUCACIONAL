@@ -738,7 +738,7 @@ const ensureExamAccess = async (
   }
 
   const exam = examRes.rows[0];
-  if (user.role === "professor") return exam;
+  if (user.role !== "aluno") return exam;
 
   if (!exam.active || !exam.is_published) {
     const err = new Error("Prova indisponível.");
@@ -956,7 +956,7 @@ const buildVisibleTree = async (viewer) => {
   const tree = loadBaseTree();
   const usersFolder = tree["C:"].data.Users;
   const visibleUsers =
-    viewer.role === "professor"
+    viewer.role !== "aluno"
       ? await listUsers({ includeInactive: false })
       : [viewer];
 
@@ -1096,10 +1096,13 @@ const requireAuth = async (req, res, next) => {
 };
 
 const requireProfessor = (req, res, next) => {
-  if (req.user?.role !== "professor") {
-    return res.status(403).json({ error: "Acesso restrito a professores." });
+  if (req.user?.role === "professor") {
+    return next();
   }
-  return next();
+  if (req.user?.role === "secretaria" && req.method === "GET") {
+    return next();
+  }
+  return res.status(403).json({ error: "Acesso restrito a professores ou secretaria (apenas leitura)." });
 };
 
 const buildBookletCatalog = async () => {
@@ -1794,7 +1797,7 @@ app.get("/api/booklets/modules", requireAuth, async (req, res, next) => {
   try {
     const modules = await getBookletCatalogWithAccess(req.user);
     const visibleModules =
-      req.user.role === "professor"
+      req.user.role !== "aluno"
         ? modules
         : modules.filter((module) => module.enabled);
 
@@ -2385,7 +2388,7 @@ app.patch(
       const targetUser = currentResult.rows[0];
 
       const wouldRemoveActiveProfessor =
-        targetUser.role === "professor" &&
+        targetUser.role !== "aluno" &&
         targetUser.active === true &&
         (req.body.role === "aluno" || req.body.active === false);
 
@@ -2419,7 +2422,7 @@ app.patch(
         nextRole = req.body.role;
         add("role", req.body.role);
       }
-      if (req.body.turmaId !== undefined || req.body.role === "professor") {
+      if (req.body.turmaId !== undefined || req.body.role !== "aluno") {
         nextTurmaId = nextRole === "aluno" ? req.body.turmaId || null : null;
         add("turma_id", nextTurmaId);
       }
@@ -2487,7 +2490,7 @@ app.put("/api/fs/tree", requireAuth, async (req, res, next) => {
     if (!usersData)
       return res.status(400).json({ error: "Árvore de arquivos inválida." });
 
-    if (req.user.role === "professor") {
+    if (req.user.role !== "aluno") {
       const users = await listUsers({ includeInactive: false });
       for (const user of users) {
         if (usersData[user.username]?.data) {
@@ -2712,7 +2715,7 @@ app.delete(
 app.get("/api/typing/settings/events", requireAuth, async (req, res, next) => {
   try {
     const studentType =
-      req.user.role === "professor"
+      req.user.role !== "aluno"
         ? normalizeTypingStudentType(req.query.studentType)
         : req.user.student_type;
     const settings = await getTypingSettings(studentType);
@@ -2789,7 +2792,7 @@ app.put(
 app.get("/api/exams", requireAuth, async (req, res, next) => {
   try {
     let result;
-    if (req.user.role === "professor") {
+    if (req.user.role !== "aluno") {
       result = await pool.query("SELECT * FROM exams ORDER BY created_at DESC");
       res.json({ exams: result.rows.map(publicExam) });
     } else {
@@ -3155,7 +3158,7 @@ app.get("/api/exams/:id", requireAuth, async (req, res, next) => {
     );
 
     const questions = questionsRes.rows.map((q) =>
-      req.user.role === "professor"
+      req.user.role !== "aluno"
         ? publicExamQuestionFull(q)
         : publicExamQuestion(q)
     );
@@ -3790,7 +3793,7 @@ app.get(
         [submissionId]
       );
 
-      const isProfessor = req.user.role === "professor";
+      const isProfessor = req.user.role !== "aluno";
       const answers = answersRes.rows.map((a) => ({
         questionId: a.question_id,
         type: a.type,
@@ -3879,7 +3882,7 @@ app.get(
   async (req, res, next) => {
     try {
       const studentType =
-        req.user.role === "professor"
+        req.user.role !== "aluno"
           ? normalizeTypingStudentType(req.query.studentType)
           : req.user.student_type;
       const settings = await getTypingGameSettings(studentType);
@@ -4382,7 +4385,7 @@ const ensureDmThread = async (userA, userB) => {
 app.get("/api/chat/turmas", requireAuth, async (req, res, next) => {
   try {
     let rows;
-    if (req.user.role === "professor") {
+    if (req.user.role !== "aluno") {
       const result = await pool.query(
         "SELECT id, nome FROM turmas WHERE active = TRUE ORDER BY nome ASC"
       );

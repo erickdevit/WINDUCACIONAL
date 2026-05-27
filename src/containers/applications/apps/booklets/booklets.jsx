@@ -25,12 +25,12 @@ const formatBytes = (value) => {
 export const BookletsApp = () => {
   const wnapp = useSelector((state) => state.apps.booklets || {});
   const user = useSelector((state) => state.setting.person);
-  const isProfessor = user.role === "professor";
+  const isStaff = user.role !== "aluno";
 
   const [modules, setModules] = useState([]);
   const [turmas, setTurmas] = useState([]);
   const [studentAccess, setStudentAccess] = useState([]);
-  const [activeTab, setActiveTab] = useState(isProfessor ? "library" : "shelf");
+  const [activeTab, setActiveTab] = useState(isStaff ? "library" : "shelf");
   const [selectedModuleId, setSelectedModuleId] = useState("");
   const [selectedFileId, setSelectedFileId] = useState("");
   const [selectedAccessTurmaId, setSelectedAccessTurmaId] = useState("");
@@ -42,10 +42,14 @@ export const BookletsApp = () => {
   const [savingStudentAccess, setSavingStudentAccess] = useState(false);
   const [message, setMessage] = useState("");
 
-  const tabs = isProfessor ? professorTabs : studentTabs;
+  const tabs = isStaff
+    ? user.role === "professor"
+      ? professorTabs
+      : professorTabs.filter((t) => t.id !== "access")
+    : studentTabs;
   const visibleModules = useMemo(
-    () => (isProfessor ? modules : modules.filter((module) => module.enabled)),
-    [isProfessor, modules]
+    () => (isStaff ? modules : modules.filter((module) => module.enabled)),
+    [isStaff, modules]
   );
   const selectedModule =
     visibleModules.find((module) => module.id === selectedModuleId) ||
@@ -83,7 +87,7 @@ export const BookletsApp = () => {
     setLoading(true);
     setMessage("");
     try {
-      if (isProfessor) {
+      if (isStaff) {
         const [moduleData, turmaData, accessData] = await Promise.all([
           api.getBookletModules(),
           api.getTurmas(),
@@ -105,8 +109,8 @@ export const BookletsApp = () => {
   };
 
   useEffect(() => {
-    setActiveTab(isProfessor ? "library" : "shelf");
-  }, [isProfessor]);
+    setActiveTab(isStaff ? "library" : "shelf");
+  }, [isStaff]);
 
   useEffect(() => {
     if (wnapp.hide) return;
@@ -114,7 +118,7 @@ export const BookletsApp = () => {
   }, [wnapp.hide]);
 
   useEffect(() => {
-    if (wnapp.hide || !isProfessor) return;
+    if (wnapp.hide || !isStaff) return;
 
     const loadAccess = async () => {
       setMessage("");
@@ -135,7 +139,7 @@ export const BookletsApp = () => {
     };
 
     loadAccess();
-  }, [selectedAccessTurmaId, isProfessor, wnapp.hide]);
+  }, [selectedAccessTurmaId, isStaff, wnapp.hide]);
 
   useEffect(() => {
     if (visibleModules.length === 0) {
@@ -400,7 +404,7 @@ export const BookletsApp = () => {
           <PdfViewer
             url={selectedFile.url}
             title={selectedFile.title}
-            onBack={() => setActiveTab(isProfessor ? "library" : "shelf")}
+            onBack={() => setActiveTab(isStaff ? "library" : "shelf")}
           />
         ) : (
           <div className="booklets-empty">Escolha um PDF para leitura.</div>
@@ -530,7 +534,7 @@ export const BookletsApp = () => {
   );
 
   const renderContent = () => {
-    if (isProfessor && activeTab === "access") return renderAccess();
+    if (isStaff && activeTab === "access") return renderAccess();
     if (activeTab === "reader") return renderReader();
     return renderTiles();
   };

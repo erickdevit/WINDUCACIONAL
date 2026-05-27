@@ -260,7 +260,7 @@ const WeekCalendar = ({ records }) => {
 /* ─── Componente principal ────────────────────────────── */
 export const AttendanceView = ({ standalone = false, visible = true }) => {
   const user = useSelector((state) => state.setting.person);
-  const isProfessor = user.role === "professor";
+  const isProfessor = user.role !== "aluno";
   const defaultRange = useMemo(() => getDefaultRange(), []);
 
   const [activeTab, setActiveTab] = useState(
@@ -285,7 +285,11 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   const [savingRegister, setSavingRegister] = useState(false);
   const [printDate, setPrintDate] = useState("");
 
-  const tabs = isProfessor ? professorTabs : studentTabs;
+  const tabs = isProfessor
+    ? user.role === "professor"
+      ? professorTabs
+      : professorTabs.filter((t) => t.id !== "register")
+    : studentTabs;
   const totals = summary?.totals || {
     students: 0,
     presences: 0,
