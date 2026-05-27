@@ -37,12 +37,22 @@ const config = ({ mode }) => {
     define: {
       "process.env.NODE_ENV": `"${mode}"`,
     },
+    css: {
+      preprocessorOptions: {
+        scss: {
+          silenceDeprecations: ["legacy-js-api"],
+        },
+      },
+    },
     build: {
       outDir: "build",
+      chunkSizeWarningLimit: 3000,
       rollupOptions: {
         output: {
           manualChunks: (id) => {
-            return "vendor";
+            if (id.includes("node_modules")) {
+              return "vendor";
+            }
           },
         },
       },
