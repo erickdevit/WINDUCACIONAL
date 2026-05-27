@@ -850,10 +850,10 @@ const UserManagement = ({ currentUser, onBack }) => {
     loadUsers();
   }, [isStaff]);
 
-  const openCreateForm = (role) => {
-    setCreateMode(role);
+  const openCreateForm = () => {
+    setCreateMode("usuario");
     setDialogMode("create");
-    setCreateForm(getEmptyCreateForm(role));
+    setCreateForm(getEmptyCreateForm("aluno"));
     setSelectedUserId("");
     setMessage("");
     setCreateUsernameStatus(null);
@@ -949,7 +949,7 @@ const UserManagement = ({ currentUser, onBack }) => {
         setLoading(false);
         return;
       }
-      const role = createMode || createForm.role;
+      const role = createForm.role;
       await api.createUser({
         username: createForm.username,
         displayName: createForm.displayName,
@@ -1039,7 +1039,7 @@ const UserManagement = ({ currentUser, onBack }) => {
     (user) => user.role === "professor"
   ).length;
   const studentCount = users.filter((user) => user.role === "aluno").length;
-  const createRoleLabel = createMode === "professor" ? "professor" : "aluno";
+
 
   return (
     <section className="userAdminPanel">
@@ -1089,19 +1089,11 @@ const UserManagement = ({ currentUser, onBack }) => {
           <div className="userAddActions">
             <button
               type="button"
-              className={createMode === "aluno" ? "selected" : ""}
-              onClick={() => openCreateForm("aluno")}
+              className={createMode === "usuario" ? "selected" : ""}
+              onClick={() => openCreateForm()}
             >
-              <Icon fafa="faUser" width={13} />
-              Criar aluno
-            </button>
-            <button
-              type="button"
-              className={createMode === "professor" ? "selected" : ""}
-              onClick={() => openCreateForm("professor")}
-            >
-              <Icon fafa="faUserTie" width={13} />
-              Criar professor
+              <Icon fafa="faUserPlus" width={13} />
+              Criar usuário
             </button>
           </div>
         </div>
@@ -1194,7 +1186,7 @@ const UserManagement = ({ currentUser, onBack }) => {
 
       {dialogMode === "create" && createMode ? (
         <AppLikeDialog
-          title={`Criar ${createRoleLabel}`}
+          title="Criar usuário"
           icon="settings"
           onClose={cancelCreate}
           actions={
@@ -1209,7 +1201,7 @@ const UserManagement = ({ currentUser, onBack }) => {
                   createUsernameStatus?.type === "error"
                 }
               >
-                Criar {createRoleLabel}
+                Criar usuário
               </button>
               <button
                 type="button"
@@ -1226,11 +1218,9 @@ const UserManagement = ({ currentUser, onBack }) => {
             className="userDialogForm userCreateCard"
             onSubmit={submitCreate}
           >
-            <h3>Criar {createRoleLabel}</h3>
+            <h3>Criar Usuário</h3>
             <p>
-              {createMode === "aluno"
-                ? "Cadastre o aluno em uma turma. O tipo Kids ou Normal será herdado automaticamente da turma."
-                : "Cadastre um professor para administrar contas e turmas."}
+              Preencha os dados abaixo para cadastrar um novo usuário no sistema.
             </p>
             {message ? <p className="userDialogMessage">{message}</p> : null}
             <label>
@@ -1240,9 +1230,7 @@ const UserManagement = ({ currentUser, onBack }) => {
                 value={createForm.displayName}
                 onChange={updateCreateField}
                 autoComplete="name"
-                placeholder={
-                  createMode === "aluno" ? "Nome do aluno" : "Nome do professor"
-                }
+                placeholder="Nome do usuário"
                 autoFocus
                 required
               />
@@ -1300,7 +1288,19 @@ const UserManagement = ({ currentUser, onBack }) => {
                 </button>
               </div>
             </label>
-            {createMode === "aluno" ? (
+            <label>
+              Grupo
+              <select
+                name="role"
+                value={createForm.role}
+                onChange={updateCreateField}
+              >
+                <option value="aluno">Aluno</option>
+                <option value="professor">Professor</option>
+                <option value="secretaria">Secretaria</option>
+              </select>
+            </label>
+            {createForm.role === "aluno" ? (
               <>
                 {renderTurmaField(createForm, updateCreateField)}
                 <p className="formHint">
@@ -1401,6 +1401,7 @@ const UserManagement = ({ currentUser, onBack }) => {
               >
                 <option value="aluno">Aluno</option>
                 <option value="professor">Professor</option>
+                <option value="secretaria">Secretaria</option>
               </select>
             </label>
             {editForm.role === "aluno" ? (
