@@ -486,7 +486,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   );
 
   /* ── Filtros ─────────────────────────────────────────── */
-  const renderFilters = () => (
+  const renderFilters = (isInline = false) => (
     <>
       {mobileFiltersOpen ? (
         <button
@@ -500,6 +500,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
         className={`attendance-filters ${
           mobileFiltersOpen ? "mobile-open" : ""
         }`}
+        style={isInline ? { margin: 0, padding: 0, border: "none", boxShadow: "none", flex: "1 1 auto", display: "flex", justifyContent: "flex-end", backgroundColor: "transparent" } : {}}
       >
         <div className="attendance-filter-drawer-head attendance-mobile-only">
           <strong>Filtros</strong>
@@ -512,7 +513,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
           </button>
         </div>
         <label>
-          <span>Turma</span>
+          <span style={isInline ? { display: "none" } : {}}>Turma</span>
           <select
             value={selectedTurmaId}
             onChange={(event) => setSelectedTurmaId(event.target.value)}
@@ -526,7 +527,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
           </select>
         </label>
         <label>
-          <span>Início</span>
+          <span style={isInline ? { display: "none" } : {}}>Início</span>
           <input
             type="date"
             value={startDate}
@@ -534,7 +535,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
           />
         </label>
         <label>
-          <span>Fim</span>
+          <span style={isInline ? { display: "none" } : {}}>Fim</span>
           <input
             type="date"
             value={endDate}
@@ -551,6 +552,15 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
             disabled={loading}
           >
             Aplicar
+          </button>
+          <button
+            className="attendance-secondary"
+            onClick={printReport}
+            disabled={!summary}
+            title="Imprimir"
+          >
+            <Icon fafa="faPrint" width={13} />
+            {isInline ? "" : " Imprimir"}
           </button>
         </div>
       </section>
@@ -834,18 +844,8 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   /* ── DASHBOARD — Visão Geral ─────────────────────────── */
   const renderOverview = () => (
     <>
-      {renderHeader(
-        "Visão geral",
-        <button
-          className="attendance-primary"
-          onClick={printReport}
-          disabled={!summary}
-        >
-          <Icon fafa="faPrint" width={13} />
-          Imprimir
-        </button>
-      )}
-      {renderFilters()}
+      {renderFilters(false)}
+      {renderHeader("Visão geral")}
       {renderStats()}
 
       {/* Linha de gráficos */}
@@ -969,21 +969,23 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   const renderStudents = () => (
     <>
       {renderHeader("Alunos")}
-      {renderFilters()}
       <section className="at-panel">
-        <div className="at-panel-head">
-          <div className="at-search-wrap">
-            <Icon fafa="faMagnifyingGlass" width={13} />
-            <input
-              className="attendance-search"
-              value={studentSearch}
-              onChange={(event) => setStudentSearch(event.target.value)}
-              placeholder="Buscar aluno, usuário ou turma"
-            />
+        <div className="at-panel-head" style={{ flexWrap: "wrap", gap: "10px", justifyContent: "space-between" }}>
+          <div>
+            <div className="at-search-wrap" style={{ display: "inline-flex", marginRight: "10px" }}>
+              <Icon fafa="faMagnifyingGlass" width={13} />
+              <input
+                className="attendance-search"
+                value={studentSearch}
+                onChange={(event) => setStudentSearch(event.target.value)}
+                placeholder="Buscar aluno, usuário ou turma"
+              />
+            </div>
+            <span className="at-panel-sub">
+              {filteredStudents.length} aluno{filteredStudents.length !== 1 ? "s" : ""}
+            </span>
           </div>
-          <span className="at-panel-sub">
-            {filteredStudents.length} aluno{filteredStudents.length !== 1 ? "s" : ""}
-          </span>
+          {renderFilters(true)}
         </div>
         {renderStudentTable()}
       </section>
@@ -994,11 +996,13 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   const renderDaily = () => (
     <>
       {renderHeader("Por dia")}
-      {renderFilters()}
       <section className="at-panel">
-        <div className="at-panel-head">
-          <h2>Dias no período</h2>
-          <span className="at-panel-sub">{daily.length} dias</span>
+        <div className="at-panel-head" style={{ flexWrap: "wrap", gap: "10px", justifyContent: "space-between" }}>
+          <div>
+            <h2>Dias no período</h2>
+            <span className="at-panel-sub">{daily.length} dias</span>
+          </div>
+          {renderFilters(true)}
         </div>
         {renderDailyList()}
       </section>
@@ -1009,25 +1013,27 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   const renderRecords = () => (
     <>
       {renderHeader("Registros")}
-      {renderFilters()}
       <section className="at-panel">
-        <div className="at-panel-head">
-          <select
-            className="attendance-select-compact"
-            value={recordFilter}
-            onChange={(event) => setRecordFilter(event.target.value)}
-          >
-            <option value="all">Todos os registros</option>
-            <option value="multi">Com mais de um login</option>
-            {turmas.map((turma) => (
-              <option key={turma.id} value={turma.id}>
-                {turma.nome}
-              </option>
-            ))}
-          </select>
-          <span className="at-panel-sub">
-            {filteredRecords.length} registro{filteredRecords.length !== 1 ? "s" : ""}
-          </span>
+        <div className="at-panel-head" style={{ flexWrap: "wrap", gap: "10px", justifyContent: "space-between" }}>
+          <div>
+            <select
+              className="attendance-select-compact"
+              value={recordFilter}
+              onChange={(event) => setRecordFilter(event.target.value)}
+            >
+              <option value="all">Todos os registros</option>
+              <option value="multi">Com mais de um login</option>
+              {turmas.map((turma) => (
+                <option key={turma.id} value={turma.id}>
+                  {turma.nome}
+                </option>
+              ))}
+            </select>
+            <span className="at-panel-sub" style={{ marginLeft: "10px" }}>
+              {filteredRecords.length} registro{filteredRecords.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+          {renderFilters(true)}
         </div>
         {renderRecordsTable()}
       </section>
@@ -1174,21 +1180,11 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   /* ── Impressão ───────────────────────────────────────── */
   const renderPrint = () => (
     <>
-      {renderHeader(
-        "Impressão",
-        <button
-          className="attendance-primary"
-          onClick={printReport}
-          disabled={!summary}
-        >
-          <Icon fafa="faPrint" width={13} />
-          Imprimir relatório
-        </button>
-      )}
-      {renderFilters()}
+      {renderHeader("Impressão")}
       <section className="at-panel print-preview-panel">
-        <div className="at-panel-head">
+        <div className="at-panel-head" style={{ flexWrap: "wrap", gap: "10px", justifyContent: "space-between" }}>
           <h2>Prévia do relatório</h2>
+          {renderFilters(true)}
         </div>
         <div className="attendance-print-preview win11Scroll">
           {renderPrintReport()}
