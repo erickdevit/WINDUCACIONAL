@@ -1571,7 +1571,7 @@ const createUser = async ({
     err.status = 409;
     throw err;
   }
-  if (!["aluno", "professor"].includes(role)) {
+  if (!["aluno", "professor", "secretaria"].includes(role)) {
     const err = new Error("Grupo inválido.");
     err.status = 400;
     throw err;
@@ -2416,7 +2416,7 @@ app.patch(
       let nextRole = targetUser.role;
       let nextTurmaId = targetUser.turma_id;
       if (req.body.role != null) {
-        if (!["aluno", "professor"].includes(req.body.role)) {
+        if (!["aluno", "professor", "secretaria"].includes(req.body.role)) {
           return res.status(400).json({ error: "Grupo inválido." });
         }
         nextRole = req.body.role;
