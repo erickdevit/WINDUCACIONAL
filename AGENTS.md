@@ -72,6 +72,7 @@ docker compose -f compose.dev.yml up -d
 ## Regras De Trabalho
 
 - Antes de implementar, entenda o estado atual do código e confirme se a mudança é frontend, backend, infraestrutura ou documentação.
+- **REGRA ABSOLUTA:** JAMAIS entregue uma tela ou funcionalidade no frontend se o backend do qual ela depende (rotas, migrações, controllers) não existir ou estiver incompleto, a menos que seja explicitamente solicitado pelo usuário. Se a tarefa exige salvar/ler dados, você deve implementar o fluxo completo (fullstack) na mesma tarefa.
 - Preserve o comportamento existente enquanto a migração para simulador educacional não tiver uma especificação detalhada.
 - Não implemente backend, banco, Docker ou autenticação sem atualizar primeiro os documentos relevantes.
 - Regras de autenticação, autorização e isolamento de disco devem ser implementadas no servidor.

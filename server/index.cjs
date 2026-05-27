@@ -2315,6 +2315,51 @@ app.get(
 );
 
 app.post(
+  "/api/attendance/register",
+  requireAuth,
+  requireProfessor,
+  async (req, res, next) => {
+    let client;
+    try {
+      const { date, turmaId, students } = req.body;
+      if (!date || !turmaId || !Array.isArray(students)) {
+        return res.status(400).json({ error: "Parâmetros inválidos." });
+      }
+
+      client = await pool.connect();
+      await client.query("BEGIN");
+
+      for (const student of students) {
+        if (student.isPresent) {
+          await client.query(
+            `INSERT INTO attendance_records
+               (id, user_id, attendance_date, login_count, source)
+             VALUES ($1, $2, $3, 1, 'manual')
+             ON CONFLICT (user_id, attendance_date) DO NOTHING`,
+            [crypto.randomUUID(), student.id, date]
+          );
+        } else {
+          // Quando o professor marca "Ausente", apagamos o registro do dia
+          await client.query(
+            `DELETE FROM attendance_records
+             WHERE user_id = $1 AND attendance_date = $2`,
+            [student.id, date]
+          );
+        }
+      }
+
+      await client.query("COMMIT");
+      res.status(204).end();
+    } catch (error) {
+      await client?.query("ROLLBACK").catch(() => {});
+      next(error);
+    } finally {
+      if (client) client.release();
+    }
+  }
+);
+
+app.post(
   "/api/users",
   requireAuth,
   requireProfessor,

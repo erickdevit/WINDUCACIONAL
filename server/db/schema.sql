@@ -165,15 +165,34 @@ CREATE TABLE IF NOT EXISTS attendance_records (
   id UUID PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   attendance_date DATE NOT NULL,
-  first_login_at TIMESTAMPTZ NOT NULL,
-  last_login_at TIMESTAMPTZ NOT NULL,
+  first_login_at TIMESTAMPTZ,
+  last_login_at TIMESTAMPTZ,
   login_count INTEGER NOT NULL DEFAULT 1,
   source TEXT NOT NULL DEFAULT 'login',
-  CONSTRAINT attendance_records_source_check CHECK (source IN ('login')),
+  CONSTRAINT attendance_records_source_check CHECK (source IN ('login', 'manual')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(user_id, attendance_date)
 );
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'attendance_records'
+      AND constraint_name = 'attendance_records_source_check'
+  ) THEN
+    ALTER TABLE attendance_records DROP CONSTRAINT attendance_records_source_check;
+  END IF;
+
+  ALTER TABLE attendance_records
+    ADD CONSTRAINT attendance_records_source_check
+    CHECK (source IN ('login', 'manual'));
+
+  -- Permitir first/last_login_at serem NULL para registros manuais (ausentes ou criados offline)
+  ALTER TABLE attendance_records ALTER COLUMN first_login_at DROP NOT NULL;
+  ALTER TABLE attendance_records ALTER COLUMN last_login_at DROP NOT NULL;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_attendance_records_user ON attendance_records(user_id);
 CREATE INDEX IF NOT EXISTS idx_attendance_records_date ON attendance_records(attendance_date);

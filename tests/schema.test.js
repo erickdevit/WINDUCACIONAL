@@ -189,8 +189,8 @@ describe("Schema SQL", () => {
   it("deve persistir frequência diária dos alunos por login", () => {
     expect(schema).toContain("CREATE TABLE IF NOT EXISTS attendance_records");
     expect(schema).toContain("attendance_date DATE NOT NULL");
-    expect(schema).toContain("first_login_at TIMESTAMPTZ NOT NULL");
-    expect(schema).toContain("last_login_at TIMESTAMPTZ NOT NULL");
+    expect(schema).toContain("first_login_at TIMESTAMPTZ");
+    expect(schema).toContain("last_login_at TIMESTAMPTZ");
     expect(schema).toContain("UNIQUE(user_id, attendance_date)");
     expect(schema).toContain("idx_attendance_records_date");
   });
