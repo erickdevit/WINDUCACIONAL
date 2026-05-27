@@ -26,6 +26,7 @@ export const TypingKidsApp = () => {
   const [resettingRanking, setResettingRanking] = useState(false);
   const inputRef = useRef(null);
   const isProfessor = user?.role === "professor";
+  const isStaff = user?.role !== "aluno";
 
   useEffect(() => {
     if (view === "lesson" && inputRef.current) {
