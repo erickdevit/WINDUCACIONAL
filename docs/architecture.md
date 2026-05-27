@@ -42,6 +42,8 @@ Todos os novos aplicativos do simulador devem seguir a estrutura base de classes
 
 A ausência das classes `flex` e `flex-col` associadas ao `floatTab` causará problemas de renderização na `ToolBar` (que não respeitará a altura e não deslocará o conteúdo interno). O teste unitário `appWindowStructure.test.jsx` valida passivamente essas classes nos apps implementados.
 
+As janelas devem permanecer sempre dentro da área útil do desktop, limitada pela borda superior da barra de tarefas. A altura base vem de `--desktop-workarea-height`, derivada de `--taskbar-height`, e o redimensionamento/arraste das janelas compartilhadas precisa ser travado contra o container `.desktop`, nunca contra a altura total da viewport.
+
 - `vite.config.js`: build Vite e configuração PWA.
 - `server/index.cjs`: API Express, sessões, usuários e persistência dos discos.
 - `server/db/schema.sql`: schema PostgreSQL inicial.

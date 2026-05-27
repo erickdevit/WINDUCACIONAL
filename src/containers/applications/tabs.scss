@@ -11,7 +11,7 @@
   bottom: 6px;
   margin-left: auto;
   width: 100vw;
-  height: 100vh;
+  height: var(--desktop-workarea-height, calc(100vh - 48px));
   display: none;
   transform-origin: bottom left;
   transition: all ease-in-out 200ms;
@@ -46,6 +46,8 @@
   left: 0;
   width: 100%;
   height: 100%;
+  max-height: 100%;
+  max-width: 100%;
   // -webkit-backdrop-filter: blur(5px);
   // backdrop-filter: blur(5px);
   border-radius: 6px;
@@ -56,6 +58,8 @@
 
   &[data-size="full"] {
     border-radius: 0;
+    height: 100%;
+    max-height: 100%;
 
     .closeBtn,
     .toolbar,

@@ -66,6 +66,12 @@ html {
 
 /* ===== SMALL TABLETS & LARGE PHONES (≤768px) ===== */
 @media screen and (max-width: 768px) {
+  body {
+    --taskbar-height: 44px;
+    --desktop-workarea-height: calc(100vh - var(--taskbar-height));
+    --desktop-workarea-height: calc(100dvh - var(--taskbar-height));
+  }
+
   /* ===========================================================
      TASKBAR
      =========================================================== */
@@ -430,6 +436,12 @@ html {
 
 /* ===== PHONES PORTRAIT (≤480px) ===== */
 @media screen and (max-width: 480px) {
+  body {
+    --taskbar-height: calc(42px + var(--sai-bottom));
+    --desktop-workarea-height: calc(100vh - var(--taskbar-height));
+    --desktop-workarea-height: calc(100dvh - var(--taskbar-height));
+  }
+
   /* --- Taskbar: compact for narrow screens --- */
   .taskbar {
     height: 42px !important;
@@ -659,6 +671,12 @@ html {
 
 /* ===== LANDSCAPE PHONE ===== */
 @media screen and (max-height: 500px) and (orientation: landscape) {
+  body {
+    --taskbar-height: 36px;
+    --desktop-workarea-height: calc(100vh - var(--taskbar-height));
+    --desktop-workarea-height: calc(100dvh - var(--taskbar-height));
+  }
+
   .taskbar {
     height: 36px !important;
   }

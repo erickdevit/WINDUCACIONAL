@@ -372,6 +372,27 @@ export const ToolBar = (props) => {
     wnapp.style.width = dim1 + "px";
   };
 
+  const getWindowBounds = () => {
+    const layer = wnapp?.closest?.(".desktop");
+    return {
+      height: layer?.clientHeight || window.innerHeight,
+      width: layer?.clientWidth || window.innerWidth,
+    };
+  };
+
+  const clampGeometry = (pos0, pos1, dim0, dim1) => {
+    const bounds = getWindowBounds();
+    const height = Math.min(Math.max(dim0, 1), bounds.height);
+    const width = Math.min(Math.max(dim1, 1), bounds.width);
+
+    return {
+      top: Math.min(Math.max(pos0, 0), Math.max(0, bounds.height - height)),
+      left: Math.min(Math.max(pos1, 0), Math.max(0, bounds.width - width)),
+      height,
+      width,
+    };
+  };
+
   const eleDrag = (e) => {
     e = e || window.event;
     e.preventDefault();
@@ -381,14 +402,17 @@ export const ToolBar = (props) => {
       dim0 = dimP[0] + vec[0] * (e.clientY - posM[0]),
       dim1 = dimP[1] + vec[1] * (e.clientX - posM[1]);
 
-    if (op == 0) setPos(pos0, pos1);
-    else {
+    if (op == 0) {
+      const next = clampGeometry(pos0, pos1, dimP[0], dimP[1]);
+      setPos(next.top, next.left);
+    } else {
       dim0 = Math.max(dim0, 320);
       dim1 = Math.max(dim1, 320);
       pos0 = posP[0] + Math.min(vec[0], 0) * (dim0 - dimP[0]);
       pos1 = posP[1] + Math.min(vec[1], 0) * (dim1 - dimP[1]);
-      setPos(pos0, pos1);
-      setDim(dim0, dim1);
+      const next = clampGeometry(pos0, pos1, dim0, dim1);
+      setPos(next.top, next.left);
+      setDim(next.height, next.width);
     }
   };
 

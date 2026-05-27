@@ -42,6 +42,25 @@ describe("App Window Structure", () => {
     );
     expect(appWindowContent).toContain('data-dock="true"');
     expect(appWindowContent).toMatch(/restWindowClassName\s*\?\s*\(\s*<div/);
+    expect(appWindowContent).toContain("clampCustomWindowStyle");
+    expect(appWindowContent).toContain(
+      "maxHeight = `calc(100% - ${safeTop}px)`"
+    );
+  });
+
+  it("janelas globais devem respeitar a área acima da barra de tarefas", () => {
+    const appShellStyles = read("../src/containers/applications/tabs.scss");
+    const appStyles = read("../src/index.css");
+    const taskbarStyles = read("../src/components/taskbar/taskbar.scss");
+    const generalContent = read("../src/utils/general.jsx");
+
+    expect(appStyles).toContain("--taskbar-height: 48px");
+    expect(appStyles).toContain("--desktop-workarea-height");
+    expect(appStyles).toContain("height: var(--desktop-workarea-height)");
+    expect(taskbarStyles).toContain("height: var(--taskbar-height)");
+    expect(appShellStyles).toContain("max-height: 100%");
+    expect(generalContent).toContain("clampGeometry");
+    expect(generalContent).toContain('wnapp?.closest?.(".desktop")');
   });
 
   it("apps fora da lista legada devem usar AppWindow para manter o padrão antigo de janela", () => {

@@ -1,6 +1,37 @@
 import React from "react";
 import { ToolBar } from "../../utils/general";
 
+const parsePixelValue = (value) => {
+  if (typeof value === "number") return value;
+  if (typeof value !== "string" || !value.trim().endsWith("px")) return null;
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const clampCustomWindowStyle = (style = {}) => {
+  const nextStyle = { ...style };
+  const top = parsePixelValue(nextStyle.top);
+  const left = parsePixelValue(nextStyle.left);
+
+  if (top !== null) {
+    const safeTop = Math.max(0, top);
+    nextStyle.top = `${safeTop}px`;
+    nextStyle.maxHeight = `calc(100% - ${safeTop}px)`;
+  } else {
+    nextStyle.maxHeight = "100%";
+  }
+
+  if (left !== null) {
+    const safeLeft = Math.max(0, left);
+    nextStyle.left = `${safeLeft}px`;
+    nextStyle.maxWidth = `calc(100% - ${safeLeft}px)`;
+  } else {
+    nextStyle.maxWidth = "100%";
+  }
+
+  return nextStyle;
+};
+
 export const AppWindow = ({
   wnapp,
   app,
@@ -16,8 +47,11 @@ export const AppWindow = ({
 }) => {
   const { id = `${icon}App`, style: rootStyle, ...restRootProps } = rootProps;
 
+  const customStyle =
+    wnapp?.size === "cstm" ? clampCustomWindowStyle(wnapp.dim) : null;
+
   const mergedStyle = {
-    ...(wnapp?.size === "cstm" ? wnapp.dim : null),
+    ...customStyle,
     zIndex: wnapp?.z,
     ...rootStyle,
   };
