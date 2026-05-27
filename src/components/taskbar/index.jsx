@@ -3,6 +3,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { canDisplayAppForUser } from "../../lib/appVisibility";
 import { Icon } from "../../utils/general";
 import Battery from "../shared/Battery";
+import {
+  getMobilePortraitTaskApps,
+  matchesMobilePortrait,
+  MOBILE_PORTRAIT_QUERY,
+} from "./taskbarUtils";
 import "./taskbar.scss";
 
 const Taskbar = () => {
@@ -64,6 +69,9 @@ const Taskbar = () => {
   };
 
   const [time, setTime] = useState(new Date());
+  const [isMobilePortrait, setIsMobilePortrait] = useState(
+    matchesMobilePortrait
+  );
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -71,6 +79,28 @@ const Taskbar = () => {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return undefined;
+
+    const media = window.matchMedia(MOBILE_PORTRAIT_QUERY);
+    const updateMobilePortrait = () => {
+      setIsMobilePortrait(media.matches);
+    };
+
+    updateMobilePortrait();
+    media.addEventListener?.("change", updateMobilePortrait);
+    return () => media.removeEventListener?.("change", updateMobilePortrait);
+  }, []);
+
+  const taskbarApps = isMobilePortrait
+    ? getMobilePortraitTaskApps({
+        taskApps: tasks.apps,
+        apps,
+        user,
+      })
+    : tasks.apps;
+  const taskbarAppIcons = new Set(taskbarApps.map((app) => app.icon));
 
   return (
     <div className="taskbar">
@@ -93,9 +123,9 @@ const Taskbar = () => {
                 click="WIDGTOGG"
               />
             ) : null}
-            {tasks.apps.map((task, i) => {
-              var isHidden = apps[task.icon].hide;
-              var isActive = apps[task.icon].z == apps.hz;
+            {taskbarApps.map((task, i) => {
+              var isHidden = apps[task.icon]?.hide;
+              var isActive = apps[task.icon]?.z == apps.hz;
               return (
                 <div
                   key={i}
@@ -121,7 +151,7 @@ const Taskbar = () => {
               return key != "hz" &&
                 key != "undefined" &&
                 canDisplayAppForUser(apps[key], user) &&
-                !apps[key].task &&
+                !taskbarAppIcons.has(apps[key].icon) &&
                 !apps[key].hide ? (
                 <div
                   key={i}

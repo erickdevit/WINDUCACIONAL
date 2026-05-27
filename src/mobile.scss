@@ -380,6 +380,12 @@ html {
     display: none !important;
   }
 
+  @media screen and (max-width: 480px) and (orientation: portrait) {
+    .actbtns .uicon[data-payload="mnmz"] {
+      display: grid !important;
+    }
+  }
+
   .snapbox {
     display: none !important;
   }
