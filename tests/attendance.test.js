@@ -42,7 +42,7 @@ describe("App Frequência", () => {
     expect(source).toContain("Aplicar");
     expect(source).toContain("printReport");
     expect(source).toContain("Relatório de frequência");
-    expect(source).toContain("Resumo por aluno");
+    expect(source).toContain("Alunos — resumo");
   });
 
   it("deve organizar a experiência com menu lateral e telas separadas", () => {
@@ -79,7 +79,7 @@ describe("App Frequência", () => {
     expect(styles).toContain(".attendance-card-list");
     expect(styles).toContain(".attendance-desktop-table");
     expect(styles).toContain("overflow-x: hidden");
-    expect(styles).toContain("padding: 14px 5px");
+    expect(styles).toContain("padding: 16px 10px 24px");
   });
 
   it("deve registrar atalho PWA para abrir a Frequência direto", () => {

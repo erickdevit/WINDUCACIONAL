@@ -5,6 +5,7 @@ import { AppWindow } from "../../../../components/shared/AppWindow";
 import { Icon } from "../../../../utils/general";
 import "./attendance.scss";
 
+/* ─── Helpers de data ─────────────────────────────────── */
 const formatDate = (value) =>
   value ? new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR") : "-";
 
@@ -51,6 +52,20 @@ const getRangeFromDays = (days) => {
   };
 };
 
+/* ─── Helpers de cor por taxa ─────────────────────────── */
+const rateColor = (rate) => {
+  if (rate >= 75) return "var(--at-green)";
+  if (rate >= 50) return "var(--at-yellow)";
+  return "var(--at-red)";
+};
+
+const rateClass = (rate) => {
+  if (rate >= 75) return "good";
+  if (rate >= 50) return "warn";
+  return "bad";
+};
+
+/* ─── Tabs ────────────────────────────────────────────── */
 const professorTabs = [
   { id: "overview", label: "Visão Geral", icon: "faChartLine" },
   { id: "students", label: "Alunos", icon: "faUsers" },
@@ -64,6 +79,209 @@ const studentTabs = [
   { id: "student-history", label: "Histórico", icon: "faClockRotateLeft" },
 ];
 
+/* ─── Gráfico de Rosca (Donut) ────────────────────────── */
+const DonutChart = ({ present, absent, size = 160 }) => {
+  const total = present + absent;
+  if (total === 0) {
+    return (
+      <div className="at-donut-wrap">
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={size / 2 - 16}
+            fill="none"
+            stroke="#e5eaf1"
+            strokeWidth={28}
+          />
+        </svg>
+        <div className="at-donut-label">
+          <strong>–</strong>
+          <span>sem dados</span>
+        </div>
+      </div>
+    );
+  }
+  const rate = Math.round((present / total) * 100);
+  const r = size / 2 - 16;
+  const circ = 2 * Math.PI * r;
+  const presentArc = (present / total) * circ;
+  const cx = size / 2;
+  const cy = size / 2;
+
+  return (
+    <div className="at-donut-wrap">
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        style={{ transform: "rotate(-90deg)" }}
+      >
+        <circle
+          cx={cx}
+          cy={cy}
+          r={r}
+          fill="none"
+          stroke="#e5eaf1"
+          strokeWidth={28}
+        />
+        <circle
+          cx={cx}
+          cy={cy}
+          r={r}
+          fill="none"
+          stroke="var(--at-accent)"
+          strokeWidth={28}
+          strokeDasharray={`${presentArc} ${circ - presentArc}`}
+          strokeLinecap="round"
+        />
+        {absent > 0 && (
+          <circle
+            cx={cx}
+            cy={cy}
+            r={r}
+            fill="none"
+            stroke="var(--at-red)"
+            strokeWidth={28}
+            strokeDasharray={`${circ - presentArc - 4} ${presentArc + 4}`}
+            strokeDashoffset={-(presentArc + 2)}
+            strokeLinecap="round"
+            opacity={0.65}
+          />
+        )}
+      </svg>
+      <div className="at-donut-label">
+        <strong>{rate}%</strong>
+        <span>frequência</span>
+      </div>
+    </div>
+  );
+};
+
+/* ─── Gráfico de Barras por Dia ───────────────────────── */
+const BarChartDays = ({ daily, maxBars = 30 }) => {
+  const items = useMemo(
+    () =>
+      [...daily]
+        .sort((a, b) => (a.date > b.date ? 1 : -1))
+        .slice(-maxBars),
+    [daily, maxBars]
+  );
+
+  if (items.length === 0) {
+    return (
+      <div className="at-barchart-empty">Nenhum dado no período.</div>
+    );
+  }
+
+  const BAR_W = 14;
+  const GAP = 4;
+  const H = 100;
+  const svgW = items.length * (BAR_W + GAP);
+
+  return (
+    <div className="at-barchart-wrap win11Scroll">
+      <svg
+        width={svgW}
+        height={H + 24}
+        viewBox={`0 0 ${svgW} ${H + 24}`}
+        className="at-barchart"
+      >
+        {items.map((day, i) => {
+          const rate = Number(day.attendanceRate) || 0;
+          const barH = Math.max(4, (rate / 100) * H);
+          const x = i * (BAR_W + GAP);
+          const y = H - barH;
+          const color =
+            rate >= 75
+              ? "var(--at-accent)"
+              : rate >= 50
+              ? "var(--at-yellow)"
+              : "var(--at-red)";
+          return (
+            <g key={day.date}>
+              <rect
+                x={x}
+                y={0}
+                width={BAR_W}
+                height={H}
+                rx={4}
+                fill="#f0f4f8"
+              />
+              <rect
+                x={x}
+                y={y}
+                width={BAR_W}
+                height={barH}
+                rx={4}
+                fill={color}
+                opacity={0.9}
+              >
+                <title>
+                  {formatDate(day.date)} — {rate}%
+                </title>
+              </rect>
+            </g>
+          );
+        })}
+      </svg>
+      <div className="at-barchart-legend">
+        <span style={{ color: "var(--at-accent)" }}>≥75% bom</span>
+        <span style={{ color: "var(--at-yellow)" }}>50–74% atenção</span>
+        <span style={{ color: "var(--at-red)" }}>&lt;50% crítico</span>
+      </div>
+    </div>
+  );
+};
+
+/* ─── Barra de progresso inline ───────────────────────── */
+const SparkBar = ({ value, max = 100 }) => {
+  const pct = Math.min(100, Math.max(0, (value / max) * 100));
+  return (
+    <div className="at-sparkbar">
+      <div
+        className={`at-sparkbar-fill ${rateClass(value)}`}
+        style={{ width: `${pct}%` }}
+      />
+      <span>{value}%</span>
+    </div>
+  );
+};
+
+/* ─── Mini calendário de 7 dias ───────────────────────── */
+const WeekCalendar = ({ records }) => {
+  const days = useMemo(() => {
+    const result = [];
+    const today = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const key = toDateInputValue(d);
+      const rec = records.find((r) => r.attendanceDate === key);
+      result.push({ date: key, label: d.toLocaleDateString("pt-BR", { weekday: "short" }), rec });
+    }
+    return result;
+  }, [records]);
+
+  return (
+    <div className="at-week-cal">
+      {days.map(({ date, label, rec }) => (
+        <div
+          key={date}
+          className={`at-week-day ${rec ? "present" : "absent"}`}
+          title={`${formatDate(date)}: ${rec ? "Presente" : "Sem registro"}`}
+        >
+          <span className="at-week-day-label">{label}</span>
+          <div className="at-week-day-dot">
+            {rec ? <Icon fafa="faCheck" width={10} /> : null}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+/* ─── Componente principal ────────────────────────────── */
 export const AttendanceView = ({ standalone = false, visible = true }) => {
   const user = useSelector((state) => state.setting.person);
   const isProfessor = user.role === "professor";
@@ -198,6 +416,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     window.print();
   };
 
+  /* ── Sidebar ─────────────────────────────────────────── */
   const renderSidebar = () => (
     <aside
       className={`attendance-sidebar ${sidebarCollapsed ? "collapsed" : ""}`}
@@ -250,6 +469,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     </aside>
   );
 
+  /* ── Nav mobile ──────────────────────────────────────── */
   const renderMobileNav = () => (
     <nav
       className="attendance-mobile-nav"
@@ -271,6 +491,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     </nav>
   );
 
+  /* ── Cabeçalho de página ─────────────────────────────── */
   const renderHeader = (title, actions = null) => (
     <header className="attendance-page-head">
       <div>
@@ -306,6 +527,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     </header>
   );
 
+  /* ── Filtros ─────────────────────────────────────────── */
   const renderFilters = () => (
     <>
       {mobileFiltersOpen ? (
@@ -388,27 +610,58 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     </>
   );
 
-  const renderStats = () => (
-    <section className="attendance-stat-grid">
-      <div className="attendance-stat">
-        <span>Alunos</span>
-        <strong>{totals.students}</strong>
-      </div>
-      <div className="attendance-stat">
-        <span>Presenças</span>
-        <strong>{totals.presences}</strong>
-      </div>
-      <div className="attendance-stat">
-        <span>Ausências</span>
-        <strong>{totals.absences}</strong>
-      </div>
-      <div className="attendance-stat">
-        <span>Aproveitamento</span>
-        <strong>{totals.attendanceRate}%</strong>
-      </div>
-    </section>
-  );
+  /* ── Cards de estatísticas melhorados ────────────────── */
+  const renderStats = () => {
+    const rate = Number(totals.attendanceRate) || 0;
+    return (
+      <section className="at-stat-grid">
+        <div className="at-stat at-stat--blue">
+          <div className="at-stat-icon">
+            <Icon fafa="faUsers" width={18} />
+          </div>
+          <div className="at-stat-body">
+            <span>Alunos</span>
+            <strong>{totals.students}</strong>
+            <small>no período</small>
+          </div>
+        </div>
+        <div className="at-stat at-stat--green">
+          <div className="at-stat-icon">
+            <Icon fafa="faCircleCheck" width={18} />
+          </div>
+          <div className="at-stat-body">
+            <span>Presenças</span>
+            <strong>{totals.presences}</strong>
+            <small>registros</small>
+          </div>
+        </div>
+        <div className="at-stat at-stat--red">
+          <div className="at-stat-icon">
+            <Icon fafa="faCircleXmark" width={18} />
+          </div>
+          <div className="at-stat-body">
+            <span>Ausências</span>
+            <strong>{totals.absences}</strong>
+            <small>dias sem registro</small>
+          </div>
+        </div>
+        <div className={`at-stat at-stat--${rateClass(rate)}`}>
+          <div className="at-stat-icon">
+            <Icon fafa="faChartLine" width={18} />
+          </div>
+          <div className="at-stat-body">
+            <span>Aproveitamento</span>
+            <strong>{rate}%</strong>
+            <small>
+              {rate >= 75 ? "Bom" : rate >= 50 ? "Atenção" : "Crítico"}
+            </small>
+          </div>
+        </div>
+      </section>
+    );
+  };
 
+  /* ── Tabela de alunos (desktop) ──────────────────────── */
   const renderStudentCards = (items = filteredStudents) => (
     <div className="attendance-card-list attendance-mobile-only">
       {items.map((student) => (
@@ -418,7 +671,11 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               <strong>{student.displayName}</strong>
               <span>@{student.username}</span>
             </div>
-            <span className="attendance-rate">{student.attendanceRate}%</span>
+            <span
+              className={`at-badge at-badge--${rateClass(student.attendanceRate)}`}
+            >
+              {student.attendanceRate}%
+            </span>
           </header>
           <dl>
             <div>
@@ -441,8 +698,9 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
         </article>
       ))}
       {items.length === 0 && !loading ? (
-        <div className="attendance-empty">
-          Nenhum aluno encontrado para os filtros atuais.
+        <div className="at-empty">
+          <Icon fafa="faUsersSlash" width={32} />
+          <p>Nenhum aluno encontrado para os filtros atuais.</p>
         </div>
       ) : null}
     </div>
@@ -458,7 +716,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               <th>Turma</th>
               <th>Presenças</th>
               <th>Ausências</th>
-              <th>%</th>
+              <th>Frequência</th>
               <th>Último login</th>
             </tr>
           </thead>
@@ -470,12 +728,10 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
                   <small>@{student.username}</small>
                 </td>
                 <td>{student.turmaNome || "Sem turma"}</td>
-                <td>{student.presentDays}</td>
-                <td>{student.absentDays}</td>
+                <td className="at-num">{student.presentDays}</td>
+                <td className="at-num">{student.absentDays}</td>
                 <td>
-                  <span className="attendance-rate">
-                    {student.attendanceRate}%
-                  </span>
+                  <SparkBar value={student.attendanceRate} />
                 </td>
                 <td>{formatDateTime(student.lastLoginAt)}</td>
               </tr>
@@ -483,8 +739,9 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
             {items.length === 0 && !loading ? (
               <tr>
                 <td colSpan={6}>
-                  <div className="attendance-empty">
-                    Nenhum aluno encontrado para os filtros atuais.
+                  <div className="at-empty">
+                    <Icon fafa="faUsersSlash" width={28} />
+                    <p>Nenhum aluno encontrado.</p>
                   </div>
                 </td>
               </tr>
@@ -496,32 +753,40 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     </>
   );
 
+  /* ── Lista de dias ───────────────────────────────────── */
   const renderDailyList = (items = daily) => (
-    <div className="attendance-daily-list win11Scroll">
-      {items.map((day) => (
-        <div className="attendance-day-row" key={day.date}>
-          <div>
-            <strong>{formatDate(day.date)}</strong>
-            <span>{day.attendanceRate}% de presença</span>
-          </div>
-          <div>
-            <b>{day.present}</b>
-            <small>presentes</small>
-          </div>
-          <div>
-            <b>{day.absent}</b>
-            <small>ausentes</small>
-          </div>
-        </div>
-      ))}
+    <div className="at-daily-list win11Scroll">
       {items.length === 0 && !loading ? (
-        <div className="attendance-empty">
-          Nenhum dia no período selecionado.
+        <div className="at-empty">
+          <Icon fafa="faCalendarXmark" width={28} />
+          <p>Nenhum dia no período selecionado.</p>
         </div>
       ) : null}
+      {items.map((day) => {
+        const rate = Number(day.attendanceRate) || 0;
+        return (
+          <div className="at-day-row" key={day.date}>
+            <div className="at-day-info">
+              <strong>{formatDate(day.date)}</strong>
+              <SparkBar value={rate} />
+            </div>
+            <div className="at-day-counts">
+              <div className="at-day-count at-day-count--present">
+                <b>{day.present}</b>
+                <small>presentes</small>
+              </div>
+              <div className="at-day-count at-day-count--absent">
+                <b>{day.absent}</b>
+                <small>ausentes</small>
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 
+  /* ── Cards de registros (mobile) ─────────────────────── */
   const renderRecordCards = (items = filteredRecords) => (
     <div className="attendance-card-list attendance-mobile-only">
       {items.map((record) => (
@@ -531,8 +796,10 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               <strong>{record.displayName}</strong>
               <span>{formatDate(record.attendanceDate)}</span>
             </div>
-            <span className="attendance-rate">
-              {record.loginCount} login(s)
+            <span
+              className={`at-badge ${Number(record.loginCount) > 1 ? "at-badge--multi" : ""}`}
+            >
+              {record.loginCount} login{Number(record.loginCount) !== 1 ? "s" : ""}
             </span>
           </header>
           <dl>
@@ -556,8 +823,9 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
         </article>
       ))}
       {items.length === 0 && !loading ? (
-        <div className="attendance-empty">
-          Nenhum registro encontrado para os filtros atuais.
+        <div className="at-empty">
+          <Icon fafa="faClipboardList" width={28} />
+          <p>Nenhum registro encontrado.</p>
         </div>
       ) : null}
     </div>
@@ -579,7 +847,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
           </thead>
           <tbody>
             {items.map((record) => (
-              <tr key={record.id}>
+              <tr key={record.id} className={Number(record.loginCount) > 1 ? "at-row--multi" : ""}>
                 <td>{formatDate(record.attendanceDate)}</td>
                 <td>
                   <strong>{record.displayName}</strong>
@@ -588,14 +856,21 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
                 <td>{record.turmaNome || "Sem turma"}</td>
                 <td>{formatTime(record.firstLoginAt)}</td>
                 <td>{formatTime(record.lastLoginAt)}</td>
-                <td>{record.loginCount}</td>
+                <td>
+                  {Number(record.loginCount) > 1 ? (
+                    <span className="at-badge at-badge--multi">{record.loginCount}</span>
+                  ) : (
+                    record.loginCount
+                  )}
+                </td>
               </tr>
             ))}
             {items.length === 0 && !loading ? (
               <tr>
                 <td colSpan={6}>
-                  <div className="attendance-empty">
-                    Nenhum registro encontrado para os filtros atuais.
+                  <div className="at-empty">
+                    <Icon fafa="faClipboardList" width={28} />
+                    <p>Nenhum registro encontrado.</p>
                   </div>
                 </td>
               </tr>
@@ -607,6 +882,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     </>
   );
 
+  /* ── DASHBOARD — Visão Geral ─────────────────────────── */
   const renderOverview = () => (
     <>
       {renderHeader(
@@ -622,66 +898,165 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
       )}
       {renderFilters()}
       {renderStats()}
-      <section className="attendance-overview-grid">
-        <div className="attendance-panel">
-          <div className="attendance-panel-head">
-            <h2>Resumo por aluno</h2>
+
+      {/* Linha de gráficos */}
+      <section className="at-charts-row">
+        <div className="at-panel at-panel--donut">
+          <div className="at-panel-head">
+            <h2>Presenças × Ausências</h2>
+            <span className="at-panel-sub">total no período</span>
           </div>
-          {renderStudentTable(filteredStudents.slice(0, 8))}
+          <div className="at-panel-body at-panel-body--center">
+            <DonutChart
+              present={totals.presences}
+              absent={totals.absences}
+              size={160}
+            />
+            <div className="at-donut-legend">
+              <div>
+                <span className="at-legend-dot at-legend-dot--green" />
+                <span>Presenças</span>
+                <strong>{totals.presences}</strong>
+              </div>
+              <div>
+                <span className="at-legend-dot at-legend-dot--red" />
+                <span>Ausências</span>
+                <strong>{totals.absences}</strong>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="attendance-panel">
-          <div className="attendance-panel-head">
-            <h2>Melhores dias</h2>
+
+        <div className="at-panel at-panel--bar">
+          <div className="at-panel-head">
+            <h2>Frequência por dia</h2>
+            <span className="at-panel-sub">{daily.length} dias no período</span>
           </div>
-          {renderDailyList(strongestDays)}
+          <div className="at-panel-body">
+            <BarChartDays daily={daily} maxBars={40} />
+          </div>
         </div>
-        <div className="attendance-panel">
-          <div className="attendance-panel-head">
-            <h2>Pontos de atenção</h2>
+      </section>
+
+      {/* Destaques + Top alunos */}
+      <section className="at-highlights-row">
+        <div className="at-panel">
+          <div className="at-panel-head">
+            <h2>
+              <Icon fafa="faTrophy" width={13} />
+              Melhores dias
+            </h2>
           </div>
-          {renderDailyList(weakestDays)}
+          <div className="at-day-mini-list">
+            {strongestDays.length === 0 ? (
+              <div className="at-empty-sm">Sem dados</div>
+            ) : (
+              strongestDays.map((day) => (
+                <div className="at-day-mini" key={day.date}>
+                  <span>{formatDate(day.date)}</span>
+                  <SparkBar value={Number(day.attendanceRate) || 0} />
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="at-panel">
+          <div className="at-panel-head">
+            <h2>
+              <Icon fafa="faTriangleExclamation" width={13} />
+              Pontos de atenção
+            </h2>
+          </div>
+          <div className="at-day-mini-list">
+            {weakestDays.length === 0 ? (
+              <div className="at-empty-sm">Sem dados</div>
+            ) : (
+              weakestDays.map((day) => (
+                <div className="at-day-mini" key={day.date}>
+                  <span>{formatDate(day.date)}</span>
+                  <SparkBar value={Number(day.attendanceRate) || 0} />
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="at-panel at-panel--students-top">
+          <div className="at-panel-head">
+            <h2>Alunos — resumo</h2>
+            <span className="at-panel-sub">{students.length} alunos</span>
+          </div>
+          <div className="at-students-mini-list win11Scroll">
+            {students.length === 0 ? (
+              <div className="at-empty-sm">Sem dados</div>
+            ) : (
+              [...students]
+                .sort((a, b) => b.attendanceRate - a.attendanceRate)
+                .slice(0, 10)
+                .map((s) => (
+                  <div className="at-student-mini" key={s.id}>
+                    <div className="at-student-mini-info">
+                      <strong>{s.displayName}</strong>
+                      <small>{s.turmaNome || "Sem turma"}</small>
+                    </div>
+                    <SparkBar value={s.attendanceRate} />
+                  </div>
+                ))
+            )}
+          </div>
         </div>
       </section>
     </>
   );
 
+  /* ── Alunos ──────────────────────────────────────────── */
   const renderStudents = () => (
     <>
       {renderHeader("Alunos")}
       {renderFilters()}
-      <section className="attendance-panel">
-        <div className="attendance-panel-head">
-          <input
-            className="attendance-search"
-            value={studentSearch}
-            onChange={(event) => setStudentSearch(event.target.value)}
-            placeholder="Buscar aluno, usuário ou turma"
-          />
+      <section className="at-panel">
+        <div className="at-panel-head">
+          <div className="at-search-wrap">
+            <Icon fafa="faMagnifyingGlass" width={13} />
+            <input
+              className="attendance-search"
+              value={studentSearch}
+              onChange={(event) => setStudentSearch(event.target.value)}
+              placeholder="Buscar aluno, usuário ou turma"
+            />
+          </div>
+          <span className="at-panel-sub">
+            {filteredStudents.length} aluno{filteredStudents.length !== 1 ? "s" : ""}
+          </span>
         </div>
         {renderStudentTable()}
       </section>
     </>
   );
 
+  /* ── Por Dia ─────────────────────────────────────────── */
   const renderDaily = () => (
     <>
       {renderHeader("Por dia")}
       {renderFilters()}
-      <section className="attendance-panel">
-        <div className="attendance-panel-head">
-          <h2>Dias</h2>
+      <section className="at-panel">
+        <div className="at-panel-head">
+          <h2>Dias no período</h2>
+          <span className="at-panel-sub">{daily.length} dias</span>
         </div>
         {renderDailyList()}
       </section>
     </>
   );
 
+  /* ── Registros ───────────────────────────────────────── */
   const renderRecords = () => (
     <>
       {renderHeader("Registros")}
       {renderFilters()}
-      <section className="attendance-panel">
-        <div className="attendance-panel-head">
+      <section className="at-panel">
+        <div className="at-panel-head">
           <select
             className="attendance-select-compact"
             value={recordFilter}
@@ -695,12 +1070,16 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               </option>
             ))}
           </select>
+          <span className="at-panel-sub">
+            {filteredRecords.length} registro{filteredRecords.length !== 1 ? "s" : ""}
+          </span>
         </div>
         {renderRecordsTable()}
       </section>
     </>
   );
 
+  /* ── Impressão ───────────────────────────────────────── */
   const renderPrint = () => (
     <>
       {renderHeader(
@@ -715,8 +1094,8 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
         </button>
       )}
       {renderFilters()}
-      <section className="attendance-panel print-preview-panel">
-        <div className="attendance-panel-head">
+      <section className="at-panel print-preview-panel">
+        <div className="at-panel-head">
           <h2>Prévia do relatório</h2>
         </div>
         <div className="attendance-print-preview win11Scroll">
@@ -726,30 +1105,72 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     </>
   );
 
-  const renderStudentOverview = () => (
-    <>
-      {renderHeader("Minha frequência")}
-      <section className="attendance-student-status">
-        <div
-          className={`attendance-status-card ${todayRecord ? "present" : ""}`}
-        >
-          <span>Hoje</span>
-          <strong>{todayRecord ? "Presente" : "Não registrado"}</strong>
-        </div>
-        <div className="attendance-status-card">
-          <span>Registros</span>
-          <strong>{studentRecords.length}</strong>
-        </div>
-      </section>
-      <section className="attendance-panel">
-        <div className="attendance-panel-head">
-          <h2>Últimas presenças</h2>
-        </div>
-        {renderStudentHistoryTable(studentRecords.slice(0, 10))}
-      </section>
-    </>
-  );
+  /* ── Resumo do Aluno ─────────────────────────────────── */
+  const renderStudentOverview = () => {
+    const presentCount = studentRecords.filter((r) => r.attendanceDate).length;
+    return (
+      <>
+        {renderHeader("Minha frequência")}
 
+        <section className="at-student-hero">
+          <div
+            className={`at-student-today ${todayRecord ? "present" : ""}`}
+          >
+            <div className="at-student-today-icon">
+              <Icon
+                fafa={todayRecord ? "faCircleCheck" : "faCircleXmark"}
+                width={28}
+              />
+            </div>
+            <div>
+              <strong>{todayRecord ? "Presente hoje" : "Sem registro hoje"}</strong>
+              {todayRecord ? (
+                <span>
+                  Primeiro acesso às {formatTime(todayRecord.firstLoginAt)}
+                </span>
+              ) : (
+                <span>Nenhum login registrado ainda</span>
+              )}
+            </div>
+          </div>
+          <div className="at-student-stat-row">
+            <div className="at-student-stat">
+              <span>Total de presenças</span>
+              <strong>{presentCount}</strong>
+            </div>
+            <div className="at-student-stat">
+              <span>Logins registrados</span>
+              <strong>
+                {studentRecords.reduce(
+                  (sum, r) => sum + Number(r.loginCount || 0),
+                  0
+                )}
+              </strong>
+            </div>
+          </div>
+        </section>
+
+        <section className="at-panel">
+          <div className="at-panel-head">
+            <h2>Últimos 7 dias</h2>
+          </div>
+          <div className="at-panel-body">
+            <WeekCalendar records={studentRecords} />
+          </div>
+        </section>
+
+        <section className="at-panel">
+          <div className="at-panel-head">
+            <h2>Presenças recentes</h2>
+            <span className="at-panel-sub">últimas 10</span>
+          </div>
+          {renderStudentHistoryTable(studentRecords.slice(0, 10))}
+        </section>
+      </>
+    );
+  };
+
+  /* ── Tabela de histórico do aluno ────────────────────── */
   const renderStudentHistoryCards = (items = studentRecords) => (
     <div className="attendance-card-list attendance-mobile-only">
       {items.map((record) => (
@@ -757,7 +1178,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
           <header>
             <div>
               <strong>{formatDate(record.attendanceDate)}</strong>
-              <span>{record.loginCount} login(s)</span>
+              <span>{record.loginCount} login{Number(record.loginCount) !== 1 ? "s" : ""}</span>
             </div>
           </header>
           <dl>
@@ -773,8 +1194,9 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
         </article>
       ))}
       {items.length === 0 && !loading ? (
-        <div className="attendance-empty">
-          Nenhuma presença registrada ainda.
+        <div className="at-empty">
+          <Icon fafa="faCalendarXmark" width={28} />
+          <p>Nenhuma presença registrada ainda.</p>
         </div>
       ) : null}
     </div>
@@ -804,8 +1226,9 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
             {items.length === 0 && !loading ? (
               <tr>
                 <td colSpan={4}>
-                  <div className="attendance-empty">
-                    Nenhuma presença registrada ainda.
+                  <div className="at-empty">
+                    <Icon fafa="faCalendarXmark" width={28} />
+                    <p>Nenhuma presença registrada ainda.</p>
                   </div>
                 </td>
               </tr>
@@ -817,18 +1240,23 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     </>
   );
 
+  /* ── Histórico completo do aluno ─────────────────────── */
   const renderStudentHistory = () => (
     <>
       {renderHeader("Histórico")}
-      <section className="attendance-panel">
-        <div className="attendance-panel-head">
-          <h2>Registros</h2>
+      <section className="at-panel">
+        <div className="at-panel-head">
+          <h2>Todos os registros</h2>
+          <span className="at-panel-sub">
+            {studentRecords.length} presença{studentRecords.length !== 1 ? "s" : ""}
+          </span>
         </div>
         {renderStudentHistoryTable()}
       </section>
     </>
   );
 
+  /* ── Relatório de impressão ──────────────────────────── */
   const renderPrintReport = () => (
     <div className="attendance-print-sheet">
       <h1>Relatório de frequência</h1>
@@ -864,6 +1292,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     </div>
   );
 
+  /* ── Despacho de conteúdo ────────────────────────────── */
   const renderActiveContent = () => {
     if (isProfessor) {
       if (activeTab === "students") return renderStudents();
@@ -881,9 +1310,10 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     <div
       className={`attendance-view ${standalone ? "standalone" : "windowed"}`}
     >
-      <div className="attendance-shell win11Scroll">
+      <div className="attendance-shell">
         {renderSidebar()}
-        <main className="attendance-main">
+        <main className="attendance-main win11Scroll">
+          {loading ? <div className="at-loading-bar" /> : null}
           {message ? <div className="attendance-alert">{message}</div> : null}
           {renderActiveContent()}
         </main>
