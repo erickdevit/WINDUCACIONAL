@@ -208,7 +208,10 @@ export const AttendanceApp = () => {
         </div>
       </div>
 
-      <nav className="attendance-nav win11Scroll">
+      <nav
+        className="attendance-nav win11Scroll"
+        aria-label="Seções de frequência"
+      >
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -217,6 +220,7 @@ export const AttendanceApp = () => {
               activeTab === tab.id ? "active" : ""
             }`}
             onClick={() => setActiveTab(tab.id)}
+            aria-current={activeTab === tab.id ? "page" : undefined}
             title={tab.label}
           >
             <Icon fafa={tab.icon} width={15} />
@@ -230,6 +234,9 @@ export const AttendanceApp = () => {
           type="button"
           className="attendance-nav-link"
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          title={
+            sidebarCollapsed ? "Expandir navegação" : "Recolher navegação"
+          }
         >
           <Icon
             fafa={sidebarCollapsed ? "faAngleRight" : "faAngleLeft"}
@@ -727,9 +734,9 @@ export const AttendanceApp = () => {
       windowScreenClassName="flex flex-col"
       restWindowClassName="flex-grow flex flex-col"
     >
-      <div className="attendance-shell">
+      <div className="attendance-shell win11Scroll">
         {renderSidebar()}
-        <main className="attendance-main win11Scroll">
+        <main className="attendance-main">
           {message ? <div className="attendance-alert">{message}</div> : null}
           {renderActiveContent()}
         </main>
