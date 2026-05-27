@@ -329,7 +329,6 @@ html {
      =========================================================== */
   .floatTab {
     bottom: 0 !important;
-    height: 100% !important;
     top: 0 !important;
     left: 0 !important;
     max-height: 100% !important;
@@ -354,17 +353,20 @@ html {
     pointer-events: none !important;
   }
 
-  .floatTab[data-size="mini"],
   .floatTab[data-size="cstm"],
   .floatTab[data-size="full"] {
-    bottom: 0 !important;
     height: 100% !important;
+    bottom: 0 !important;
     top: 0 !important;
     left: 0 !important;
     max-height: 100% !important;
     max-width: 100% !important;
     width: 100% !important;
     border-radius: 0 !important;
+  }
+
+  .restWindow {
+    overflow-y: auto !important;
   }
 
   .windowScreen {
@@ -460,16 +462,9 @@ html {
     max-height: var(--desktop-workarea-height) !important;
   }
 
-  .floatTab {
-    height: 100% !important;
-    max-height: 100% !important;
-  }
-
-  .floatTab[data-size="mini"],
   .floatTab[data-size="cstm"],
   .floatTab[data-size="full"] {
     height: 100% !important;
-    max-height: 100% !important;
   }
 
   .tsIcon {
@@ -688,18 +683,19 @@ html {
     height: 36px !important;
   }
 
+  .restWindow {
+    overflow-y: auto !important;
+  }
+
   .desktop {
     bottom: var(--taskbar-height) !important;
     height: auto !important;
     max-height: var(--desktop-workarea-height) !important;
   }
 
-  .floatTab,
-  .floatTab[data-size="mini"],
   .floatTab[data-size="cstm"],
   .floatTab[data-size="full"] {
     height: 100% !important;
-    max-height: 100% !important;
   }
 
   .tsIcon {
