@@ -1504,10 +1504,7 @@ const recordAttendanceForLogin = async (userId) => {
         AND EXTRACT(DOW FROM NOW() AT TIME ZONE $3)::int = ANY(t.schedule_days)
         AND (NOW() AT TIME ZONE $3)::time >= t.schedule_start_time
         AND (NOW() AT TIME ZONE $3)::time <= t.schedule_end_time
-      ON CONFLICT (user_id, attendance_date) DO UPDATE
-     SET last_login_at = EXCLUDED.last_login_at,
-         login_count = attendance_records.login_count + 1,
-         updated_at = NOW()`,
+      ON CONFLICT (user_id, attendance_date) DO NOTHING`,
     [userId, crypto.randomUUID(), ATTENDANCE_TIME_ZONE]
   );
 };

@@ -33,22 +33,10 @@ const toDateInputValue = (date) => {
 };
 
 const getDefaultRange = () => {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(start.getDate() - 29);
+  const today = new Date();
   return {
-    startDate: toDateInputValue(start),
-    endDate: toDateInputValue(end),
-  };
-};
-
-const getRangeFromDays = (days) => {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(start.getDate() - (days - 1));
-  return {
-    startDate: toDateInputValue(start),
-    endDate: toDateInputValue(end),
+    startDate: toDateInputValue(today),
+    endDate: toDateInputValue(today),
   };
 };
 
@@ -399,11 +387,6 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     if (!isProfessor) setMobileFiltersOpen(false);
   }, [isProfessor]);
 
-  const applyQuickRange = (days) => {
-    const range = getRangeFromDays(days);
-    setStartDate(range.startDate);
-    setEndDate(range.endDate);
-  };
 
   const printReport = () => {
     window.print();
@@ -497,24 +480,6 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
         ) : null}
       </div>
       <div className="attendance-actions">
-        {isProfessor ? (
-          <button
-            className="attendance-secondary attendance-mobile-only"
-            onClick={() => setMobileFiltersOpen(true)}
-            type="button"
-          >
-            <Icon fafa="faSliders" width={13} />
-            Filtros
-          </button>
-        ) : null}
-        <button
-          className="attendance-secondary"
-          onClick={reload}
-          disabled={loading}
-        >
-          <Icon fafa="faRotateRight" width={13} />
-          Atualizar
-        </button>
         {actions}
       </div>
     </header>
@@ -546,19 +511,6 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
             <Icon fafa="faXmark" width={13} />
           </button>
         </div>
-        {activeTab === "print" ? (
-          <label style={{ gridColumn: "1 / -1", borderBottom: "1px dashed var(--at-line)", paddingBottom: "10px", marginBottom: "5px" }}>
-            <span>Data específica (opcional para impressão)</span>
-            <input
-              type="date"
-              value={printDate}
-              onChange={(event) => setPrintDate(event.target.value)}
-            />
-            <small style={{ color: "var(--at-muted)", display: "block", marginTop: "4px" }}>
-              Deixe em branco para imprimir o período todo. Preencha para ver presenças desse dia exato.
-            </small>
-          </label>
-        ) : null}
         <label>
           <span>Turma</span>
           <select
@@ -590,17 +542,6 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
           />
         </label>
         <div className="attendance-filter-actions">
-          <div className="attendance-segmented">
-            <button type="button" onClick={() => applyQuickRange(7)}>
-              7 dias
-            </button>
-            <button type="button" onClick={() => applyQuickRange(30)}>
-              30 dias
-            </button>
-            <button type="button" onClick={() => applyQuickRange(90)}>
-              90 dias
-            </button>
-          </div>
           <button
             className="attendance-primary"
             onClick={() => {
@@ -1334,12 +1275,8 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
           </header>
           <dl>
             <div>
-              <dt>Primeiro login</dt>
+              <dt>Primeiro acesso</dt>
               <dd>{formatDateTime(record.firstLoginAt)}</dd>
-            </div>
-            <div>
-              <dt>Último login</dt>
-              <dd>{formatDateTime(record.lastLoginAt)}</dd>
             </div>
           </dl>
         </article>
@@ -1360,8 +1297,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
           <thead>
             <tr>
               <th>Data</th>
-              <th>Primeiro login</th>
-              <th>Último login</th>
+              <th>Primeiro acesso</th>
               <th>Logins</th>
             </tr>
           </thead>
@@ -1370,13 +1306,12 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               <tr key={record.id}>
                 <td>{formatDate(record.attendanceDate)}</td>
                 <td>{formatDateTime(record.firstLoginAt)}</td>
-                <td>{formatDateTime(record.lastLoginAt)}</td>
                 <td>{record.loginCount}</td>
               </tr>
             ))}
             {items.length === 0 && !loading ? (
               <tr>
-                <td colSpan={4}>
+                <td colSpan={3}>
                   <div className="at-empty">
                     <Icon fafa="faCalendarXmark" width={28} />
                     <p>Nenhuma presença registrada ainda.</p>
@@ -1409,13 +1344,13 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
 
   /* ── Relatório de impressão ──────────────────────────── */
   const renderPrintReport = () => {
-    if (printDate) {
-      const dayRecords = records.filter(r => r.attendanceDate === printDate);
+    if (startDate === endDate) {
+      const dayRecords = records.filter(r => r.attendanceDate === startDate);
       return (
         <div className="attendance-print-sheet">
           <h1>Relatório de frequência diária</h1>
           <p>
-            Turma: {filteredTurmaName} | Data: {formatDate(printDate)}
+            Turma: {filteredTurmaName} | Data: {formatDate(startDate)}
           </p>
           <table>
             <thead>
@@ -1423,8 +1358,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
                 <th>Aluno</th>
                 <th>Turma</th>
                 <th>Status</th>
-                <th>Primeiro login</th>
-                <th>Último login</th>
+                <th>Acesso</th>
               </tr>
             </thead>
             <tbody>
@@ -1442,7 +1376,6 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
                       )}
                     </td>
                     <td>{record ? formatTime(record.firstLoginAt) : "-"}</td>
-                    <td>{record ? formatTime(record.lastLoginAt) : "-"}</td>
                   </tr>
                 );
               })}
@@ -1468,7 +1401,6 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               <th>Presenças</th>
               <th>Ausências</th>
               <th>Aproveitamento</th>
-              <th>Último login</th>
             </tr>
           </thead>
           <tbody>
@@ -1479,7 +1411,6 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
                 <td>{student.presentDays}</td>
                 <td>{student.absentDays}</td>
                 <td>{student.attendanceRate}%</td>
-                <td>{formatDateTime(student.lastLoginAt)}</td>
               </tr>
             ))}
           </tbody>
