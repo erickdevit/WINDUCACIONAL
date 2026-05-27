@@ -45,6 +45,7 @@ const pool = new Pool({
 
 const app = express();
 app.disable("x-powered-by");
+app.set("trust proxy", 1);
 app.use(express.json({ limit: "1mb" }));
 
 const ATTENDANCE_TIME_ZONE = "America/Sao_Paulo";
@@ -1464,9 +1465,9 @@ const getOnlinePvpUsers = (viewer) => {
     .map((onlineUser) => publicUser(onlineUser.user));
 };
 
-const setSessionCookie = (res, token) => {
+const setSessionCookie = (req, res, token) => {
   const maxAge = config.sessionDays * 24 * 60 * 60;
-  const secure = config.nodeEnv === "production";
+  const secure = req.secure;
   res.setHeader(
     "Set-Cookie",
     `${config.cookieName}=${encodeURIComponent(
@@ -1657,7 +1658,7 @@ app.post("/api/bootstrap", async (req, res, next) => {
       password: req.body.password,
     });
     const token = await createSession(user.id);
-    setSessionCookie(res, token);
+    setSessionCookie(req, res, token);
     return res.status(201).json({ user: publicUser(user) });
   } catch (error) {
     return next(error);
@@ -1720,7 +1721,7 @@ app.post("/api/auth/login", async (req, res) => {
   }
 
   const token = await createSession(user.id);
-  setSessionCookie(res, token);
+  setSessionCookie(req, res, token);
   res.json({ user: publicUser(user) });
 });
 
@@ -1752,7 +1753,7 @@ app.post("/api/auth/register", async (req, res, next) => {
       password: req.body.password,
     });
     const token = await createSession(user.id);
-    setSessionCookie(res, token);
+    setSessionCookie(req, res, token);
     res.status(201).json({ user: publicUser(user) });
   } catch (error) {
     if (error.code === "23505") {

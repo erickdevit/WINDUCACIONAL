@@ -190,7 +190,7 @@ describe("Backend - cadastro público de aluno", () => {
     expect(serverCode).toContain('"/api/auth/register"');
     expect(serverCode).toContain("turmaCode");
     expect(serverCode).toContain('role: "aluno"');
-    expect(serverCode).toContain("setSessionCookie(res, token)");
+    expect(serverCode).toContain("setSessionCookie(req, res, token)");
   });
 
   it("deve verificar disponibilidade de username antes de criar perfil", () => {
