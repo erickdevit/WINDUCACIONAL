@@ -456,6 +456,7 @@
   }
 
   .pdf-viewer-footer {
+    position: relative;
     flex: 0 0 auto;
     display: flex;
     align-items: center;
@@ -466,6 +467,10 @@
     color: #64748b;
     font-size: 12px;
     font-weight: 650;
+  }
+
+  .pdf-viewer-mobile-back {
+    display: none;
   }
 
   .booklets-access-counter {
@@ -954,6 +959,33 @@
       max-width: 800px;
       border-radius: 4px;
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    }
+  }
+}
+
+@media (max-width: 480px) and (orientation: portrait) {
+  .bookletsApp.readerMode {
+    .pdf-viewer-footer {
+      min-height: 38px;
+      padding-right: 78px;
+    }
+
+    .pdf-viewer-mobile-back {
+      position: absolute;
+      right: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 58px;
+      height: 28px;
+      padding: 0 10px;
+      border: 1px solid rgba(15, 23, 42, 0.14);
+      border-radius: 6px;
+      background: #f8fafc;
+      color: #1f2937;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
     }
   }
 }

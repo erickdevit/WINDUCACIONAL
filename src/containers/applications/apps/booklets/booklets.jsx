@@ -397,7 +397,11 @@ export const BookletsApp = () => {
     <div className="booklets-reader-shell">
       <section className="booklets-reader">
         {selectedFile ? (
-          <PdfViewer url={selectedFile.url} title={selectedFile.title} />
+          <PdfViewer
+            url={selectedFile.url}
+            title={selectedFile.title}
+            onBack={() => setActiveTab(isProfessor ? "library" : "shelf")}
+          />
         ) : (
           <div className="booklets-empty">Escolha um PDF para leitura.</div>
         )}

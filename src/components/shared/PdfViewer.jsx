@@ -3,7 +3,7 @@ import { getDocument, GlobalWorkerOptions } from "pdfjs-dist/legacy/build/pdf";
 
 GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
 
-const PdfViewer = ({ url, title }) => {
+const PdfViewer = ({ url, title, onBack }) => {
   const containerRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -74,7 +74,11 @@ const PdfViewer = ({ url, title }) => {
   }, [url]);
 
   return (
-    <div className="pdf-viewer" role="region" aria-label={title || "Leitor de PDF"}>
+    <div
+      className="pdf-viewer"
+      role="region"
+      aria-label={title || "Leitor de PDF"}
+    >
       {loading ? (
         <div className="pdf-viewer-status">Carregando PDF...</div>
       ) : null}
@@ -85,7 +89,22 @@ const PdfViewer = ({ url, title }) => {
       ) : null}
       <div className="pdf-viewer-pages win11Scroll" ref={containerRef} />
       {!loading && !error && numPages > 0 ? (
-        <div className="pdf-viewer-footer">{numPages} página{numPages !== 1 ? "s" : ""}</div>
+        <div className="pdf-viewer-footer">
+          <span>
+            {numPages} página{numPages !== 1 ? "s" : ""}
+          </span>
+          {onBack ? (
+            <button
+              className="pdf-viewer-mobile-back"
+              type="button"
+              onClick={onBack}
+              aria-label="Voltar para apostilas"
+              title="Voltar para apostilas"
+            >
+              Voltar
+            </button>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

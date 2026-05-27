@@ -11,6 +11,7 @@ describe("App Apostilas", () => {
   const source = read(
     "../src/containers/applications/apps/booklets/booklets.jsx"
   );
+  const pdfViewerSource = read("../src/components/shared/PdfViewer.jsx");
   const styles = read(
     "../src/containers/applications/apps/booklets/booklets.scss"
   );
@@ -37,6 +38,17 @@ describe("App Apostilas", () => {
     expect(source).toContain("url={selectedFile.url}");
     expect(source).not.toContain("<iframe");
     expect(source).not.toContain('target="_blank"');
+  });
+
+  it("deve ter botão mobile em portrait para voltar do leitor para as apostilas", () => {
+    expect(source).toContain("onBack={() => setActiveTab");
+    expect(pdfViewerSource).toContain("pdf-viewer-mobile-back");
+    expect(pdfViewerSource).toContain('aria-label="Voltar para apostilas"');
+    expect(styles).toContain(".pdf-viewer-mobile-back");
+    expect(styles).toContain(
+      "@media (max-width: 480px) and (orientation: portrait)"
+    );
+    expect(styles).toContain("right: 8px");
   });
 
   it("deve exibir apostilas em tiles com prévia de capa", () => {
