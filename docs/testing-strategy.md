@@ -46,6 +46,8 @@ Criar uma suíte objetiva, rápida e útil para proteger a evolução do simulad
 - Backend registra presença automaticamente ao criar sessão de aluno dentro dos dias e horários configurados para a turma, mantendo um registro único por aluno/data com primeiro login, último login e contador de logins.
 - Professor configura dias da semana e horário de aula na área de Turmas; o app Frequência usa essa agenda para calcular presença e ausência sem contar dias sem aula.
 - Professor filtra frequência por turma e período, confere métricas de presença/ausência baseadas na agenda da turma e imprime relatório; aluno visualiza apenas o próprio histórico.
+- A rota `/frequencia` renderiza a Frequência em modo web direto, sem desktop, taskbar ou menus do simulador, preservando a mesma autenticação e os mesmos endpoints do app em janela.
+- Em celular no modo retrato, a Frequência usa navegação inferior, filtros em painel inferior e cartões no lugar das tabelas largas, sem alterar a experiência de desktop.
 - Professor cria prova com tempo global, configura tempo por questão, publica, atribui a alunos e acompanha resultados.
 - Aluno confirma o nome completo antes de iniciar a avaliação, com autoformatação no cliente, normalização no backend e snapshot salvo na submissão.
 - Aluno só abre avaliações atribuídas, responde múltipla escolha, executa a prática em container simulado e recebe nota calculada pelo backend.

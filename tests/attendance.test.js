@@ -13,6 +13,20 @@ describe("App Frequência", () => {
     ),
     "utf8"
   );
+  const styles = fs.readFileSync(
+    path.resolve(
+      __dirname,
+      "../src/containers/applications/apps/attendance/attendance.scss"
+    ),
+    "utf8"
+  );
+  const appSource = fs.readFileSync(
+    path.resolve(__dirname, "../src/App.jsx"),
+    "utf8"
+  );
+  const manifest = JSON.parse(
+    fs.readFileSync(path.resolve(__dirname, "../public/manifest.json"), "utf8")
+  );
 
   it("deve usar AppWindow e rotas de frequência", () => {
     expect(source).toContain("<AppWindow");
@@ -45,5 +59,36 @@ describe("App Frequência", () => {
     expect(source).toContain("Minha frequência");
     expect(source).toContain("Presença registrada automaticamente");
     expect(source).toContain("Histórico");
+  });
+
+  it("deve separar visualização reutilizável e rota direta standalone", () => {
+    expect(source).toContain("export const AttendanceView");
+    expect(source).toContain("export const AttendanceStandalonePage");
+    expect(source).toContain('standalone ? "standalone" : "windowed"');
+    expect(appSource).toContain('directPath === "/frequencia"');
+    expect(appSource).toContain("<AttendanceStandalonePage />");
+  });
+
+  it("deve redesenhar a navegação e listas para celular em retrato", () => {
+    expect(source).toContain("attendance-mobile-nav");
+    expect(source).toContain("attendance-filter-backdrop");
+    expect(source).toContain("attendance-mobile-card");
+    expect(styles).toContain(
+      "@media (max-width: 600px) and (orientation: portrait)"
+    );
+    expect(styles).toContain(".attendance-mobile-nav");
+    expect(styles).toContain(".attendance-card-list");
+    expect(styles).toContain(".attendance-desktop-table");
+  });
+
+  it("deve registrar atalho PWA para abrir a Frequência direto", () => {
+    expect(manifest.shortcuts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: "Frequência",
+          url: "/frequencia",
+        }),
+      ])
+    );
   });
 });

@@ -25,6 +25,7 @@ import { loadSettings } from "./actions";
 import * as Applications from "./containers/applications";
 import * as Drafts from "./containers/applications/draft";
 import { FileDialog } from "./containers/applications/apps/FileDialog";
+import { AttendanceStandalonePage } from "./containers/applications/apps/attendance/attendance";
 import { api } from "./lib/api";
 import { startAppVersionWatcher } from "./lib/appUpdate";
 import { getGlobalShortcutAction } from "./lib/keyboardShortcuts";
@@ -56,6 +57,8 @@ function ErrorFallback({ error, resetErrorBoundary }) {
 }
 
 function App() {
+  const directPath = window.location.pathname.replace(/\/+$/, "");
+  const isAttendanceStandaloneRoute = directPath === "/frequencia";
   const apps = useSelector((state) => state.apps);
   const wall = useSelector((state) => state.wallpaper);
   const files = useSelector((state) => state.files);
@@ -259,34 +262,41 @@ function App() {
     });
   };
 
-  window.oncontextmenu = (e) => {
-    afterMath(e);
-    e.preventDefault();
-    var data = {
-      top: e.clientY,
-      left: e.clientX,
+  if (isAttendanceStandaloneRoute) {
+    window.oncontextmenu = null;
+    window.onclick = null;
+    window.onload = null;
+  } else {
+    window.oncontextmenu = (e) => {
+      afterMath(e);
+      e.preventDefault();
+      var data = {
+        top: e.clientY,
+        left: e.clientX,
+      };
+
+      // Walk up the DOM tree to find the closest element with data-menu
+      var menuEl = e.target.closest("[data-menu]");
+      if (menuEl) {
+        data.menu = menuEl.dataset.menu;
+        data.attr = menuEl.attributes;
+        data.dataset = { ...menuEl.dataset };
+        dispatch({
+          type: "MENUSHOW",
+          payload: data,
+        });
+      }
     };
 
-    // Walk up the DOM tree to find the closest element with data-menu
-    var menuEl = e.target.closest("[data-menu]");
-    if (menuEl) {
-      data.menu = menuEl.dataset.menu;
-      data.attr = menuEl.attributes;
-      data.dataset = { ...menuEl.dataset };
-      dispatch({
-        type: "MENUSHOW",
-        payload: data,
-      });
-    }
-  };
+    window.onclick = afterMath;
 
-  window.onclick = afterMath;
-
-  window.onload = (e) => {
-    dispatch({ type: "WALLBOOTED" });
-  };
+    window.onload = (e) => {
+      dispatch({ type: "WALLBOOTED" });
+    };
+  }
 
   useEffect(() => {
+    if (isAttendanceStandaloneRoute) return;
     if (!window.onstart) {
       loadSettings();
       window.onstart = setTimeout(() => {
@@ -294,7 +304,7 @@ function App() {
         dispatch({ type: "WALLBOOTED" });
       }, 5000);
     }
-  });
+  }, [isAttendanceStandaloneRoute]);
 
   useEffect(() => {
     refreshSession();
@@ -351,6 +361,7 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (isAttendanceStandaloneRoute) return undefined;
     let metaPressed = false;
     let otherKeyPressed = false;
 
@@ -427,7 +438,7 @@ function App() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [apps, dispatch, files.fileDialog]);
+  }, [apps, dispatch, files.fileDialog, isAttendanceStandaloneRoute]);
 
   useEffect(() => {
     if (
@@ -483,6 +494,14 @@ function App() {
         error={session.error}
         loading={session.saving}
       />
+    );
+  }
+
+  if (isAttendanceStandaloneRoute) {
+    return (
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <AttendanceStandalonePage />
+      </ErrorBoundary>
     );
   }
 

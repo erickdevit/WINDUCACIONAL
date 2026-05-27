@@ -78,6 +78,7 @@ docker compose -f compose.dev.yml up -d
 - A implantação padrão cria automaticamente o usuário inicial `Admin` com senha `Admin` e papel `professor` quando o banco está vazio.
 - A tela de login permite cadastro público de aluno usando código de turma ativa, criando a sessão e vinculando o aluno à turma informada.
 - A agenda de dias e horários de aula deve ser configurada na área de Turmas das Configurações e usada como fonte de verdade pelos apps que precisem calcular presença, ausência ou disponibilidade por turma.
+- O app Frequência também deve funcionar pela rota direta `/frequencia`, como app web normal autenticado, sem montar desktop, taskbar ou menus do simulador; mantenha esse modo em sincronia com o app aberto pela janela do simulador.
 - Mudanças estruturais devem atualizar `docs/architecture.md`, `docs/security.md`, `docs/testing-strategy.md` ou `docs/deployment.md` quando aplicável.
 - Não reverta alterações de outros colaboradores sem pedido explícito.
 - Prefira alterações pequenas e revisáveis, com testes correspondentes ao risco.

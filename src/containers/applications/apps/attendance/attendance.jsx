@@ -64,8 +64,7 @@ const studentTabs = [
   { id: "student-history", label: "Histórico", icon: "faClockRotateLeft" },
 ];
 
-export const AttendanceApp = () => {
-  const wnapp = useSelector((state) => state.apps.attendance);
+export const AttendanceView = ({ standalone = false, visible = true }) => {
   const user = useSelector((state) => state.setting.person);
   const isProfessor = user.role === "professor";
   const defaultRange = useMemo(() => getDefaultRange(), []);
@@ -82,6 +81,7 @@ export const AttendanceApp = () => {
   const [studentSearch, setStudentSearch] = useState("");
   const [recordFilter, setRecordFilter] = useState("all");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -180,9 +180,13 @@ export const AttendanceApp = () => {
   }, [isProfessor]);
 
   useEffect(() => {
-    if (wnapp.hide) return;
+    if (!visible) return;
     reload();
-  }, [wnapp.hide, isProfessor]);
+  }, [visible, isProfessor]);
+
+  useEffect(() => {
+    if (!isProfessor) setMobileFiltersOpen(false);
+  }, [isProfessor]);
 
   const applyQuickRange = (days) => {
     const range = getRangeFromDays(days);
@@ -234,9 +238,7 @@ export const AttendanceApp = () => {
           type="button"
           className="attendance-nav-link"
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          title={
-            sidebarCollapsed ? "Expandir navegação" : "Recolher navegação"
-          }
+          title={sidebarCollapsed ? "Expandir navegação" : "Recolher navegação"}
         >
           <Icon
             fafa={sidebarCollapsed ? "faAngleRight" : "faAngleLeft"}
@@ -248,14 +250,51 @@ export const AttendanceApp = () => {
     </aside>
   );
 
+  const renderMobileNav = () => (
+    <nav
+      className="attendance-mobile-nav"
+      aria-label="Seções de frequência"
+      style={{ "--attendance-mobile-nav-count": tabs.length }}
+    >
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          type="button"
+          className={activeTab === tab.id ? "active" : ""}
+          onClick={() => setActiveTab(tab.id)}
+          aria-current={activeTab === tab.id ? "page" : undefined}
+        >
+          <Icon fafa={tab.icon} width={15} />
+          <span>{tab.label}</span>
+        </button>
+      ))}
+    </nav>
+  );
+
   const renderHeader = (title, subtitle, actions = null) => (
     <header className="attendance-page-head">
       <div>
         <span className="attendance-kicker">Frequência</span>
         <h1>{title}</h1>
         {subtitle ? <p>{subtitle}</p> : null}
+        {isProfessor ? (
+          <p className="attendance-filter-summary attendance-mobile-only">
+            {filteredTurmaName} · {formatDate(startDate)} até{" "}
+            {formatDate(endDate)}
+          </p>
+        ) : null}
       </div>
       <div className="attendance-actions">
+        {isProfessor ? (
+          <button
+            className="attendance-secondary attendance-mobile-only"
+            onClick={() => setMobileFiltersOpen(true)}
+            type="button"
+          >
+            <Icon fafa="faSliders" width={13} />
+            Filtros
+          </button>
+        ) : null}
         <button
           className="attendance-secondary"
           onClick={reload}
@@ -270,58 +309,85 @@ export const AttendanceApp = () => {
   );
 
   const renderFilters = () => (
-    <section className="attendance-filters">
-      <label>
-        <span>Turma</span>
-        <select
-          value={selectedTurmaId}
-          onChange={(event) => setSelectedTurmaId(event.target.value)}
-        >
-          <option value="">Todas as turmas</option>
-          {turmas.map((turma) => (
-            <option key={turma.id} value={turma.id}>
-              {turma.nome}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        <span>Início</span>
-        <input
-          type="date"
-          value={startDate}
-          onChange={(event) => setStartDate(event.target.value)}
+    <>
+      {mobileFiltersOpen ? (
+        <button
+          type="button"
+          className="attendance-filter-backdrop attendance-mobile-only"
+          aria-label="Fechar filtros"
+          onClick={() => setMobileFiltersOpen(false)}
         />
-      </label>
-      <label>
-        <span>Fim</span>
-        <input
-          type="date"
-          value={endDate}
-          onChange={(event) => setEndDate(event.target.value)}
-        />
-      </label>
-      <div className="attendance-filter-actions">
-        <div className="attendance-segmented">
-          <button type="button" onClick={() => applyQuickRange(7)}>
-            7 dias
-          </button>
-          <button type="button" onClick={() => applyQuickRange(30)}>
-            30 dias
-          </button>
-          <button type="button" onClick={() => applyQuickRange(90)}>
-            90 dias
+      ) : null}
+      <section
+        className={`attendance-filters ${
+          mobileFiltersOpen ? "mobile-open" : ""
+        }`}
+      >
+        <div className="attendance-filter-drawer-head attendance-mobile-only">
+          <strong>Filtros</strong>
+          <button
+            type="button"
+            aria-label="Fechar filtros"
+            onClick={() => setMobileFiltersOpen(false)}
+          >
+            <Icon fafa="faXmark" width={13} />
           </button>
         </div>
-        <button
-          className="attendance-primary"
-          onClick={loadProfessorData}
-          disabled={loading}
-        >
-          Aplicar
-        </button>
-      </div>
-    </section>
+        <label>
+          <span>Turma</span>
+          <select
+            value={selectedTurmaId}
+            onChange={(event) => setSelectedTurmaId(event.target.value)}
+          >
+            <option value="">Todas as turmas</option>
+            {turmas.map((turma) => (
+              <option key={turma.id} value={turma.id}>
+                {turma.nome}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span>Início</span>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(event) => setStartDate(event.target.value)}
+          />
+        </label>
+        <label>
+          <span>Fim</span>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(event) => setEndDate(event.target.value)}
+          />
+        </label>
+        <div className="attendance-filter-actions">
+          <div className="attendance-segmented">
+            <button type="button" onClick={() => applyQuickRange(7)}>
+              7 dias
+            </button>
+            <button type="button" onClick={() => applyQuickRange(30)}>
+              30 dias
+            </button>
+            <button type="button" onClick={() => applyQuickRange(90)}>
+              90 dias
+            </button>
+          </div>
+          <button
+            className="attendance-primary"
+            onClick={() => {
+              loadProfessorData();
+              setMobileFiltersOpen(false);
+            }}
+            disabled={loading}
+          >
+            Aplicar
+          </button>
+        </div>
+      </section>
+    </>
   );
 
   const renderStats = () => (
@@ -349,49 +415,91 @@ export const AttendanceApp = () => {
     </section>
   );
 
-  const renderStudentTable = (items = filteredStudents) => (
-    <div className="attendance-table-wrap win11Scroll">
-      <table className="attendance-table">
-        <thead>
-          <tr>
-            <th>Aluno</th>
-            <th>Turma</th>
-            <th>Presenças</th>
-            <th>Ausências</th>
-            <th>%</th>
-            <th>Último login</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((student) => (
-            <tr key={student.id}>
-              <td>
-                <strong>{student.displayName}</strong>
-                <small>@{student.username}</small>
-              </td>
-              <td>{student.turmaNome || "Sem turma"}</td>
-              <td>{student.presentDays}</td>
-              <td>{student.absentDays}</td>
-              <td>
-                <span className="attendance-rate">
-                  {student.attendanceRate}%
-                </span>
-              </td>
-              <td>{formatDateTime(student.lastLoginAt)}</td>
-            </tr>
-          ))}
-          {items.length === 0 && !loading ? (
-            <tr>
-              <td colSpan={6}>
-                <div className="attendance-empty">
-                  Nenhum aluno encontrado para os filtros atuais.
-                </div>
-              </td>
-            </tr>
-          ) : null}
-        </tbody>
-      </table>
+  const renderStudentCards = (items = filteredStudents) => (
+    <div className="attendance-card-list attendance-mobile-only">
+      {items.map((student) => (
+        <article className="attendance-mobile-card" key={student.id}>
+          <header>
+            <div>
+              <strong>{student.displayName}</strong>
+              <span>@{student.username}</span>
+            </div>
+            <span className="attendance-rate">{student.attendanceRate}%</span>
+          </header>
+          <dl>
+            <div>
+              <dt>Turma</dt>
+              <dd>{student.turmaNome || "Sem turma"}</dd>
+            </div>
+            <div>
+              <dt>Presenças</dt>
+              <dd>{student.presentDays}</dd>
+            </div>
+            <div>
+              <dt>Ausências</dt>
+              <dd>{student.absentDays}</dd>
+            </div>
+            <div>
+              <dt>Último login</dt>
+              <dd>{formatDateTime(student.lastLoginAt)}</dd>
+            </div>
+          </dl>
+        </article>
+      ))}
+      {items.length === 0 && !loading ? (
+        <div className="attendance-empty">
+          Nenhum aluno encontrado para os filtros atuais.
+        </div>
+      ) : null}
     </div>
+  );
+
+  const renderStudentTable = (items = filteredStudents) => (
+    <>
+      <div className="attendance-table-wrap attendance-desktop-table win11Scroll">
+        <table className="attendance-table">
+          <thead>
+            <tr>
+              <th>Aluno</th>
+              <th>Turma</th>
+              <th>Presenças</th>
+              <th>Ausências</th>
+              <th>%</th>
+              <th>Último login</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((student) => (
+              <tr key={student.id}>
+                <td>
+                  <strong>{student.displayName}</strong>
+                  <small>@{student.username}</small>
+                </td>
+                <td>{student.turmaNome || "Sem turma"}</td>
+                <td>{student.presentDays}</td>
+                <td>{student.absentDays}</td>
+                <td>
+                  <span className="attendance-rate">
+                    {student.attendanceRate}%
+                  </span>
+                </td>
+                <td>{formatDateTime(student.lastLoginAt)}</td>
+              </tr>
+            ))}
+            {items.length === 0 && !loading ? (
+              <tr>
+                <td colSpan={6}>
+                  <div className="attendance-empty">
+                    Nenhum aluno encontrado para os filtros atuais.
+                  </div>
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+      {renderStudentCards(items)}
+    </>
   );
 
   const renderDailyList = (items = daily) => (
@@ -420,45 +528,89 @@ export const AttendanceApp = () => {
     </div>
   );
 
-  const renderRecordsTable = (items = filteredRecords) => (
-    <div className="attendance-table-wrap win11Scroll">
-      <table className="attendance-table wide">
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Aluno</th>
-            <th>Turma</th>
-            <th>Primeiro login</th>
-            <th>Último login</th>
-            <th>Logins</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((record) => (
-            <tr key={record.id}>
-              <td>{formatDate(record.attendanceDate)}</td>
-              <td>
-                <strong>{record.displayName}</strong>
-                <small>@{record.username}</small>
-              </td>
-              <td>{record.turmaNome || "Sem turma"}</td>
-              <td>{formatTime(record.firstLoginAt)}</td>
-              <td>{formatTime(record.lastLoginAt)}</td>
-              <td>{record.loginCount}</td>
-            </tr>
-          ))}
-          {items.length === 0 && !loading ? (
-            <tr>
-              <td colSpan={6}>
-                <div className="attendance-empty">
-                  Nenhum registro encontrado para os filtros atuais.
-                </div>
-              </td>
-            </tr>
-          ) : null}
-        </tbody>
-      </table>
+  const renderRecordCards = (items = filteredRecords) => (
+    <div className="attendance-card-list attendance-mobile-only">
+      {items.map((record) => (
+        <article className="attendance-mobile-card" key={record.id}>
+          <header>
+            <div>
+              <strong>{record.displayName}</strong>
+              <span>{formatDate(record.attendanceDate)}</span>
+            </div>
+            <span className="attendance-rate">
+              {record.loginCount} login(s)
+            </span>
+          </header>
+          <dl>
+            <div>
+              <dt>Turma</dt>
+              <dd>{record.turmaNome || "Sem turma"}</dd>
+            </div>
+            <div>
+              <dt>Primeiro login</dt>
+              <dd>{formatTime(record.firstLoginAt)}</dd>
+            </div>
+            <div>
+              <dt>Último login</dt>
+              <dd>{formatTime(record.lastLoginAt)}</dd>
+            </div>
+            <div>
+              <dt>Usuário</dt>
+              <dd>@{record.username}</dd>
+            </div>
+          </dl>
+        </article>
+      ))}
+      {items.length === 0 && !loading ? (
+        <div className="attendance-empty">
+          Nenhum registro encontrado para os filtros atuais.
+        </div>
+      ) : null}
     </div>
+  );
+
+  const renderRecordsTable = (items = filteredRecords) => (
+    <>
+      <div className="attendance-table-wrap attendance-desktop-table win11Scroll">
+        <table className="attendance-table wide">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Aluno</th>
+              <th>Turma</th>
+              <th>Primeiro login</th>
+              <th>Último login</th>
+              <th>Logins</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((record) => (
+              <tr key={record.id}>
+                <td>{formatDate(record.attendanceDate)}</td>
+                <td>
+                  <strong>{record.displayName}</strong>
+                  <small>@{record.username}</small>
+                </td>
+                <td>{record.turmaNome || "Sem turma"}</td>
+                <td>{formatTime(record.firstLoginAt)}</td>
+                <td>{formatTime(record.lastLoginAt)}</td>
+                <td>{record.loginCount}</td>
+              </tr>
+            ))}
+            {items.length === 0 && !loading ? (
+              <tr>
+                <td colSpan={6}>
+                  <div className="attendance-empty">
+                    Nenhum registro encontrado para os filtros atuais.
+                  </div>
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+      {renderRecordCards(items)}
+    </>
   );
 
   const renderOverview = () => (
@@ -629,38 +781,71 @@ export const AttendanceApp = () => {
     </>
   );
 
-  const renderStudentHistoryTable = (items = studentRecords) => (
-    <div className="attendance-table-wrap win11Scroll">
-      <table className="attendance-table">
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Primeiro login</th>
-            <th>Último login</th>
-            <th>Logins</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((record) => (
-            <tr key={record.id}>
-              <td>{formatDate(record.attendanceDate)}</td>
-              <td>{formatDateTime(record.firstLoginAt)}</td>
-              <td>{formatDateTime(record.lastLoginAt)}</td>
-              <td>{record.loginCount}</td>
-            </tr>
-          ))}
-          {items.length === 0 && !loading ? (
-            <tr>
-              <td colSpan={4}>
-                <div className="attendance-empty">
-                  Nenhuma presença registrada ainda.
-                </div>
-              </td>
-            </tr>
-          ) : null}
-        </tbody>
-      </table>
+  const renderStudentHistoryCards = (items = studentRecords) => (
+    <div className="attendance-card-list attendance-mobile-only">
+      {items.map((record) => (
+        <article className="attendance-mobile-card compact" key={record.id}>
+          <header>
+            <div>
+              <strong>{formatDate(record.attendanceDate)}</strong>
+              <span>{record.loginCount} login(s)</span>
+            </div>
+          </header>
+          <dl>
+            <div>
+              <dt>Primeiro login</dt>
+              <dd>{formatDateTime(record.firstLoginAt)}</dd>
+            </div>
+            <div>
+              <dt>Último login</dt>
+              <dd>{formatDateTime(record.lastLoginAt)}</dd>
+            </div>
+          </dl>
+        </article>
+      ))}
+      {items.length === 0 && !loading ? (
+        <div className="attendance-empty">
+          Nenhuma presença registrada ainda.
+        </div>
+      ) : null}
     </div>
+  );
+
+  const renderStudentHistoryTable = (items = studentRecords) => (
+    <>
+      <div className="attendance-table-wrap attendance-desktop-table win11Scroll">
+        <table className="attendance-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Primeiro login</th>
+              <th>Último login</th>
+              <th>Logins</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((record) => (
+              <tr key={record.id}>
+                <td>{formatDate(record.attendanceDate)}</td>
+                <td>{formatDateTime(record.firstLoginAt)}</td>
+                <td>{formatDateTime(record.lastLoginAt)}</td>
+                <td>{record.loginCount}</td>
+              </tr>
+            ))}
+            {items.length === 0 && !loading ? (
+              <tr>
+                <td colSpan={4}>
+                  <div className="attendance-empty">
+                    Nenhuma presença registrada ainda.
+                  </div>
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+      {renderStudentHistoryCards(items)}
+    </>
   );
 
   const renderStudentHistory = () => (
@@ -725,6 +910,40 @@ export const AttendanceApp = () => {
   };
 
   return (
+    <div
+      className={`attendance-view ${standalone ? "standalone" : "windowed"}`}
+    >
+      <div className="attendance-shell win11Scroll">
+        {renderSidebar()}
+        <main className="attendance-main">
+          {message ? <div className="attendance-alert">{message}</div> : null}
+          {renderActiveContent()}
+        </main>
+        {renderMobileNav()}
+      </div>
+      <section className="attendance-print-report">
+        {renderPrintReport()}
+      </section>
+    </div>
+  );
+};
+
+export const AttendanceStandalonePage = () => {
+  useEffect(() => {
+    document.title = "Frequência - WINDUCACIONAL";
+  }, []);
+
+  return (
+    <main className="attendanceStandalonePage">
+      <AttendanceView standalone />
+    </main>
+  );
+};
+
+export const AttendanceApp = () => {
+  const wnapp = useSelector((state) => state.apps.attendance);
+
+  return (
     <AppWindow
       wnapp={wnapp}
       app={wnapp.action}
@@ -734,16 +953,7 @@ export const AttendanceApp = () => {
       windowScreenClassName="flex flex-col"
       restWindowClassName="flex-grow flex flex-col"
     >
-      <div className="attendance-shell win11Scroll">
-        {renderSidebar()}
-        <main className="attendance-main">
-          {message ? <div className="attendance-alert">{message}</div> : null}
-          {renderActiveContent()}
-        </main>
-      </div>
-      <section className="attendance-print-report">
-        {renderPrintReport()}
-      </section>
+      <AttendanceView visible={!wnapp.hide} />
     </AppWindow>
   );
 };

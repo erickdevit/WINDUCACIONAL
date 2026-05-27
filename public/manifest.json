@@ -33,5 +33,20 @@
   "theme_color": "#000000",
   "background_color": "#010001",
   "categories": ["education", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Frequência",
+      "short_name": "Frequência",
+      "description": "Abrir o app Frequência em modo web direto.",
+      "url": "/frequencia",
+      "icons": [
+        {
+          "src": "img/icon/attendance.svg",
+          "type": "image/svg+xml",
+          "sizes": "any"
+        }
+      ]
+    }
+  ],
   "prefer_related_applications": false
 }
