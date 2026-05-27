@@ -426,6 +426,21 @@ LEFT JOIN typing_game_scores t
 WHERE u.role = 'aluno' AND u.active = TRUE
 GROUP BY u.id, u.display_name, u.role, COALESCE(turma.student_type, u.student_type), u.turma_id;
 
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'users'
+      AND constraint_name = 'users_role_check'
+  ) THEN
+    ALTER TABLE users DROP CONSTRAINT users_role_check;
+  END IF;
+
+  ALTER TABLE users
+    ADD CONSTRAINT users_role_check
+    CHECK (role IN ('aluno', 'professor', 'secretaria'));
+END $$;
+
 CREATE TABLE IF NOT EXISTS typing_pvp_matches (
   id UUID PRIMARY KEY,
   winner_id UUID REFERENCES users(id) ON DELETE SET NULL,
