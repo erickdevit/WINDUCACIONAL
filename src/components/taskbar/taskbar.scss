@@ -3,7 +3,7 @@
   --bg2: rgba(255, 255, 255, 0.67);
   --taskbar-height: 48px;
 
-  position: absolute;
+  position: fixed;
   width: 100vw;
   height: var(--taskbar-height);
   color: var(--dark-txt);
@@ -11,7 +11,8 @@
   -webkit-backdrop-filter: saturate(3) blur(20px);
   backdrop-filter: saturate(3) blur(20px);
   bottom: 0;
-  z-index: 10000;
+  z-index: 9999;
+  transition: bottom 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 body[data-theme="dark"] {
@@ -166,5 +167,12 @@ body[data-theme="dark"] {
 @media screen and (max-width: 768px) {
   .vkb-toggle {
     display: flex;
+  }
+}
+
+/* Quando o teclado virtual está ativo: taskbar sobe */
+@media screen and (max-width: 768px) {
+  body[data-vk="on"] .taskbar {
+    bottom: var(--vk-height, 0px);
   }
 }

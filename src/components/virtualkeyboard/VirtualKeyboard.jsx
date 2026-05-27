@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import "./virtualkeyboard.scss";
 
+/* ─── Mapa de composição de acentos (dead keys) ─────── */
 const COMBINE = {
   "´": { a: "á", e: "é", i: "í", o: "ó", u: "ú", c: "ç", y: "ý" },
   "`": { a: "à", e: "è", i: "ì", o: "ò", u: "ù" },
@@ -11,6 +12,7 @@ const COMBINE = {
 
 const CHARS_BASE = "abcdefghijklmnopqrstuvwxyzç";
 
+/* ─── Manipulação do elemento ativo ─────────────────── */
 function insert(c) {
   const el = document.activeElement;
   if (!el || !(el instanceof HTMLElement)) return;
@@ -47,9 +49,24 @@ function backspace() {
   }
 }
 
+function moveCursor(dir) {
+  const el = document.activeElement;
+  if (!el || !(el instanceof HTMLElement)) return;
+  const t = el.tagName.toLowerCase();
+  if (t !== "input" && t !== "textarea") return;
+  const s = el.selectionStart;
+  if (dir === "left" && s > 0) {
+    el.selectionStart = el.selectionEnd = s - 1;
+  } else if (dir === "right" && s < el.value.length) {
+    el.selectionStart = el.selectionEnd = s + 1;
+  }
+}
+
+/* ─── Layout ABNT2 adaptado para mobile ─────────────── */
+// w = flex grow relativo, d = dead key, s = shifted char, k = key especial
 const ROWS = [
+  // Linha de números
   [
-    { l: "Esc", k: "Escape", w: 1.2 },
     { l: "`", v: "`", d: true, s: "¬" },
     { l: "1", v: "1", s: "!" },
     { l: "2", v: "2", s: "@" },
@@ -63,10 +80,11 @@ const ROWS = [
     { l: "0", v: "0", s: ")" },
     { l: "-", v: "-", s: "_" },
     { l: "=", v: "=", s: "+" },
-    { l: "⌫", k: "Backspace", w: 1.5 },
+    { l: "⌫", k: "Backspace", w: 1.6, cls: "vk-action" },
   ],
+  // Linha QWERTY
   [
-    { l: "Tab", k: "Tab", w: 1.2 },
+    { l: "Tab", k: "Tab", w: 1.4, cls: "vk-action" },
     { l: "Q", v: "q" },
     { l: "W", v: "w" },
     { l: "E", v: "e" },
@@ -81,8 +99,9 @@ const ROWS = [
     { l: "[", v: "[", s: "{" },
     { l: "]", v: "]", s: "}" },
   ],
+  // Linha ASDF
   [
-    { l: "Caps", k: "CapsLock", w: 1.4 },
+    { l: "Caps", k: "CapsLock", w: 1.6, cls: "vk-action vk-caps" },
     { l: "A", v: "a" },
     { l: "S", v: "s" },
     { l: "D", v: "d" },
@@ -95,10 +114,11 @@ const ROWS = [
     { l: "Ç", v: "ç" },
     { l: "^", v: "^", d: true },
     { l: "~", v: "~", d: true },
-    { l: "↵", k: "Enter", w: 1.5 },
+    { l: "↵", k: "Enter", w: 1.6, cls: "vk-action vk-enter" },
   ],
+  // Linha ZXCV
   [
-    { l: "⇧", k: "Shift", w: 2.2 },
+    { l: "⇧", k: "Shift", w: 1.8, cls: "vk-action vk-shift" },
     { l: "\\", v: "\\", s: "|" },
     { l: "Z", v: "z" },
     { l: "X", v: "x" },
@@ -111,27 +131,119 @@ const ROWS = [
     { l: ".", v: ".", s: ">" },
     { l: ";", v: ";", s: ":" },
     { l: "/", v: "/", s: "?" },
-    { l: "⇧", k: "Shift", w: 2.2 },
+    { l: "⇧", k: "Shift", w: 1.8, cls: "vk-action vk-shift" },
   ],
+  // Barra de espaço + navegação
   [
-    { l: "Ctrl", k: "Control", w: 1.8 },
-    { l: "Win", k: "Meta", w: 1.8 },
-    { l: "Alt", k: "Alt", w: 1.8 },
-    { v: " ", w: 6 },
-    { l: "AltGr", k: "AltGraph", w: 1.8 },
-    { l: "Menu", k: "ContextMenu", w: 1.8 },
-    { l: "Ctrl", k: "Control", w: 1.8 },
+    { l: "←", k: "ArrowLeft", w: 1.4, cls: "vk-action" },
+    { l: "→", k: "ArrowRight", w: 1.4, cls: "vk-action" },
+    { v: " ", w: 7, cls: "vk-space" },
+    { l: "Alt", k: "Alt", w: 1.4, cls: "vk-action" },
+    { l: "Ctrl", k: "Control", w: 1.4, cls: "vk-action" },
   ],
 ];
 
+/* ─── Componente principal ───────────────────────────── */
 function VirtualKeyboard() {
   const visible = useSelector((s) => s.globals?.virtualKeyboard);
   const [shift, setShift] = useState(false);
   const [caps, setCaps] = useState(false);
   const [dead, setDead] = useState(null);
+  const [pressing, setPressing] = useState(null); // key index sendo pressionada
   const shiftRef = useRef(false);
   const capsRef = useRef(false);
   const deadRef = useRef(null);
+  const kbRef = useRef(null);
+
+  /* ── Calcular altura e setar --vk-height no body ─── */
+  useEffect(() => {
+    if (!visible) {
+      document.body.removeAttribute("data-vk");
+      document.body.style.removeProperty("--vk-height");
+      return;
+    }
+
+    const updateHeight = () => {
+      if (!kbRef.current) return;
+      const h = kbRef.current.getBoundingClientRect().height;
+      document.body.setAttribute("data-vk", "on");
+      document.body.style.setProperty("--vk-height", `${h}px`);
+    };
+
+    // Atualiza após o paint inicial
+    const raf = requestAnimationFrame(() => {
+      updateHeight();
+    });
+
+    const obs = typeof ResizeObserver !== "undefined"
+      ? new ResizeObserver(updateHeight)
+      : null;
+    if (obs && kbRef.current) obs.observe(kbRef.current);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      obs?.disconnect();
+      document.body.removeAttribute("data-vk");
+      document.body.style.removeProperty("--vk-height");
+    };
+  }, [visible]);
+
+  /* ── Bloquear teclado nativo nos inputs ─────────── */
+  useEffect(() => {
+    if (!visible) return;
+
+    const saved = new WeakMap();
+
+    const lockInput = (el) => {
+      if (!el || !(el instanceof HTMLElement)) return;
+      const t = el.tagName.toLowerCase();
+      if (t !== "input" && t !== "textarea" && !el.isContentEditable) return;
+      if (!saved.has(el)) {
+        saved.set(el, el.getAttribute("inputmode"));
+      }
+      el.setAttribute("inputmode", "none");
+    };
+
+    const restoreInput = (el) => {
+      if (!el || !(el instanceof HTMLElement)) return;
+      if (saved.has(el)) {
+        const orig = saved.get(el);
+        if (orig === null) el.removeAttribute("inputmode");
+        else el.setAttribute("inputmode", orig);
+        saved.delete(el);
+      }
+    };
+
+    // Travar o foco atual se for editável
+    lockInput(document.activeElement);
+
+    const onFocusIn = (e) => lockInput(e.target);
+    const onFocusOut = (e) => restoreInput(e.target);
+
+    document.addEventListener("focusin", onFocusIn, true);
+    document.addEventListener("focusout", onFocusOut, true);
+
+    return () => {
+      document.removeEventListener("focusin", onFocusIn, true);
+      document.removeEventListener("focusout", onFocusOut, true);
+      // Restaurar todos que ainda estejam com inputmode=none por nós
+      document.querySelectorAll("[inputmode='none']").forEach((el) => {
+        restoreInput(el);
+      });
+    };
+  }, [visible]);
+
+  /* ── Reset ao fechar ─────────────────────────────── */
+  useEffect(() => {
+    if (!visible) {
+      setShift(false);
+      setCaps(false);
+      setDead(null);
+      shiftRef.current = false;
+      capsRef.current = false;
+      deadRef.current = null;
+    }
+  }, [visible]);
 
   const getChar = useCallback((keyObj) => {
     if (shiftRef.current && keyObj.s) return keyObj.s;
@@ -141,16 +253,6 @@ function VirtualKeyboard() {
       return keyObj.v.toUpperCase();
     return keyObj.v;
   }, []);
-
-  const resolveChar = useCallback(
-    (keyObj) => {
-      if (keyObj.k) return null;
-      const shifted = shiftRef.current;
-      if (keyObj.d && !(shifted && keyObj.s)) return null;
-      return getChar(keyObj);
-    },
-    [getChar]
-  );
 
   const handleKey = useCallback(
     (keyObj) => {
@@ -162,6 +264,7 @@ function VirtualKeyboard() {
       if (!editable) return;
 
       const k = keyObj.k;
+
       if (k === "Shift") {
         setShift((p) => {
           const n = !p;
@@ -196,10 +299,16 @@ function VirtualKeyboard() {
         insert("\t");
         return;
       }
-      if (k === "Escape") {
+      if (k === "ArrowLeft") {
         deadRef.current = null;
         setDead(null);
-        el.blur();
+        moveCursor("left");
+        return;
+      }
+      if (k === "ArrowRight") {
+        deadRef.current = null;
+        setDead(null);
+        moveCursor("right");
         return;
       }
       if (k) {
@@ -213,6 +322,7 @@ function VirtualKeyboard() {
 
       const shifted = shiftRef.current;
 
+      // Dead key
       if (keyObj.d && !(shifted && keyObj.s)) {
         deadRef.current = keyObj.v;
         setDead(keyObj.v);
@@ -248,55 +358,59 @@ function VirtualKeyboard() {
     [getChar]
   );
 
-  useEffect(() => {
-    if (!visible) {
-      setShift(false);
-      setCaps(false);
-      setDead(null);
-      shiftRef.current = false;
-      capsRef.current = false;
-      deadRef.current = null;
-    }
-  }, [visible]);
-
   if (!visible) return null;
 
   return (
-    <div className="virtual-keyboard">
+    <div className="virtual-keyboard" ref={kbRef} role="toolbar" aria-label="Teclado virtual">
       {ROWS.map((row, ri) => (
         <div className="vk-row" key={ri}>
           {row.map((keyObj, ki) => {
             const isLetter = CHARS_BASE.includes(keyObj.v || "");
-            const label = isLetter
-              ? shift || caps
-                ? keyObj.l
-                : keyObj.l.toLowerCase()
-              : shift && keyObj.s
-                ? keyObj.s
-                : keyObj.l || "";
+            let label;
+            if (keyObj.l === "⌫" || keyObj.l === "↵" || keyObj.l === "⇧") {
+              label = keyObj.l;
+            } else if (isLetter) {
+              label =
+                shift || caps ? keyObj.l.toUpperCase() : keyObj.l.toLowerCase();
+            } else if (shift && keyObj.s) {
+              label = keyObj.s;
+            } else {
+              label = keyObj.l || " ";
+            }
 
-            const cls = ["vk-key"];
-            if (keyObj.k || keyObj.w > 1.2)
-              cls.push("vk-key-wide");
-            if (keyObj.d) cls.push("vk-key-dead");
-            if (dead === keyObj.v && (keyObj.d && !(shift && keyObj.s)))
-              cls.push("vk-key-active");
-            if (keyObj.k === "Shift" && shift) cls.push("vk-key-active");
-            if (keyObj.k === "CapsLock" && caps) cls.push("vk-key-active");
+            const isDeadActive =
+              dead === keyObj.v && keyObj.d && !(shift && keyObj.s);
+            const isShiftActive = keyObj.k === "Shift" && shift;
+            const isCapsActive = keyObj.k === "CapsLock" && caps;
+
+            const cls = [
+              "vk-key",
+              keyObj.cls || "",
+              isDeadActive ? "vk-key--dead-active" : "",
+              keyObj.d ? "vk-key--dead" : "",
+              isShiftActive ? "vk-key--active" : "",
+              isCapsActive ? "vk-key--active" : "",
+              pressing === `${ri}-${ki}` ? "vk-key--pressing" : "",
+            ]
+              .filter(Boolean)
+              .join(" ");
+
+            const keyStyle = {};
+            if (keyObj.w) keyStyle.flex = keyObj.w;
 
             return (
               <button
                 key={ki}
-                className={cls.join(" ")}
-                style={{ flex: keyObj.w || 1 }}
-                onTouchStart={(e) => {
+                className={cls}
+                style={keyStyle}
+                aria-label={keyObj.l || "Espaço"}
+                onPointerDown={(e) => {
                   e.preventDefault();
+                  setPressing(`${ri}-${ki}`);
                   handleKey(keyObj);
                 }}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  handleKey(keyObj);
-                }}
+                onPointerUp={() => setPressing(null)}
+                onPointerLeave={() => setPressing(null)}
               >
                 {label}
               </button>

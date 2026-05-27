@@ -1,117 +1,217 @@
+/* =====================================================
+   Virtual Keyboard — virtualkeyboard.scss
+   Aparece apenas em mobile (portrait e landscape).
+   Fica fixo na borda inferior, com a taskbar acima.
+   ===================================================== */
+
+/* ─── Tokens ────────────────────────────────────────── */
 .virtual-keyboard {
+  --vk-bg: rgba(28, 28, 32, 0.96);
+  --vk-key-bg: rgba(255, 255, 255, 0.11);
+  --vk-key-bg-action: rgba(255, 255, 255, 0.06);
+  --vk-key-bg-enter: #0a7ef9;
+  --vk-key-active: rgba(10, 126, 249, 0.55);
+  --vk-key-dead: rgba(255, 186, 60, 0.25);
+  --vk-key-dead-active: rgba(255, 186, 60, 0.7);
+  --vk-text: #f0f0f2;
+  --vk-text-muted: #9a9aaa;
+  --vk-text-action: #c8c8d0;
+  --vk-text-dead: #ffba3c;
+  --vk-text-enter: #fff;
+  --vk-radius: 7px;
+  --vk-gap: 5px;
+  --vk-pad-x: 6px;
+  --vk-pad-y: 6px;
+  --vk-key-h: 42px;
+
+  /* Posição: fixo na borda inferior, abaixo da taskbar */
   position: fixed;
-  bottom: var(--taskbar-height, 44px);
+  bottom: 0;
   left: 0;
   right: 0;
-  z-index: 9999;
-  background: rgba(30, 30, 30, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  padding: 6px 4px 8px;
+  z-index: 9998; /* abaixo da taskbar (9999) */
+
+  background: var(--vk-bg);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: var(--vk-pad-y) var(--vk-pad-x)
+    calc(var(--vk-pad-y) + env(safe-area-inset-bottom, 0px));
+
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
-  animation: vk-slide-up 0.18s ease-out;
+
+  animation: vk-rise 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Desktop: nunca mostrar */
+  @media (min-width: 769px) {
+    display: none !important;
+  }
 }
 
-@keyframes vk-slide-up {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+@keyframes vk-rise {
+  from {
+    transform: translateY(100%);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
+/* ─── Linhas ─────────────────────────────────────────── */
 .vk-row {
   display: flex;
-  gap: 4px;
-  margin-bottom: 4px;
+  gap: var(--vk-gap);
+  margin-bottom: var(--vk-gap);
   justify-content: center;
+  align-items: stretch;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
 }
 
-.vk-row:last-child {
-  margin-bottom: 0;
-}
-
+/* ─── Tecla base ─────────────────────────────────────── */
 .vk-key {
   flex: 1;
   min-width: 0;
-  height: 40px;
+  height: var(--vk-key-h);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.08);
+
+  background: var(--vk-key-bg);
   border: none;
-  border-radius: 5px;
-  color: #e0e0e0;
-  font-size: 13px;
+  border-radius: var(--vk-radius);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 2px 4px rgba(0, 0, 0, 0.35);
+
+  color: var(--vk-text);
+  font-size: 15px;
   font-family: "Segoe UI", system-ui, sans-serif;
+  font-weight: 500;
+  line-height: 1;
+
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  padding: 0 2px;
-  transition: background 0.08s;
-}
+  padding: 0 3px;
 
-.vk-key:active,
-.vk-key:focus-visible {
-  background: rgba(255, 255, 255, 0.2);
-  outline: none;
-}
+  transition:
+    background 60ms,
+    transform 60ms,
+    box-shadow 60ms;
 
-.vk-key-wide {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.3px;
-  color: #b0b0b0;
-}
-
-.vk-key-dead {
-  color: #7fc9ff;
-}
-
-.vk-key-active {
-  background: rgba(255, 255, 255, 0.18);
-  color: #fff;
-}
-
-/* Portrait phone */
-@media screen and (max-width: 480px) {
-  .virtual-keyboard {
-    padding: 4px 2px 6px;
+  &:focus-visible {
+    outline: 2px solid rgba(10, 126, 249, 0.7);
+    outline-offset: 1px;
   }
+}
 
-  .vk-row {
-    gap: 3px;
-    margin-bottom: 3px;
+/* ─── Estado: pressionando ───────────────────────────── */
+.vk-key--pressing {
+  transform: scale(0.9);
+  background: rgba(255, 255, 255, 0.22) !important;
+  box-shadow: none !important;
+}
+
+/* ─── Teclas de ação (Tab, Caps, Enter, Shift, setas) ── */
+.vk-action {
+  background: var(--vk-key-bg-action);
+  color: var(--vk-text-action);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+/* ─── Enter destacado ────────────────────────────────── */
+.vk-enter {
+  background: var(--vk-key-bg-enter) !important;
+  color: var(--vk-text-enter) !important;
+  font-size: 18px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.2) inset,
+    0 2px 8px rgba(10, 126, 249, 0.4);
+}
+
+/* ─── Barra de espaço ────────────────────────────────── */
+.vk-space {
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: var(--vk-radius);
+}
+
+/* ─── Dead keys ──────────────────────────────────────── */
+.vk-key--dead {
+  color: var(--vk-text-dead);
+  background: var(--vk-key-dead);
+  font-style: italic;
+}
+
+.vk-key--dead-active {
+  background: var(--vk-key-dead-active) !important;
+  color: #fff !important;
+  font-weight: 700;
+}
+
+/* ─── Shift / Caps ativo ─────────────────────────────── */
+.vk-key--active {
+  background: var(--vk-key-active) !important;
+  color: #fff !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.15) inset,
+    0 2px 8px rgba(10, 126, 249, 0.3);
+}
+
+/* ─── Portrait phone (≤ 480px) ───────────────────────── */
+@media screen and (max-width: 480px) and (orientation: portrait) {
+  .virtual-keyboard {
+    --vk-key-h: 40px;
+    --vk-gap: 4px;
+    --vk-pad-x: 4px;
+    --vk-pad-y: 5px;
   }
 
   .vk-key {
-    height: 36px;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+
+  .vk-action {
+    font-size: 11px;
+  }
+}
+
+/* ─── Landscape phone ────────────────────────────────── */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  .virtual-keyboard {
+    --vk-key-h: 32px;
+    --vk-gap: 3px;
+    --vk-pad-x: 4px;
+    --vk-pad-y: 4px;
+  }
+
+  .vk-key {
     font-size: 12px;
-    border-radius: 4px;
+    border-radius: 5px;
   }
 
-  .vk-key-wide {
+  .vk-action {
     font-size: 10px;
+  }
+
+  .vk-enter {
+    font-size: 14px;
   }
 }
 
-/* Landscape phone */
-@media screen and (max-height: 500px) and (orientation: landscape) {
+/* ─── Tablet pequeno landscape (768px max) ────────────── */
+@media screen and (max-width: 768px) and (orientation: landscape) and (min-height: 500px) {
   .virtual-keyboard {
-    padding: 3px 2px 4px;
-  }
-
-  .vk-row {
-    gap: 2px;
-    margin-bottom: 2px;
-  }
-
-  .vk-key {
-    height: 30px;
-    font-size: 10px;
-    border-radius: 3px;
-  }
-
-  .vk-key-wide {
-    font-size: 9px;
+    --vk-key-h: 36px;
+    --vk-gap: 4px;
   }
 }

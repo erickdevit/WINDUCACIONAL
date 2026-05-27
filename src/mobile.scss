@@ -152,6 +152,14 @@ html {
     height: auto !important;
     max-height: var(--desktop-workarea-height) !important;
     top: 0 !important;
+    transition: max-height 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Teclado virtual ativo: workarea encolhe */
+  body[data-vk="on"] {
+    --desktop-workarea-height: calc(
+      100dvh - var(--taskbar-height) - var(--vk-height, 0px)
+    );
   }
 
   /* ===========================================================
@@ -728,5 +736,33 @@ html {
 
   .desktopCont {
     /* landscape: keep column layout */
+  }
+}
+
+/* ===== VIRTUAL KEYBOARD — ajustes por breakpoint ===== */
+
+/* Portrait ≤480px com teclado virtual */
+@media screen and (max-width: 480px) {
+  .desktop {
+    transition: max-height 0.2s cubic-bezier(0.22, 1, 0.36, 1) !important;
+  }
+
+  body[data-vk="on"] {
+    --desktop-workarea-height: calc(
+      100dvh - var(--taskbar-height) - var(--vk-height, 0px)
+    ) !important;
+  }
+}
+
+/* Landscape com teclado virtual */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  .desktop {
+    transition: max-height 0.2s cubic-bezier(0.22, 1, 0.36, 1) !important;
+  }
+
+  body[data-vk="on"] {
+    --desktop-workarea-height: calc(
+      100dvh - var(--taskbar-height) - var(--vk-height, 0px)
+    ) !important;
   }
 }

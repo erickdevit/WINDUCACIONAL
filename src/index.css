@@ -150,6 +150,16 @@ i[data-flip="true"] {
   overflow: hidden;
 }
 
+/* Quando o teclado virtual está ativo em mobile:
+   o workarea encolhe para não ficar coberto */
+@media screen and (max-width: 768px) {
+  body[data-vk="on"] {
+    --desktop-workarea-height: calc(
+      100dvh - var(--taskbar-height) - var(--vk-height, 0px)
+    );
+  }
+}
+
 .dpShad {
   box-shadow: 0 0 6px rgba(0, 0, 0, 0.25);
 }
