@@ -1,0 +1,117 @@
+.virtual-keyboard {
+  position: fixed;
+  bottom: var(--taskbar-height, 44px);
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: rgba(30, 30, 30, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 6px 4px 8px;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  animation: vk-slide-up 0.18s ease-out;
+}
+
+@keyframes vk-slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.vk-row {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+  justify-content: center;
+}
+
+.vk-row:last-child {
+  margin-bottom: 0;
+}
+
+.vk-key {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  border-radius: 5px;
+  color: #e0e0e0;
+  font-size: 13px;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  padding: 0 2px;
+  transition: background 0.08s;
+}
+
+.vk-key:active,
+.vk-key:focus-visible {
+  background: rgba(255, 255, 255, 0.2);
+  outline: none;
+}
+
+.vk-key-wide {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  color: #b0b0b0;
+}
+
+.vk-key-dead {
+  color: #7fc9ff;
+}
+
+.vk-key-active {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+/* Portrait phone */
+@media screen and (max-width: 480px) {
+  .virtual-keyboard {
+    padding: 4px 2px 6px;
+  }
+
+  .vk-row {
+    gap: 3px;
+    margin-bottom: 3px;
+  }
+
+  .vk-key {
+    height: 36px;
+    font-size: 12px;
+    border-radius: 4px;
+  }
+
+  .vk-key-wide {
+    font-size: 10px;
+  }
+}
+
+/* Landscape phone */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  .virtual-keyboard {
+    padding: 3px 2px 4px;
+  }
+
+  .vk-row {
+    gap: 2px;
+    margin-bottom: 2px;
+  }
+
+  .vk-key {
+    height: 30px;
+    font-size: 10px;
+    border-radius: 3px;
+  }
+
+  .vk-key-wide {
+    font-size: 9px;
+  }
+}

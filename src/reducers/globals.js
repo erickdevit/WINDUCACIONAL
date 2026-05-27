@@ -1,4 +1,5 @@
 const defState = {
+  virtualKeyboard: false,
   lays: [
     [
       {
@@ -206,6 +207,9 @@ const defState = {
 };
 
 const globalReducer = (state = defState, action) => {
+  if (action.type === "VIRTUALKEYBOARD") {
+    return { ...state, virtualKeyboard: !state.virtualKeyboard };
+  }
   return state;
 };
 

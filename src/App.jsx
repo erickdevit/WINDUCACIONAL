@@ -20,6 +20,7 @@ import { Background, BootScreen, LockScreen } from "./containers/background";
 import PwaPrompt from "./components/pwa/PwaPrompt";
 import { LoginScreen } from "./components/auth/LoginScreen";
 import { UserNotifications } from "./components/notifications/UserNotifications";
+import VirtualKeyboard from "./components/virtualkeyboard/VirtualKeyboard";
 
 import { loadSettings } from "./actions";
 import * as Applications from "./containers/applications";
@@ -534,6 +535,7 @@ function App() {
             <CalnWid />
           </div>
           <Taskbar />
+          <VirtualKeyboard />
           <UserNotifications user={session.user} />
           <ActMenu />
           <FileDialog />

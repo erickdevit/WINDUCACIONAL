@@ -158,3 +158,13 @@ body[data-theme="dark"] {
     transform: scale(1);
   }
 }
+
+.vkb-toggle {
+  display: none;
+}
+
+@media screen and (max-width: 768px) {
+  .vkb-toggle {
+    display: flex;
+  }
+}

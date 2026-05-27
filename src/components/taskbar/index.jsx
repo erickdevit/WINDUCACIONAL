@@ -196,6 +196,14 @@ const Taskbar = () => {
           </div>
 
           <div
+            className="prtclk handcr my-1 px-1 hvlight flex rounded vkb-toggle"
+            onClick={clickDispatch}
+            data-action="VIRTUALKEYBOARD"
+          >
+            <Icon className="taskIcon" src="keyboard" ui width={16} />
+          </div>
+
+          <div
             className="taskDate m-1 handcr prtclk rounded hvlight"
             onClick={clickDispatch}
             data-action="CALNTOGG"
