@@ -26,6 +26,18 @@ describe("Schema SQL", () => {
     expect(turmasBlock).toContain("code ~ '^[A-Z0-9]{6}$'");
   });
 
+  it("deve persistir dias e horários de aula nas turmas", () => {
+    const turmasStart = schema.indexOf("CREATE TABLE IF NOT EXISTS turmas");
+    const turmasEnd = schema.indexOf(");", turmasStart);
+    const turmasBlock = schema.substring(turmasStart, turmasEnd);
+    expect(turmasBlock).toContain("schedule_days SMALLINT[] NOT NULL");
+    expect(turmasBlock).toContain("turmas_schedule_days_check");
+    expect(turmasBlock).toContain("schedule_start_time TIME NOT NULL");
+    expect(turmasBlock).toContain("schedule_end_time TIME NOT NULL");
+    expect(turmasBlock).toContain("turmas_schedule_time_check");
+    expect(schema).toContain("ALTER TABLE turmas ADD COLUMN schedule_days");
+  });
+
   it("deve conter migração e índice para código de turma", () => {
     expect(schema).toContain("ALTER TABLE turmas ADD COLUMN code");
     expect(schema).toContain("column_name = 'code'");

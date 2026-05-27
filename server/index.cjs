@@ -48,6 +48,9 @@ app.disable("x-powered-by");
 app.use(express.json({ limit: "1mb" }));
 
 const ATTENDANCE_TIME_ZONE = "America/Sao_Paulo";
+const DEFAULT_CLASS_DAYS = [1, 2, 3, 4, 5];
+const DEFAULT_CLASS_START_TIME = "00:00";
+const DEFAULT_CLASS_END_TIME = "23:59";
 
 // Edge browser proxy - remove X-Frame-Options to allow Google/YouTube in iframe
 app.get("/api/edge-proxy", async (req, res) => {
@@ -185,6 +188,75 @@ const normalizeClassStudentType = (studentType) => {
   return normalized;
 };
 
+const normalizeScheduleDays = (days) => {
+  const source =
+    Array.isArray(days) && days.length > 0 ? days : DEFAULT_CLASS_DAYS;
+  const normalized = [...new Set(source.map((day) => Number(day)))].sort(
+    (a, b) => a - b
+  );
+  if (
+    normalized.length === 0 ||
+    normalized.some((day) => !Number.isInteger(day) || day < 0 || day > 6)
+  ) {
+    const err = new Error("Dias de aula inválidos.");
+    err.status = 400;
+    throw err;
+  }
+  return normalized;
+};
+
+const normalizeScheduleTime = (value, fallback) => {
+  const normalized = String(value || fallback).trim();
+  if (!/^\d{2}:\d{2}$/.test(normalized)) {
+    const err = new Error("Horário da turma deve usar o formato HH:MM.");
+    err.status = 400;
+    throw err;
+  }
+  const [hours, minutes] = normalized.split(":").map(Number);
+  if (hours > 23 || minutes > 59) {
+    const err = new Error("Horário da turma inválido.");
+    err.status = 400;
+    throw err;
+  }
+  return normalized;
+};
+
+const normalizeClassSchedule = ({
+  scheduleDays,
+  scheduleStartTime,
+  scheduleEndTime,
+} = {}) => {
+  const days = normalizeScheduleDays(scheduleDays);
+  const startTime = normalizeScheduleTime(
+    scheduleStartTime,
+    DEFAULT_CLASS_START_TIME
+  );
+  const endTime = normalizeScheduleTime(
+    scheduleEndTime,
+    DEFAULT_CLASS_END_TIME
+  );
+  if (startTime >= endTime) {
+    const err = new Error(
+      "Horário inicial da turma deve ser menor que o horário final."
+    );
+    err.status = 400;
+    throw err;
+  }
+  return { days, startTime, endTime };
+};
+
+const formatScheduleTime = (value, fallback) =>
+  String(value || fallback).slice(0, 5);
+
+const getDateWeekday = (date) => new Date(`${date}T12:00:00`).getDay();
+
+const timeToMinutes = (value) => {
+  const [hours, minutes] = String(value || "00:00")
+    .slice(0, 5)
+    .split(":");
+  return Number(hours) * 60 + Number(minutes);
+};
+
 const normalizeTypingStudentType = (studentType) => {
   const normalized = String(studentType || "normal")
     .trim()
@@ -312,6 +384,17 @@ const publicTurma = (turma) => ({
   nome: turma.nome,
   code: turma.code,
   studentType: turma.student_type || "normal",
+  scheduleDays: Array.isArray(turma.schedule_days)
+    ? turma.schedule_days.map(Number)
+    : DEFAULT_CLASS_DAYS,
+  scheduleStartTime: formatScheduleTime(
+    turma.schedule_start_time,
+    DEFAULT_CLASS_START_TIME
+  ),
+  scheduleEndTime: formatScheduleTime(
+    turma.schedule_end_time,
+    DEFAULT_CLASS_END_TIME
+  ),
   descricao: turma.descricao,
   active: turma.active,
   createdAt: turma.created_at,
@@ -492,6 +575,49 @@ const getDateList = (startDate, endDate) => {
   }
 
   return dates;
+};
+
+const getAttendanceTimeMinutes = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  const parts = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: ATTENDANCE_TIME_ZONE,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const values = Object.fromEntries(
+    parts.map((part) => [part.type, part.value])
+  );
+  return Number(values.hour) * 60 + Number(values.minute);
+};
+
+const getStudentAttendanceSchedule = (student) => ({
+  days: Array.isArray(student.schedule_days)
+    ? student.schedule_days.map(Number)
+    : [],
+  startTime: formatScheduleTime(
+    student.schedule_start_time,
+    DEFAULT_CLASS_START_TIME
+  ),
+  endTime: formatScheduleTime(
+    student.schedule_end_time,
+    DEFAULT_CLASS_END_TIME
+  ),
+});
+
+const getExpectedDatesForSchedule = (dates, schedule) =>
+  dates.filter((date) => schedule.days.includes(getDateWeekday(date)));
+
+const isRecordInsideSchedule = (record, schedule) => {
+  if (!schedule.days.includes(getDateWeekday(record.attendanceDate)))
+    return false;
+  const startMinutes = timeToMinutes(schedule.startTime);
+  const endMinutes = timeToMinutes(schedule.endTime);
+  const firstLoginMinutes = getAttendanceTimeMinutes(record.firstLoginAt);
+  const lastLoginMinutes = getAttendanceTimeMinutes(record.lastLoginAt);
+  if (firstLoginMinutes == null || lastLoginMinutes == null) return false;
+  return firstLoginMinutes <= endMinutes && lastLoginMinutes >= startMinutes;
 };
 
 const normalizeExamTimeLimit = (value) => clampInteger(value, 0, 0, 1440);
@@ -1362,16 +1488,22 @@ const recordAttendanceForLogin = async (userId) => {
   await pool.query(
     `INSERT INTO attendance_records
        (id, user_id, attendance_date, first_login_at, last_login_at, login_count)
-     SELECT
-       $2,
-       u.id,
-       (NOW() AT TIME ZONE $3)::date,
+      SELECT
+        $2,
+        u.id,
+        (NOW() AT TIME ZONE $3)::date,
        NOW(),
-       NOW(),
-       1
-     FROM users u
-     WHERE u.id = $1 AND u.role = 'aluno'
-     ON CONFLICT (user_id, attendance_date) DO UPDATE
+        NOW(),
+        1
+      FROM users u
+      JOIN turmas t ON t.id = u.turma_id
+      WHERE u.id = $1 AND u.role = 'aluno'
+        AND u.active = TRUE
+        AND t.active = TRUE
+        AND EXTRACT(DOW FROM NOW() AT TIME ZONE $3)::int = ANY(t.schedule_days)
+        AND (NOW() AT TIME ZONE $3)::time >= t.schedule_start_time
+        AND (NOW() AT TIME ZONE $3)::time <= t.schedule_end_time
+      ON CONFLICT (user_id, attendance_date) DO UPDATE
      SET last_login_at = EXCLUDED.last_login_at,
          login_count = attendance_records.login_count + 1,
          updated_at = NOW()`,
@@ -2027,7 +2159,10 @@ app.get(
                 u.username,
                 u.display_name,
                 u.turma_id,
-                t.nome AS turma_nome
+                t.nome AS turma_nome,
+                t.schedule_days,
+                t.schedule_start_time,
+                t.schedule_end_time
          FROM users u
          LEFT JOIN turmas t ON t.id = u.turma_id
          ${studentFilter}
@@ -2075,24 +2210,50 @@ app.get(
           date,
           {
             date,
+            expected: 0,
             present: 0,
-            absent: studentsResult.rows.length,
+            absent: 0,
             attendanceRate: 0,
           },
         ])
       );
 
-      records.forEach((record) => {
-        const day = dailyMap.get(record.attendanceDate);
-        if (day) day.present += 1;
-      });
+      let totalPossible = 0;
+      let totalPresences = 0;
 
       const students = studentsResult.rows.map((student) => {
+        const schedule = getStudentAttendanceSchedule(student);
+        const expectedDates = getExpectedDatesForSchedule(days, schedule);
+        const expectedDateSet = new Set(expectedDates);
+        expectedDates.forEach((date) => {
+          const day = dailyMap.get(date);
+          if (day) day.expected += 1;
+        });
+
         const studentRecords = recordsByStudent.get(student.id) || [];
         const presentDays = new Set(
-          studentRecords.map((record) => record.attendanceDate)
+          studentRecords
+            .filter(
+              (record) =>
+                expectedDateSet.has(record.attendanceDate) &&
+                isRecordInsideSchedule(record, schedule)
+            )
+            .map((record) => record.attendanceDate)
         ).size;
-        const absentDays = Math.max(days.length - presentDays, 0);
+        const absentDays = Math.max(expectedDates.length - presentDays, 0);
+        totalPossible += expectedDates.length;
+        totalPresences += presentDays;
+
+        studentRecords.forEach((record) => {
+          if (
+            expectedDateSet.has(record.attendanceDate) &&
+            isRecordInsideSchedule(record, schedule)
+          ) {
+            const day = dailyMap.get(record.attendanceDate);
+            if (day) day.present += 1;
+          }
+        });
+
         const lastLoginAt = studentRecords.reduce(
           (latest, record) =>
             !latest || new Date(record.lastLoginAt) > new Date(latest)
@@ -2110,27 +2271,29 @@ app.get(
           presentDays,
           absentDays,
           attendanceRate:
-            days.length > 0 ? Math.round((presentDays / days.length) * 100) : 0,
+            expectedDates.length > 0
+              ? Math.round((presentDays / expectedDates.length) * 100)
+              : 0,
           lastLoginAt,
           records: studentRecords,
         };
       });
 
-      const daily = Array.from(dailyMap.values()).map((day) => ({
-        ...day,
-        absent: Math.max(students.length - day.present, 0),
-        attendanceRate:
-          students.length > 0
-            ? Math.round((day.present / students.length) * 100)
-            : 0,
-      }));
+      const daily = Array.from(dailyMap.values())
+        .filter((day) => day.expected > 0)
+        .map((day) => ({
+          ...day,
+          absent: Math.max(day.expected - day.present, 0),
+          attendanceRate:
+            day.expected > 0
+              ? Math.round((day.present / day.expected) * 100)
+              : 0,
+        }));
 
-      const totalPossible = students.length * days.length;
-      const totalPresences = records.length;
       const totalAbsences = Math.max(totalPossible - totalPresences, 0);
 
       res.json({
-        range: { startDate, endDate, totalDays: days.length },
+        range: { startDate, endDate, totalDays: daily.length },
         totals: {
           students: students.length,
           presences: totalPresences,
@@ -2334,7 +2497,7 @@ app.get(
   async (req, res, next) => {
     try {
       const studentType = req.query.studentType;
-      let query = `SELECT id, nome, code, student_type, descricao, active, created_at, updated_at FROM turmas`;
+      let query = `SELECT id, nome, code, student_type, schedule_days, schedule_start_time, schedule_end_time, descricao, active, created_at, updated_at FROM turmas`;
       const values = [];
 
       if (studentType === "kids" || studentType === "normal") {
@@ -2364,13 +2527,23 @@ app.post(
           .json({ error: "Nome da turma deve ter pelo menos 2 caracteres." });
       }
       const studentType = normalizeClassStudentType(req.body.studentType);
+      const schedule = normalizeClassSchedule(req.body);
       const descricao = String(req.body.descricao || "").trim();
       const code = await ensureTurmaCode(req.body.code);
       const id = crypto.randomUUID();
       const result = await pool.query(
-        `INSERT INTO turmas (id, nome, code, student_type, descricao) VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, nome, code, student_type, descricao, active, created_at, updated_at`,
-        [id, nome, code, studentType, descricao]
+        `INSERT INTO turmas (id, nome, code, student_type, schedule_days, schedule_start_time, schedule_end_time, descricao) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id, nome, code, student_type, schedule_days, schedule_start_time, schedule_end_time, descricao, active, created_at, updated_at`,
+        [
+          id,
+          nome,
+          code,
+          studentType,
+          schedule.days,
+          schedule.startTime,
+          schedule.endTime,
+          descricao,
+        ]
       );
       res.status(201).json({ turma: publicTurma(result.rows[0]) });
     } catch (error) {
@@ -2417,6 +2590,16 @@ app.patch(
       }
       if (req.body.descricao != null)
         add("descricao", String(req.body.descricao).trim());
+      if (
+        req.body.scheduleDays != null ||
+        req.body.scheduleStartTime != null ||
+        req.body.scheduleEndTime != null
+      ) {
+        const schedule = normalizeClassSchedule(req.body);
+        add("schedule_days", schedule.days);
+        add("schedule_start_time", schedule.startTime);
+        add("schedule_end_time", schedule.endTime);
+      }
       if (req.body.active != null) add("active", Boolean(req.body.active));
 
       if (updates.length === 0) {
@@ -2427,7 +2610,7 @@ app.patch(
       values.push(req.params.id);
       const result = await client.query(
         `UPDATE turmas SET ${updates.join(", ")} WHERE id = $${values.length}
-       RETURNING id, nome, code, student_type, descricao, active, created_at, updated_at`,
+       RETURNING id, nome, code, student_type, schedule_days, schedule_start_time, schedule_end_time, descricao, active, created_at, updated_at`,
         values
       );
       if (result.rowCount === 0) {

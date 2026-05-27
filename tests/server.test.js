@@ -87,7 +87,7 @@ describe("Backend - endpoints de turmas", () => {
   it("deve ter endpoint GET /api/turmas", () => {
     expect(serverCode).toContain('"/api/turmas"');
     expect(serverCode).toContain(
-      "SELECT id, nome, code, student_type, descricao, active"
+      "SELECT id, nome, code, student_type, schedule_days"
     );
     expect(serverCode).toContain("publicTurma");
   });
@@ -102,7 +102,7 @@ describe("Backend - endpoints de turmas", () => {
     expect(serverCode).toContain('"/api/turmas/:id"');
     expect(serverCode).toContain("UPDATE turmas SET");
     expect(serverCode).toContain(
-      "RETURNING id, nome, code, student_type, descricao"
+      "RETURNING id, nome, code, student_type, schedule_days"
     );
   });
 
@@ -130,6 +130,8 @@ describe("Backend - frequência", () => {
     expect(serverCode).toContain("recordAttendanceForLogin");
     expect(serverCode).toContain("INSERT INTO attendance_records");
     expect(serverCode).toContain("WHERE u.id = $1 AND u.role = 'aluno'");
+    expect(serverCode).toContain("EXTRACT(DOW FROM NOW() AT TIME ZONE $3)");
+    expect(serverCode).toContain("t.schedule_start_time");
     expect(serverCode).toContain("ON CONFLICT (user_id, attendance_date)");
     expect(serverCode).toContain("await recordAttendanceForLogin(userId)");
   });
@@ -139,6 +141,8 @@ describe("Backend - frequência", () => {
     expect(serverCode).toContain("requireProfessor");
     expect(serverCode).toContain("attendanceRate");
     expect(serverCode).toContain("totalDays");
+    expect(serverCode).toContain("getExpectedDatesForSchedule");
+    expect(serverCode).toContain("isRecordInsideSchedule");
   });
 
   it("deve permitir que aluno consulte apenas a própria frequência", () => {

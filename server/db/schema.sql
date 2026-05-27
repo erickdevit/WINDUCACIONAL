@@ -5,6 +5,11 @@ CREATE TABLE IF NOT EXISTS turmas (
   CONSTRAINT turmas_code_format_check CHECK (code ~ '^[A-Z0-9]{6}$'),
   student_type TEXT NOT NULL DEFAULT 'normal',
   CONSTRAINT turmas_student_type_check CHECK (student_type IN ('kids', 'normal')),
+  schedule_days SMALLINT[] NOT NULL DEFAULT ARRAY[1,2,3,4,5]::SMALLINT[],
+  CONSTRAINT turmas_schedule_days_check CHECK (COALESCE(array_length(schedule_days, 1), 0) > 0 AND schedule_days <@ ARRAY[0,1,2,3,4,5,6]::SMALLINT[]),
+  schedule_start_time TIME NOT NULL DEFAULT '00:00',
+  schedule_end_time TIME NOT NULL DEFAULT '23:59',
+  CONSTRAINT turmas_schedule_time_check CHECK (schedule_start_time < schedule_end_time),
   descricao TEXT NOT NULL DEFAULT '',
   active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -46,6 +51,43 @@ BEGIN
     ALTER TABLE turmas
       ADD CONSTRAINT turmas_student_type_check
       CHECK (student_type IN ('kids', 'normal'));
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'turmas' AND column_name = 'schedule_days'
+  ) THEN
+    ALTER TABLE turmas ADD COLUMN schedule_days SMALLINT[] NOT NULL DEFAULT ARRAY[1,2,3,4,5]::SMALLINT[];
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'turmas' AND column_name = 'schedule_start_time'
+  ) THEN
+    ALTER TABLE turmas ADD COLUMN schedule_start_time TIME NOT NULL DEFAULT '00:00';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'turmas' AND column_name = 'schedule_end_time'
+  ) THEN
+    ALTER TABLE turmas ADD COLUMN schedule_end_time TIME NOT NULL DEFAULT '23:59';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'turmas_schedule_days_check'
+  ) THEN
+    ALTER TABLE turmas
+      ADD CONSTRAINT turmas_schedule_days_check
+      CHECK (COALESCE(array_length(schedule_days, 1), 0) > 0 AND schedule_days <@ ARRAY[0,1,2,3,4,5,6]::SMALLINT[]);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'turmas_schedule_time_check'
+  ) THEN
+    ALTER TABLE turmas
+      ADD CONSTRAINT turmas_schedule_time_check
+      CHECK (schedule_start_time < schedule_end_time);
   END IF;
 END
 $$;

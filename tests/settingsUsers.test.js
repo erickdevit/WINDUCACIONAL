@@ -83,6 +83,17 @@ describe("Configurações - listagem de usuários", () => {
     expect(settingsCode).toContain("Ao alterar o tipo da turma");
   });
 
+  it("deve permitir configurar dias e horários de aula nas turmas", () => {
+    expect(settingsCode).toContain("defaultScheduleDays");
+    expect(settingsCode).toContain("Dias e horários de aula");
+    expect(settingsCode).toContain("scheduleStartTime");
+    expect(settingsCode).toContain("scheduleEndTime");
+    expect(settingsCode).toContain("getScheduleSummary");
+    expect(settingsStyles).toContain(".turmaScheduleFields");
+    expect(settingsStyles).toContain(".turmaManagementPanel");
+    expect(settingsStyles).toContain("overflow-y: auto;");
+  });
+
   it("deve manter scroll vertical interno na listagem de usuários", () => {
     expect(settingsStyles).toContain(".userDirectoryList");
     expect(settingsStyles).toContain("overflow-y: auto;");

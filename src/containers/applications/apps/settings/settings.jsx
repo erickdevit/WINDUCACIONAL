@@ -488,6 +488,34 @@ const studentTypeOptions = [
   },
 ];
 
+const defaultScheduleDays = [1, 2, 3, 4, 5];
+
+const weekDayOptions = [
+  { value: 0, label: "Dom" },
+  { value: 1, label: "Seg" },
+  { value: 2, label: "Ter" },
+  { value: 3, label: "Qua" },
+  { value: 4, label: "Qui" },
+  { value: 5, label: "Sex" },
+  { value: 6, label: "Sáb" },
+];
+
+const normalizeScheduleDays = (days) =>
+  Array.isArray(days) && days.length > 0
+    ? [...new Set(days.map(Number))].sort((a, b) => a - b)
+    : defaultScheduleDays;
+
+const getScheduleSummary = (turma) => {
+  const days = normalizeScheduleDays(turma.scheduleDays);
+  const labels = weekDayOptions
+    .filter((day) => days.includes(day.value))
+    .map((day) => day.label)
+    .join(", ");
+  return `${labels} · ${turma.scheduleStartTime || "00:00"} às ${
+    turma.scheduleEndTime || "23:59"
+  }`;
+};
+
 const AppLikeDialog = ({
   title,
   icon = "settings",
@@ -894,7 +922,12 @@ const UserManagement = ({ currentUser, onBack }) => {
     const { name, value, type, checked } = event.target;
     const nextForm = {
       ...editForm,
-      [name]: name === "displayName" ? normalizeName(value) : type === "checkbox" ? checked : value,
+      [name]:
+        name === "displayName"
+          ? normalizeName(value)
+          : type === "checkbox"
+          ? checked
+          : value,
     };
     if (name === "role" && value === "professor") {
       nextForm.studentType = "normal";
@@ -1436,6 +1469,9 @@ const getEmptyTurmaForm = () => ({
   nome: "",
   code: generateLocalTurmaCode(),
   studentType: "normal",
+  scheduleDays: defaultScheduleDays,
+  scheduleStartTime: "00:00",
+  scheduleEndTime: "23:59",
   descricao: "",
 });
 
@@ -1478,6 +1514,9 @@ const TurmaManagement = ({ currentUser, onBack }) => {
       nome: turma.nome,
       code: turma.code || "",
       studentType: turma.studentType || "normal",
+      scheduleDays: normalizeScheduleDays(turma.scheduleDays),
+      scheduleStartTime: turma.scheduleStartTime || "00:00",
+      scheduleEndTime: turma.scheduleEndTime || "23:59",
       descricao: turma.descricao || "",
       active: turma.active,
     });
@@ -1496,6 +1535,71 @@ const TurmaManagement = ({ currentUser, onBack }) => {
       [name]: type === "checkbox" ? checked : value,
     });
   };
+
+  const updateCreateScheduleDay = (day, checked) => {
+    setCreateForm((form) => ({
+      ...form,
+      scheduleDays: checked
+        ? normalizeScheduleDays([...form.scheduleDays, day])
+        : form.scheduleDays.filter((item) => item !== day),
+    }));
+  };
+
+  const updateEditScheduleDay = (day, checked) => {
+    setEditForm((form) => ({
+      ...form,
+      scheduleDays: checked
+        ? normalizeScheduleDays([...form.scheduleDays, day])
+        : form.scheduleDays.filter((item) => item !== day),
+    }));
+  };
+
+  const renderScheduleFields = (form, onFieldChange, onDayChange) => (
+    <fieldset className="turmaScheduleFields">
+      <legend>Dias e horários de aula</legend>
+      <p>
+        A Frequência usa esta agenda para calcular presenças e ausências da
+        turma.
+      </p>
+      <div className="turmaWeekDays">
+        {weekDayOptions.map((day) => (
+          <label key={day.value}>
+            <input
+              type="checkbox"
+              checked={(Array.isArray(form.scheduleDays)
+                ? form.scheduleDays
+                : defaultScheduleDays
+              ).includes(day.value)}
+              onChange={(event) => onDayChange(day.value, event.target.checked)}
+            />
+            <span>{day.label}</span>
+          </label>
+        ))}
+      </div>
+      <div className="turmaTimeGrid">
+        <label>
+          Início
+          <input
+            name="scheduleStartTime"
+            type="time"
+            value={form.scheduleStartTime}
+            onChange={onFieldChange}
+            required
+          />
+        </label>
+        <label>
+          Fim
+          <input
+            name="scheduleEndTime"
+            type="time"
+            value={form.scheduleEndTime}
+            onChange={onFieldChange}
+            required
+          />
+        </label>
+      </div>
+    </fieldset>
+  );
 
   const submitCreate = async (e) => {
     e.preventDefault();
@@ -1557,7 +1661,7 @@ const TurmaManagement = ({ currentUser, onBack }) => {
 
   if (!isProfessor) {
     return (
-      <section className="userAdminPanel">
+      <section className="userAdminPanel turmaManagementPanel win11Scroll">
         <div className="userAdminTopBar">
           <button type="button" className="secondaryBtn" onClick={onBack}>
             Voltar
@@ -1575,7 +1679,7 @@ const TurmaManagement = ({ currentUser, onBack }) => {
   const turmaUsers = users.filter((u) => u.turmaId === selectedId);
 
   return (
-    <section className="userAdminPanel">
+    <section className="userAdminPanel turmaManagementPanel win11Scroll">
       <div className="userAdminTopBar">
         <button type="button" className="secondaryBtn" onClick={onBack}>
           <Icon fafa="faArrowLeft" width={12} />
@@ -1635,6 +1739,7 @@ const TurmaManagement = ({ currentUser, onBack }) => {
                 <div className="turmaRowInfo">
                   <strong>{turma.nome}</strong>
                   {turma.descricao ? <span>{turma.descricao}</span> : null}
+                  <span>{getScheduleSummary(turma)}</span>
                 </div>
                 <div className="turmaRowActions">
                   <span className="turmaCodeBadge">
@@ -1742,6 +1847,11 @@ const TurmaManagement = ({ currentUser, onBack }) => {
                 ))}
               </select>
             </label>
+            {renderScheduleFields(
+              createForm,
+              updateCreateField,
+              updateCreateScheduleDay
+            )}
             <label>
               Descrição (opcional)
               <input
@@ -1796,6 +1906,9 @@ const TurmaManagement = ({ currentUser, onBack }) => {
               </p>
               <p className="turmaCodeLarge">
                 Tipo: {getStudentTypeLabel(selectedTurma.studentType)}
+              </p>
+              <p className="turmaCodeLarge">
+                Aulas: {getScheduleSummary(selectedTurma)}
               </p>
               {message ? <p className="userDialogMessage">{message}</p> : null}
               <div className="turmaStudentList">
@@ -1859,6 +1972,11 @@ const TurmaManagement = ({ currentUser, onBack }) => {
                 Ao alterar o tipo da turma, todos os alunos vinculados herdam o
                 novo tipo automaticamente.
               </p>
+              {renderScheduleFields(
+                editForm,
+                updateEditField,
+                updateEditScheduleDay
+              )}
               <label>
                 Descrição
                 <input
