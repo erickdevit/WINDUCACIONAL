@@ -271,12 +271,10 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     </nav>
   );
 
-  const renderHeader = (title, subtitle, actions = null) => (
+  const renderHeader = (title, actions = null) => (
     <header className="attendance-page-head">
       <div>
-        <span className="attendance-kicker">Frequência</span>
         <h1>{title}</h1>
-        {subtitle ? <p>{subtitle}</p> : null}
         {isProfessor ? (
           <p className="attendance-filter-summary attendance-mobile-only">
             {filteredTurmaName} · {formatDate(startDate)} até{" "}
@@ -395,22 +393,18 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
       <div className="attendance-stat">
         <span>Alunos</span>
         <strong>{totals.students}</strong>
-        <small>{filteredTurmaName}</small>
       </div>
       <div className="attendance-stat">
         <span>Presenças</span>
         <strong>{totals.presences}</strong>
-        <small>No período selecionado</small>
       </div>
       <div className="attendance-stat">
         <span>Ausências</span>
         <strong>{totals.absences}</strong>
-        <small>Dias letivos sem login</small>
       </div>
       <div className="attendance-stat">
         <span>Aproveitamento</span>
         <strong>{totals.attendanceRate}%</strong>
-        <small>{summary?.range?.totalDays || 0} dia(s)</small>
       </div>
     </section>
   );
@@ -617,7 +611,6 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     <>
       {renderHeader(
         "Visão geral",
-        "Indicadores consolidados por turma e período.",
         <button
           className="attendance-primary"
           onClick={printReport}
@@ -633,21 +626,18 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
         <div className="attendance-panel">
           <div className="attendance-panel-head">
             <h2>Resumo por aluno</h2>
-            <span>{filteredStudents.length} aluno(s)</span>
           </div>
           {renderStudentTable(filteredStudents.slice(0, 8))}
         </div>
         <div className="attendance-panel">
           <div className="attendance-panel-head">
             <h2>Melhores dias</h2>
-            <span>Top 5</span>
           </div>
           {renderDailyList(strongestDays)}
         </div>
         <div className="attendance-panel">
           <div className="attendance-panel-head">
             <h2>Pontos de atenção</h2>
-            <span>Menor presença</span>
           </div>
           {renderDailyList(weakestDays)}
         </div>
@@ -657,11 +647,10 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
 
   const renderStudents = () => (
     <>
-      {renderHeader("Alunos", "Compare presença, ausência e último acesso.")}
+      {renderHeader("Alunos")}
       {renderFilters()}
       <section className="attendance-panel">
         <div className="attendance-panel-head">
-          <h2>Lista de alunos</h2>
           <input
             className="attendance-search"
             value={studentSearch}
@@ -676,18 +665,11 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
 
   const renderDaily = () => (
     <>
-      {renderHeader(
-        "Presença por dia",
-        "Acompanhe a variação diária do período."
-      )}
+      {renderHeader("Por dia")}
       {renderFilters()}
       <section className="attendance-panel">
         <div className="attendance-panel-head">
-          <h2>Calendário analítico</h2>
-          <span>
-            {formatDate(summary?.range?.startDate)} até{" "}
-            {formatDate(summary?.range?.endDate)}
-          </span>
+          <h2>Dias</h2>
         </div>
         {renderDailyList()}
       </section>
@@ -696,11 +678,10 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
 
   const renderRecords = () => (
     <>
-      {renderHeader("Registros", "Veja cada presença registrada pelo login.")}
+      {renderHeader("Registros")}
       {renderFilters()}
       <section className="attendance-panel">
         <div className="attendance-panel-head">
-          <h2>Registros de login</h2>
           <select
             className="attendance-select-compact"
             value={recordFilter}
@@ -724,7 +705,6 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     <>
       {renderHeader(
         "Impressão",
-        "Prepare o relatório da frequência atual.",
         <button
           className="attendance-primary"
           onClick={printReport}
@@ -738,7 +718,6 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
       <section className="attendance-panel print-preview-panel">
         <div className="attendance-panel-head">
           <h2>Prévia do relatório</h2>
-          <span>{filteredTurmaName}</span>
         </div>
         <div className="attendance-print-preview win11Scroll">
           {renderPrintReport()}
@@ -749,32 +728,22 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
 
   const renderStudentOverview = () => (
     <>
-      {renderHeader(
-        "Minha frequência",
-        "Presença registrada automaticamente ao entrar no simulador."
-      )}
+      {renderHeader("Minha frequência")}
       <section className="attendance-student-status">
         <div
           className={`attendance-status-card ${todayRecord ? "present" : ""}`}
         >
           <span>Hoje</span>
           <strong>{todayRecord ? "Presente" : "Não registrado"}</strong>
-          <small>
-            {todayRecord
-              ? `Primeiro login: ${formatDateTime(todayRecord.firstLoginAt)}`
-              : "Entre novamente se a presença não aparecer."}
-          </small>
         </div>
         <div className="attendance-status-card">
-          <span>Registros recentes</span>
+          <span>Registros</span>
           <strong>{studentRecords.length}</strong>
-          <small>Últimos 90 registros encontrados.</small>
         </div>
       </section>
       <section className="attendance-panel">
         <div className="attendance-panel-head">
           <h2>Últimas presenças</h2>
-          <span>{user.name || user.username}</span>
         </div>
         {renderStudentHistoryTable(studentRecords.slice(0, 10))}
       </section>
@@ -850,11 +819,10 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
 
   const renderStudentHistory = () => (
     <>
-      {renderHeader("Histórico", "Confira todos os registros recentes.")}
+      {renderHeader("Histórico")}
       <section className="attendance-panel">
         <div className="attendance-panel-head">
-          <h2>Histórico individual</h2>
-          <span>{studentRecords.length} registro(s)</span>
+          <h2>Registros</h2>
         </div>
         {renderStudentHistoryTable()}
       </section>

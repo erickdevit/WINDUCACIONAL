@@ -13,8 +13,15 @@
 
   background: var(--attendance-bg);
   color: var(--attendance-text);
-  min-width: 820px;
+  min-width: 0;
   min-height: 540px;
+  overflow-x: hidden;
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
 
   .attendance-mobile-only,
   .attendance-mobile-nav {
@@ -26,7 +33,9 @@
     flex: 1;
     min-height: 0;
     height: 100%;
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    width: 100%;
   }
 
   .attendance-sidebar {
@@ -102,7 +111,8 @@
     flex-direction: column;
     gap: 4px;
     min-height: 0;
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
     padding: 10px;
   }
 
@@ -138,43 +148,34 @@
   }
 
   .attendance-main {
-    flex: 1 0 auto;
-    min-width: 760px;
-    overflow: visible;
-    padding: 22px;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: visible;
+    padding: 14px 5px;
+    width: 100%;
   }
 
   .attendance-page-head {
     align-items: flex-start;
     display: flex;
     justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 16px;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 0 5px;
 
     h1 {
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 800;
       line-height: 1.2;
-      margin: 2px 0 0;
+      margin: 0;
     }
-
-    p {
-      color: var(--attendance-muted);
-      margin: 6px 0 0;
-    }
-  }
-
-  .attendance-kicker {
-    color: var(--attendance-accent);
-    font-size: 11px;
-    font-weight: 900;
-    text-transform: uppercase;
   }
 
   .attendance-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 5px;
     justify-content: flex-end;
   }
 
@@ -185,7 +186,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 5px;
     padding: 8px 12px;
     font-size: 13px;
     font-weight: 800;
@@ -232,9 +233,9 @@
     align-items: end;
     display: grid;
     grid-template-columns: minmax(210px, 1fr) 150px 150px minmax(280px, auto);
-    gap: 10px;
-    margin-bottom: 16px;
-    padding: 14px;
+    gap: 5px;
+    margin: 0 5px 10px;
+    padding: 10px;
 
     label {
       display: flex;
@@ -266,7 +267,7 @@
   .attendance-filter-actions {
     align-items: center;
     display: flex;
-    gap: 8px;
+    gap: 5px;
     justify-content: flex-end;
   }
 
@@ -302,8 +303,8 @@
   .attendance-student-status {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
-    margin-bottom: 16px;
+    gap: 5px;
+    margin: 0 5px 10px;
   }
 
   .attendance-student-status {
@@ -312,7 +313,7 @@
 
   .attendance-stat,
   .attendance-status-card {
-    padding: 16px;
+    padding: 12px;
 
     span {
       color: var(--attendance-muted);
@@ -349,7 +350,8 @@
   .attendance-overview-grid {
     display: grid;
     grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
-    gap: 16px;
+    gap: 5px;
+    margin: 0 5px;
 
     .attendance-panel:first-child {
       grid-row: span 2;
@@ -359,6 +361,7 @@
   .attendance-panel {
     overflow: visible;
     min-width: 0;
+    max-width: 100%;
   }
 
   .attendance-panel-head {
@@ -366,8 +369,8 @@
     border-bottom: 1px solid var(--attendance-line);
     display: flex;
     justify-content: space-between;
-    gap: 12px;
-    padding: 13px 15px;
+    gap: 5px;
+    padding: 10px;
 
     h2 {
       font-size: 15px;
@@ -391,13 +394,16 @@
     color: var(--attendance-text);
     font-size: 13px;
     font-weight: 700;
-    min-width: 240px;
+    min-width: 0;
     outline: 0;
     padding: 6px 10px;
+    width: 100%;
   }
 
   .attendance-table-wrap {
-    overflow: visible;
+    max-width: 100%;
+    overflow-x: hidden;
+    overflow-y: visible;
   }
 
   .attendance-card-list {
@@ -406,11 +412,12 @@
 
   .attendance-table {
     border-collapse: collapse;
-    min-width: 760px;
+    min-width: 0;
+    table-layout: fixed;
     width: 100%;
 
     &.wide {
-      min-width: 900px;
+      min-width: 0;
     }
 
     th {
@@ -419,7 +426,8 @@
       color: var(--attendance-muted);
       font-size: 10px;
       font-weight: 900;
-      padding: 11px 12px;
+      overflow-wrap: anywhere;
+      padding: 9px 7px;
       position: sticky;
       text-align: left;
       text-transform: uppercase;
@@ -429,8 +437,9 @@
 
     td {
       border-bottom: 1px solid #edf1f5;
-      font-size: 13px;
-      padding: 12px;
+      font-size: 12px;
+      overflow-wrap: anywhere;
+      padding: 9px 7px;
       vertical-align: top;
     }
 
@@ -456,7 +465,8 @@
   }
 
   .attendance-daily-list {
-    overflow: visible;
+    overflow-x: hidden;
+    overflow-y: visible;
   }
 
   .attendance-day-row {
@@ -464,8 +474,8 @@
     border-bottom: 1px solid #edf1f5;
     display: grid;
     grid-template-columns: 1fr 72px 72px;
-    gap: 10px;
-    padding: 12px 14px;
+    gap: 5px;
+    padding: 10px;
 
     strong,
     span,
@@ -500,27 +510,30 @@
 
   .attendance-empty {
     color: var(--attendance-muted);
-    padding: 28px;
+    padding: 16px;
     text-align: center;
   }
 
   .print-preview-panel {
-    max-width: 980px;
+    margin: 0 5px;
+    max-width: none;
   }
 
   .attendance-print-preview {
     max-height: min(640px, calc(100vh - 330px));
-    overflow: auto;
-    padding: 18px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 10px;
   }
 
   .attendance-print-sheet {
     background: #fff;
     color: #111827;
     margin: 0 auto;
-    max-width: 920px;
-    min-width: 720px;
-    padding: 24px;
+    max-width: 100%;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    padding: 14px;
     border: 1px solid var(--attendance-line);
     box-shadow: 0 1px 6px rgba(20, 30, 40, 0.08);
 
@@ -536,6 +549,7 @@
 
     table {
       border-collapse: collapse;
+      table-layout: fixed;
       width: 100%;
       font-size: 12px;
     }
@@ -543,6 +557,7 @@
     th,
     td {
       border: 1px solid #d1d5db;
+      overflow-wrap: anywhere;
       padding: 7px 8px;
       text-align: left;
     }
@@ -650,7 +665,8 @@
       flex-direction: column;
       height: 100%;
       min-width: 0;
-      overflow: auto;
+      overflow-x: hidden;
+      overflow-y: auto;
       background: #f5f7fb;
     }
 
@@ -661,18 +677,20 @@
     .attendance-main {
       flex: 1 0 auto;
       min-width: 0;
-      overflow: visible;
-      padding: 16px 14px calc(76px + env(safe-area-inset-bottom, 0px));
+      overflow-x: hidden;
+      overflow-y: visible;
+      padding: 12px 5px calc(76px + env(safe-area-inset-bottom, 0px));
       width: 100%;
     }
 
     .attendance-page-head {
       align-items: stretch;
-      gap: 12px;
-      margin-bottom: 12px;
+      gap: 5px;
+      margin-bottom: 8px;
+      padding: 0 5px;
 
       h1 {
-        font-size: 21px;
+        font-size: 19px;
       }
 
       p {
@@ -682,14 +700,15 @@
 
     .attendance-filter-summary {
       color: var(--attendance-accent-strong);
+      font-size: 12px;
       font-weight: 800;
-      margin-top: 7px;
+      margin-top: 4px;
     }
 
     .attendance-actions {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
+      gap: 5px;
       justify-content: stretch;
       width: 100%;
 
@@ -724,13 +743,14 @@
       border-radius: 16px 16px 0 0;
       bottom: 0;
       display: grid;
-      gap: 12px;
+      gap: 5px;
       grid-template-columns: 1fr;
       left: 0;
       margin: 0;
       max-height: min(82vh, 560px);
-      overflow: auto;
-      padding: 16px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding: 12px 5px calc(14px + env(safe-area-inset-bottom, 0px));
       position: fixed;
       right: 0;
       transform: translateY(110%);
@@ -789,13 +809,13 @@
     .attendance-stat-grid,
     .attendance-student-status {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      margin-bottom: 12px;
+      gap: 5px;
+      margin: 0 5px 8px;
     }
 
     .attendance-stat,
     .attendance-status-card {
-      padding: 13px;
+      padding: 10px;
 
       strong {
         font-size: 24px;
@@ -810,7 +830,8 @@
     .attendance-overview-grid {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 5px;
+      margin: 0 5px;
     }
 
     .attendance-panel {
@@ -819,8 +840,8 @@
 
     .attendance-panel-head {
       align-items: stretch;
-      gap: 10px;
-      padding: 12px;
+      gap: 5px;
+      padding: 10px 5px;
 
       h2 {
         font-size: 14px;
@@ -840,22 +861,22 @@
 
     .attendance-card-list {
       display: grid;
-      gap: 10px;
-      padding: 10px;
+      gap: 5px;
+      padding: 5px;
     }
 
     .attendance-mobile-card {
       background: #fff;
       border: 1px solid #edf1f5;
       border-radius: 8px;
-      padding: 12px;
+      padding: 10px;
 
       header {
         align-items: flex-start;
         display: flex;
-        gap: 10px;
+        gap: 5px;
         justify-content: space-between;
-        margin-bottom: 10px;
+        margin-bottom: 5px;
 
         strong,
         span {
@@ -877,7 +898,7 @@
 
       dl {
         display: grid;
-        gap: 10px;
+        gap: 5px;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         margin: 0;
       }
@@ -903,12 +924,13 @@
     }
 
     .attendance-daily-list {
-      overflow: visible;
+      overflow-x: hidden;
+      overflow-y: visible;
     }
 
     .attendance-day-row {
       grid-template-columns: 1fr auto auto;
-      padding: 12px;
+      padding: 10px 5px;
 
       b {
         font-size: 17px;
@@ -917,12 +939,13 @@
 
     .attendance-print-preview {
       max-height: none;
-      overflow: auto;
-      padding: 10px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding: 5px;
     }
 
     .attendance-print-sheet {
-      min-width: 720px;
+      min-width: 0;
     }
 
     .attendance-mobile-nav {

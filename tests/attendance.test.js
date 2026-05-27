@@ -57,7 +57,6 @@ describe("App Frequência", () => {
 
   it("deve mostrar histórico individual para alunos", () => {
     expect(source).toContain("Minha frequência");
-    expect(source).toContain("Presença registrada automaticamente");
     expect(source).toContain("Histórico");
   });
 
@@ -79,6 +78,8 @@ describe("App Frequência", () => {
     expect(styles).toContain(".attendance-mobile-nav");
     expect(styles).toContain(".attendance-card-list");
     expect(styles).toContain(".attendance-desktop-table");
+    expect(styles).toContain("overflow-x: hidden");
+    expect(styles).toContain("padding: 14px 5px");
   });
 
   it("deve registrar atalho PWA para abrir a Frequência direto", () => {
