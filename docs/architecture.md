@@ -96,6 +96,9 @@ A arquitetura alvo deve separar responsabilidades:
 
 ## Decisões Pendentes
 
-- Estratégia de migrations.
 - Política de backups e restore.
 - Servidor web/reverse proxy em produção.
+
+## Decisões Tomadas
+
+- **Migrations versionadas (dívida técnica alta):** O schema atual é aplicado integralmente no boot via `schema.sql` idempotente. Antes da próxima mudança estrutural, implementar runner interno Node com `schema_migrations`, `pg_advisory_lock` e pasta `server/db/migrations/`. Baseline `0001_baseline.sql` captura o estado atual; `0002_class_schedule.sql` adiciona os campos de agenda. Ver `AGENTS.md` para detalhes.

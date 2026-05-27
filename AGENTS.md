@@ -116,6 +116,7 @@ A suíte inicial usa Vitest. A estratégia alvo está em `docs/testing-strategy.
 - Dados persistidos em `localStorage` são usados como estado confiável em vários pontos; validar antes de migrar ou sincronizar com backend.
 - `public/dycalendar.js` manipula HTML diretamente; manter isolado ou substituir por componente seguro quando mexer no calendário.
 - A cobertura automatizada ainda é inicial e precisa evoluir para testes de componentes, integração e e2e.
+- **ALTA PRIORIDADE:** O schema SQL é aplicado integralmente no boot via `schema.sql` idempotente, sem migrations versionadas. Antes da próxima mudança estrutural no banco (ALTER destrutivo, transformação de dados, nova entidade), implementar: tabela `schema_migrations`, lock `pg_advisory_lock`, runner interno Node e pasta `server/db/migrations/` com `0001_baseline.sql` e `0002_class_schedule.sql`.
 
 ## Política De Atualização
 
