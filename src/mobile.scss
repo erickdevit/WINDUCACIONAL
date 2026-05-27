@@ -148,8 +148,10 @@ html {
   }
 
   .desktop {
-    height: calc(100vh - 44px) !important;
-    height: calc(100dvh - 44px) !important;
+    bottom: var(--taskbar-height) !important;
+    height: auto !important;
+    max-height: var(--desktop-workarea-height) !important;
+    top: 0 !important;
   }
 
   /* ===========================================================
@@ -326,11 +328,13 @@ html {
      WINDOW APPS — force fullscreen on mobile
      =========================================================== */
   .floatTab {
+    bottom: 0 !important;
+    height: 100% !important;
     top: 0 !important;
     left: 0 !important;
-    width: 100vw !important;
-    height: calc(100vh - 44px) !important;
-    height: calc(100dvh - 44px) !important;
+    max-height: 100% !important;
+    max-width: 100% !important;
+    width: 100% !important;
     border-radius: 0 !important;
     transform: none !important;
   }
@@ -353,11 +357,13 @@ html {
   .floatTab[data-size="mini"],
   .floatTab[data-size="cstm"],
   .floatTab[data-size="full"] {
+    bottom: 0 !important;
+    height: 100% !important;
     top: 0 !important;
     left: 0 !important;
-    width: 100vw !important;
-    height: calc(100vh - 44px) !important;
-    height: calc(100dvh - 44px) !important;
+    max-height: 100% !important;
+    max-width: 100% !important;
+    width: 100% !important;
     border-radius: 0 !important;
   }
 
@@ -449,20 +455,21 @@ html {
   }
 
   .desktop {
-    height: calc(100vh - 42px - var(--sai-bottom)) !important;
-    height: calc(100dvh - 42px - var(--sai-bottom)) !important;
+    bottom: var(--taskbar-height) !important;
+    height: auto !important;
+    max-height: var(--desktop-workarea-height) !important;
   }
 
   .floatTab {
-    height: calc(100vh - 42px - var(--sai-bottom)) !important;
-    height: calc(100dvh - 42px - var(--sai-bottom)) !important;
+    height: 100% !important;
+    max-height: 100% !important;
   }
 
   .floatTab[data-size="mini"],
   .floatTab[data-size="cstm"],
   .floatTab[data-size="full"] {
-    height: calc(100vh - 42px - var(--sai-bottom)) !important;
-    height: calc(100dvh - 42px - var(--sai-bottom)) !important;
+    height: 100% !important;
+    max-height: 100% !important;
   }
 
   .tsIcon {
@@ -682,16 +689,17 @@ html {
   }
 
   .desktop {
-    height: calc(100vh - 36px) !important;
-    height: calc(100dvh - 36px) !important;
+    bottom: var(--taskbar-height) !important;
+    height: auto !important;
+    max-height: var(--desktop-workarea-height) !important;
   }
 
   .floatTab,
   .floatTab[data-size="mini"],
   .floatTab[data-size="cstm"],
   .floatTab[data-size="full"] {
-    height: calc(100vh - 36px) !important;
-    height: calc(100dvh - 36px) !important;
+    height: 100% !important;
+    max-height: 100% !important;
   }
 
   .tsIcon {

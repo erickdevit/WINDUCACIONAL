@@ -87,4 +87,20 @@ describe("Taskbar mobile em portrait", () => {
     );
     expect(styles).toContain("display: grid !important;");
   });
+
+  it("limita janelas mobile à área acima da barra de tarefas", () => {
+    const styles = fs.readFileSync(
+      path.resolve(__dirname, "../src/mobile.scss"),
+      "utf-8"
+    );
+
+    expect(styles).toContain("bottom: var(--taskbar-height) !important;");
+    expect(styles).toContain("height: auto !important;");
+    expect(styles).toContain("height: 100% !important;");
+    expect(styles).toContain("max-height: 100% !important;");
+    expect(styles).not.toContain("height: calc(100dvh - 44px) !important;");
+    expect(styles).not.toContain(
+      "height: calc(100dvh - 42px - var(--sai-bottom)) !important;"
+    );
+  });
 });
