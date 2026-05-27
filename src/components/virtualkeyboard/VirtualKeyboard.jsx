@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
+import { Icon } from "../../utils/general";
 import "./virtualkeyboard.scss";
 
 /* ─── Mapa de composição de acentos (dead keys) ─────── */
@@ -62,84 +63,106 @@ function moveCursor(dir) {
   }
 }
 
-/* ─── Layout ABNT2 adaptado para mobile ─────────────── */
-// w = flex grow relativo, d = dead key, s = shifted char, k = key especial
+/* ─── Layout ABNT2 Completo ─────────────── */
 const ROWS = [
-  // Linha de números
+  // Linha 0 (Controles)
   [
-    { l: "`", v: "`", d: true, s: "¬" },
-    { l: "1", v: "1", s: "!" },
-    { l: "2", v: "2", s: "@" },
-    { l: "3", v: "3", s: "#" },
-    { l: "4", v: "4", s: "$" },
-    { l: "5", v: "5", s: "%" },
-    { l: "6", v: "6", s: "¨" },
-    { l: "7", v: "7", s: "&" },
-    { l: "8", v: "8", s: "*" },
-    { l: "9", v: "9", s: "(" },
-    { l: "0", v: "0", s: ")" },
-    { l: "-", v: "-", s: "_" },
-    { l: "=", v: "=", s: "+" },
-    { l: "⌫", k: "Backspace", w: 1.6, cls: "vk-action" },
+    { l: "Esc", k: "Escape", w: 1, cls: "vk-action" },
+    { l: "F1", k: "F1", w: 1, cls: "vk-action" },
+    { l: "F2", k: "F2", w: 1, cls: "vk-action" },
+    { l: "F3", k: "F3", w: 1, cls: "vk-action" },
+    { l: "F4", k: "F4", w: 1, cls: "vk-action" },
+    { l: "F5", k: "F5", w: 1, cls: "vk-action" },
+    { l: "F6", k: "F6", w: 1, cls: "vk-action" },
+    { l: "F7", k: "F7", w: 1, cls: "vk-action" },
+    { l: "F8", k: "F8", w: 1, cls: "vk-action" },
+    { l: "F9", k: "F9", w: 1, cls: "vk-action" },
+    { l: "F10", k: "F10", w: 1, cls: "vk-action" },
+    { l: "F11", k: "F11", w: 1, cls: "vk-action" },
+    { l: "F12", k: "F12", w: 1, cls: "vk-action" },
+    { l: "Ins", k: "Insert", w: 1, cls: "vk-action" },
+    { l: "Del", k: "Delete", w: 1, cls: "vk-action" },
   ],
-  // Linha QWERTY
+  // Linha 1 (Números)
   [
-    { l: "Tab", k: "Tab", w: 1.4, cls: "vk-action" },
-    { l: "Q", v: "q" },
-    { l: "W", v: "w" },
-    { l: "E", v: "e" },
-    { l: "R", v: "r" },
-    { l: "T", v: "t" },
-    { l: "Y", v: "y" },
-    { l: "U", v: "u" },
-    { l: "I", v: "i" },
-    { l: "O", v: "o" },
-    { l: "P", v: "p" },
-    { l: "´", v: "´", d: true },
-    { l: "[", v: "[", s: "{" },
-    { l: "]", v: "]", s: "}" },
+    { l: "'", v: "'", s: '"', w: 1 },
+    { l: "1", v: "1", s: "!", a: "¹", w: 1 },
+    { l: "2", v: "2", s: "@", a: "²", w: 1 },
+    { l: "3", v: "3", s: "#", a: "³", w: 1 },
+    { l: "4", v: "4", s: "$", a: "£", w: 1 },
+    { l: "5", v: "5", s: "%", a: "¢", w: 1 },
+    { l: "6", v: "6", s: "¨", a: "¬", w: 1 },
+    { l: "7", v: "7", s: "&", w: 1 },
+    { l: "8", v: "8", s: "*", w: 1 },
+    { l: "9", v: "9", s: "(", w: 1 },
+    { l: "0", v: "0", s: ")", w: 1 },
+    { l: "-", v: "-", s: "_", w: 1 },
+    { l: "=", v: "=", s: "+", a: "§", w: 1 },
+    { l: "⌫", k: "Backspace", w: 1.8, cls: "vk-action" },
   ],
-  // Linha ASDF
+  // Linha 2 (QWERTY)
   [
-    { l: "Caps", k: "CapsLock", w: 1.6, cls: "vk-action vk-caps" },
-    { l: "A", v: "a" },
-    { l: "S", v: "s" },
-    { l: "D", v: "d" },
-    { l: "F", v: "f" },
-    { l: "G", v: "g" },
-    { l: "H", v: "h" },
-    { l: "J", v: "j" },
-    { l: "K", v: "k" },
-    { l: "L", v: "l" },
-    { l: "Ç", v: "ç" },
-    { l: "^", v: "^", d: true },
-    { l: "~", v: "~", d: true },
-    { l: "↵", k: "Enter", w: 1.6, cls: "vk-action vk-enter" },
+    { l: "Tab", k: "Tab", w: 1.5, cls: "vk-action" },
+    { l: "Q", v: "q", w: 1 },
+    { l: "W", v: "w", w: 1 },
+    { l: "E", v: "e", w: 1 },
+    { l: "R", v: "r", w: 1 },
+    { l: "T", v: "t", w: 1 },
+    { l: "Y", v: "y", w: 1 },
+    { l: "U", v: "u", w: 1 },
+    { l: "I", v: "i", w: 1 },
+    { l: "O", v: "o", w: 1 },
+    { l: "P", v: "p", w: 1 },
+    { l: "´", v: "´", d: true, s: "`", w: 1 },
+    { l: "[", v: "[", s: "{", a: "ª", w: 1 },
+    { l: "↵", k: "Enter", w: 1.3, cls: "vk-action vk-enter vk-enter-top" },
   ],
-  // Linha ZXCV
+  // Linha 3 (ASDF)
   [
-    { l: "⇧", k: "Shift", w: 1.8, cls: "vk-action vk-shift" },
-    { l: "\\", v: "\\", s: "|" },
-    { l: "Z", v: "z" },
-    { l: "X", v: "x" },
-    { l: "C", v: "c" },
-    { l: "V", v: "v" },
-    { l: "B", v: "b" },
-    { l: "N", v: "n" },
-    { l: "M", v: "m" },
-    { l: ",", v: ",", s: "<" },
-    { l: ".", v: ".", s: ">" },
-    { l: ";", v: ";", s: ":" },
-    { l: "/", v: "/", s: "?" },
-    { l: "⇧", k: "Shift", w: 1.8, cls: "vk-action vk-shift" },
+    { l: "Caps", k: "CapsLock", w: 1.8, cls: "vk-action vk-caps" },
+    { l: "A", v: "a", w: 1 },
+    { l: "S", v: "s", w: 1 },
+    { l: "D", v: "d", w: 1 },
+    { l: "F", v: "f", w: 1 },
+    { l: "G", v: "g", w: 1 },
+    { l: "H", v: "h", w: 1 },
+    { l: "J", v: "j", w: 1 },
+    { l: "K", v: "k", w: 1 },
+    { l: "L", v: "l", w: 1 },
+    { l: "Ç", v: "ç", w: 1 },
+    { l: "~", v: "~", d: true, s: "^", w: 1 },
+    { l: "]", v: "]", s: "}", a: "º", w: 1 },
+    { l: "↵", k: "Enter", w: 1.5, cls: "vk-action vk-enter vk-enter-bottom" },
   ],
-  // Barra de espaço + navegação
+  // Linha 4 (ZXCV)
   [
-    { l: "←", k: "ArrowLeft", w: 1.4, cls: "vk-action" },
-    { l: "→", k: "ArrowRight", w: 1.4, cls: "vk-action" },
-    { v: " ", w: 7, cls: "vk-space" },
-    { l: "Alt", k: "Alt", w: 1.4, cls: "vk-action" },
-    { l: "Ctrl", k: "Control", w: 1.4, cls: "vk-action" },
+    { l: "⇧", k: "Shift", w: 2.2, cls: "vk-action vk-shift" },
+    { l: "\\", v: "\\", s: "|", w: 1 },
+    { l: "Z", v: "z", w: 1 },
+    { l: "X", v: "x", w: 1 },
+    { l: "C", v: "c", w: 1 },
+    { l: "V", v: "v", w: 1 },
+    { l: "B", v: "b", w: 1 },
+    { l: "N", v: "n", w: 1 },
+    { l: "M", v: "m", w: 1 },
+    { l: ",", v: ",", s: "<", w: 1 },
+    { l: ".", v: ".", s: ">", w: 1 },
+    { l: ";", v: ";", s: ":", w: 1 },
+    { l: "/", v: "/", s: "?", a: "°", w: 1 },
+    { l: "⇧", k: "Shift", w: 2.2, cls: "vk-action vk-shift" },
+  ],
+  // Linha 5 (Espaço e Navegação)
+  [
+    { l: "Ctrl", k: "Control", w: 1.5, cls: "vk-action" },
+    { l: "Win", k: "Meta", w: 1.2, cls: "vk-action vk-win", icon: "win" },
+    { l: "Alt", k: "Alt", w: 1.2, cls: "vk-action" },
+    { v: " ", w: 6, cls: "vk-space" },
+    { l: "AltGr", k: "AltGraph", w: 1.2, cls: "vk-action vk-altgr" },
+    { l: "Menu", k: "ContextMenu", w: 1.2, cls: "vk-action vk-menu", icon: "menu" },
+    { l: "Ctrl", k: "Control", w: 1.5, cls: "vk-action" },
+    { l: "←", k: "ArrowLeft", w: 1, cls: "vk-action vk-arrow" },
+    { k: "ArrowsUpDown", w: 1, cls: "vk-action vk-arrow-col" },
+    { l: "→", k: "ArrowRight", w: 1, cls: "vk-action vk-arrow" },
   ],
 ];
 
@@ -148,10 +171,15 @@ function VirtualKeyboard() {
   const visible = useSelector((s) => s.globals?.virtualKeyboard);
   const [shift, setShift] = useState(false);
   const [caps, setCaps] = useState(false);
+  const [altGr, setAltGr] = useState(false);
   const [dead, setDead] = useState(null);
-  const [pressing, setPressing] = useState(null); // key index sendo pressionada
+  const [pressing, setPressing] = useState(null);
+  
+  const [capsAnim, setCapsAnim] = useState(false); // Gatilho de animação de letras
+
   const shiftRef = useRef(false);
   const capsRef = useRef(false);
+  const altGrRef = useRef(false);
   const deadRef = useRef(null);
   const kbRef = useRef(null);
 
@@ -170,7 +198,6 @@ function VirtualKeyboard() {
       document.body.style.setProperty("--vk-height", `${h}px`);
     };
 
-    // Atualiza após o paint inicial
     const raf = requestAnimationFrame(() => {
       updateHeight();
     });
@@ -214,7 +241,6 @@ function VirtualKeyboard() {
       }
     };
 
-    // Travar o foco atual se for editável
     lockInput(document.activeElement);
 
     const onFocusIn = (e) => lockInput(e.target);
@@ -226,7 +252,6 @@ function VirtualKeyboard() {
     return () => {
       document.removeEventListener("focusin", onFocusIn, true);
       document.removeEventListener("focusout", onFocusOut, true);
-      // Restaurar todos que ainda estejam com inputmode=none por nós
       document.querySelectorAll("[inputmode='none']").forEach((el) => {
         restoreInput(el);
       });
@@ -238,14 +263,17 @@ function VirtualKeyboard() {
     if (!visible) {
       setShift(false);
       setCaps(false);
+      setAltGr(false);
       setDead(null);
       shiftRef.current = false;
       capsRef.current = false;
+      altGrRef.current = false;
       deadRef.current = null;
     }
   }, [visible]);
 
   const getChar = useCallback((keyObj) => {
+    if (altGrRef.current && keyObj.a) return keyObj.a;
     if (shiftRef.current && keyObj.s) return keyObj.s;
     if (shiftRef.current && CHARS_BASE.includes(keyObj.v))
       return keyObj.v.toUpperCase();
@@ -271,12 +299,24 @@ function VirtualKeyboard() {
           shiftRef.current = n;
           return n;
         });
+        setCapsAnim(true);
+        setTimeout(() => setCapsAnim(false), 300);
         return;
       }
       if (k === "CapsLock") {
         setCaps((p) => {
           const n = !p;
           capsRef.current = n;
+          return n;
+        });
+        setCapsAnim(true);
+        setTimeout(() => setCapsAnim(false), 300);
+        return;
+      }
+      if (k === "AltGraph") {
+        setAltGr((p) => {
+          const n = !p;
+          altGrRef.current = n;
           return n;
         });
         return;
@@ -311,7 +351,8 @@ function VirtualKeyboard() {
         moveCursor("right");
         return;
       }
-      if (k) {
+      // Evitar disparo de letras caso k seja uma dessas teclas de controle
+      if (k && !keyObj.v) {
         deadRef.current = null;
         setDead(null);
         el.dispatchEvent(
@@ -331,6 +372,18 @@ function VirtualKeyboard() {
           shiftRef.current = false;
         }
         return;
+      }
+      
+      // Dead key secundária (shift + dead key principal, ex: shift + ´ = `)
+      if (keyObj.d && shifted && keyObj.s) {
+        const deadSec = keyObj.s;
+        if (["`", "^"].includes(deadSec)) {
+          deadRef.current = deadSec;
+          setDead(deadSec);
+          setShift(false);
+          shiftRef.current = false;
+          return;
+        }
       }
 
       const ch = getChar(keyObj);
@@ -354,6 +407,10 @@ function VirtualKeyboard() {
         setShift(false);
         shiftRef.current = false;
       }
+      if (altGrRef.current) {
+        setAltGr(false);
+        altGrRef.current = false;
+      }
     },
     [getChar]
   );
@@ -365,38 +422,83 @@ function VirtualKeyboard() {
       {ROWS.map((row, ri) => (
         <div className="vk-row" key={ri}>
           {row.map((keyObj, ki) => {
-            const isLetter = CHARS_BASE.includes(keyObj.v || "");
-            let label;
-            if (keyObj.l === "⌫" || keyObj.l === "↵" || keyObj.l === "⇧") {
-              label = keyObj.l;
-            } else if (isLetter) {
-              label =
-                shift || caps ? keyObj.l.toUpperCase() : keyObj.l.toLowerCase();
-            } else if (shift && keyObj.s) {
-              label = keyObj.s;
-            } else {
-              label = keyObj.l || " ";
+            if (keyObj.k === "ArrowsUpDown") {
+              return (
+                <div key={ki} className="vk-arrow-col" style={{ flex: keyObj.w }}>
+                  <button
+                    className={`vk-key vk-action vk-arrow ${pressing === `${ri}-${ki}-up` ? "vk-key--pressing" : ""}`}
+                    onPointerDown={(e) => {
+                      e.preventDefault();
+                      setPressing(`${ri}-${ki}-up`);
+                      handleKey({ k: "ArrowUp" });
+                    }}
+                    onPointerUp={() => setPressing(null)}
+                    onPointerLeave={() => setPressing(null)}
+                  >
+                    ↑
+                  </button>
+                  <button
+                    className={`vk-key vk-action vk-arrow ${pressing === `${ri}-${ki}-down` ? "vk-key--pressing" : ""}`}
+                    onPointerDown={(e) => {
+                      e.preventDefault();
+                      setPressing(`${ri}-${ki}-down`);
+                      handleKey({ k: "ArrowDown" });
+                    }}
+                    onPointerUp={() => setPressing(null)}
+                    onPointerLeave={() => setPressing(null)}
+                  >
+                    ↓
+                  </button>
+                </div>
+              );
             }
 
+            const isLetter = CHARS_BASE.includes(keyObj.v || "");
+            
             const isDeadActive =
-              dead === keyObj.v && keyObj.d && !(shift && keyObj.s);
+              (dead === keyObj.v && keyObj.d && !shift) ||
+              (dead === keyObj.s && keyObj.d && shift);
+              
             const isShiftActive = keyObj.k === "Shift" && shift;
             const isCapsActive = keyObj.k === "CapsLock" && caps;
+            const isAltGrActive = keyObj.k === "AltGraph" && altGr;
 
             const cls = [
               "vk-key",
               keyObj.cls || "",
               isDeadActive ? "vk-key--dead-active" : "",
               keyObj.d ? "vk-key--dead" : "",
-              isShiftActive ? "vk-key--active" : "",
-              isCapsActive ? "vk-key--active" : "",
+              isShiftActive || isCapsActive || isAltGrActive ? "vk-key--active" : "",
               pressing === `${ri}-${ki}` ? "vk-key--pressing" : "",
+              isLetter && capsAnim ? "vk-letter-anim" : "",
             ]
               .filter(Boolean)
               .join(" ");
 
             const keyStyle = {};
             if (keyObj.w) keyStyle.flex = keyObj.w;
+            
+            // Lógica de renderização do rótulo da tecla
+            let content;
+            if (keyObj.icon === "win") {
+              content = <Icon fafa="faWindows" width={14} />;
+            } else if (keyObj.icon === "menu") {
+              content = <Icon fafa="faBars" width={14} />;
+            } else if (keyObj.s || keyObj.a) {
+              // Tecla com múltiplos caracteres
+              content = (
+                <div className="vk-key-multi">
+                  {keyObj.s && <span className="vk-sec">{keyObj.s}</span>}
+                  <span className="vk-pri">{keyObj.l}</span>
+                  {keyObj.a && <span className="vk-ter">{keyObj.a}</span>}
+                </div>
+              );
+            } else if (isLetter) {
+              const letter = shift || caps ? keyObj.l.toUpperCase() : keyObj.l.toLowerCase();
+              content = <span className="vk-letter">{letter}</span>;
+            } else {
+              content = keyObj.l || " ";
+            }
 
             return (
               <button
@@ -412,7 +514,8 @@ function VirtualKeyboard() {
                 onPointerUp={() => setPressing(null)}
                 onPointerLeave={() => setPressing(null)}
               >
-                {label}
+                {isCapsActive && keyObj.k === "CapsLock" && <div className="vk-led" />}
+                {content}
               </button>
             );
           })}
