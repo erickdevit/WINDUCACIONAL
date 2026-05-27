@@ -281,6 +281,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   const [registerDate, setRegisterDate] = useState(toDateInputValue(new Date()));
   const [registerTurmaId, setRegisterTurmaId] = useState("");
   const [registerStudents, setRegisterStudents] = useState([]);
+  const [registerSearch, setRegisterSearch] = useState("");
   const [savingRegister, setSavingRegister] = useState(false);
   const [printDate, setPrintDate] = useState("");
 
@@ -844,8 +845,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   /* ── DASHBOARD — Visão Geral ─────────────────────────── */
   const renderOverview = () => (
     <>
-      {renderFilters(false)}
-      {renderHeader("Visão geral")}
+      {renderHeader("Visão geral", renderFilters(true))}
       {renderStats()}
 
       {/* Linha de gráficos */}
@@ -1073,6 +1073,12 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
       );
     };
 
+    const filteredRegisterStudents = registerStudents.filter((s) => {
+      const search = registerSearch.trim().toLowerCase();
+      if (!search) return true;
+      return s.displayName.toLowerCase().includes(search) || s.username.toLowerCase().includes(search);
+    });
+
     const handleSaveRegister = async () => {
       setSavingRegister(true);
       setMessage("");
@@ -1131,11 +1137,22 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
 
         {registerStudents.length > 0 && (
           <section className="at-panel">
-            <div className="at-panel-head" style={{flexWrap: "wrap"}}>
-              <h2>Alunos da Turma ({registerStudents.length})</h2>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button className="attendance-secondary" onClick={() => handleSelectAll(true)}>Marcar Todos</button>
-                <button className="attendance-secondary" onClick={() => handleSelectAll(false)}>Desmarcar Todos</button>
+            <div className="at-panel-head" style={{flexWrap: "wrap", justifyContent: "space-between", gap: "10px"}}>
+              <div>
+                <h2>Alunos da Turma ({filteredRegisterStudents.length}/{registerStudents.length})</h2>
+                <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+                  <button className="attendance-secondary" onClick={() => handleSelectAll(true)}>Marcar Todos</button>
+                  <button className="attendance-secondary" onClick={() => handleSelectAll(false)}>Desmarcar Todos</button>
+                </div>
+              </div>
+              <div className="at-search-wrap" style={{ display: "inline-flex" }}>
+                <Icon fafa="faMagnifyingGlass" width={13} />
+                <input
+                  className="attendance-search"
+                  value={registerSearch}
+                  onChange={(event) => setRegisterSearch(event.target.value)}
+                  placeholder="Buscar aluno ou usuário"
+                />
               </div>
             </div>
             <div className="attendance-table-wrap win11Scroll" style={{maxHeight: "400px"}}>
@@ -1147,7 +1164,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {registerStudents.map((s) => (
+                  {filteredRegisterStudents.map((s) => (
                     <tr key={s.id} onClick={() => handleToggleStudent(s.id)} style={{ cursor: "pointer" }}>
                       <td style={{ textAlign: "center" }}>
                         <input
