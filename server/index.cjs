@@ -4329,7 +4329,7 @@ const canAccessThread = async (userId, userRole, threadId) => {
   );
   if (result.rowCount === 0) return null;
   const thread = result.rows[0];
-  if (userRole === "professor") return thread;
+  if (userRole === "professor" || userRole === "secretaria") return thread;
   if (thread.type === "group") {
     if (thread.turma_id !== thread.viewer_turma) return null;
   } else {
@@ -4411,8 +4411,12 @@ app.get(
   async (req, res, next) => {
     try {
       const { turmaId } = req.params;
-      // Professor pode ver qualquer turma; aluno só a própria
-      if (req.user.role !== "professor" && req.user.turma_id !== turmaId) {
+      // Professor/secretaria pode ver qualquer turma; aluno só a própria
+      if (
+        req.user.role !== "professor" &&
+        req.user.role !== "secretaria" &&
+        req.user.turma_id !== turmaId
+      ) {
         return res.status(403).json({ error: "Acesso negado." });
       }
       const result = await pool.query(
@@ -4443,7 +4447,11 @@ app.get(
   async (req, res, next) => {
     try {
       const { turmaId } = req.params;
-      if (req.user.role !== "professor" && req.user.turma_id !== turmaId) {
+      if (
+        req.user.role !== "professor" &&
+        req.user.role !== "secretaria" &&
+        req.user.turma_id !== turmaId
+      ) {
         return res.status(403).json({ error: "Acesso negado." });
       }
       const threadId = await ensureGroupThread(turmaId);
@@ -4469,7 +4477,12 @@ app.post("/api/chat/dm", requireAuth, async (req, res, next) => {
     if (peerResult.rowCount === 0)
       return res.status(404).json({ error: "Usuário não encontrado." });
     const peer = peerResult.rows[0];
-    if (req.user.role !== "professor" && peer.role !== "professor") {
+    if (
+      req.user.role !== "professor" &&
+      req.user.role !== "secretaria" &&
+      peer.role !== "professor" &&
+      peer.role !== "secretaria"
+    ) {
       if (req.user.turma_id !== peer.turma_id) {
         return res
           .status(403)
