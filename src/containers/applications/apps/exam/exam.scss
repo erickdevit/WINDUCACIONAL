@@ -27,6 +27,12 @@
     font: inherit;
   }
 
+  .exam-mobile-only,
+  .exam-mobile-nav,
+  .exam-card-list {
+    display: none;
+  }
+
   .exam-layout {
     display: flex;
     flex: 1;
@@ -1676,5 +1682,242 @@
     font-size: 11px;
     color: var(--muted);
     margin-top: 3px;
+  }
+}
+
+@media (max-width: 600px) and (orientation: portrait) {
+  .examApp {
+    .exam-mobile-only {
+      display: initial;
+    }
+
+    .exam-desktop-table {
+      display: none;
+    }
+
+    .exam-card-list {
+      display: grid;
+      gap: 12px;
+      padding: 12px 0;
+    }
+
+    .exam-mobile-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      h4 {
+        margin: 0;
+        font-size: 15px;
+        color: var(--text);
+        font-weight: 800;
+      }
+
+      .card-info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        padding-top: 8px;
+        border-top: 1px dashed var(--line-soft);
+      }
+
+      .card-label {
+        color: var(--muted);
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 10px;
+      }
+
+      .card-value {
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .card-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        
+        button {
+          flex: 1;
+        }
+      }
+    }
+
+    .exam-layout {
+      flex-direction: column;
+    }
+
+    .exam-sidebar {
+      display: none;
+    }
+
+    .exam-mobile-nav {
+      display: grid;
+      position: sticky;
+      bottom: 0;
+      z-index: 40;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--line);
+      box-shadow: 0 -4px 14px rgba(15, 23, 42, 0.08);
+      padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+      grid-template-columns: repeat(var(--exam-mobile-nav-count, 4), 1fr);
+
+      .nav-link {
+        flex-direction: column;
+        border-radius: 0;
+        padding: 8px 4px;
+        gap: 6px;
+        color: var(--muted);
+        align-items: center;
+
+        .nav-text {
+          display: block;
+          font-size: 10px;
+          font-weight: 800;
+          text-align: center;
+        }
+
+        &.active {
+          background: var(--accent-soft);
+          color: var(--accent-strong);
+        }
+      }
+    }
+
+    .exam-content {
+      padding: 12px 12px calc(76px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .exam-page-heading {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+
+      h2 {
+        font-size: 20px;
+      }
+    }
+
+    .exam-stat-grid {
+      grid-template-columns: 1fr 1fr;
+      
+      .stat-card {
+        padding: 12px;
+      }
+      
+      .stat-value {
+        font-size: 24px;
+      }
+    }
+
+    .exam-stat-grid.four {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .exam-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .btn-primary, .btn-secondary, .btn-danger {
+      min-height: 44px;
+    }
+
+    .turma-select {
+      min-height: 44px;
+      width: 100%;
+    }
+
+    .exam-section-head {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      
+      .exam-filters {
+        flex-direction: column;
+        align-items: stretch;
+        
+        select {
+          width: 100%;
+          min-height: 44px;
+        }
+        
+        .flex {
+          width: 100%;
+          
+          button {
+            flex: 1;
+            justify-content: center;
+          }
+        }
+      }
+    }
+
+    .application-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .application-detail-head {
+      flex-direction: column;
+      align-items: flex-start;
+      
+      .application-actions {
+        width: 100%;
+        flex-direction: column;
+        
+        select {
+          width: 100%;
+          min-height: 44px;
+        }
+        
+        button {
+          width: 100%;
+        }
+      }
+    }
+
+    .receipt-printable {
+      padding: 16px;
+      border-radius: 8px;
+    }
+
+    .receipt-info-row {
+      flex-direction: column;
+      
+      .receipt-info-cell {
+        border-right: 0;
+        border-bottom: 1px solid var(--line-soft);
+        
+        &:last-child {
+          border-bottom: 0;
+        }
+      }
+    }
+
+    .receipt-scores {
+      .score-value {
+        font-size: 18px;
+      }
+      .score-total {
+        font-size: 24px;
+      }
+    }
+
+    .question-modal {
+      max-width: 100%;
+      border-radius: 12px 12px 0 0;
+      margin-top: auto;
+    }
+
+    .question-modal-backdrop {
+      padding: 0;
+      align-items: flex-end;
+    }
   }
 }

@@ -240,7 +240,51 @@ export const ExamApplications = () => {
           </div>
 
           <div className="application-table-wrap win11Scroll">
-            <table className="application-table">
+            <div className="exam-card-list exam-mobile-only">
+              {visibleItems.map(item => {
+                const submissionStatus = getSubmissionStatus(item);
+                return (
+                  <article key={item.id} className="exam-mobile-card">
+                    <h4>{item.displayName || "Aluno indisponível"} <span className="text-xs text-gray-400 font-normal">@{item.username}</span></h4>
+                    
+                    <div className="text-sm font-bold text-gray-700 mt-1">
+                      {item.examTitle || "Prova indisponível"}
+                    </div>
+
+                    <div className="card-info-row mt-2">
+                      <div className="flex flex-col gap-1">
+                        <span className="card-label">Submissão</span>
+                        <span className={`trace-pill ${submissionStatus}`} style={{ width: 'fit-content', padding: '2px 6px', fontSize: '10px' }}>
+                          {submissionLabels[submissionStatus] || "Ignorada"}
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1 text-right">
+                        <span className="card-label">Nota</span>
+                        <span className="card-value text-blue-600 font-bold">{item.totalScore !== undefined ? item.totalScore : '-'}</span>
+                      </div>
+                    </div>
+
+                    <div className="card-info-row">
+                      <div className="flex flex-col gap-1">
+                        <span className="card-label">Atribuição</span>
+                        <span className={`trace-pill ${item.assignmentStatus}`} style={{ width: 'fit-content', padding: '2px 6px', fontSize: '10px' }}>
+                          {assignmentLabels[item.assignmentStatus] || item.assignmentStatus}
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1 text-right">
+                        <span className="card-label">Conclusão</span>
+                        <span className="card-value font-normal text-xs text-muted">{formatDateTime(item.completedAt)}</span>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+              {visibleItems.length === 0 && (
+                <div className="p-4 text-center text-gray-400 italic">Nenhum registro neste filtro.</div>
+              )}
+            </div>
+
+            <table className="application-table exam-desktop-table">
               <thead>
                 <tr>
                   <th>Prova</th>

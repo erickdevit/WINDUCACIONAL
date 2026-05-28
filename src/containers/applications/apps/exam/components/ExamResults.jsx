@@ -102,7 +102,63 @@ export const ExamResults = () => {
       </div>
 
       <div className="exam-panel exam-results-panel win11Scroll">
-        <table className="application-table">
+        <div className="exam-card-list exam-mobile-only">
+          {submissions.map(sub => (
+            <article 
+              key={sub.id} 
+              className="exam-mobile-card cursor-pointer hover:bg-gray-50 transition" 
+              onClick={() => setSelectedSubmission(sub)}
+            >
+              <div className="flex justify-between items-start gap-2">
+                <div className="flex gap-2 items-start">
+                  <div onClick={e => e.stopPropagation()} className="pt-1">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(sub.id)}
+                      onChange={() => toggleSelect(sub.id)}
+                      className="w-5 h-5"
+                    />
+                  </div>
+                  <div>
+                    <h4 className="flex items-center gap-2 m-0 leading-tight">{sub.displayName}</h4>
+                    <span className="text-xs text-gray-400">@{sub.username}</span>
+                  </div>
+                </div>
+                <span className={`trace-pill ${sub.status}`} style={{ padding: '4px 8px', fontSize: '10px' }}>
+                  {sub.status === 'completed' ? 'Concluída' : 'Em andamento'}
+                </span>
+              </div>
+              
+              <div className="card-info-row mt-2">
+                <div className="flex flex-col gap-1">
+                  <span className="card-label">Teoria</span>
+                  <span className="card-value">{sub.scoreMcq}</span>
+                </div>
+                <div className="flex flex-col gap-1 text-center">
+                  <span className="card-label">Prática</span>
+                  <span className="card-value">{sub.scorePractical}</span>
+                </div>
+                <div className="flex flex-col gap-1 text-right">
+                  <span className="card-label">Total</span>
+                  <span className="card-value text-blue-600 font-bold">{sub.totalScore}</span>
+                </div>
+              </div>
+
+              <div className="text-right mt-1">
+                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                  {sub.completedAt ? new Date(sub.completedAt).toLocaleString() : '---'}
+                </span>
+              </div>
+            </article>
+          ))}
+          {submissions.length === 0 && (
+            <div className="p-4 text-center text-gray-400 italic">
+              {selectedExamId === 'all' ? 'Selecione uma prova para ver os resultados.' : 'Nenhum resultado encontrado.'}
+            </div>
+          )}
+        </div>
+
+        <table className="application-table exam-desktop-table">
           <thead>
             <tr>
               <th style={{ width: 32 }}></th>

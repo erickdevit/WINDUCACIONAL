@@ -38,7 +38,43 @@ export const StudentHistory = () => {
     <div className="exam-student-history animate-fade-in">
       <h2 className="text-2xl font-bold mb-6">Provas Realizadas</h2>
       <div className="exam-results-panel win11Scroll bg-white border rounded-xl shadow-sm">
-        <table className="w-full text-left">
+        <div className="exam-card-list exam-mobile-only p-4">
+          {submissions.map(sub => (
+            <article 
+              key={sub.id} 
+              className="exam-mobile-card cursor-pointer hover:bg-gray-50 transition"
+              onClick={() => sub.status === "completed" && setSelectedSubmission(sub)}
+            >
+              <div className="flex justify-between items-start gap-2">
+                <div>
+                  <h4 className="text-blue-700 m-0 leading-tight">{sub.examTitle}</h4>
+                  <div className="text-[10px] text-gray-400 font-mono mt-1">{sub.id.slice(0, 8)}</div>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase ${
+                  sub.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                }`}>
+                  {sub.status === 'completed' ? 'Concluída' : 'Em Andamento'}
+                </span>
+              </div>
+              
+              <div className="card-info-row mt-2">
+                <div className="flex flex-col gap-1">
+                  <span className="card-label">Nota Final</span>
+                  <span className="card-value text-xl text-blue-600 font-black">{sub.totalScore !== undefined ? sub.totalScore : '-'}</span>
+                </div>
+                <div className="flex flex-col gap-1 text-right">
+                  <span className="card-label">Data</span>
+                  <span className="card-value font-normal text-xs">{sub.completedAt ? new Date(sub.completedAt).toLocaleString() : 'Não finalizada'}</span>
+                </div>
+              </div>
+            </article>
+          ))}
+          {submissions.length === 0 && !loading && (
+            <div className="p-4 text-center text-gray-400 italic">Você ainda não realizou nenhuma prova.</div>
+          )}
+        </div>
+
+        <table className="w-full text-left exam-desktop-table">
           <thead className="bg-gray-50 border-b">
             <tr>
               <th className="p-4 font-bold text-sm">Prova</th>

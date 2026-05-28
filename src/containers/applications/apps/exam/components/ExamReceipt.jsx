@@ -223,7 +223,37 @@ export const ExamReceipt = ({ examId, submissionId, onBack }) => {
             <h3 className="receipt-section-title">
               Questões Teóricas ({mcqAnswers.length})
             </h3>
-            <table>
+
+            <div className="exam-card-list exam-mobile-only">
+              {mcqAnswers.map((a, i) => (
+                <article key={a.questionId} className="exam-mobile-card">
+                  <div className="flex justify-between items-start gap-2">
+                    <h4 className="flex-1 text-sm m-0 leading-snug">{i + 1}. {a.text}</h4>
+                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${a.isCorrect ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                      {a.pointsAwarded}/{a.pointsTotal} pts
+                    </span>
+                  </div>
+                  
+                  <div className="card-info-row mt-2">
+                    <div className="flex flex-col gap-1 w-full">
+                      <span className="card-label">Sua Resposta</span>
+                      <span className={`card-value text-xs ${a.isCorrect ? "text-green-700" : "text-red-700"}`}>{getOptionLabel(a.options, a.answerText)}</span>
+                    </div>
+                  </div>
+                  
+                  {isProfessor && !a.isCorrect && (
+                    <div className="card-info-row bg-green-50 p-2 rounded mt-1 border-0">
+                      <div className="flex flex-col gap-1 w-full">
+                        <span className="card-label text-green-800">Gabarito</span>
+                        <span className="card-value text-xs text-green-700">{getOptionLabel(a.options, a.correctAnswer)}</span>
+                      </div>
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+
+            <table className="exam-desktop-table">
               <thead>
                 <tr>
                   <th style={{ width: 40 }}>#</th>
@@ -264,7 +294,30 @@ export const ExamReceipt = ({ examId, submissionId, onBack }) => {
             <h3 className="receipt-section-title">
               Tarefas Práticas ({practicalAnswers.length})
             </h3>
-            <table>
+
+            <div className="exam-card-list exam-mobile-only">
+              {practicalAnswers.map((a, i) => (
+                <article key={a.questionId} className="exam-mobile-card">
+                  <div className="flex justify-between items-start gap-2">
+                    <h4 className="flex-1 text-sm m-0 leading-snug">{i + 1}. {a.text}</h4>
+                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${a.isCorrect ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                      {a.pointsAwarded}/{a.pointsTotal} pts
+                    </span>
+                  </div>
+                  
+                  {isProfessor && a.validationRules && a.validationRules.length > 0 && (
+                    <div className="card-info-row mt-2 flex-col items-start gap-1">
+                      <span className="card-label">Validação</span>
+                      {a.validationRules.map((rule, ri) => (
+                        <div key={ri} className="validation-detail mt-0">{getValidationLabel(rule)}</div>
+                      ))}
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+
+            <table className="exam-desktop-table">
               <thead>
                 <tr>
                   <th style={{ width: 40 }}>#</th>

@@ -151,7 +151,36 @@ export const ExamAssignment = () => {
 
             {selectedTurmaId && (
               <div className="exam-student-table-wrap win11Scroll">
-                <table className="exam-student-table">
+                <div className="exam-card-list exam-mobile-only" style={{ padding: '0 0 12px 0' }}>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 border rounded-lg mb-2 cursor-pointer" onClick={toggleAllStudents}>
+                    <input 
+                      type="checkbox" 
+                      checked={students.length > 0 && selectedStudentIds.length === students.length}
+                      readOnly
+                      className="w-5 h-5"
+                    />
+                    <span className="text-sm font-bold text-gray-700">Selecionar todos os alunos</span>
+                  </div>
+                  {students.map(s => (
+                    <label key={s.id} className={`flex items-center gap-3 p-3 border rounded-lg transition cursor-pointer ${selectedStudentIds.includes(s.id) ? 'border-blue-500 bg-blue-50' : 'bg-white'}`}>
+                      <input 
+                        type="checkbox" 
+                        checked={selectedStudentIds.includes(s.id)}
+                        onChange={() => toggleStudent(s.id)}
+                        className="w-5 h-5 flex-shrink-0"
+                      />
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="font-bold text-gray-800 text-sm truncate">{s.displayName}</span>
+                        <span className="text-xs text-gray-400 truncate">@{s.username}</span>
+                      </div>
+                    </label>
+                  ))}
+                  {students.length === 0 && (
+                    <div className="p-4 text-center text-gray-400 italic">Nenhum aluno nesta turma.</div>
+                  )}
+                </div>
+
+                <table className="exam-student-table exam-desktop-table">
                   <thead>
                     <tr>
                       <th className="p-3 w-10">

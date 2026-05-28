@@ -243,6 +243,25 @@ export const ExamApp = () => {
     </div>
   );
 
+  const renderMobileNav = () => (
+    <nav 
+      className="exam-mobile-nav exam-mobile-only" 
+      style={{ "--exam-mobile-nav-count": navItems.length }}
+    >
+      {navItems.map((item) => (
+        <button
+          type="button"
+          key={item.id}
+          className={`nav-link ${activeTab === item.id ? "active" : ""}`}
+          onClick={() => setActiveTab(item.id)}
+        >
+          <Icon fafa={item.fafa} width={16} />
+          <span className="nav-text">{item.label}</span>
+        </button>
+      ))}
+    </nav>
+  );
+
   const renderDashboard = () => (
     <div className="exam-page animate-fade-in">
       <div className="exam-page-heading">
@@ -723,6 +742,7 @@ export const ExamApp = () => {
             )}
           </div>
         </div>
+        {examFlow === "none" && renderMobileNav()}
       </div>
       {renderConfirmModal()}
     </AppWindow>

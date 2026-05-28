@@ -51,8 +51,8 @@ export const MCQView = ({ questions, onFinish }) => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border p-8">
-        <h3 className="text-xl font-semibold mb-8 text-gray-800 leading-relaxed">
+      <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-8">
+        <h3 className="text-lg sm:text-xl font-semibold mb-6 sm:mb-8 text-gray-800 leading-relaxed">
           {q.text}
         </h3>
 
@@ -89,11 +89,11 @@ export const MCQView = ({ questions, onFinish }) => {
           })}
         </div>
 
-        <div className="mt-10 flex justify-end">
+        <div className="mt-8 sm:mt-10 flex justify-end">
           <button 
             disabled={!answers[q.id]}
             onClick={() => handleNext()}
-            className={`px-8 py-3 rounded-lg font-bold text-white transition-all ${
+            className={`w-full sm:w-auto px-8 py-3 min-h-[44px] rounded-lg font-bold text-white transition-all ${
               answers[q.id] 
                 ? 'bg-blue-600 hover:bg-blue-700 shadow-md transform hover:-translate-y-0.5' 
                 : 'bg-gray-300 cursor-not-allowed'

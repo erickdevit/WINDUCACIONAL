@@ -146,7 +146,53 @@ export const ExamManagement = ({ onBack }) => {
       )}
 
       <div className="exam-table-panel win11Scroll">
-        <table className="w-full text-left">
+        <div className="exam-card-list exam-mobile-only">
+          {exams.map(exam => (
+            <article key={exam.id} className="exam-mobile-card">
+              <div className="flex justify-between items-start gap-2">
+                <h4>{exam.title}</h4>
+                <button 
+                  onClick={() => handleTogglePublish(exam)}
+                  className={`exam-status-pill ${
+                    exam.isPublished ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'
+                  }`}
+                  style={{ padding: '4px 8px', fontSize: '10px' }}
+                >
+                  {exam.isPublished ? 'Publicada' : 'Rascunho'}
+                </button>
+              </div>
+              <div className="text-xs text-gray-400 line-clamp-2">{exam.description}</div>
+              
+              <div className="card-info-row">
+                <div className="flex flex-col gap-1">
+                  <span className="card-label">Tempo</span>
+                  <span className="card-value">{exam.timeLimit > 0 ? `${exam.timeLimit} min` : '---'}</span>
+                </div>
+                <div className="flex flex-col gap-1 text-right">
+                  <span className="card-label">Criada em</span>
+                  <span className="card-value">{new Date(exam.createdAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+
+              <div className="card-actions">
+                <button className="btn-secondary flex-1" onClick={() => setEditingExam(exam)}>
+                  <Icon fafa="faEdit" width={14} /> Questões
+                </button>
+                <button className="btn-secondary" style={{ flex: '0 0 auto' }} onClick={() => startEditMeta(exam)}>
+                  <Icon fafa="faClock" width={14} />
+                </button>
+                <button className="btn-danger" style={{ flex: '0 0 auto' }} onClick={() => handleDelete(exam.id)}>
+                  <Icon fafa="faTrash" width={14} />
+                </button>
+              </div>
+            </article>
+          ))}
+          {exams.length === 0 && !loading && (
+            <div className="p-4 text-center text-gray-400 italic">Nenhuma prova cadastrada.</div>
+          )}
+        </div>
+
+        <table className="w-full text-left exam-desktop-table">
           <thead>
             <tr>
               <th className="p-5 font-bold text-xs text-gray-400 uppercase tracking-widest">Status</th>
