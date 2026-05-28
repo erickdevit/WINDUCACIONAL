@@ -27,6 +27,7 @@ import * as Applications from "./containers/applications";
 import * as Drafts from "./containers/applications/draft";
 import { FileDialog } from "./containers/applications/apps/FileDialog";
 import { AttendanceStandalonePage } from "./containers/applications/apps/attendance/attendance";
+import { ExamStandalonePage } from "./containers/applications/apps/exam/exam";
 import { api } from "./lib/api";
 import { startAppVersionWatcher } from "./lib/appUpdate";
 import { getGlobalShortcutAction } from "./lib/keyboardShortcuts";
@@ -60,6 +61,8 @@ function ErrorFallback({ error, resetErrorBoundary }) {
 function App() {
   const directPath = window.location.pathname.replace(/\/+$/, "");
   const isAttendanceStandaloneRoute = directPath === "/frequencia";
+  const isExamStandaloneRoute = directPath === "/avaliacoes" || directPath === "/provas";
+  const isStandaloneRoute = isAttendanceStandaloneRoute || isExamStandaloneRoute;
   const apps = useSelector((state) => state.apps);
   const wall = useSelector((state) => state.wallpaper);
   const files = useSelector((state) => state.files);
@@ -263,7 +266,7 @@ function App() {
     });
   };
 
-  if (isAttendanceStandaloneRoute) {
+  if (isStandaloneRoute) {
     window.oncontextmenu = null;
     window.onclick = null;
     window.onload = null;
@@ -297,7 +300,7 @@ function App() {
   }
 
   useEffect(() => {
-    if (isAttendanceStandaloneRoute) return;
+    if (isStandaloneRoute) return;
     if (!window.onstart) {
       loadSettings();
       window.onstart = setTimeout(() => {
@@ -305,7 +308,7 @@ function App() {
         dispatch({ type: "WALLBOOTED" });
       }, 5000);
     }
-  }, [isAttendanceStandaloneRoute]);
+  }, [isStandaloneRoute]);
 
   useEffect(() => {
     refreshSession();
@@ -362,7 +365,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (isAttendanceStandaloneRoute) return undefined;
+    if (isStandaloneRoute) return undefined;
     let metaPressed = false;
     let otherKeyPressed = false;
 
@@ -439,7 +442,7 @@ function App() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [apps, dispatch, files.fileDialog, isAttendanceStandaloneRoute]);
+  }, [apps, dispatch, files.fileDialog, isStandaloneRoute]);
 
   useEffect(() => {
     if (
@@ -502,6 +505,14 @@ function App() {
     return (
       <ErrorBoundary FallbackComponent={ErrorFallback}>
         <AttendanceStandalonePage />
+      </ErrorBoundary>
+    );
+  }
+
+  if (isExamStandaloneRoute) {
+    return (
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <ExamStandalonePage />
       </ErrorBoundary>
     );
   }

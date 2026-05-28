@@ -16,9 +16,8 @@ import { ExamTimer } from "./components/ExamTimer";
 import { ExamReceipt } from "./components/ExamReceipt";
 import "./exam.scss";
 
-export const ExamApp = () => {
+export const ExamView = ({ standalone = false, visible = true }) => {
   const dispatch = useDispatch();
-  const wnapp = useSelector((state) => state.apps.exam || {});
   const user = useSelector((state) => state.setting.person);
 
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -47,8 +46,8 @@ export const ExamApp = () => {
   const draftCount = Math.max(exams.length - publishedCount, 0);
 
   useEffect(() => {
-    if (!wnapp.hide) loadInitialData();
-  }, [wnapp.hide, user.id, user.role]);
+    if (visible) loadInitialData();
+  }, [visible, user.id, user.role]);
 
   const loadInitialData = async () => {
     setLoading(true);
@@ -605,15 +604,7 @@ export const ExamApp = () => {
   const practicalCount = questions.filter((q) => q.type === "practical").length;
 
   return (
-    <AppWindow
-      wnapp={wnapp}
-      app="EXAMAPP"
-      icon="exam"
-      name="Avaliação"
-      className="examApp"
-      windowScreenClassName="flex flex-col"
-      restWindowClassName="flex-grow flex flex-col"
-    >
+    <div className={`exam-view-wrapper ${standalone ? "standalone" : "windowed"}`}>
       <div className="exam-layout">
         {examFlow === "none" && renderSidebar()}
         <div className="exam-main">
@@ -745,6 +736,36 @@ export const ExamApp = () => {
         {examFlow === "none" && renderMobileNav()}
       </div>
       {renderConfirmModal()}
+    </div>
+  );
+};
+
+export const ExamStandalonePage = () => {
+  useEffect(() => {
+    document.title = "Avaliações - WINDUCACIONAL";
+  }, []);
+
+  return (
+    <main className="examStandalonePage">
+      <ExamView standalone visible={true} />
+    </main>
+  );
+};
+
+export const ExamApp = () => {
+  const wnapp = useSelector((state) => state.apps.exam || {});
+
+  return (
+    <AppWindow
+      wnapp={wnapp}
+      app={wnapp.action || "EXAMAPP"}
+      icon="exam"
+      name="Avaliação"
+      className="examApp"
+      windowScreenClassName="flex flex-col"
+      restWindowClassName="flex-grow flex flex-col"
+    >
+      <ExamView visible={!wnapp.hide} />
     </AppWindow>
   );
 };
