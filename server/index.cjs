@@ -2375,10 +2375,13 @@ app.post(
         if (student.isPresent) {
           await client.query(
             `INSERT INTO attendance_records
-               (id, user_id, attendance_date, login_count, source, turma_id)
-             VALUES ($1, $2, $3, 1, 'manual', $4)
+               (id, user_id, attendance_date, first_login_at, last_login_at, login_count, source, turma_id)
+             VALUES ($1, $2, $3, NOW(), NOW(), 1, 'manual', $4)
              ON CONFLICT (user_id, attendance_date)
-             DO UPDATE SET source = 'manual', turma_id = EXCLUDED.turma_id`,
+             DO UPDATE SET first_login_at = COALESCE(attendance_records.first_login_at, NOW()),
+                           last_login_at = NOW(),
+                           source = 'manual',
+                           turma_id = EXCLUDED.turma_id`,
             [crypto.randomUUID(), student.id, date, turmaId]
           );
         } else {

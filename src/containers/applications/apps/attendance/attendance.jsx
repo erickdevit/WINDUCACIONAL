@@ -290,8 +290,17 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   useEffect(() => {
     if (activeTab.startsWith("reposicao-")) {
       setReposicaoOpen(true);
+      const currentTurma = turmas.find(t => t.id === selectedTurmaId);
+      if (currentTurma && currentTurma.studentType !== "reposicao") {
+        setSelectedTurmaId("");
+      }
+    } else {
+      const currentTurma = turmas.find(t => t.id === selectedTurmaId);
+      if (currentTurma && currentTurma.studentType === "reposicao") {
+        setSelectedTurmaId("");
+      }
     }
-  }, [activeTab]);
+  }, [activeTab, turmas, selectedTurmaId]);
 
   const tabs = isProfessor
     ? user.role === "professor"
@@ -586,12 +595,29 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
             value={selectedTurmaId}
             onChange={(event) => setSelectedTurmaId(event.target.value)}
           >
-            <option value="">Todas as turmas</option>
-            {turmas.map((turma) => (
-              <option key={turma.id} value={turma.id}>
-                {turma.nome}
-              </option>
-            ))}
+            {activeTab.startsWith("reposicao-") ? (
+              <>
+                <option value="">Todas as turmas de reposição</option>
+                {turmas
+                  .filter((t) => t.studentType === "reposicao")
+                  .map((turma) => (
+                    <option key={turma.id} value={turma.id}>
+                      {turma.nome}
+                    </option>
+                  ))}
+              </>
+            ) : (
+              <>
+                <option value="">Todas as turmas</option>
+                {turmas
+                  .filter((t) => t.studentType !== "reposicao")
+                  .map((turma) => (
+                    <option key={turma.id} value={turma.id}>
+                      {turma.nome}
+                    </option>
+                  ))}
+              </>
+            )}
           </select>
         </label>
         <label>
@@ -1289,16 +1315,10 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   };
 
   const renderReposicaoRecords = () => {
-    const repRecords = records.filter(r => {
+    const filteredRepRecords = records.filter(r => {
       const t = turmas.find(turma => turma.id === r.turmaId || turma.nome === r.turmaNome);
       return t?.studentType === "reposicao";
     });
-
-    const filteredRepRecords = recordFilter === "all"
-      ? repRecords
-      : repRecords.filter(r => r.turmaId === recordFilter);
-
-    const repTurmas = turmas.filter(t => t.studentType === "reposicao");
 
     return (
       <>
@@ -1306,19 +1326,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
         <section className="at-panel">
           <div className="at-panel-head" style={{ flexWrap: "wrap", gap: "10px", justifyContent: "space-between" }}>
             <div>
-              <select
-                className="attendance-select-compact"
-                value={recordFilter}
-                onChange={(event) => setRecordFilter(event.target.value)}
-              >
-                <option value="all">Todas as turmas de reposição</option>
-                {repTurmas.map((turma) => (
-                  <option key={turma.id} value={turma.id}>
-                    {turma.nome}
-                  </option>
-                ))}
-              </select>
-              <span className="at-panel-sub" style={{ marginLeft: "10px" }}>
+              <span className="at-panel-sub">
                 {filteredRepRecords.length} registro{filteredRepRecords.length !== 1 ? "s" : ""}
               </span>
             </div>
@@ -1493,11 +1501,14 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
 
   /* ── Relatório de impressão ──────────────────────────── */
   const renderPrintReport = () => {
+    const currentTurma = turmas.find(t => t.id === selectedTurmaId);
+    const isPrintReposicao = currentTurma?.studentType === "reposicao";
+
     if (startDate === endDate) {
       const dayRecords = records.filter(r => r.attendanceDate === startDate);
       return (
         <div className="attendance-print-sheet">
-          <h1>Relatório de frequência diária</h1>
+          <h1>{isPrintReposicao ? "Relatório de frequência de reposição" : "Relatório de frequência diária"}</h1>
           <p>
             Turma: {filteredTurmaName} | Data: {formatDate(startDate)}
           </p>
@@ -1536,7 +1547,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
 
     return (
       <div className="attendance-print-sheet">
-        <h1>Relatório de frequência</h1>
+        <h1>{isPrintReposicao ? "Relatório de frequência de reposição" : "Relatório de frequência"}</h1>
         <p>
           Turma: {filteredTurmaName} | Período:{" "}
           {formatDate(summary?.range?.startDate)} até{" "}
