@@ -532,6 +532,7 @@ const publicAttendanceRecord = (record) => ({
   displayName: record.display_name,
   turmaId: record.turma_id || null,
   turmaNome: record.turma_nome || "",
+  classType: record.class_type || null,
 });
 
 const normalizeExamText = (value, fallback = "") =>
@@ -2096,11 +2097,13 @@ app.get("/api/attendance/me", requireAuth, async (req, res, next) => {
               u.username,
               u.display_name,
               COALESCE(ar.turma_id, u.turma_id) AS turma_id,
-              t.nome AS turma_nome
+              t.nome AS turma_nome,
+              t.student_type AS class_type
        FROM attendance_records ar
        JOIN users u ON u.id = ar.user_id
        LEFT JOIN turmas t ON t.id = COALESCE(ar.turma_id, u.turma_id)
        WHERE ar.user_id = $1
+         AND (ar.turma_id IS NULL OR ar.turma_id NOT IN (SELECT id FROM turmas WHERE student_type = 'reposicao'))
        ORDER BY ar.attendance_date DESC
        LIMIT 90`,
       [req.user.id]
@@ -2221,7 +2224,8 @@ app.get(
                 u.username,
                 u.display_name,
                 COALESCE(ar.turma_id, u.turma_id) AS turma_id,
-                t.nome AS turma_nome
+                t.nome AS turma_nome,
+                t.student_type AS class_type
          FROM attendance_records ar
          JOIN users u ON u.id = ar.user_id
          LEFT JOIN turmas t ON t.id = COALESCE(ar.turma_id, u.turma_id)
@@ -2230,7 +2234,10 @@ app.get(
         recordParams
       );
 
-      const records = recordsResult.rows.map(publicAttendanceRecord);
+      const recordsMapped = recordsResult.rows.map(publicAttendanceRecord);
+      const records = isReposicao
+        ? recordsMapped
+        : recordsMapped.filter((r) => r.classType !== "reposicao");
       const recordsByStudent = new Map();
       records.forEach((record) => {
         if (!recordsByStudent.has(record.userId)) {

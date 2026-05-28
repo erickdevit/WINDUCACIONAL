@@ -694,7 +694,6 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
           <header>
             <div>
               <strong>{student.displayName}</strong>
-              <span>@{student.username}</span>
             </div>
             <span
               className={`at-badge at-badge--${rateClass(student.attendanceRate)}`}
@@ -750,7 +749,6 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               <tr key={student.id}>
                 <td>
                   <strong>{student.displayName}</strong>
-                  <small>@{student.username}</small>
                 </td>
                 <td>{student.turmaNome || "Sem turma"}</td>
                 <td className="at-num">{student.presentDays}</td>
@@ -823,10 +821,8 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               <strong>{record.displayName}</strong>
               <span>{formatDate(record.attendanceDate)}</span>
             </div>
-            <span
-              className={`at-badge ${Number(record.loginCount) > 1 ? "at-badge--multi" : ""}`}
-            >
-              {record.loginCount} login{Number(record.loginCount) !== 1 ? "s" : ""}
+            <span className="at-badge at-badge--good">
+              Presente
             </span>
           </header>
           <dl>
@@ -835,16 +831,8 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               <dd>{record.turmaNome || "Sem turma"}</dd>
             </div>
             <div>
-              <dt>Primeiro login</dt>
+              <dt>Horário</dt>
               <dd>{formatTime(record.firstLoginAt)}</dd>
-            </div>
-            <div>
-              <dt>Último login</dt>
-              <dd>{formatTime(record.lastLoginAt)}</dd>
-            </div>
-            <div>
-              <dt>Usuário</dt>
-              <dd>@{record.username}</dd>
             </div>
           </dl>
         </article>
@@ -867,34 +855,27 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               <th>Data</th>
               <th>Aluno</th>
               <th>Turma</th>
-              <th>Primeiro login</th>
-              <th>Último login</th>
-              <th>Logins</th>
+              <th>Status</th>
+              <th>Horário</th>
             </tr>
           </thead>
           <tbody>
             {items.map((record) => (
-              <tr key={record.id} className={Number(record.loginCount) > 1 ? "at-row--multi" : ""}>
+              <tr key={record.id}>
                 <td>{formatDate(record.attendanceDate)}</td>
                 <td>
                   <strong>{record.displayName}</strong>
-                  <small>@{record.username}</small>
                 </td>
                 <td>{record.turmaNome || "Sem turma"}</td>
-                <td>{formatTime(record.firstLoginAt)}</td>
-                <td>{formatTime(record.lastLoginAt)}</td>
                 <td>
-                  {Number(record.loginCount) > 1 ? (
-                    <span className="at-badge at-badge--multi">{record.loginCount}</span>
-                  ) : (
-                    record.loginCount
-                  )}
+                  <span className="at-badge at-badge--good">Presente</span>
                 </td>
+                <td>{formatTime(record.firstLoginAt)}</td>
               </tr>
             ))}
             {items.length === 0 && !loading ? (
               <tr>
-                <td colSpan={6}>
+                <td colSpan={5}>
                   <div className="at-empty">
                     <Icon fafa="faClipboardList" width={28} />
                     <p>Nenhum registro encontrado.</p>
@@ -1045,7 +1026,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
                 className="attendance-search"
                 value={studentSearch}
                 onChange={(event) => setStudentSearch(event.target.value)}
-                placeholder="Buscar aluno, usuário ou turma"
+                placeholder="Buscar aluno ou turma"
               />
             </div>
             <span className="at-panel-sub">
@@ -1264,7 +1245,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
                   className="attendance-search"
                   value={registerSearch}
                   onChange={(event) => setRegisterSearch(event.target.value)}
-                  placeholder="Buscar aluno ou usuário"
+                  placeholder="Buscar aluno"
                 />
               </div>
             </div>
@@ -1289,7 +1270,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
                         />
                       </td>
                       <td>
-                        <strong>{s.displayName}</strong> <small>@{s.username}</small>
+                        <strong>{s.displayName}</strong>
                       </td>
                     </tr>
                   ))}
@@ -1526,7 +1507,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
                 <th>Aluno</th>
                 <th>Turma</th>
                 <th>Status</th>
-                <th>Acesso</th>
+                <th>Horário</th>
               </tr>
             </thead>
             <tbody>
