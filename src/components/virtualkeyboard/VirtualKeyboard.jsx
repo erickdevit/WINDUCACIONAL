@@ -13,6 +13,21 @@ const COMBINE = {
 
 const CHARS_BASE = "abcdefghijklmnopqrstuvwxyzç";
 
+/* ─── Atualização de elemento controlado no React ─── */
+function setNativeValue(element, value) {
+  const valueSetter = Object.getOwnPropertyDescriptor(element, "value")?.set;
+  const prototype = Object.getPrototypeOf(element);
+  const prototypeValueSetter = Object.getOwnPropertyDescriptor(prototype, "value")?.set;
+  
+  if (prototypeValueSetter && valueSetter !== prototypeValueSetter) {
+    prototypeValueSetter.call(element, value);
+  } else if (valueSetter) {
+    valueSetter.call(element, value);
+  } else {
+    element.value = value;
+  }
+}
+
 /* ─── Manipulação do elemento ativo ─────────────────── */
 function insert(c) {
   const el = document.activeElement;
@@ -22,7 +37,8 @@ function insert(c) {
     const s = el.selectionStart;
     const e = el.selectionEnd;
     const v = el.value;
-    el.value = v.slice(0, s) + c + v.slice(e);
+    const newValue = v.slice(0, s) + c + v.slice(e);
+    setNativeValue(el, newValue);
     el.selectionStart = el.selectionEnd = s + c.length;
     el.dispatchEvent(new Event("input", { bubbles: true }));
   } else if (el.isContentEditable) {
@@ -39,12 +55,14 @@ function backspace() {
   const e = el.selectionEnd;
   if (e - s > 0) {
     const v = el.value;
-    el.value = v.slice(0, s) + v.slice(e);
+    const newValue = v.slice(0, s) + v.slice(e);
+    setNativeValue(el, newValue);
     el.selectionStart = el.selectionEnd = s;
     el.dispatchEvent(new Event("input", { bubbles: true }));
   } else if (s > 0) {
     const v = el.value;
-    el.value = v.slice(0, s - 1) + v.slice(s);
+    const newValue = v.slice(0, s - 1) + v.slice(s);
+    setNativeValue(el, newValue);
     el.selectionStart = el.selectionEnd = s - 1;
     el.dispatchEvent(new Event("input", { bubbles: true }));
   }
@@ -63,7 +81,7 @@ function moveCursor(dir) {
   }
 }
 
-/* ─── Layout ABNT2 Completo ─────────────── */
+/* ─── Layout ABNT2 Completo e Reequilibrado ─────────────── */
 const ROWS = [
   // Linha 0 (Controles)
   [
@@ -98,11 +116,11 @@ const ROWS = [
     { l: "0", v: "0", s: ")", w: 1 },
     { l: "-", v: "-", s: "_", w: 1 },
     { l: "=", v: "=", s: "+", a: "§", w: 1 },
-    { l: "⌫", k: "Backspace", w: 1.8, cls: "vk-action" },
+    { l: "⌫", k: "Backspace", w: 2.0, cls: "vk-action" },
   ],
   // Linha 2 (QWERTY)
   [
-    { l: "Tab", k: "Tab", w: 1.5, cls: "vk-action" },
+    { l: "Tab", k: "Tab", w: 1.8, cls: "vk-action" },
     { l: "Q", v: "q", w: 1 },
     { l: "W", v: "w", w: 1 },
     { l: "E", v: "e", w: 1 },
@@ -115,7 +133,6 @@ const ROWS = [
     { l: "P", v: "p", w: 1 },
     { l: "´", v: "´", d: true, s: "`", w: 1 },
     { l: "[", v: "[", s: "{", a: "ª", w: 1 },
-    { l: "↵", k: "Enter", w: 1.3, cls: "vk-action vk-enter vk-enter-top" },
   ],
   // Linha 3 (ASDF)
   [
@@ -132,7 +149,7 @@ const ROWS = [
     { l: "Ç", v: "ç", w: 1 },
     { l: "~", v: "~", d: true, s: "^", w: 1 },
     { l: "]", v: "]", s: "}", a: "º", w: 1 },
-    { l: "↵", k: "Enter", w: 1.5, cls: "vk-action vk-enter vk-enter-bottom" },
+    { l: "↵", k: "Enter", w: 2.0, cls: "vk-action vk-enter" },
   ],
   // Linha 4 (ZXCV)
   [
@@ -153,13 +170,13 @@ const ROWS = [
   ],
   // Linha 5 (Espaço e Navegação)
   [
-    { l: "Ctrl", k: "Control", w: 1.5, cls: "vk-action" },
+    { l: "Ctrl", k: "Control", w: 1.5, cls: "vk-action vk-ctrl" },
     { l: "Win", k: "Meta", w: 1.2, cls: "vk-action vk-win", icon: "win" },
-    { l: "Alt", k: "Alt", w: 1.2, cls: "vk-action" },
+    { l: "Alt", k: "Alt", w: 1.2, cls: "vk-action vk-alt" },
     { v: " ", w: 6, cls: "vk-space" },
     { l: "AltGr", k: "AltGraph", w: 1.2, cls: "vk-action vk-altgr" },
     { l: "Menu", k: "ContextMenu", w: 1.2, cls: "vk-action vk-menu", icon: "menu" },
-    { l: "Ctrl", k: "Control", w: 1.5, cls: "vk-action" },
+    { l: "Ctrl", k: "Control", w: 1.5, cls: "vk-action vk-ctrl" },
     { l: "←", k: "ArrowLeft", w: 1, cls: "vk-action vk-arrow" },
     { k: "ArrowsUpDown", w: 1, cls: "vk-action vk-arrow-col" },
     { l: "→", k: "ArrowRight", w: 1, cls: "vk-action vk-arrow" },
@@ -172,6 +189,8 @@ function VirtualKeyboard() {
   const [shift, setShift] = useState(false);
   const [caps, setCaps] = useState(false);
   const [altGr, setAltGr] = useState(false);
+  const [ctrl, setCtrl] = useState(false);
+  const [alt, setAlt] = useState(false);
   const [dead, setDead] = useState(null);
   const [pressing, setPressing] = useState(null);
   
@@ -180,6 +199,8 @@ function VirtualKeyboard() {
   const shiftRef = useRef(false);
   const capsRef = useRef(false);
   const altGrRef = useRef(false);
+  const ctrlRef = useRef(false);
+  const altRef = useRef(false);
   const deadRef = useRef(null);
   const kbRef = useRef(null);
 
@@ -264,10 +285,14 @@ function VirtualKeyboard() {
       setShift(false);
       setCaps(false);
       setAltGr(false);
+      setCtrl(false);
+      setAlt(false);
       setDead(null);
       shiftRef.current = false;
       capsRef.current = false;
       altGrRef.current = false;
+      ctrlRef.current = false;
+      altRef.current = false;
       deadRef.current = null;
     }
   }, [visible]);
@@ -289,10 +314,10 @@ function VirtualKeyboard() {
       const t = el.tagName.toLowerCase();
       const editable =
         t === "input" || t === "textarea" || el.isContentEditable;
-      if (!editable) return;
 
       const k = keyObj.k;
 
+      // ── Mapeamento de Modificadores ──
       if (k === "Shift") {
         setShift((p) => {
           const n = !p;
@@ -321,43 +346,124 @@ function VirtualKeyboard() {
         });
         return;
       }
+      if (k === "Control") {
+        setCtrl((p) => {
+          const n = !p;
+          ctrlRef.current = n;
+          return n;
+        });
+        return;
+      }
+      if (k === "Alt") {
+        setAlt((p) => {
+          const n = !p;
+          altRef.current = n;
+          return n;
+        });
+        return;
+      }
+
+      // Função auxiliar interna para despachar eventos de teclado completos
+      const dispatchKey = (type, keyName, keyCode) => {
+        const ev = new KeyboardEvent(type, {
+          key: keyName,
+          code: keyCode || "",
+          bubbles: true,
+          cancelable: true,
+          ctrlKey: ctrlRef.current,
+          shiftKey: shiftRef.current,
+          altKey: altRef.current || altGrRef.current,
+          metaKey: k === "Meta",
+        });
+        el.dispatchEvent(ev);
+        return ev.defaultPrevented;
+      };
+
+      // Se for a tecla Win (Meta) solta
+      if (k === "Meta") {
+        dispatchKey("keydown", "Meta", "MetaLeft");
+        dispatchKey("keyup", "Meta", "MetaLeft");
+        
+        // Limpar modificadores
+        setCtrl(false);
+        setAlt(false);
+        setShift(false);
+        setAltGr(false);
+        ctrlRef.current = false;
+        altRef.current = false;
+        shiftRef.current = false;
+        altGrRef.current = false;
+        return;
+      }
+
+      // ── Teclas Físicas de Ação (Backspace, Tab, Enter, Arrows, Esc, etc.) ──
       if (k === "Backspace") {
         deadRef.current = null;
         setDead(null);
-        backspace();
+        const prevented = dispatchKey("keydown", "Backspace", "Backspace");
+        if (!prevented && editable) {
+          backspace();
+        }
+        dispatchKey("keyup", "Backspace", "Backspace");
         return;
       }
       if (k === "Enter") {
         deadRef.current = null;
         setDead(null);
-        insert("\n");
+        const prevented = dispatchKey("keydown", "Enter", "Enter");
+        if (!prevented && editable) {
+          insert("\n");
+        }
+        dispatchKey("keyup", "Enter", "Enter");
         return;
       }
       if (k === "Tab") {
         deadRef.current = null;
         setDead(null);
-        insert("\t");
+        const prevented = dispatchKey("keydown", "Tab", "Tab");
+        if (!prevented && editable) {
+          insert("\t");
+        }
+        dispatchKey("keyup", "Tab", "Tab");
         return;
       }
       if (k === "ArrowLeft") {
         deadRef.current = null;
         setDead(null);
-        moveCursor("left");
+        const prevented = dispatchKey("keydown", "ArrowLeft", "ArrowLeft");
+        if (!prevented && editable) {
+          moveCursor("left");
+        }
+        dispatchKey("keyup", "ArrowLeft", "ArrowLeft");
         return;
       }
       if (k === "ArrowRight") {
         deadRef.current = null;
         setDead(null);
-        moveCursor("right");
+        const prevented = dispatchKey("keydown", "ArrowRight", "ArrowRight");
+        if (!prevented && editable) {
+          moveCursor("right");
+        }
+        dispatchKey("keyup", "ArrowRight", "ArrowRight");
         return;
       }
-      // Evitar disparo de letras caso k seja uma dessas teclas de controle
+      if (k === "ArrowUp") {
+        dispatchKey("keydown", "ArrowUp", "ArrowUp");
+        dispatchKey("keyup", "ArrowUp", "ArrowUp");
+        return;
+      }
+      if (k === "ArrowDown") {
+        dispatchKey("keydown", "ArrowDown", "ArrowDown");
+        dispatchKey("keyup", "ArrowDown", "ArrowDown");
+        return;
+      }
+
+      // Outras teclas de controle puras (Escape, Insert, Delete, F1-F12)
       if (k && !keyObj.v) {
         deadRef.current = null;
         setDead(null);
-        el.dispatchEvent(
-          new KeyboardEvent("keydown", { key: k, bubbles: true })
-        );
+        dispatchKey("keydown", k, k);
+        dispatchKey("keyup", k, k);
         return;
       }
 
@@ -367,6 +473,7 @@ function VirtualKeyboard() {
       if (keyObj.d && !(shifted && keyObj.s)) {
         deadRef.current = keyObj.v;
         setDead(keyObj.v);
+        // Limpar shift se ele estava ativo
         if (shiftRef.current) {
           setShift(false);
           shiftRef.current = false;
@@ -388,21 +495,35 @@ function VirtualKeyboard() {
 
       const ch = getChar(keyObj);
       const pd = deadRef.current;
+      
+      // Montar caractere final considerando dead keys
+      let finalChar = ch;
       if (pd) {
         deadRef.current = null;
         setDead(null);
         const map = COMBINE[pd];
         if (map && map[ch.toLowerCase()]) {
           const combined = map[ch.toLowerCase()];
-          insert(ch === ch.toUpperCase() ? combined.toUpperCase() : combined);
+          finalChar = ch === ch.toUpperCase() ? combined.toUpperCase() : combined;
         } else {
-          insert(pd);
-          insert(ch);
+          // Se não combina, insere a dead key e depois o caractere
+          const prevKey = pd;
+          const preventedDead = dispatchKey("keydown", prevKey, "");
+          if (!preventedDead && editable) {
+            insert(prevKey);
+          }
+          dispatchKey("keyup", prevKey, "");
         }
-      } else {
-        insert(ch);
       }
 
+      // Disparar eventos keydown e keyup para o caractere final
+      const prevented = dispatchKey("keydown", finalChar, "");
+      if (!prevented && editable) {
+        insert(finalChar);
+      }
+      dispatchKey("keyup", finalChar, "");
+
+      // Resetar os modificadores temporários de clique único
       if (shiftRef.current) {
         setShift(false);
         shiftRef.current = false;
@@ -410,6 +531,14 @@ function VirtualKeyboard() {
       if (altGrRef.current) {
         setAltGr(false);
         altGrRef.current = false;
+      }
+      if (ctrlRef.current) {
+        setCtrl(false);
+        ctrlRef.current = false;
+      }
+      if (altRef.current) {
+        setAlt(false);
+        altRef.current = false;
       }
     },
     [getChar]
@@ -462,13 +591,15 @@ function VirtualKeyboard() {
             const isShiftActive = keyObj.k === "Shift" && shift;
             const isCapsActive = keyObj.k === "CapsLock" && caps;
             const isAltGrActive = keyObj.k === "AltGraph" && altGr;
+            const isCtrlActive = keyObj.k === "Control" && ctrl;
+            const isAltActive = keyObj.k === "Alt" && alt;
 
             const cls = [
               "vk-key",
               keyObj.cls || "",
               isDeadActive ? "vk-key--dead-active" : "",
               keyObj.d ? "vk-key--dead" : "",
-              isShiftActive || isCapsActive || isAltGrActive ? "vk-key--active" : "",
+              isShiftActive || isCapsActive || isAltGrActive || isCtrlActive || isAltActive ? "vk-key--active" : "",
               pressing === `${ri}-${ki}` ? "vk-key--pressing" : "",
               isLetter && capsAnim ? "vk-letter-anim" : "",
             ]
@@ -497,8 +628,12 @@ function VirtualKeyboard() {
               const letter = shift || caps ? keyObj.l.toUpperCase() : keyObj.l.toLowerCase();
               content = <span className="vk-letter">{letter}</span>;
             } else {
-              content = keyObj.l || " ";
+              const label = keyObj.l || " ";
+              const displayLabel = (shift || caps) && typeof label === "string" ? label.toUpperCase() : label;
+              content = displayLabel;
             }
+
+            const isCapsLockKey = keyObj.k === "CapsLock";
 
             return (
               <button
@@ -514,7 +649,7 @@ function VirtualKeyboard() {
                 onPointerUp={() => setPressing(null)}
                 onPointerLeave={() => setPressing(null)}
               >
-                {isCapsActive && keyObj.k === "CapsLock" && <div className="vk-led" />}
+                {isCapsLockKey && <div className={`vk-led ${caps ? "vk-led--on" : ""}`} />}
                 {content}
               </button>
             );
