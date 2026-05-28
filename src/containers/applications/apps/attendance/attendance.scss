@@ -1625,6 +1625,10 @@
 
 /* ─── Impressão ──────────────────────────────────────── */
 @media print {
+  @page {
+    margin: 0mm;
+  }
+
   body * { visibility: hidden !important; }
 
   .attendance-print-report,
@@ -1638,7 +1642,7 @@
     inset: 0;
     background: #fff;
     color: #111827;
-    padding: 24px;
+    padding: 20mm;
     font-family: Arial, sans-serif;
 
     .attendance-print-sheet {
