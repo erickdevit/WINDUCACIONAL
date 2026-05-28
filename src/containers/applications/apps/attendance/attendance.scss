@@ -163,6 +163,60 @@
       color: var(--at-accent-strong);
       font-weight: 800;
     }
+
+    &.active-group {
+      color: var(--at-accent-strong);
+      font-weight: 800;
+    }
+  }
+
+  .attendance-nav-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .attendance-group-chevron {
+    margin-left: auto;
+    font-size: 10px;
+  }
+
+  .attendance-nav-sub {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-left: 16px;
+    margin-top: 2px;
+    margin-bottom: 4px;
+    width: 100%;
+  }
+
+  .attendance-nav-sub-link {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    color: var(--at-muted);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: left;
+    transition: background 120ms ease, color 120ms ease;
+
+    &:hover {
+      background: var(--at-soft);
+      color: var(--at-text);
+    }
+
+    &.active {
+      background: var(--at-accent-light);
+      color: var(--at-accent-strong);
+      font-weight: 800;
+    }
   }
 
   /* ── Main: área de scroll ────────────────────────── */

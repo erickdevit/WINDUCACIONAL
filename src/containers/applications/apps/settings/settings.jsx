@@ -486,6 +486,11 @@ const studentTypeOptions = [
     title: "Kids",
     description: "Identifica alunos do grupo infantil.",
   },
+  {
+    value: "reposicao",
+    title: "Reposição",
+    description: "Turma especial para reposição de aulas.",
+  },
 ];
 
 const defaultScheduleDays = [1, 2, 3, 4, 5];

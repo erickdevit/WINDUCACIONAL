@@ -181,7 +181,7 @@ const normalizeClassStudentType = (studentType) => {
   const normalized = String(studentType || "normal")
     .trim()
     .toLowerCase();
-  if (!["kids", "normal"].includes(normalized)) {
+  if (!["kids", "normal", "reposicao"].includes(normalized)) {
     const err = new Error("Tipo de turma inválido.");
     err.status = 400;
     throw err;
@@ -1491,14 +1491,15 @@ const clearSessionCookie = (res) => {
 const recordAttendanceForLogin = async (userId) => {
   await pool.query(
     `INSERT INTO attendance_records
-       (id, user_id, attendance_date, first_login_at, last_login_at, login_count)
+       (id, user_id, attendance_date, first_login_at, last_login_at, login_count, turma_id)
       SELECT
         $2,
         u.id,
         (NOW() AT TIME ZONE $3)::date,
-       NOW(),
         NOW(),
-        1
+        NOW(),
+        1,
+        u.turma_id
       FROM users u
       JOIN turmas t ON t.id = u.turma_id
       WHERE u.id = $1 AND u.role = 'aluno'
@@ -2094,11 +2095,11 @@ app.get("/api/attendance/me", requireAuth, async (req, res, next) => {
               ar.login_count,
               u.username,
               u.display_name,
-              u.turma_id,
+              COALESCE(ar.turma_id, u.turma_id) AS turma_id,
               t.nome AS turma_nome
        FROM attendance_records ar
        JOIN users u ON u.id = ar.user_id
-       LEFT JOIN turmas t ON t.id = u.turma_id
+       LEFT JOIN turmas t ON t.id = COALESCE(ar.turma_id, u.turma_id)
        WHERE ar.user_id = $1
        ORDER BY ar.attendance_date DESC
        LIMIT 90`,
@@ -2148,34 +2149,66 @@ app.get(
         });
       }
 
-      const studentParams = [];
-      let studentFilter = "WHERE u.role = 'aluno' AND u.active = TRUE";
+      let isReposicao = false;
       if (turmaId) {
-        studentParams.push(turmaId);
-        studentFilter += ` AND u.turma_id = $${studentParams.length}`;
+        const turmaCheck = await pool.query("SELECT student_type FROM turmas WHERE id = $1", [turmaId]);
+        if (turmaCheck.rowCount > 0 && turmaCheck.rows[0].student_type === "reposicao") {
+          isReposicao = true;
+        }
       }
 
-      const studentsResult = await pool.query(
-        `SELECT u.id,
-                u.username,
-                u.display_name,
-                u.turma_id,
-                t.nome AS turma_nome,
-                t.schedule_days,
-                t.schedule_start_time,
-                t.schedule_end_time
-         FROM users u
-         LEFT JOIN turmas t ON t.id = u.turma_id
-         ${studentFilter}
-         ORDER BY t.nome ASC NULLS LAST, u.display_name ASC`,
-        studentParams
-      );
+      let studentsResult;
+      if (isReposicao) {
+        studentsResult = await pool.query(
+          `SELECT DISTINCT u.id,
+                  u.username,
+                  u.display_name,
+                  u.turma_id,
+                  t.nome AS turma_nome,
+                  NULL::smallint[] AS schedule_days,
+                  '00:00'::time AS schedule_start_time,
+                  '23:59'::time AS schedule_end_time
+           FROM users u
+           JOIN attendance_records ar ON ar.user_id = u.id
+           LEFT JOIN turmas t ON t.id = u.turma_id
+           WHERE u.role = 'aluno' AND u.active = TRUE
+             AND ar.turma_id = $1
+           ORDER BY u.display_name ASC`,
+          [turmaId]
+        );
+      } else {
+        const studentParams = [];
+        let studentFilter = "WHERE u.role = 'aluno' AND u.active = TRUE";
+        if (turmaId) {
+          studentParams.push(turmaId);
+          studentFilter += ` AND u.turma_id = $${studentParams.length}`;
+        }
+        studentsResult = await pool.query(
+          `SELECT u.id,
+                  u.username,
+                  u.display_name,
+                  u.turma_id,
+                  t.nome AS turma_nome,
+                  t.schedule_days,
+                  t.schedule_start_time,
+                  t.schedule_end_time
+           FROM users u
+           LEFT JOIN turmas t ON t.id = u.turma_id
+           ${studentFilter}
+           ORDER BY t.nome ASC NULLS LAST, u.display_name ASC`,
+          studentParams
+        );
+      }
 
       const recordParams = [startDate, endDate];
       let recordFilter = "WHERE ar.attendance_date BETWEEN $1 AND $2";
       if (turmaId) {
         recordParams.push(turmaId);
-        recordFilter += ` AND u.turma_id = $${recordParams.length}`;
+        if (isReposicao) {
+          recordFilter += ` AND ar.turma_id = $${recordParams.length}`;
+        } else {
+          recordFilter += ` AND (ar.turma_id = $${recordParams.length} OR (ar.turma_id IS NULL AND u.turma_id = $${recordParams.length}))`;
+        }
       }
 
       const recordsResult = await pool.query(
@@ -2187,11 +2220,11 @@ app.get(
                 ar.login_count,
                 u.username,
                 u.display_name,
-                u.turma_id,
+                COALESCE(ar.turma_id, u.turma_id) AS turma_id,
                 t.nome AS turma_nome
          FROM attendance_records ar
          JOIN users u ON u.id = ar.user_id
-         LEFT JOIN turmas t ON t.id = u.turma_id
+         LEFT JOIN turmas t ON t.id = COALESCE(ar.turma_id, u.turma_id)
          ${recordFilter}
          ORDER BY ar.attendance_date DESC, u.display_name ASC`,
         recordParams
@@ -2224,7 +2257,9 @@ app.get(
 
       const students = studentsResult.rows.map((student) => {
         const schedule = getStudentAttendanceSchedule(student);
-        const expectedDates = getExpectedDatesForSchedule(days, schedule);
+        const expectedDates = isReposicao
+          ? (recordsByStudent.get(student.id) || []).map((r) => r.attendanceDate)
+          : getExpectedDatesForSchedule(days, schedule);
         const expectedDateSet = new Set(expectedDates);
         expectedDates.forEach((date) => {
           const day = dailyMap.get(date);
@@ -2237,7 +2272,7 @@ app.get(
             .filter(
               (record) =>
                 expectedDateSet.has(record.attendanceDate) &&
-                isRecordInsideSchedule(record, schedule)
+                (isReposicao || isRecordInsideSchedule(record, schedule))
             )
             .map((record) => record.attendanceDate)
         ).size;
@@ -2248,7 +2283,7 @@ app.get(
         studentRecords.forEach((record) => {
           if (
             expectedDateSet.has(record.attendanceDate) &&
-            isRecordInsideSchedule(record, schedule)
+            (isReposicao || isRecordInsideSchedule(record, schedule))
           ) {
             const day = dailyMap.get(record.attendanceDate);
             if (day) day.present += 1;
@@ -2333,17 +2368,19 @@ app.post(
         if (student.isPresent) {
           await client.query(
             `INSERT INTO attendance_records
-               (id, user_id, attendance_date, login_count, source)
-             VALUES ($1, $2, $3, 1, 'manual')
-             ON CONFLICT (user_id, attendance_date) DO NOTHING`,
-            [crypto.randomUUID(), student.id, date]
+               (id, user_id, attendance_date, login_count, source, turma_id)
+             VALUES ($1, $2, $3, 1, 'manual', $4)
+             ON CONFLICT (user_id, attendance_date)
+             DO UPDATE SET source = 'manual', turma_id = EXCLUDED.turma_id`,
+            [crypto.randomUUID(), student.id, date, turmaId]
           );
         } else {
           // Quando o professor marca "Ausente", apagamos o registro do dia
+          // Mas apenas se o registro for da turma que está sendo modificada (para não apagar presenças de outras turmas no mesmo dia)
           await client.query(
             `DELETE FROM attendance_records
-             WHERE user_id = $1 AND attendance_date = $2`,
-            [student.id, date]
+             WHERE user_id = $1 AND attendance_date = $2 AND (turma_id = $3 OR turma_id IS NULL)`,
+            [student.id, date, turmaId]
           );
         }
       }
@@ -2546,7 +2583,7 @@ app.get(
       let query = `SELECT id, nome, code, student_type, schedule_days, schedule_start_time, schedule_end_time, descricao, active, created_at, updated_at FROM turmas`;
       const values = [];
 
-      if (studentType === "kids" || studentType === "normal") {
+      if (studentType === "kids" || studentType === "normal" || studentType === "reposicao") {
         query += ` WHERE student_type = $1`;
         values.push(studentType);
       }
@@ -2664,7 +2701,7 @@ app.patch(
         return res.status(404).json({ error: "Turma não encontrada." });
       }
 
-      if (nextStudentType) {
+      if (nextStudentType && nextStudentType !== "reposicao") {
         await client.query(
           "UPDATE users SET student_type = $1, updated_at = NOW() WHERE role = 'aluno' AND turma_id = $2",
           [nextStudentType, req.params.id]

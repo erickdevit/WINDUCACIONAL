@@ -284,6 +284,13 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   const [registerSearch, setRegisterSearch] = useState("");
   const [savingRegister, setSavingRegister] = useState(false);
   const [printDate, setPrintDate] = useState("");
+  const [reposicaoOpen, setReposicaoOpen] = useState(false);
+
+  useEffect(() => {
+    if (activeTab.startsWith("reposicao-")) {
+      setReposicaoOpen(true);
+    }
+  }, [activeTab]);
 
   const tabs = isProfessor
     ? user.role === "professor"
@@ -431,6 +438,53 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
             <span className="attendance-nav-text">{tab.label}</span>
           </button>
         ))}
+
+        {isProfessor && (
+          <div className="attendance-nav-group">
+            <button
+              type="button"
+              className={`attendance-nav-link ${
+                activeTab.startsWith("reposicao-") ? "active-group" : ""
+              }`}
+              onClick={() => setReposicaoOpen(!reposicaoOpen)}
+              title="Reposição"
+            >
+              <Icon fafa="faArrowsRotate" width={15} />
+              <span className="attendance-nav-text">Reposição</span>
+              <Icon
+                fafa={reposicaoOpen ? "faAngleDown" : "faAngleRight"}
+                width={10}
+                className="attendance-group-chevron"
+              />
+            </button>
+            {reposicaoOpen && !sidebarCollapsed && (
+              <div className="attendance-nav-sub">
+                <button
+                  type="button"
+                  className={`attendance-nav-sub-link ${
+                    activeTab === "reposicao-register" ? "active" : ""
+                  }`}
+                  onClick={() => setActiveTab("reposicao-register")}
+                  title="Registrar"
+                >
+                  <Icon fafa="faUserCheck" width={12} />
+                  <span>Registrar</span>
+                </button>
+                <button
+                  type="button"
+                  className={`attendance-nav-sub-link ${
+                    activeTab === "reposicao-records" ? "active" : ""
+                  }`}
+                  onClick={() => setActiveTab("reposicao-records")}
+                  title="Registros"
+                >
+                  <Icon fafa="faListCheck" width={12} />
+                  <span>Registros</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </nav>
 
       <div className="attendance-sidebar-footer">
@@ -451,26 +505,34 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   );
 
   /* ── Nav mobile ──────────────────────────────────────── */
-  const renderMobileNav = () => (
-    <nav
-      className="attendance-mobile-nav"
-      aria-label="Seções de frequência"
-      style={{ "--attendance-mobile-nav-count": tabs.length }}
-    >
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          type="button"
-          className={activeTab === tab.id ? "active" : ""}
-          onClick={() => setActiveTab(tab.id)}
-          aria-current={activeTab === tab.id ? "page" : undefined}
-        >
-          <Icon fafa={tab.icon} width={15} />
-          <span>{tab.label}</span>
-        </button>
-      ))}
-    </nav>
-  );
+  const renderMobileNav = () => {
+    let displayTabs = [...tabs];
+    if (activeTab === "reposicao-register") {
+      displayTabs.push({ id: "reposicao-register", label: "Registrar", icon: "faUserCheck" });
+    } else if (activeTab === "reposicao-records") {
+      displayTabs.push({ id: "reposicao-records", label: "Registros", icon: "faListCheck" });
+    }
+    return (
+      <nav
+        className="attendance-mobile-nav"
+        aria-label="Seções de frequência"
+        style={{ "--attendance-mobile-nav-count": displayTabs.length }}
+      >
+        {displayTabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            className={activeTab === tab.id ? "active" : ""}
+            onClick={() => setActiveTab(tab.id)}
+            aria-current={activeTab === tab.id ? "page" : undefined}
+          >
+            <Icon fafa={tab.icon} width={15} />
+            <span>{tab.label}</span>
+          </button>
+        ))}
+      </nav>
+    );
+  };
 
   /* ── Cabeçalho de página ─────────────────────────────── */
   const renderHeader = (title, actions = null) => (
@@ -1045,7 +1107,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   );
 
   /* ── Registrar ───────────────────────────────────────── */
-  const renderRegister = () => {
+  const renderRegister = (isReposicao = false) => {
     const handleToggleStudent = (studentId) => {
       setRegisterStudents((prev) =>
         prev.map((s) =>
@@ -1060,21 +1122,41 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
       );
     };
 
-    const loadRegisterStudents = () => {
+    const loadRegisterStudents = async () => {
       if (!registerTurmaId) {
         setMessage("Selecione uma turma para registrar a frequência.");
         setTimeout(() => setMessage(""), 3000);
         return;
       }
-      const turmaStudents = students.filter(s => s.turmaId === registerTurmaId || s.turmaNome === turmas.find(t=>t.id===registerTurmaId)?.nome);
-      setRegisterStudents(
-        turmaStudents.map((s) => ({
-          id: s.id,
-          displayName: s.displayName,
-          username: s.username,
-          isPresent: true,
-        }))
-      );
+      if (isReposicao) {
+        try {
+          setLoading(true);
+          const usersRes = await api.getUsers();
+          const allStudents = (usersRes.users || []).filter(u => u.role === "aluno" && u.active);
+          setRegisterStudents(
+            allStudents.map((s) => ({
+              id: s.id,
+              displayName: s.displayName,
+              username: s.username,
+              isPresent: false,
+            }))
+          );
+        } catch (err) {
+          setMessage("Erro ao carregar alunos: " + err.message);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        const turmaStudents = students.filter(s => s.turmaId === registerTurmaId || s.turmaNome === turmas.find(t=>t.id===registerTurmaId)?.nome);
+        setRegisterStudents(
+          turmaStudents.map((s) => ({
+            id: s.id,
+            displayName: s.displayName,
+            username: s.username,
+            isPresent: true,
+          }))
+        );
+      }
     };
 
     const filteredRegisterStudents = registerStudents.filter((s) => {
@@ -1096,16 +1178,20 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
         setMessage("Frequência registrada com sucesso!");
         setTimeout(() => setMessage(""), 3000);
       } catch (err) {
-        setMessage("Atenção: " + err.message + " (backend pendente)");
+        setMessage("Atenção: " + err.message);
         setTimeout(() => setMessage(""), 5000);
       } finally {
         setSavingRegister(false);
       }
     };
 
+    const filteredTurmas = isReposicao
+      ? turmas.filter(t => t.studentType === "reposicao")
+      : turmas.filter(t => t.studentType !== "reposicao");
+
     return (
       <>
-        {renderHeader("Registrar frequência")}
+        {renderHeader(isReposicao ? "Registrar reposição" : "Registrar frequência")}
         <section className="at-panel">
           <div className="at-panel-head">
             <h2>Configuração</h2>
@@ -1128,7 +1214,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
                 style={{padding: "6px 8px", borderRadius: "6px", border: "1px solid var(--at-line)"}}
               >
                 <option value="">Selecione...</option>
-                {turmas.map((t) => (
+                {filteredTurmas.map((t) => (
                   <option key={t.id} value={t.id}>{t.nome}</option>
                 ))}
               </select>
@@ -1143,7 +1229,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
           <section className="at-panel">
             <div className="at-panel-head" style={{flexWrap: "wrap", justifyContent: "space-between", gap: "10px"}}>
               <div>
-                <h2>Alunos da Turma ({filteredRegisterStudents.length}/{registerStudents.length})</h2>
+                <h2>Alunos ({filteredRegisterStudents.length}/{registerStudents.length})</h2>
                 <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
                   <button className="attendance-secondary" onClick={() => handleSelectAll(true)}>Marcar Todos</button>
                   <button className="attendance-secondary" onClick={() => handleSelectAll(false)}>Desmarcar Todos</button>
@@ -1194,6 +1280,48 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
             </div>
           </section>
         )}
+      </>
+    );
+  };
+
+  const renderReposicaoRecords = () => {
+    const repRecords = records.filter(r => {
+      const t = turmas.find(turma => turma.id === r.turmaId || turma.nome === r.turmaNome);
+      return t?.studentType === "reposicao";
+    });
+
+    const filteredRepRecords = recordFilter === "all"
+      ? repRecords
+      : repRecords.filter(r => r.turmaId === recordFilter);
+
+    const repTurmas = turmas.filter(t => t.studentType === "reposicao");
+
+    return (
+      <>
+        {renderHeader("Registros de reposição")}
+        <section className="at-panel">
+          <div className="at-panel-head" style={{ flexWrap: "wrap", gap: "10px", justifyContent: "space-between" }}>
+            <div>
+              <select
+                className="attendance-select-compact"
+                value={recordFilter}
+                onChange={(event) => setRecordFilter(event.target.value)}
+              >
+                <option value="all">Todas as turmas de reposição</option>
+                {repTurmas.map((turma) => (
+                  <option key={turma.id} value={turma.id}>
+                    {turma.nome}
+                  </option>
+                ))}
+              </select>
+              <span className="at-panel-sub" style={{ marginLeft: "10px" }}>
+                {filteredRepRecords.length} registro{filteredRepRecords.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+            {renderFilters(true)}
+          </div>
+          {renderRecordsTable(filteredRepRecords)}
+        </section>
       </>
     );
   };
@@ -1444,6 +1572,8 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
       if (activeTab === "records") return renderRecords();
       if (activeTab === "print") return renderPrint();
       if (activeTab === "register") return renderRegister();
+      if (activeTab === "reposicao-register") return renderRegister(true);
+      if (activeTab === "reposicao-records") return renderReposicaoRecords();
       return renderOverview();
     }
 

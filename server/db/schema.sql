@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS turmas (
   code TEXT NOT NULL UNIQUE,
   CONSTRAINT turmas_code_format_check CHECK (code ~ '^[A-Z0-9]{6}$'),
   student_type TEXT NOT NULL DEFAULT 'normal',
-  CONSTRAINT turmas_student_type_check CHECK (student_type IN ('kids', 'normal')),
+  CONSTRAINT turmas_student_type_check CHECK (student_type IN ('kids', 'normal', 'reposicao')),
   schedule_days SMALLINT[] NOT NULL DEFAULT ARRAY[1,2,3,4,5]::SMALLINT[],
   CONSTRAINT turmas_schedule_days_check CHECK (COALESCE(array_length(schedule_days, 1), 0) > 0 AND schedule_days <@ ARRAY[0,1,2,3,4,5,6]::SMALLINT[]),
   schedule_start_time TIME NOT NULL DEFAULT '00:00',
@@ -45,13 +45,15 @@ BEGIN
     ALTER TABLE turmas ADD COLUMN student_type TEXT NOT NULL DEFAULT 'normal';
   END IF;
 
-  IF NOT EXISTS (
+  IF EXISTS (
     SELECT 1 FROM pg_constraint WHERE conname = 'turmas_student_type_check'
   ) THEN
-    ALTER TABLE turmas
-      ADD CONSTRAINT turmas_student_type_check
-      CHECK (student_type IN ('kids', 'normal'));
+    ALTER TABLE turmas DROP CONSTRAINT turmas_student_type_check;
   END IF;
+
+  ALTER TABLE turmas
+    ADD CONSTRAINT turmas_student_type_check
+    CHECK (student_type IN ('kids', 'normal', 'reposicao'));
 
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns
@@ -170,6 +172,7 @@ CREATE TABLE IF NOT EXISTS attendance_records (
   login_count INTEGER NOT NULL DEFAULT 1,
   source TEXT NOT NULL DEFAULT 'login',
   CONSTRAINT attendance_records_source_check CHECK (source IN ('login', 'manual')),
+  turma_id UUID REFERENCES turmas(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(user_id, attendance_date)
@@ -192,6 +195,13 @@ BEGIN
   -- Permitir first/last_login_at serem NULL para registros manuais (ausentes ou criados offline)
   ALTER TABLE attendance_records ALTER COLUMN first_login_at DROP NOT NULL;
   ALTER TABLE attendance_records ALTER COLUMN last_login_at DROP NOT NULL;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'attendance_records' AND column_name = 'turma_id'
+  ) THEN
+    ALTER TABLE attendance_records ADD COLUMN turma_id UUID REFERENCES turmas(id) ON DELETE SET NULL;
+  END IF;
 END $$;
 
 CREATE INDEX IF NOT EXISTS idx_attendance_records_user ON attendance_records(user_id);

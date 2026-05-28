@@ -295,8 +295,11 @@ export const getSettingText = (text) => settingsText[text] || text;
 export const getRoleLabel = (role) =>
   role === "professor" ? "Professor" : "Aluno";
 
-export const getStudentTypeLabel = (studentType) =>
-  studentType === "kids" ? "Kids" : "Normal";
+export const getStudentTypeLabel = (studentType) => {
+  if (studentType === "kids") return "Kids";
+  if (studentType === "reposicao") return "Reposição";
+  return "Normal";
+};
 
 export const getUserDisplayName = (user = {}) =>
   user.username || user.displayName || user.name || "Usuário";
