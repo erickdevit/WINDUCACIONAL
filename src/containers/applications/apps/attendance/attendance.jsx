@@ -280,6 +280,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   const [message, setMessage] = useState("");
   const [registerDate, setRegisterDate] = useState(toDateInputValue(new Date()));
   const [registerTurmaId, setRegisterTurmaId] = useState("");
+  const [registerSourceTurmaId, setRegisterSourceTurmaId] = useState("all");
   const [registerStudents, setRegisterStudents] = useState([]);
   const [registerSearch, setRegisterSearch] = useState("");
   const [savingRegister, setSavingRegister] = useState(false);
@@ -1132,7 +1133,12 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
         try {
           setLoading(true);
           const usersRes = await api.getUsers();
-          const allStudents = (usersRes.users || []).filter(u => u.role === "aluno" && u.active);
+          let allStudents = (usersRes.users || []).filter(u => u.role === "aluno" && u.active);
+          
+          if (registerSourceTurmaId && registerSourceTurmaId !== "all") {
+            allStudents = allStudents.filter(u => u.turmaId === registerSourceTurmaId);
+          }
+          
           setRegisterStudents(
             allStudents.map((s) => ({
               id: s.id,
@@ -1189,6 +1195,8 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
       ? turmas.filter(t => t.studentType === "reposicao")
       : turmas.filter(t => t.studentType !== "reposicao");
 
+    const regularTurmas = turmas.filter(t => t.studentType !== "reposicao");
+
     return (
       <>
         {renderHeader(isReposicao ? "Registrar reposição" : "Registrar frequência")}
@@ -1207,7 +1215,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               />
             </label>
             <label>
-              <span style={{display: "block", marginBottom: "4px", fontSize: "12px", fontWeight: "700"}}>Turma</span>
+              <span style={{display: "block", marginBottom: "4px", fontSize: "12px", fontWeight: "700"}}>Turma de reposição</span>
               <select
                 value={registerTurmaId}
                 onChange={(e) => setRegisterTurmaId(e.target.value)}
@@ -1219,6 +1227,21 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
                 ))}
               </select>
             </label>
+            {isReposicao && (
+              <label>
+                <span style={{display: "block", marginBottom: "4px", fontSize: "12px", fontWeight: "700"}}>Alunos da turma</span>
+                <select
+                  value={registerSourceTurmaId}
+                  onChange={(e) => setRegisterSourceTurmaId(e.target.value)}
+                  style={{padding: "6px 8px", borderRadius: "6px", border: "1px solid var(--at-line)"}}
+                >
+                  <option value="all">Todas as turmas (todos os alunos)</option>
+                  {regularTurmas.map((t) => (
+                    <option key={t.id} value={t.id}>{t.nome}</option>
+                  ))}
+                </select>
+              </label>
+            )}
             <button className="attendance-primary" onClick={loadRegisterStudents} disabled={!registerTurmaId} style={{marginTop: "20px"}}>
               Carregar alunos
             </button>
