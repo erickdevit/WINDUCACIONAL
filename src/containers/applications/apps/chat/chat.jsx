@@ -137,6 +137,8 @@ const ConversationPanel = ({
   pendingAttachment,
   onClearAttachment,
   isSecretaria,
+  onBack,
+  onMessageSent,
 }) => {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
@@ -179,6 +181,7 @@ const ConversationPanel = ({
           if (prev.find((m) => m.id === msg.id)) return prev;
           return [...prev, msg];
         });
+        if (onMessageSent) onMessageSent();
       } catch (_) {}
     };
 
@@ -186,7 +189,7 @@ const ConversationPanel = ({
       active = false;
       es.close();
     };
-  }, [threadId]);
+  }, [threadId, onMessageSent]);
 
   // Mantém a rolagem restrita à lista de mensagens.
   useEffect(() => {
@@ -212,10 +215,11 @@ const ConversationPanel = ({
       });
       setText("");
       if (onClearAttachment) onClearAttachment();
+      if (onMessageSent) onMessageSent();
     } catch (_) {}
     setSending(false);
     inputRef.current?.focus({ preventScroll: true });
-  }, [text, pendingAttachment, sending, threadId, onClearAttachment]);
+  }, [text, pendingAttachment, sending, threadId, onClearAttachment, onMessageSent]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -236,6 +240,15 @@ const ConversationPanel = ({
   return (
     <div className="chat-conversation">
       <div className="chat-conv-header">
+        {onBack && (
+          <button
+            className="chat-back-btn"
+            onClick={onBack}
+            title="Voltar para a listagem"
+          >
+            ←
+          </button>
+        )}
         <span className="chat-conv-title">{title}</span>
       </div>
 
@@ -283,39 +296,39 @@ const ConversationPanel = ({
 
       {/* Barra de entrada */}
       {!isSecretaria && (
-      <div className="chat-input-bar">
-        <button
-          className="chat-input-action"
-          title="Enviar arquivo"
-          onClick={onRequestFilePicker}
-        >
-          📎
-        </button>
-        <button
-          className="chat-input-action"
-          title="Emojis"
-          onClick={() => setShowEmoji((v) => !v)}
-        >
-          😊
-        </button>
-        <textarea
-          ref={inputRef}
-          className="chat-input-text win11Scroll"
-          placeholder="Digite uma mensagem..."
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={handleKeyDown}
-          rows={1}
-        />
-        <button
-          className={`chat-send-btn ${sending ? "sending" : ""}`}
-          onClick={send}
-          disabled={sending}
-          title="Enviar"
-        >
-          ➤
-        </button>
-      </div>
+        <div className="chat-input-bar">
+          <button
+            className="chat-input-action"
+            title="Enviar arquivo"
+            onClick={onRequestFilePicker}
+          >
+            📎
+          </button>
+          <button
+            className="chat-input-action"
+            title="Emojis"
+            onClick={() => setShowEmoji((v) => !v)}
+          >
+            😊
+          </button>
+          <textarea
+            ref={inputRef}
+            className="chat-input-text win11Scroll"
+            placeholder="Digite uma mensagem..."
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            rows={1}
+          />
+          <button
+            className={`chat-send-btn ${sending ? "sending" : ""}`}
+            onClick={send}
+            disabled={sending}
+            title="Enviar"
+          >
+            ➤
+          </button>
+        </div>
       )}
     </div>
   );
@@ -339,6 +352,16 @@ export const ChatApp = () => {
   // Membros da turma selecionada
   const [members, setMembers] = useState([]);
 
+  // Estado da navegação mobile: "list" | "chat"
+  const [mobileView, setMobileView] = useState("list");
+
+  // Gaveta de Nova Conversa (FAB)
+  const [showNewChatDrawer, setShowNewChatDrawer] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Conversas ativas (DMs com última mensagem)
+  const [activeThreads, setActiveThreads] = useState([]);
+
   // Estado da navegação: "group" | "dm"
   const [activeTab, setActiveTab] = useState("group");
 
@@ -350,6 +373,15 @@ export const ChatApp = () => {
   // Anexo pendente (arquivo selecionado via FileDialog)
   const [pendingAttachment, setPendingAttachment] = useState(null);
   const lastRoutePayloadRef = useRef(null);
+
+  const loadActiveThreads = useCallback(() => {
+    fetch("/api/chat/my-threads")
+      .then((r) => r.json())
+      .then((d) => {
+        setActiveThreads(d.threads || []);
+      })
+      .catch(() => {});
+  }, []);
 
   // Carrega turmas na abertura
   useEffect(() => {
@@ -363,7 +395,9 @@ export const ChatApp = () => {
         }
       })
       .catch(() => {});
-  }, [wnapp.hide]);
+
+    loadActiveThreads();
+  }, [wnapp.hide, selectedTurma, loadActiveThreads]);
 
   // Quando muda a turma selecionada: busca thread de grupo + membros
   useEffect(() => {
@@ -382,6 +416,14 @@ export const ChatApp = () => {
       .catch(() => {});
   }, [selectedTurma]);
 
+  // Recarrega activeThreads periodicamente ou quando o ID da thread atual muda
+  const currentThreadId = activeTab === "group" ? groupThreadId : dmThreadId;
+  useEffect(() => {
+    if (!wnapp.hide) {
+      loadActiveThreads();
+    }
+  }, [currentThreadId, wnapp.hide, loadActiveThreads]);
+
   useEffect(() => {
     const payload = wnapp.payload;
     if (!payload || payload.kind !== "chat-thread" || !payload.threadId) {
@@ -396,6 +438,7 @@ export const ChatApp = () => {
       setDmPeer(payload.peer || null);
       setDmThreadId(payload.threadId);
       setActiveTab("dm");
+      setMobileView("chat");
       return;
     }
 
@@ -404,6 +447,7 @@ export const ChatApp = () => {
     }
     setGroupThreadId(payload.threadId);
     setActiveTab("group");
+    setMobileView("chat");
   }, [wnapp.payload]);
 
   // Detecta quando o FileDialog fecha após seleção (caller === 'chat')
@@ -448,8 +492,30 @@ export const ChatApp = () => {
         setDmPeer(member);
         setDmThreadId(data.threadId);
         setActiveTab("dm");
+        setMobileView("chat");
+        loadActiveThreads();
       }
     } catch (_) {}
+  };
+
+  const handleStartChat = (member) => {
+    const existingThread = activeThreads.find((t) => {
+      const peerId = t.user_a === person.id ? t.user_b : t.user_a;
+      return peerId === member.id;
+    });
+
+    if (existingThread) {
+      setDmPeer(member);
+      setDmThreadId(existingThread.id);
+      setActiveTab("dm");
+      setMobileView("chat");
+      setShowNewChatDrawer(false);
+      setSearchQuery("");
+    } else {
+      openDm(member);
+      setShowNewChatDrawer(false);
+      setSearchQuery("");
+    }
   };
 
   // Abre o FileDialog padrão do Explorer para selecionar arquivo .txt
@@ -466,7 +532,6 @@ export const ChatApp = () => {
     });
   };
 
-  const currentThreadId = activeTab === "group" ? groupThreadId : dmThreadId;
   const currentTitle =
     activeTab === "group"
       ? `Grupo: ${turmas.find((t) => t.id === selectedTurma)?.nome || ""}`
@@ -490,7 +555,7 @@ export const ChatApp = () => {
       windowScreenClassName="flex flex-col"
       restWindowClassName="flex-grow flex overflow-hidden"
     >
-      <div className="chat-layout">
+      <div className={`chat-layout mobile-${mobileView}`}>
         {/* ── Sidebar ── */}
         <aside className="chat-sidebar">
           {/* Seletor de turma (equipe vê todas) */}
@@ -511,73 +576,164 @@ export const ChatApp = () => {
             </div>
           )}
 
-          {/* Abas */}
-          <div className="chat-tabs">
-            <button
-              className={`chat-tab ${activeTab === "group" ? "active" : ""}`}
-              onClick={() => setActiveTab("group")}
+          {/* Listagem Única de Chats */}
+          <div className="chat-unified-list win11Scroll">
+            {/* Grupo da Turma (Fixado no topo) */}
+            <div className="chat-section-title">Grupo</div>
+            <div
+              className={`chat-member-item clickable ${
+                activeTab === "group" ? "active" : ""
+              }`}
+              onClick={() => {
+                setActiveTab("group");
+                setMobileView("chat");
+              }}
             >
-              👥 Grupo
-            </button>
-            <button
-              className={`chat-tab ${activeTab === "dm" ? "active" : ""}`}
-              onClick={() => setActiveTab("dm")}
-            >
-              💬 Colegas
-            </button>
-          </div>
-
-          {/* Conteúdo da sidebar */}
-          {activeTab === "group" ? (
-            <div className="chat-sidebar-section">
-              <div className="chat-section-title">Membros da turma</div>
-              <div className="chat-members-list">
-                {members.length === 0 && (
-                  <div className="chat-members-empty">
-                    Nenhum colega encontrado.
-                  </div>
-                )}
-                {members.map((m) => (
-                  <div key={m.id} className="chat-member-item">
-                    <Avatar name={m.username} size={28} />
-                    <span className="chat-member-name">{m.username}</span>
-                    {m.role === "professor" && (
-                      <span className="chat-member-badge">Prof.</span>
-                    )}
-                    {m.role === "secretaria" && (
-                      <span className="chat-member-badge" style={{background: "#64748b"}}>Eqp.</span>
-                    )}
-                  </div>
-                ))}
+              <div className="chat-avatar group-avatar">👥</div>
+              <div className="chat-member-info">
+                <span className="chat-member-name">
+                  Grupo: {turmas.find((t) => t.id === selectedTurma)?.nome || "Turma"}
+                </span>
+                <span className="chat-last-msg">Conversa coletiva da turma</span>
               </div>
             </div>
-          ) : (
-            <div className="chat-sidebar-section">
-              <div className="chat-section-title">Iniciar conversa</div>
-              <div className="chat-members-list">
-                {members.length === 0 && (
-                  <div className="chat-members-empty">
-                    Nenhum colega na turma.
-                  </div>
+
+            {/* Conversas Diretas (Colegas com conversas ativas) */}
+            <div className="chat-section-title">Conversas Ativas</div>
+            <div className="chat-active-dms">
+              {activeThreads.length === 0 ? (
+                <div className="chat-members-empty">
+                  Nenhuma conversa ativa. Toque no botão abaixo para iniciar uma conversa!
+                </div>
+              ) : (
+                activeThreads
+                  .filter((t) => {
+                    const peerId = t.user_a === person.id ? t.user_b : t.user_a;
+                    return members.some((m) => m.id === peerId);
+                  })
+                  .map((t) => {
+                    const peerId = t.user_a === person.id ? t.user_b : t.user_a;
+                    const member = members.find((m) => m.id === peerId);
+                    if (!member) return null;
+
+                    const isActive = activeTab === "dm" && dmPeer?.id === peerId;
+
+                    return (
+                      <div
+                        key={t.id}
+                        className={`chat-member-item clickable ${
+                          isActive ? "active" : ""
+                        }`}
+                        onClick={() => {
+                          setDmPeer(member);
+                          setDmThreadId(t.id);
+                          setActiveTab("dm");
+                          setMobileView("chat");
+                        }}
+                      >
+                        <Avatar name={member.username} size={32} />
+                        <div className="chat-member-info">
+                          <div className="chat-member-header">
+                            <span className="chat-member-name">{member.username}</span>
+                            {t.last_at && (
+                              <span className="chat-last-time">
+                                {formatTime(t.last_at)}
+                              </span>
+                            )}
+                          </div>
+                          <div className="chat-last-msg-row">
+                            <span className="chat-last-msg">
+                              {t.last_body || "Arquivo de texto"}
+                            </span>
+                            {member.role === "professor" && (
+                              <span className="chat-member-badge">Prof.</span>
+                            )}
+                            {member.role === "secretaria" && (
+                              <span
+                                className="chat-member-badge"
+                                style={{ background: "#64748b" }}
+                              >
+                                Eqp.
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+              )}
+            </div>
+          </div>
+
+          {/* Botão Flutuante (FAB) */}
+          <button
+            className="chat-fab-btn"
+            title="Nova Conversa"
+            onClick={() => setShowNewChatDrawer(true)}
+          >
+            💬
+          </button>
+
+          {/* Gaveta de Nova Conversa (Drawer) */}
+          {showNewChatDrawer && (
+            <div className="chat-drawer">
+              <div className="chat-drawer-header">
+                <span className="chat-drawer-title">Nova Conversa</span>
+                <button
+                  className="chat-drawer-close"
+                  onClick={() => {
+                    setShowNewChatDrawer(false);
+                    setSearchQuery("");
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Barra de Pesquisa */}
+              <div className="chat-drawer-search">
+                <input
+                  type="text"
+                  placeholder="Pesquisar colega..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="chat-drawer-search-input"
+                />
+              </div>
+
+              {/* Lista de Colegas */}
+              <div className="chat-drawer-list win11Scroll">
+                {members.length === 0 ? (
+                  <div className="chat-members-empty">Nenhum colega encontrado.</div>
+                ) : (
+                  members
+                    .filter((m) =>
+                      m.username.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                    .map((m) => (
+                      <div
+                        key={m.id}
+                        className="chat-member-item clickable"
+                        onClick={() => handleStartChat(m)}
+                      >
+                        <Avatar name={m.username} size={30} />
+                        <div className="chat-member-info">
+                          <span className="chat-member-name">{m.username}</span>
+                          {m.role === "professor" && (
+                            <span className="chat-member-badge">Prof.</span>
+                          )}
+                          {m.role === "secretaria" && (
+                            <span
+                              className="chat-member-badge"
+                              style={{ background: "#64748b" }}
+                            >
+                              Eqp.
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))
                 )}
-                {members.map((m) => (
-                  <div
-                    key={m.id}
-                    className={`chat-member-item clickable ${
-                      dmPeer?.id === m.id ? "active" : ""
-                    }`}
-                    onClick={() => openDm(m)}
-                  >
-                    <Avatar name={m.username} size={28} />
-                    <span className="chat-member-name">{m.username}</span>
-                    {m.role === "professor" && (
-                      <span className="chat-member-badge">Prof.</span>
-                    )}
-                    {m.role === "secretaria" && (
-                      <span className="chat-member-badge" style={{background: "#64748b"}}>Eqp.</span>
-                    )}
-                  </div>
-                ))}
               </div>
             </div>
           )}
@@ -600,6 +756,8 @@ export const ChatApp = () => {
               pendingAttachment={pendingAttachment}
               onClearAttachment={() => setPendingAttachment(null)}
               isSecretaria={isSecretaria}
+              onBack={() => setMobileView("list")}
+              onMessageSent={loadActiveThreads}
             />
           )}
         </main>
