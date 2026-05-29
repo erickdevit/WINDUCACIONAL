@@ -335,9 +335,6 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
 
   const filteredRecords = useMemo(() => {
     if (recordFilter === "all") return records;
-    if (recordFilter === "multi") {
-      return records.filter((record) => Number(record.loginCount || 0) > 1);
-    }
     return records.filter((record) => record.turmaId === recordFilter);
   }, [records, recordFilter]);
 
@@ -1096,7 +1093,6 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               onChange={(event) => setRecordFilter(event.target.value)}
             >
               <option value="all">Todos os registros</option>
-              <option value="multi">Com mais de um login</option>
               {turmas.map((turma) => (
                 <option key={turma.id} value={turma.id}>
                   {turma.nome}
@@ -1383,18 +1379,9 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
             </div>
           </div>
           <div className="at-student-stat-row">
-            <div className="at-student-stat">
+            <div className="at-student-stat" style={{ width: "100%" }}>
               <span>Total de presenças</span>
               <strong>{presentCount}</strong>
-            </div>
-            <div className="at-student-stat">
-              <span>Logins registrados</span>
-              <strong>
-                {studentRecords.reduce(
-                  (sum, r) => sum + Number(r.loginCount || 0),
-                  0
-                )}
-              </strong>
             </div>
           </div>
         </section>
@@ -1427,7 +1414,6 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
           <header>
             <div>
               <strong>{formatDate(record.attendanceDate)}</strong>
-              <span>{record.loginCount} login{Number(record.loginCount) !== 1 ? "s" : ""}</span>
             </div>
           </header>
           <dl>
@@ -1455,7 +1441,6 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
             <tr>
               <th>Data</th>
               <th>Primeiro acesso</th>
-              <th>Logins</th>
             </tr>
           </thead>
           <tbody>
@@ -1463,7 +1448,6 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               <tr key={record.id}>
                 <td>{formatDate(record.attendanceDate)}</td>
                 <td>{formatDateTime(record.firstLoginAt)}</td>
-                <td>{record.loginCount}</td>
               </tr>
             ))}
             {items.length === 0 && !loading ? (
