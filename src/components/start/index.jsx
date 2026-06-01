@@ -176,7 +176,7 @@ export const SidePane = () => {
     var brgt = document.getElementById("brightnessSlider").value;
     if (!e) {
       // Battery saver
-      const state = setting.system.power.saver.state;
+      const state = setting.system?.power?.saver?.state;
       const factor = state ? 0.7 : 100 / 70;
       const newBrgt = brgt * factor;
       setBrightnessValue(newBrgt);

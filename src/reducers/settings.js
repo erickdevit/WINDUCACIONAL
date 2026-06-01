@@ -47,6 +47,9 @@ const changeVal = (obj, path, val = "togg") => {
   var tmp = obj;
   path = path.split(".");
   for (var i = 0; i < path.length - 1; i++) {
+    if (tmp[path[i]] === undefined || tmp[path[i]] === null) {
+      tmp[path[i]] = {};
+    }
     tmp = tmp[path[i]];
   }
 
@@ -78,7 +81,48 @@ const settReducer = (state = defState, action) => {
     case "SETTLOAD":
       changed = true;
       tmpState = {
+        ...defState,
         ...action.payload,
+        system: {
+          ...defState.system,
+          ...action.payload?.system,
+          power: {
+            ...defState.system?.power,
+            ...action.payload?.system?.power,
+            saver: {
+              ...defState.system?.power?.saver,
+              ...action.payload?.system?.power?.saver,
+            },
+          },
+          display: {
+            ...defState.system?.display,
+            ...action.payload?.system?.display,
+            nightlight: {
+              ...defState.system?.display?.nightlight,
+              ...action.payload?.system?.display?.nightlight,
+            },
+          },
+        },
+        devices: {
+          ...defState.devices,
+          ...action.payload?.devices,
+        },
+        network: {
+          ...defState.network,
+          ...action.payload?.network,
+          wifi: {
+            ...defState.network?.wifi,
+            ...action.payload?.network?.wifi,
+          },
+        },
+        privacy: {
+          ...defState.privacy,
+          ...action.payload?.privacy,
+          location: {
+            ...defState.privacy?.location,
+            ...action.payload?.privacy?.location,
+          },
+        },
         person: {
           ...tmpState.person,
           theme: action.payload?.person?.theme || tmpState.person.theme,
