@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Icon } from "../../utils/general";
 import "./virtualkeyboard.scss";
 
@@ -186,6 +186,7 @@ const ROWS = [
 /* ─── Componente principal ───────────────────────────── */
 function VirtualKeyboard() {
   const visible = useSelector((s) => s.globals?.virtualKeyboard);
+  const dispatch = useDispatch();
   const [shift, setShift] = useState(false);
   const [caps, setCaps] = useState(false);
   const [altGr, setAltGr] = useState(false);
@@ -262,6 +263,12 @@ function VirtualKeyboard() {
       }
     };
 
+    // Bloquear todos os inputs existentes imediatamente
+    const lockAll = () => {
+      document.querySelectorAll("input, textarea, [contenteditable='true']").forEach(lockInput);
+    };
+    lockAll();
+
     lockInput(document.activeElement);
 
     const onFocusIn = (e) => lockInput(e.target);
@@ -270,10 +277,27 @@ function VirtualKeyboard() {
     document.addEventListener("focusin", onFocusIn, true);
     document.addEventListener("focusout", onFocusOut, true);
 
+    // MutationObserver para bloquear novos inputs adicionados dinamicamente
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node instanceof HTMLElement) {
+            if (node.matches("input, textarea, [contenteditable='true']")) {
+              lockInput(node);
+            }
+            node.querySelectorAll("input, textarea, [contenteditable='true']").forEach(lockInput);
+          }
+        });
+      });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
     return () => {
       document.removeEventListener("focusin", onFocusIn, true);
       document.removeEventListener("focusout", onFocusOut, true);
-      document.querySelectorAll("[inputmode='none']").forEach((el) => {
+      observer.disconnect();
+      document.querySelectorAll("input, textarea, [contenteditable='true']").forEach((el) => {
         restoreInput(el);
       });
     };
@@ -384,6 +408,9 @@ function VirtualKeyboard() {
         dispatchKey("keydown", "Meta", "MetaLeft");
         dispatchKey("keyup", "Meta", "MetaLeft");
         
+        // Disparar diretamente o clique de alternância do menu iniciar
+        dispatch({ type: "STARTOGG" });
+        
         // Limpar modificadores
         setCtrl(false);
         setAlt(false);
@@ -393,6 +420,82 @@ function VirtualKeyboard() {
         altRef.current = false;
         shiftRef.current = false;
         altGrRef.current = false;
+        return;
+      }
+
+      // Interceptação das combinações de Ctrl de Edição (Sticky Keys)
+      if (ctrlRef.current && ["a", "c", "v", "x", "z", "y"].includes(k.toLowerCase())) {
+        const char = k.toLowerCase();
+        
+        if (char === "a") {
+          if (editable) {
+            if (t === "input" || t === "textarea") {
+              el.select();
+            } else if (el.isContentEditable) {
+              const range = document.createRange();
+              range.selectNodeContents(el);
+              const sel = window.getSelection();
+              sel.removeAllRanges();
+              sel.addRange(range);
+            }
+          }
+        } else if (char === "c") {
+          let selectedText = "";
+          if (t === "input" || t === "textarea") {
+            selectedText = el.value.substring(el.selectionStart, el.selectionEnd);
+          } else {
+            selectedText = window.getSelection().toString();
+          }
+          if (selectedText) {
+            navigator.clipboard.writeText(selectedText).catch((err) => {
+              console.warn("Falha ao copiar:", err);
+            });
+          }
+        } else if (char === "x") {
+          let selectedText = "";
+          if (t === "input" || t === "textarea") {
+            const s = el.selectionStart;
+            const e = el.selectionEnd;
+            selectedText = el.value.substring(s, e);
+            if (selectedText) {
+              navigator.clipboard.writeText(selectedText).then(() => {
+                const newValue = el.value.slice(0, s) + el.value.slice(e);
+                setNativeValue(el, newValue);
+                el.selectionStart = el.selectionEnd = s;
+                el.dispatchEvent(new Event("input", { bubbles: true }));
+              }).catch((err) => {
+                console.warn("Falha ao cortar:", err);
+              });
+            }
+          } else if (el.isContentEditable) {
+            selectedText = window.getSelection().toString();
+            if (selectedText) {
+              navigator.clipboard.writeText(selectedText).then(() => {
+                document.execCommand("delete", false);
+              });
+            }
+          }
+        } else if (char === "v") {
+          navigator.clipboard.readText().then((clipText) => {
+            if (clipText && editable) {
+              insert(clipText);
+            }
+          }).catch((err) => {
+            console.warn("Falha ao colar da area de transferencia:", err);
+          });
+        } else if (char === "z") {
+          if (editable) {
+            document.execCommand("undo", false);
+          }
+        } else if (char === "y") {
+          if (editable) {
+            document.execCommand("redo", false);
+          }
+        }
+        
+        // Resetar o Ctrl
+        setCtrl(false);
+        ctrlRef.current = false;
         return;
       }
 
@@ -612,7 +715,7 @@ function VirtualKeyboard() {
             // Lógica de renderização do rótulo da tecla
             let content;
             if (keyObj.icon === "win") {
-              content = <Icon fafa="faWindows" width={14} />;
+              content = <Icon src="home" width={16} />;
             } else if (keyObj.icon === "menu") {
               content = <Icon fafa="faBars" width={14} />;
             } else if (keyObj.s || keyObj.a) {
