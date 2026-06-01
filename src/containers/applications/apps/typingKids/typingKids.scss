@@ -80,3 +80,41 @@ body[data-theme="dark"] .typingKidsApp,
     filter: brightness(1.22);
   }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   Regras de Responsividade Mobile (Digitação Kids)
+   ════════════════════════════════════════════════════════════════ */
+@media screen and (max-width: 768px) {
+  .typingKidsApp {
+    .typingKidsGameFrame {
+      border-width: 4px !important;
+      border-radius: 12px !important;
+    }
+
+    .typingKidsGameCanvas {
+      height: clamp(140px, 35vh, 220px) !important;
+    }
+
+    .typingKidsTextPanel {
+      min-height: 90px !important;
+      padding: 12px 16px !important;
+      font-size: clamp(0.95rem, 3.5vw, 1.3rem) !important;
+      line-height: 1.5 !important;
+    }
+  }
+}
+
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  .typingKidsApp {
+    .typingKidsGameCanvas {
+      height: 130px !important;
+    }
+
+    .typingKidsTextPanel {
+      min-height: 75px !important;
+      padding: 8px 12px !important;
+      font-size: 1.05rem !important;
+      line-height: 1.4 !important;
+    }
+  }
+}

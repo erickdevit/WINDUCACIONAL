@@ -323,3 +323,59 @@
 .hvtheme:hover {
   background: var(--hover-bg);
 }
+
+/* ════════════════════════════════════════════════════════════════
+   Regras de Responsividade Mobile (File Explorer)
+   ════════════════════════════════════════════════════════════════ */
+@media screen and (max-width: 768px) {
+  .msfiles {
+    /* Permitir rolagem horizontal de comandos no mobile */
+    .msribbon {
+      overflow-x: auto !important;
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      gap: 8px;
+      scrollbar-width: none;
+      
+      &::-webkit-scrollbar {
+        display: none !important;
+      }
+      
+      .ribsec {
+        flex-shrink: 0 !important;
+      }
+    }
+  }
+
+  .sec2 {
+    /* Ocultar barra lateral no mobile */
+    .navpane {
+      display: none !important;
+    }
+
+    .contentarea {
+      width: 100% !important;
+    }
+  }
+
+  .msfiles .sec1 {
+    /* Melhorar visual do caminho em celular */
+    .path-bar {
+      margin: 0 4px !important;
+      padding: 0 4px !important;
+    }
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .msfiles .sec1 {
+    /* Ocultar busca em celulares no retrato para poupar espaço */
+    .srchbar {
+      display: none !important;
+    }
+    
+    .path-bar {
+      width: 100% !important;
+    }
+  }
+}

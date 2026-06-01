@@ -766,3 +766,262 @@ html {
     ) !important;
   }
 }
+
+/* =============================================================================
+   AJUSTES ADICIONAIS DE RESPONSIVIDADE PARA APPS CRÍTICOS (PORTRAIT E LANDSCAPE)
+   Estilos adicionados para adequação completa dos aplicativos no celular.
+   ============================================================================= */
+
+/* ---- Login & Registro ---- */
+@media screen and (max-width: 480px), screen and (max-height: 520px) {
+  .loginScreen {
+    overflow-y: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    padding: 16px !important;
+    padding-top: calc(20px + var(--sai-top)) !important;
+  }
+
+  .loginPanel {
+    width: 100% !important;
+    padding: 20px 16px !important;
+    gap: 16px !important;
+    margin-bottom: calc(20px + var(--sai-bottom)) !important;
+
+    header {
+      gap: 4px !important;
+      h1 {
+        font-size: 1.25rem !important;
+        margin-bottom: 4px !important;
+      }
+      .loginDescription {
+        font-size: 12px !important;
+      }
+    }
+
+    form {
+      gap: 12px !important;
+      label {
+        gap: 4px !important;
+        span {
+          font-size: 11px !important;
+        }
+      }
+      input {
+        height: 38px !important;
+        font-size: 14px !important;
+        padding: 0 12px !important;
+      }
+      .passwordInputWrapper .passwordToggle {
+        width: 32px !important;
+      }
+      .submitButton {
+        height: 38px !important;
+        font-size: 14px !important;
+        margin-top: 4px !important;
+      }
+    }
+
+    .loginSwitch {
+      padding-top: 16px !important;
+      p {
+        font-size: 12px !important;
+      }
+    }
+  }
+}
+
+/* ---- Gestor de Alunos ---- */
+@media screen and (max-width: 768px) {
+  .gestorApp {
+    main {
+      padding: 12px !important;
+    }
+    
+    header {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 12px !important;
+      
+      div:last-child {
+        align-items: stretch !important;
+        width: 100% !important;
+        
+        .flex.gap-2 {
+          width: 100% !important;
+          
+          button {
+            flex: 1 !important;
+            justify-content: center !important;
+            padding: 8px !important;
+            font-size: 12px !important;
+          }
+        }
+        
+        .flex.items-center.gap-2 {
+          width: 100% !important;
+          justify-content: space-between !important;
+          
+          select {
+            flex: 1 !important;
+            text-align: right !important;
+          }
+        }
+      }
+    }
+
+    section {
+      margin-bottom: 12px !important;
+      
+      .bg-gray-50 {
+        padding: 10px 12px !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+        
+        h2 {
+          font-size: 14px !important;
+        }
+        
+        button {
+          align-self: flex-end !important;
+        }
+      }
+      
+      .divide-y > div {
+        padding: 10px 12px !important;
+      }
+    }
+  }
+}
+
+/* ---- Digitação Normal (typingApp) ---- */
+@media screen and (max-width: 768px) {
+  .typingApp {
+    /* Barra superior do jogo */
+    .flex.items-center.justify-between.px-8.py-4 {
+      padding-left: 12px !important;
+      padding-right: 12px !important;
+      padding-top: 8px !important;
+      padding-bottom: 8px !important;
+      flex-direction: column !important;
+      gap: 10px !important;
+      align-items: stretch !important;
+      
+      .flex.space-x-2 {
+        justify-content: center !important;
+      }
+      
+      .flex.items-center.space-x-4 {
+        justify-content: space-between !important;
+      }
+      
+      .absolute[class*="left-1/2"] {
+        position: relative !important;
+        left: auto !important;
+        transform: none !important;
+        margin: 4px auto !important;
+        width: fit-content !important;
+      }
+    }
+
+    /* Conteúdo da lição / seleção de lições */
+    .max-w-6xl.mx-auto.p-10 {
+      padding: 12px !important;
+      
+      .border-b.pb-6 {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+        text-align: center !important;
+        
+        .mt-4.md-mt-0 {
+          align-self: center !important;
+        }
+      }
+    }
+
+    /* Tela de Digitação Principal */
+    .flex-grow.flex.flex-col.items-center.justify-center.w-full {
+      padding-left: 8px !important;
+      padding-right: 8px !important;
+      
+      .h-24 {
+        height: 12px !important;
+      }
+    }
+
+    /* Caixa de texto do editor (onde o texto fica e é digitado) */
+    .inline-block[class*="rounded-[2rem]"] {
+      padding: 12px 14px !important;
+      border-radius: 12px !important;
+      width: 100% !important;
+      
+      div[class*="text-"] {
+        font-size: clamp(1.05rem, 4.5vw, 1.45rem) !important;
+        line-height: 1.4 !important;
+      }
+    }
+
+    /* Painel de estatísticas abaixo do editor */
+    .flex.flex-wrap.justify-center.gap-4 {
+      gap: 8px !important;
+      
+      & > div {
+        flex: 1 1 40% !important;
+        min-width: 100px !important;
+        padding: 8px 12px !important;
+        border-radius: 12px !important;
+        
+        span.text-4xl {
+          font-size: 1.5rem !important;
+        }
+        span.text-xs {
+          font-size: 9px !important;
+        }
+      }
+    }
+
+    /* Ranking e Layout de Colunas Lateral */
+    .typingLessonLayoutGrid {
+      grid-template-columns: 1fr !important;
+      gap: 16px !important;
+      
+      .typingRankingSidebar {
+        width: 100% !important;
+        max-width: none !important;
+      }
+    }
+  }
+}
+
+/* Digitação Normal em Landscape de Celular */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  .typingApp {
+    .px-8.py-4 {
+      padding: 4px 12px !important;
+    }
+    
+    .inline-block[class*="rounded-[2rem]"] {
+      padding: 8px 12px !important;
+      
+      div[class*="text-"] {
+        font-size: 1.2rem !important;
+      }
+    }
+    
+    .flex.flex-wrap.justify-center.gap-4 {
+      padding-top: 12px !important;
+      
+      & > div {
+        padding: 4px 8px !important;
+        min-width: 80px !important;
+        
+        span.text-4xl {
+          font-size: 1.2rem !important;
+        }
+      }
+    }
+  }
+}

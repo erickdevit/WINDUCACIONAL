@@ -59,6 +59,7 @@ export const Settings = () => {
   const openPage = (nextPage) => {
     setPage(nextPage);
     if (nextPage !== "Accounts") setAccountSection(ACCOUNT_OVERVIEW);
+    setNav("");
   };
 
   const handleWallAndTheme = (e) => {
@@ -74,11 +75,13 @@ export const Settings = () => {
   const openOtherUsers = () => {
     setPage("Accounts");
     setAccountSection(ACCOUNT_OTHER_USERS);
+    setNav("");
   };
 
   const openTurmas = () => {
     setPage("Accounts");
     setAccountSection(ACCOUNT_TURMAS);
+    setNav("");
   };
 
   const renderTile = (item) => {
