@@ -4,8 +4,22 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const serverPath = path.resolve(__dirname, "../server/index.cjs");
-const serverCode = fs.readFileSync(serverPath, "utf8");
+
+// O backend foi modularizado: index.cjs concentra config, helpers e a
+// composicao, e cada dominio registra suas rotas em server/routes/*.cjs.
+// As verificacoes de contrato abaixo inspecionam o backend inteiro, entao
+// concatenamos index.cjs com os modulos de rota (index primeiro para preservar
+// a ordem das definicoes compartilhadas usada por algumas buscas).
+const serverDir = path.resolve(__dirname, "../server");
+const routesDir = path.join(serverDir, "routes");
+const routeFiles = fs
+  .readdirSync(routesDir)
+  .filter((file) => file.endsWith(".cjs"))
+  .sort()
+  .map((file) => path.join(routesDir, file));
+const serverCode = [path.join(serverDir, "index.cjs"), ...routeFiles]
+  .map((file) => fs.readFileSync(file, "utf8"))
+  .join("\n");
 const pvpServerPath = path.resolve(__dirname, "../server/typingPvp.cjs");
 const pvpServerCode = fs.readFileSync(pvpServerPath, "utf8");
 
@@ -216,11 +230,11 @@ describe("Backend - avaliações", () => {
   it("deve exigir atribuição para aluno abrir ou enviar prova", () => {
     const detailsBlock = serverCode.substring(
       serverCode.indexOf('app.get("/api/exams/:id"'),
-      serverCode.indexOf('app.put(\n  "/api/exams/:id"')
+      serverCode.search(/app\.put\(\s*"\/api\/exams\/:id"/)
     );
     const submitBlock = serverCode.substring(
       serverCode.indexOf('app.post("/api/exams/:id/submit"'),
-      serverCode.indexOf('app.get(\n  "/api/exams/:id/submissions"')
+      serverCode.search(/app\.get\(\s*"\/api\/exams\/:id\/submissions"/)
     );
 
     expect(detailsBlock).toContain("ensureExamAccess");
@@ -232,7 +246,7 @@ describe("Backend - avaliações", () => {
   it("deve gravar o nome confirmado do aluno na submissão", () => {
     const submitBlock = serverCode.substring(
       serverCode.indexOf('app.post("/api/exams/:id/submit"'),
-      serverCode.indexOf('app.get(\n  "/api/exams/:id/submissions"')
+      serverCode.search(/app\.get\(\s*"\/api\/exams\/:id\/submissions"/)
     );
 
     expect(submitBlock).toContain("student_display_name");

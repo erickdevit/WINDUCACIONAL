@@ -119,6 +119,13 @@ A suíte inicial usa Vitest. A estratégia alvo está em `docs/testing-strategy.
 - `public/dycalendar.js` manipula HTML diretamente; manter isolado ou substituir por componente seguro quando mexer no calendário.
 - A cobertura automatizada ainda é inicial e precisa evoluir para testes de componentes, integração e e2e.
 
+## Organização Do Backend
+
+- O backend é modularizado por domínio. `server/index.cjs` é a raiz de composição: configuração, pool, helpers compartilhados, middleware de autenticação, estado em memória e `start()`. Ele monta o objeto `routeContext` e injeta cada módulo de rota.
+- As rotas ficam em `server/routes/<dominio>.cjs`, cada um exportando `inject<Dominio>Routes(ctx)`, no mesmo padrão de `server/typingPvp.cjs`. Ao criar um novo endpoint, coloque-o no módulo de domínio correspondente (ou crie um novo módulo e injete-o em `index.cjs`); não volte a concentrar rotas em `index.cjs`.
+- Qualquer helper, constante ou estado novo que precise ser compartilhado entre módulos deve ser definido em `index.cjs` e adicionado ao `routeContext`.
+- `server/index.cjs` exporta `{ app, start }` e só chama `start()` quando executado diretamente; preserve esse guard para manter o backend carregável em testes sem subir o servidor.
+
 ## Migrations Versionadas
 
 - O schema do banco é aplicado por migrations versionadas em `server/db/migrations/`, executadas no boot pelo runner `server/db/migrate.cjs` (chamado em `server/index.cjs`).

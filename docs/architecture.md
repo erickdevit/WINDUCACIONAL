@@ -45,7 +45,8 @@ A ausência das classes `flex` e `flex-col` associadas ao `floatTab` causará pr
 As janelas devem permanecer sempre dentro da área útil do desktop, limitada pela borda superior da barra de tarefas. A altura base vem de `--desktop-workarea-height`, derivada de `--taskbar-height`, e o redimensionamento/arraste das janelas compartilhadas precisa ser travado contra o container `.desktop`, nunca contra a altura total da viewport.
 
 - `vite.config.js`: build Vite e configuração PWA.
-- `server/index.cjs`: API Express, sessões, usuários e persistência dos discos.
+- `server/index.cjs`: raiz de composição do backend. Concentra configuração, pool PostgreSQL, helpers compartilhados, middleware de autenticação, estado em memória (clientes SSE, usuários online) e a função `start()`. Monta `routeContext` com as dependências compartilhadas e injeta os módulos de rota. Exporta `{ app, start }` e só executa `start()` quando rodado diretamente (`require.main === module`), permitindo carregá-lo em testes sem subir o servidor.
+- `server/routes/*.cjs`: rotas agrupadas por domínio (`auth`, `users`, `turmas`, `booklets`, `attendance`, `fs`, `exams`, `typing`, `notifications`, `chat`, `gestor`, `edgeProxy`). Cada módulo exporta uma função injetora `inject<Dominio>Routes(ctx)` que recebe o `routeContext`, seguindo o mesmo padrão de `server/typingPvp.cjs`.
 - `server/db/migrations/`: migrations versionadas do PostgreSQL (`0001_baseline.sql` consolida o schema inicial).
 - `server/db/migrate.cjs`: runner de migrations executado no boot.
 - `Dockerfile`: empacotamento da aplicação.

@@ -15,9 +15,10 @@ const checksumOf = (content) =>
 
 const listMigrationFiles = () => {
   if (!fs.existsSync(migrationsDir)) return [];
-  return fs.readdirSync(migrationsDir).filter(
-    (file) => MIGRATION_FILE_PATTERN.test(file)
-  ).sort((a, b) => a.localeCompare(b, "en"));
+  return fs
+    .readdirSync(migrationsDir)
+    .filter((file) => MIGRATION_FILE_PATTERN.test(file))
+    .sort((a, b) => a.localeCompare(b, "en"));
 };
 
 const versionFromFile = (file) => file.replace(/\.sql$/i, "");
