@@ -2,15 +2,26 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 
-const settingsPath = path.resolve(
+// O app de Configuracoes foi dividido em modulos: settings.jsx (componente
+// Settings), settingsShared.jsx (helpers/dialogo) e os componentes
+// UserManagement.jsx e TurmaManagement.jsx. As verificacoes abaixo inspecionam
+// o codigo do app inteiro, entao concatenamos os modulos (settings primeiro).
+const settingsDir = path.resolve(
   __dirname,
-  "../src/containers/applications/apps/settings/settings.jsx"
+  "../src/containers/applications/apps/settings"
 );
 const settingsStylesPath = path.resolve(
   __dirname,
   "../src/containers/applications/apps/assets/settings.scss"
 );
-const settingsCode = fs.readFileSync(settingsPath, "utf8");
+const settingsCode = [
+  "settings.jsx",
+  "settingsShared.jsx",
+  "UserManagement.jsx",
+  "TurmaManagement.jsx",
+]
+  .map((file) => fs.readFileSync(path.join(settingsDir, file), "utf8"))
+  .join("\n");
 const settingsStyles = fs.readFileSync(settingsStylesPath, "utf8");
 
 describe("Configurações - listagem de usuários", () => {
