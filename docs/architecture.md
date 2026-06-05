@@ -46,7 +46,8 @@ As janelas devem permanecer sempre dentro da área útil do desktop, limitada pe
 
 - `vite.config.js`: build Vite e configuração PWA.
 - `server/index.cjs`: API Express, sessões, usuários e persistência dos discos.
-- `server/db/schema.sql`: schema PostgreSQL inicial.
+- `server/db/migrations/`: migrations versionadas do PostgreSQL (`0001_baseline.sql` consolida o schema inicial).
+- `server/db/migrate.cjs`: runner de migrations executado no boot.
 - `Dockerfile`: empacotamento da aplicação.
 - `docker-compose.yml`: stack completa de aplicação e PostgreSQL.
 
@@ -103,4 +104,4 @@ A arquitetura alvo deve separar responsabilidades:
 
 ## Decisões Tomadas
 
-- **Migrations versionadas (dívida técnica alta):** O schema atual é aplicado integralmente no boot via `schema.sql` idempotente. Antes da próxima mudança estrutural, implementar runner interno Node com `schema_migrations`, `pg_advisory_lock` e pasta `server/db/migrations/`. Baseline `0001_baseline.sql` captura o estado atual; `0002_class_schedule.sql` adiciona os campos de agenda. Ver `AGENTS.md` para detalhes.
+- **Migrations versionadas (resolvido):** O schema passou a ser aplicado por migrations versionadas em `server/db/migrations/`, executadas no boot pelo runner `server/db/migrate.cjs`. O runner cria `schema_migrations`, usa `pg_advisory_lock` e aplica cada arquivo em transação própria, registrando apenas os bem-sucedidos. `0001_baseline.sql` consolida o estado atual (incluindo os `ALTER`/`DO $$` idempotentes que migravam bancos legados, como agenda de turmas e código de turma); por ser idempotente, converge tanto bancos vazios quanto legados. Toda mudança estrutural futura deve ser uma nova migration numerada, nunca uma edição da baseline. Ver `server/db/migrations/README.md` e `AGENTS.md`.

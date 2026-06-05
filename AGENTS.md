@@ -118,7 +118,13 @@ A suíte inicial usa Vitest. A estratégia alvo está em `docs/testing-strategy.
 - Dados persistidos em `localStorage` são usados como estado confiável em vários pontos; validar antes de migrar ou sincronizar com backend.
 - `public/dycalendar.js` manipula HTML diretamente; manter isolado ou substituir por componente seguro quando mexer no calendário.
 - A cobertura automatizada ainda é inicial e precisa evoluir para testes de componentes, integração e e2e.
-- **ALTA PRIORIDADE:** O schema SQL é aplicado integralmente no boot via `schema.sql` idempotente, sem migrations versionadas. Antes da próxima mudança estrutural no banco (ALTER destrutivo, transformação de dados, nova entidade), implementar: tabela `schema_migrations`, lock `pg_advisory_lock`, runner interno Node e pasta `server/db/migrations/` com `0001_baseline.sql` e `0002_class_schedule.sql`.
+
+## Migrations Versionadas
+
+- O schema do banco é aplicado por migrations versionadas em `server/db/migrations/`, executadas no boot pelo runner `server/db/migrate.cjs` (chamado em `server/index.cjs`).
+- O runner cria a tabela `schema_migrations`, adquire `pg_advisory_lock` antes de aplicar qualquer arquivo e roda cada migration em sua própria transação, registrando apenas as que aplicam com sucesso. Arquivos já registrados nunca são reexecutados.
+- `0001_baseline.sql` consolida todo o estado atual do schema (tabelas, views, índices e os `ALTER`/`DO $$` idempotentes que migravam bancos legados). Não edite a baseline nem reaproveite arquivos já aplicados.
+- **REGRA:** toda mudança estrutural no banco deve ser uma nova migration numerada (`0002_...`, `0003_...`), nunca uma edição da baseline ou um `ALTER` solto no boot. Use o padrão `NNNN_descricao.sql`. Ver `server/db/migrations/README.md`.
 
 ## Política De Atualização
 

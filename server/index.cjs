@@ -4,9 +4,10 @@ const path = require("node:path");
 const express = require("express");
 const { Pool } = require("pg");
 
+const { runMigrations } = require("./db/migrate.cjs");
+
 const rootDir = path.resolve(__dirname, "..");
 const buildDir = path.join(rootDir, "build");
-const schemaPath = path.join(__dirname, "db", "schema.sql");
 const sourceTreePath = path.join(rootDir, "src", "reducers", "dir.json");
 const bookletLibraryDir = path.join(
   rootDir,
@@ -4765,8 +4766,7 @@ app.use((error, req, res, next) => {
 const start = async () => {
   await ensureDirectories();
   await ensureDatabaseConnection();
-  const schema = await fs.promises.readFile(schemaPath, "utf8");
-  await pool.query(schema);
+  await runMigrations(pool);
   await normalizeExistingDisplayNames();
   await syncAppBuildVersion();
   await ensureSeedAdmin();

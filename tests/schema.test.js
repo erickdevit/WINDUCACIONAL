@@ -4,7 +4,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const schemaPath = path.resolve(__dirname, "../server/db/schema.sql");
+const schemaPath = path.resolve(
+  __dirname,
+  "../server/db/migrations/0001_baseline.sql"
+);
 
 describe("Schema SQL", () => {
   const schema = fs.readFileSync(schemaPath, "utf8");
