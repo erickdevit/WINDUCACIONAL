@@ -21,6 +21,7 @@ export const Word = () => {
   const [pageCount, setPageCount] = useState(1);
   const [localClipboard, setLocalClipboard] = useState(null);
   const [renameInput, setRenameInput] = useState("");
+  const [activeFormat, setActiveFormat] = useState("Normal"); // Normal, Heading1
   
   const [contextMenu, setContextMenu] = useState({
     visible: false,
@@ -377,6 +378,24 @@ export const Word = () => {
         foreColor,
         hiliteColor,
       });
+
+      // Detecção do formato ativo (Normal ou Título 1)
+      let format = "Normal";
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        let node = selection.getRangeAt(0).commonAncestorContainer;
+        if (node.nodeType === 3) node = node.parentNode;
+        let current = node;
+        while (current && current !== editorRef.current) {
+          if (current.tagName === "H1" || current.tagName === "H2" || current.tagName === "H3") {
+            format = "Heading1";
+            break;
+          }
+          current = current.parentNode;
+        }
+      }
+      setActiveFormat(format);
+
     } catch (err) {
       console.warn("Failed to query editor styles", err);
     }
@@ -501,7 +520,7 @@ export const Word = () => {
       const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
         let parent = selection.getRangeAt(0).commonAncestorContainer;
-        if (parent.nodeType === 3) parent = parent.parentNode;
+        if (nodeType === 3) parent = parent.parentNode;
         if (parent && parent !== editorRef.current) {
           parent.style.marginBottom = "0px";
         }
@@ -620,6 +639,83 @@ export const Word = () => {
     printWindow.document.close();
   };
 
+  // Manipulação de cliques na margem esquerda (Padding esquerdo do editor)
+  const handleEditorClick = (e) => {
+    if (!editorRef.current) return;
+    
+    const rect = editorRef.current.getBoundingClientRect();
+    const relativeX = e.clientX - rect.left;
+    
+    // Pega o padding left dinâmico do editor
+    const style = window.getComputedStyle(editorRef.current);
+    const paddingLeft = parseFloat(style.paddingLeft) || 96;
+
+    // Se clicar dentro do padding esquerdo da folha
+    if (relativeX >= 0 && relativeX < paddingLeft) {
+      e.preventDefault();
+      const clickCount = e.detail;
+      const selection = window.getSelection();
+
+      // Encontra o range correspondente à linha clicada
+      const range = document.caretRangeFromPoint(rect.left + paddingLeft + 5, e.clientY);
+      if (range) {
+        if (clickCount === 1) {
+          // 1 clique = Seleciona a linha inteira correspondente
+          selection.removeAllRanges();
+          selection.addRange(range);
+          try {
+            selection.modify("move", "backward", "lineboundary");
+            selection.modify("extend", "forward", "lineboundary");
+          } catch (err) {
+            console.warn("Failed to select line", err);
+          }
+        } else if (clickCount === 2) {
+          // 2 cliques = Seleciona o parágrafo sob o Y
+          let node = range.startContainer;
+          if (node.nodeType === 3) node = node.parentNode;
+          
+          let current = node;
+          while (
+            current && 
+            current !== editorRef.current && 
+            !["P", "DIV", "H1", "H2", "H3", "LI"].includes(current.tagName)
+          ) {
+            current = current.parentNode;
+          }
+          
+          if (current && current !== editorRef.current) {
+            const selectRange = document.createRange();
+            selectRange.selectNodeContents(current);
+            selection.removeAllRanges();
+            selection.addRange(selectRange);
+          }
+        } else if (clickCount >= 3) {
+          // 3 cliques = Seleciona tudo (Select All)
+          const selectRange = document.createRange();
+          selectRange.selectNodeContents(editorRef.current);
+          selection.removeAllRanges();
+          selection.addRange(selectRange);
+        }
+      }
+      handleEditorInteraction();
+    }
+  };
+
+  // Manipulação de movimento do cursor na margem esquerda (Padding esquerdo do editor)
+  const handleEditorMouseMove = (e) => {
+    if (!editorRef.current) return;
+    const rect = editorRef.current.getBoundingClientRect();
+    const relativeX = e.clientX - rect.left;
+    const style = window.getComputedStyle(editorRef.current);
+    const paddingLeft = parseFloat(style.paddingLeft) || 96;
+
+    if (relativeX >= 0 && relativeX < paddingLeft) {
+      editorRef.current.style.cursor = "default"; // Seta padrão, indicando margem
+    } else {
+      editorRef.current.style.cursor = "text"; // I-beam para digitação
+    }
+  };
+
   if (!wnapp) return null;
 
   return (
@@ -689,7 +785,7 @@ export const Word = () => {
           <div className="flex text-xs space-x-1">
             <div
               className={`px-3 py-1.5 cursor-pointer rounded-t text-gray-700 ${
-                fileMenuOpen ? "bg-[#f3f2f1] font-semibold text-[#185abd]" : "hover:bg-gray-100"
+                fileMenuOpen ? "is-active" : "hover:bg-gray-100"
               }`}
               onClick={() => setFileMenuOpen(!fileMenuOpen)}
             >
@@ -838,7 +934,7 @@ export const Word = () => {
             <div className="flex items-center space-x-1">
               <button
                 className={`w-7 h-7 font-bold hover:bg-gray-200 rounded text-gray-800 ${
-                  activeStyles.bold ? "bg-gray-300 font-extrabold border border-gray-400" : ""
+                  activeStyles.bold ? "is-active" : ""
                 }`}
                 onClick={() => execCmd("bold")}
                 title="Negrito"
@@ -847,7 +943,7 @@ export const Word = () => {
               </button>
               <button
                 className={`w-7 h-7 italic hover:bg-gray-200 rounded font-serif text-gray-800 ${
-                  activeStyles.italic ? "bg-gray-300 border border-gray-400" : ""
+                  activeStyles.italic ? "is-active" : ""
                 }`}
                 onClick={() => execCmd("italic")}
                 title="Itálico"
@@ -856,7 +952,7 @@ export const Word = () => {
               </button>
               <button
                 className={`w-7 h-7 underline hover:bg-gray-200 rounded text-gray-800 ${
-                  activeStyles.underline ? "bg-gray-300 border border-gray-400" : ""
+                  activeStyles.underline ? "is-active" : ""
                 }`}
                 onClick={() => execCmd("underline")}
                 title="Sublinhado"
@@ -865,7 +961,7 @@ export const Word = () => {
               </button>
               <button
                 className={`w-7 h-7 line-through hover:bg-gray-200 rounded text-gray-800 ${
-                  activeStyles.strikeThrough ? "bg-gray-300 border border-gray-400" : ""
+                  activeStyles.strikeThrough ? "is-active" : ""
                 }`}
                 onClick={() => execCmd("strikeThrough")}
                 title="Tachado"
@@ -874,7 +970,7 @@ export const Word = () => {
               </button>
               <button
                 className={`w-7 h-7 hover:bg-gray-200 rounded text-[11px] flex items-center justify-center text-gray-800 ${
-                  activeStyles.subscript ? "bg-gray-300 border border-gray-400" : ""
+                  activeStyles.subscript ? "is-active" : ""
                 }`}
                 onClick={() => execCmd("subscript")}
                 title="Subscrito"
@@ -883,7 +979,7 @@ export const Word = () => {
               </button>
               <button
                 className={`w-7 h-7 hover:bg-gray-200 rounded text-[11px] flex items-center justify-center text-gray-800 ${
-                  activeStyles.superscript ? "bg-gray-300 border border-gray-400" : ""
+                  activeStyles.superscript ? "is-active" : ""
                 }`}
                 onClick={() => execCmd("superscript")}
                 title="Sobrescrito"
@@ -949,7 +1045,7 @@ export const Word = () => {
             <div className="flex items-center space-x-1">
               <button
                 className={`w-7 h-7 hover:bg-gray-200 rounded flex items-center justify-center ${
-                  activeStyles.alignLeft ? "bg-gray-300 border border-gray-400" : ""
+                  activeStyles.alignLeft ? "is-active" : ""
                 }`}
                 onClick={() => execCmd("justifyLeft")}
                 title="Alinhar à Esquerda"
@@ -958,7 +1054,7 @@ export const Word = () => {
               </button>
               <button
                 className={`w-7 h-7 hover:bg-gray-200 rounded flex items-center justify-center ${
-                  activeStyles.alignCenter ? "bg-gray-300 border border-gray-400" : ""
+                  activeStyles.alignCenter ? "is-active" : ""
                 }`}
                 onClick={() => execCmd("justifyCenter")}
                 title="Centralizar"
@@ -967,7 +1063,7 @@ export const Word = () => {
               </button>
               <button
                 className={`w-7 h-7 hover:bg-gray-200 rounded flex items-center justify-center ${
-                  activeStyles.alignRight ? "bg-gray-300 border border-gray-400" : ""
+                  activeStyles.alignRight ? "is-active" : ""
                 }`}
                 onClick={() => execCmd("justifyRight")}
                 title="Alinhar à Direita"
@@ -976,7 +1072,7 @@ export const Word = () => {
               </button>
               <button
                 className={`w-7 h-7 hover:bg-gray-200 rounded flex items-center justify-center ${
-                  activeStyles.alignJustify ? "bg-gray-300 border border-gray-400" : ""
+                  activeStyles.alignJustify ? "is-active" : ""
                 }`}
                 onClick={() => execCmd("justifyFull")}
                 title="Justificar"
@@ -991,28 +1087,34 @@ export const Word = () => {
           <div className="flex flex-col justify-between pr-2 border-r border-gray-300 shrink-0">
             <div className="flex items-center space-x-1 mb-1 bg-white p-1 rounded h-[50px] border border-gray-200">
               <div
-                className="px-4 h-full border border-gray-300 bg-blue-50 flex flex-col justify-center items-center rounded cursor-pointer"
+                className={`px-4 h-full border flex flex-col justify-center items-center rounded cursor-pointer ${
+                  activeFormat === "Normal" ? "is-active" : "border-transparent hover:bg-gray-100"
+                }`}
                 onClick={() => applyStyle("Normal")}
                 title="Estilo Normal"
               >
-                <span className="text-[14px] text-gray-800 font-sans">AaBbCc</span>
-                <span className="text-[10px] text-gray-600">Normal</span>
+                <span className="text-[14px] font-sans">AaBbCc</span>
+                <span className="text-[10px]">Normal</span>
               </div>
               <div
-                className="px-4 h-full border border-transparent hover:bg-gray-100 flex flex-col justify-center items-center rounded cursor-pointer"
+                className={`px-4 h-full border flex flex-col justify-center items-center rounded cursor-pointer ${
+                  activeFormat === "NoSpacing" ? "is-active" : "border-transparent hover:bg-gray-100"
+                }`}
                 onClick={() => applyStyle("NoSpacing")}
                 title="Sem Espaçamento de Parágrafo"
               >
-                <span className="text-[14px] text-gray-800 font-sans leading-tight">AaBbCc</span>
-                <span className="text-[10px] text-gray-600">Sem Espaço</span>
+                <span className="text-[14px] font-sans leading-tight">AaBbCc</span>
+                <span className="text-[10px]">Sem Espaço</span>
               </div>
               <div
-                className="px-4 h-full border border-transparent hover:bg-gray-100 flex flex-col justify-center items-center rounded cursor-pointer"
+                className={`px-4 h-full border flex flex-col justify-center items-center rounded cursor-pointer ${
+                  activeFormat === "Heading1" ? "is-active" : "border-transparent hover:bg-gray-100"
+                }`}
                 onClick={() => applyStyle("Heading1")}
                 title="Título nível 1"
               >
-                <span className="text-[16px] font-bold text-[#185abd] font-sans">AaBbCc</span>
-                <span className="text-[10px] text-gray-600">Título 1</span>
+                <span className="text-[16px] font-bold font-sans">AaBbCc</span>
+                <span className="text-[10px]">Título 1</span>
               </div>
             </div>
             <div className="text-center text-[10px] text-gray-500 mt-1 pb-1">Estilos</div>
@@ -1299,21 +1401,21 @@ export const Word = () => {
               </select>
               
               <div 
-                className={`toolbar-btn ${activeStyles.bold ? "active" : ""}`}
+                className={`toolbar-btn ${activeStyles.bold ? "is-active" : ""}`}
                 onClick={() => execCmd('bold')}
                 title="Negrito"
               >
                 N
               </div>
               <div 
-                className={`toolbar-btn ${activeStyles.italic ? "active" : ""}`}
+                className={`toolbar-btn ${activeStyles.italic ? "is-active" : ""}`}
                 onClick={() => execCmd('italic')}
                 title="Itálico"
               >
                 I
               </div>
               <div 
-                className={`toolbar-btn ${activeStyles.underline ? "active" : ""}`}
+                className={`toolbar-btn ${activeStyles.underline ? "is-active" : ""}`}
                 onClick={() => execCmd('underline')}
                 title="Sublinhado"
               >
@@ -1420,6 +1522,8 @@ export const Word = () => {
             onKeyUp={handleEditorInteraction}
             onFocus={updateActiveStyles}
             onInput={handleEditorInteraction}
+            onClick={handleEditorClick}
+            onMouseMove={handleEditorMouseMove}
           ></div>
         </div>
       </div>

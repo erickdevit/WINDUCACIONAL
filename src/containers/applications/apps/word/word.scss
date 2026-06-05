@@ -36,6 +36,19 @@
     }
   }
 
+  // Active highlights
+  .is-active,
+  button.is-active {
+    background: #deecf9 !important;
+    border: 1px solid #106ebe !important;
+    color: #106ebe !important;
+    font-weight: 600 !important;
+
+    svg, i {
+      color: #106ebe !important;
+    }
+  }
+
   // Backstage (Menu Arquivo) Drawer
   .word-backstage {
     position: absolute;
@@ -172,9 +185,9 @@
         }
 
         &.active {
-          background: #edebe9;
-          color: #185abd;
-          border: 1px solid #a19f9d;
+          background: #deecf9 !important;
+          border: 1px solid #106ebe !important;
+          color: #106ebe !important;
         }
       }
 
@@ -252,6 +265,16 @@
     caret-color: #000000;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     border: 1px solid #d2d0ce;
+
+    // Enable text selection explicitly
+    user-select: text !important;
+    -webkit-user-select: text !important;
+
+    // Custom selection styling override
+    &::selection, *::selection {
+      background: #c2dbff !important; // Soft MS Word Blue selection
+      color: #000000 !important;
+    }
 
     &:focus {
       outline: none;
