@@ -246,6 +246,7 @@ export class Bin {
   createFile(parentId, name, type) {
     var info = { icon: "textfile" };
     if (type === "txt") info.icon = "textfile";
+    else if (type === "docx") info.icon = "winWord";
     var file = new Item({
       type: type || "file",
       name: name,

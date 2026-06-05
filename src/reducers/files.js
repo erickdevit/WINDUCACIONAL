@@ -150,6 +150,7 @@ const fileReducer = (state = defState, action) => {
       fileName: action.payload.fileName || "Sem Título",
       caller: action.payload.caller || null,
       content: action.payload.content || "",
+      ext: action.payload.ext || "txt",
     };
   } else if (action.type === "FILEDIALOG_CLOSE") {
     // Se o payload contém dados (modo open), preserva para leitura do caller
@@ -175,9 +176,10 @@ const fileReducer = (state = defState, action) => {
     if (action.payload && action.payload.parentId && action.payload.fileName) {
       var parent = tmp.data.getId(action.payload.parentId);
       if (parent) {
-        var nameWithExt = action.payload.fileName.endsWith(".txt")
+        var ext = action.payload.ext || "txt";
+        var nameWithExt = action.payload.fileName.toLowerCase().endsWith("." + ext)
           ? action.payload.fileName
-          : action.payload.fileName + ".txt";
+          : action.payload.fileName + "." + ext;
         var existing = parent.data
           ? parent.data.find(
               (x) => x.name.toLowerCase() === nameWithExt.toLowerCase()
@@ -189,7 +191,7 @@ const fileReducer = (state = defState, action) => {
           var newFile = tmp.data.createFile(
             action.payload.parentId,
             nameWithExt,
-            "txt"
+            ext
           );
           if (newFile) newFile.data = action.payload.content || "";
         }

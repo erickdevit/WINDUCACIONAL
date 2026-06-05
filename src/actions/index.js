@@ -268,6 +268,8 @@ export const handleFileOpen = (id) => {
     } else if (item.type == "file" || item.type == "txt") {
       // Passa o ID do arquivo como payload para o Notepad carregar o conteúdo
       store.dispatch({ type: "NOTEPAD", payload: item.id });
+    } else if (item.type == "docx") {
+      store.dispatch({ type: "WORDAPP", payload: item.id });
     }
   }
 };

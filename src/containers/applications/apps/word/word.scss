@@ -1,0 +1,30 @@
+.wordApp {
+  --fakeMica: rgba(243, 242, 241, 0.95);
+  background: var(--fakeMica);
+  color: var(--dark-txt);
+
+  .word-page {
+    /* Basic reset for content inside editor */
+    h1 { font-size: 2em; font-weight: bold; margin-bottom: 0.5em; }
+    h2 { font-size: 1.5em; font-weight: bold; margin-bottom: 0.5em; }
+    h3 { font-size: 1.17em; font-weight: bold; margin-bottom: 0.5em; }
+    p { margin-bottom: 1em; }
+    ul { list-style-type: disc; padding-left: 40px; margin-bottom: 1em; }
+    ol { list-style-type: decimal; padding-left: 40px; margin-bottom: 1em; }
+    
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-bottom: 1em;
+      
+      td, th {
+        border: 1px solid #ddd;
+        padding: 8px;
+      }
+    }
+  }
+}
+
+body[data-theme="dark"] .wordApp {
+  --fakeMica: rgba(32, 32, 32, 0.95);
+}

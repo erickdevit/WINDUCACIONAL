@@ -82,6 +82,7 @@ var { taskbar, desktop, pinned, recent } = {
     "Email",
     "Configurações",
     "Loja",
+    "Word",
     "Bloco de Notas",
     "Calculadora",
     "Digitação",
@@ -146,6 +147,13 @@ desktop = seedStoredApps(
   "desktop",
   "desktop-seed-exam-v1",
   ["Avaliação"],
+  desktop
+);
+
+desktop = seedStoredApps(
+  "desktop",
+  "desktop-seed-word-v1",
+  ["Word"],
   desktop
 );
 

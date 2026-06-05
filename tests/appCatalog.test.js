@@ -135,6 +135,7 @@ describe("Catálogo de apps", () => {
       "Frequência",
       "Apostilas",
       "Avaliação",
+      "Word"
     ]);
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
       "desktop",

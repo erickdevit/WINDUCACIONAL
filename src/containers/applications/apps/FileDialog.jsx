@@ -192,13 +192,16 @@ export const FileDialog = () => {
           parentId: dialog.cdir,
           fileName: name,
           content: dialog.content || "",
+          ext: dialog.ext || "txt",
         },
       });
     }
   };
 
   const handleSelectFile = (name) => {
-    setLocalFileName(name.replace(/\.txt$/i, ""));
+    const ext = dialog.ext || "txt";
+    const regex = new RegExp(`\\.${ext}$`, "i");
+    setLocalFileName(name.replace(regex, ""));
   };
 
   if (!dialog) return null;
@@ -342,7 +345,11 @@ export const FileDialog = () => {
               placeholder="Sem Título"
             />
             <label className="fdlg-label fdlg-label--type">Tipo:</label>
-            <div className="fdlg-typebox">Documentos de texto (*.txt)</div>
+            <div className="fdlg-typebox">
+              {dialog.ext === "docx"
+                ? "Documento do Word (*.docx)"
+                : `Documentos de texto (*.${dialog.ext || "txt"})`}
+            </div>
           </div>
           <div className="fdlg-footer-btns">
             <button

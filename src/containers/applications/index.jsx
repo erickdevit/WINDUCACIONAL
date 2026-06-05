@@ -23,6 +23,7 @@ export * from "./apps/Gestor";
 export * from "./apps/attendance";
 export * from "./apps/booklets";
 export * from "./apps/exam";
+export * from "./apps/word";
 
 export const ScreenPreview = () => {
   const tasks = useSelector((state) => state.taskbar);

@@ -148,6 +148,12 @@ const apps = [
     action: "NOTEPAD",
   },
   {
+    name: "Word",
+    icon: "winWord",
+    type: "app",
+    action: "WORDAPP",
+  },
+  {
     name: "Notas Autoadesivas",
     icon: "notes",
     type: "app",
