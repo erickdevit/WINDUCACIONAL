@@ -1,10 +1,22 @@
-.wordApp {
-  --fakeMica: rgba(243, 242, 241, 0.95);
-  background: var(--fakeMica);
-  color: var(--dark-txt);
+.wordApp.light-office {
+  background: #f3f2f1;
+  color: #333;
+
+  .word-ribbon-content {
+    /* Hide scrollbar for a cleaner look but allow scrolling if small */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
 
   .word-page {
     /* Basic reset for content inside editor */
+    background: #ffffff;
+    color: #000000;
+    caret-color: #000000;
+
     h1 { font-size: 2em; font-weight: bold; margin-bottom: 0.5em; }
     h2 { font-size: 1.5em; font-weight: bold; margin-bottom: 0.5em; }
     h3 { font-size: 1.17em; font-weight: bold; margin-bottom: 0.5em; }
@@ -22,9 +34,10 @@
         padding: 8px;
       }
     }
-  }
-}
 
-body[data-theme="dark"] .wordApp {
-  --fakeMica: rgba(32, 32, 32, 0.95);
+    a {
+      color: #185abd;
+      text-decoration: underline;
+    }
+  }
 }
