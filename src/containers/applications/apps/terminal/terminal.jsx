@@ -53,7 +53,6 @@ export const WnTerminal = () => {
       if (arg.length) {
         tmpStack.push("Installing app");
         var arg = arg.toString().split(" ");
-        console.log(arg);
         var AppName = arg[0];
         var IframeUrl = arg[1];
         var IconUrl = arg[2];
@@ -82,13 +81,10 @@ export const WnTerminal = () => {
           var app = apps[i];
           var Appcname = app.getElementsByClassName("appName")[0];
           var menu = app.getElementsByClassName("uicon")[0];
-          console.log(Appcname.innerHTML);
           if (Appcname.innerHTML == AppName) {
             var Mainmenu = menu;
-            console.log(menu);
           }
         }
-        console.log(Mainmenu);
 
         delApp("delete", Mainmenu);
         tmpStack.push("App uninstalled");

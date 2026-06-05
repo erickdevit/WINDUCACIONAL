@@ -209,7 +209,6 @@ export const SidePane = () => {
   });
 
   useEffect(() => {
-    // console.log("ok")
     var tmp = [];
     for (var i = 0; i < sidepane.quicks.length; i++) {
       var val = getTreeValue(setting, sidepane.quicks[i].state);

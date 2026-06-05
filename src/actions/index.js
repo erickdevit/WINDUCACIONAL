@@ -214,7 +214,6 @@ const loadWidget = async () => {
     },
     date = new Date();
 
-  // console.log('fetching ON THIS DAY');
   var wikiurl = "https://en.wikipedia.org/api/rest_v1/feed/onthisday/events";
   await axios
     .get(`${wikiurl}/${date.getMonth()}/${date.getDay()}`)

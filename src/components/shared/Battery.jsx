@@ -3,8 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import "./battery.scss";
 
 const Battery = ({ pct, invert }) => {
-  // var divtitle = "Battery status: " + level + "% " + (charging ? "available (plugged in)" : "remaining");
-
   const dispatch = useDispatch();
   const btLevel = useSelector((state) => state.setting.system?.power?.battery ?? 100);
 

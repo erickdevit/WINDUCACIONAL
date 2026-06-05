@@ -126,11 +126,8 @@
                   "icon": "down"
                 },
                 "data": {
-                  "Hitman 3": {},
-                  "Atomforces": {},
                   "Compressed": {},
-                  "textures": {},
-                  "Not A Virus": {}
+                  "textures": {}
                 }
               },
               "Music": {
@@ -152,11 +149,7 @@
                 "data": {
                   "DCIM": {},
                   "2007": {},
-                  "High School": {
-                    "data": {
-                      "Did you really expected that": {}
-                    }
-                  }
+                  "High School": {}
                 }
               },
               "Videos": {
@@ -165,7 +158,7 @@
                   "icon": "vid"
                 },
                 "data": {
-                  "porn-collection": {}
+                  "Aulas": {}
                 }
               },
               "Github": {
@@ -173,24 +166,8 @@
                   "spid": "%github%"
                 },
                 "data": {
-                  "atomforces": {},
-                  "blueapi": {},
-                  "BlueBlog": {},
-                  "BlueBlogs---A-social-platform": {},
                   "winducacional": {},
-                  "winducacional.local": {},
-                  "blueimage": {},
-                  "bluelab": {},
-                  "blueothello": {},
-                  "blueweb": {},
-                  "codeblue": {},
-                  "handwritten-digit-recognition": {},
-                  "jiosaavn": {},
-                  "jiosaavn-api": {},
-                  "minesweeper": {},
-                  "othello": {},
-                  "Saavn-Downloader": {},
-                  "Sanfoundary": {}
+                  "winducacional.local": {}
                 }
               },
               "OneDrive": {

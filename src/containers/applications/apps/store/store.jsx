@@ -58,7 +58,6 @@ export const MicroStore = () => {
     var act = e.target.dataset.action,
       payload = e.target.dataset.payload;
 
-    // console.log(act, payload);
     if (act == "page1") setPage(act[4]);
     else if (act == "page2") {
       for (var i = 0; i < storeapps.length; i++) {

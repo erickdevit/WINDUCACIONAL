@@ -56,7 +56,6 @@ export const StartMenu = () => {
   const [query, setQuery] = useState("");
   const [match, setMatch] = useState({});
   const [atab, setTab] = useState("All");
-  // const [pwctrl, setPowCtrl] = useState
 
   const dispatch = useDispatch();
   const tabSw = (e) => {
