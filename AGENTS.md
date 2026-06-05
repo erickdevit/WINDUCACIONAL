@@ -118,6 +118,7 @@ A suíte inicial usa Vitest. A estratégia alvo está em `docs/testing-strategy.
 - Dados persistidos em `localStorage` são usados como estado confiável em vários pontos; validar antes de migrar ou sincronizar com backend.
 - `public/dycalendar.js` manipula HTML diretamente; manter isolado ou substituir por componente seguro quando mexer no calendário.
 - A cobertura automatizada ainda é inicial e precisa evoluir para testes de componentes, integração e e2e.
+- **Refatoração pendente de componentes gigantes do frontend:** `typing/typing.jsx` (~1970 linhas) e `attendance/attendance.jsx` (~1630 linhas) ainda são dominados por um único componente extenso (`TypingApp` e `AttendanceView`). A divisão segura desses componentes exige extrair lógica/estado interno e, idealmente, testes de renderização antes, para garantir preservação de comportamento. Tratar em sessão dedicada. O app de Configurações já foi modularizado (`settings.jsx`, `settingsShared.jsx`, `UserManagement.jsx`, `TurmaManagement.jsx`) e serve de referência de padrão.
 
 ## Organização Do Backend
 
