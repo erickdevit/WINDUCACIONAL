@@ -520,7 +520,7 @@ export const Word = () => {
       const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
         let parent = selection.getRangeAt(0).commonAncestorContainer;
-        if (nodeType === 3) parent = parent.parentNode;
+        if (parent.nodeType === 3) parent = parent.parentNode;
         if (parent && parent !== editorRef.current) {
           parent.style.marginBottom = "0px";
         }
