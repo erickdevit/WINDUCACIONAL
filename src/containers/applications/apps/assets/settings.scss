@@ -323,6 +323,28 @@
       margin-bottom: 14px;
     }
 
+    /* Barra única de ações no topo da gestão de usuários (Voltar / Atualizar /
+       Criar usuário), substituindo o herói + card promocional. */
+    .userAdminActionBar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+
+      button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        white-space: nowrap;
+      }
+
+      .barCreateBtn {
+        margin-left: auto;
+      }
+    }
+
     .userAdminHero {
       display: flex;
       justify-content: space-between;
@@ -1492,35 +1514,83 @@
   }
 
   @container appWrapper (max-width: 800px) {
-    .userAdminGrid,
-    .userAddRow,
-    .directoryRow,
-    .userAdminTopBar {
-      grid-template-columns: 1fr;
-      align-items: stretch;
-      flex-direction: column;
-    }
+    /* As regras-base destes elementos estão aninhadas sob `main`
+       (especificidade 0,3,1). Os overrides aqui precisam do mesmo prefixo
+       `main` para vencê-las — sem ele (0,3,0) o layout desktop prevalecia e o
+       conteúdo estourava a largura no mobile. */
+    main {
+      /* `width: min(100%, 1000px)` + `margin: 0 24px` somava 48px à largura,
+         estourando o `main` (que tem overflow: hidden) e cortando os cards na
+         direita. No mobile o painel passa a esticar com margens menores. */
+      .userAdminPanel {
+        width: auto;
+        margin-left: 14px;
+        margin-right: 14px;
+      }
 
-    .userAdminHero,
-    .userAddActions {
-      align-items: stretch;
-      flex-direction: column;
-    }
+      /* No mobile os três botões dividem a largura igualmente numa única
+         linha (sem empurrar "Criar usuário" para a direita). */
+      .userAdminActionBar {
+        .barCreateBtn {
+          margin-left: 0;
+        }
 
-    .userAdminStats {
-      justify-content: flex-start;
-    }
+        button {
+          flex: 1 1 auto;
+          padding: 0 10px;
+        }
+      }
 
-    .userDirectoryToolbar {
-      grid-template-columns: 1fr;
-    }
+      .userAdminGrid,
+      .userAddRow,
+      .userAdminTopBar {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+        flex-direction: column;
+      }
 
-    .directoryRow .directoryStatus {
-      align-items: flex-start;
-    }
+      .userAdminHero,
+      .userAddActions {
+        align-items: stretch;
+        flex-direction: column;
+      }
 
-    .studentTypeOptions {
-      grid-template-columns: 1fr;
+      .userAdminStats {
+        justify-content: flex-start;
+      }
+
+      /* Filtros em linha única (igual ao desktop) também no mobile; minmax(0,…)
+         deixa as colunas encolherem para caber sem estourar a largura. */
+      .userDirectoryToolbar {
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+      }
+
+      /* Layout em flex (não grid) para a linha do usuário: avatar + nome na
+         primeira linha e o status (tipo/turma/ativo) quebrando para uma linha
+         própria embaixo, alinhado à esquerda — sem sobrepor a linha seguinte. */
+      .directoryRow {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        column-gap: 12px;
+        row-gap: 6px;
+
+        .directoryMeta {
+          flex: 1 1 auto;
+        }
+
+        .directoryStatus {
+          flex: 1 1 100%;
+          flex-direction: row;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 4px 10px;
+        }
+      }
+
+      .studentTypeOptions {
+        grid-template-columns: 1fr;
+      }
     }
 
     .appDialogWindow {
@@ -1993,6 +2063,26 @@ body[data-theme="dark"] .settingsApp {
 
 @container appWrapper (max-width: 800px) {
   .settingsApp .restWindow main .turmaAdminGrid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Linha de turma: empilha info + ações em vez de mantê-las lado a lado
+     (o que estourava a largura, cortando o badge e o botão de excluir).
+     Seletor completo + posição no fim do arquivo para vencer a regra-base
+     `main .turmaRow` definida acima (mesma especificidade, ordem de origem). */
+  .settingsApp .restWindow main .turmaRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .settingsApp .restWindow main .turmaRowActions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  /* Dois campos de horário lado a lado ficam apertados em telas estreitas. */
+  .settingsApp .restWindow main .turmaTimeGrid {
     grid-template-columns: 1fr;
   }
 }
