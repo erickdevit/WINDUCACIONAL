@@ -61,8 +61,10 @@ function ErrorFallback({ error, resetErrorBoundary }) {
 function App() {
   const directPath = window.location.pathname.replace(/\/+$/, "");
   const isAttendanceStandaloneRoute = directPath === "/frequencia";
-  const isExamStandaloneRoute = directPath === "/avaliacoes" || directPath === "/provas";
-  const isStandaloneRoute = isAttendanceStandaloneRoute || isExamStandaloneRoute;
+  const isExamStandaloneRoute =
+    directPath === "/avaliacoes" || directPath === "/provas";
+  const isStandaloneRoute =
+    isAttendanceStandaloneRoute || isExamStandaloneRoute;
   const apps = useSelector((state) => state.apps);
   const wall = useSelector((state) => state.wallpaper);
   const files = useSelector((state) => state.files);
