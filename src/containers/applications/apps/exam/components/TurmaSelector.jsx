@@ -5,9 +5,12 @@ export const TurmaSelector = ({ value, onChange }) => {
   const [turmas, setTurmas] = useState([]);
 
   useEffect(() => {
-    api.getTurmas().then((data) => {
-      setTurmas(data.turmas || []);
-    }).catch(console.error);
+    api
+      .getTurmas()
+      .then((data) => {
+        setTurmas(data.turmas || []);
+      })
+      .catch(console.error);
   }, []);
 
   return (
