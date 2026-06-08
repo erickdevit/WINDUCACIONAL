@@ -29,7 +29,11 @@ const TRACKABLE_APP_ACTIONS = new Set([
  * Ações de arquivo que devem ser rastreadas.
  */
 const FILE_ACTIONS = new Set([
-  "ADDFILE", "ADDDIR", "DELFILE", "RENAME", "FILEDIALOG_CLOSE",
+  "ADDFILE",
+  "ADDDIR",
+  "DELFILE",
+  "RENAME",
+  "FILEDIALOG_CLOSE",
 ]);
 
 /**
@@ -75,10 +79,7 @@ const createTrackingMiddleware = () => {
     }
 
     // Rastrear fechamento de apps
-    if (
-      TRACKABLE_APP_ACTIONS.has(action.type) &&
-      action.payload === "close"
-    ) {
+    if (TRACKABLE_APP_ACTIONS.has(action.type) && action.payload === "close") {
       next({
         type: "TRACK_ACTION",
         payload: {
@@ -97,11 +98,16 @@ const createTrackingMiddleware = () => {
         payload: {
           type: "file_op",
           name: action.type,
-          label: action.type === "ADDFILE" ? "Arquivo criado"
-            : action.type === "ADDDIR" ? "Pasta criada"
-            : action.type === "DELFILE" ? "Arquivo excluído"
-            : action.type === "RENAME" ? "Arquivo renomeado"
-            : action.type,
+          label:
+            action.type === "ADDFILE"
+              ? "Arquivo criado"
+              : action.type === "ADDDIR"
+              ? "Pasta criada"
+              : action.type === "DELFILE"
+              ? "Arquivo excluído"
+              : action.type === "RENAME"
+              ? "Arquivo renomeado"
+              : action.type,
           detail: action.payload?.name || action.payload?.path || "",
           timestamp: elapsed,
         },
@@ -112,12 +118,22 @@ const createTrackingMiddleware = () => {
   };
 };
 
-export const ExamContainer = ({ initialState, onFinish, instructions, finishSignal = 0, onFinishClick }) => {
+export const ExamContainer = ({
+  initialState,
+  onFinish,
+  instructions,
+  finishSignal = 0,
+  onFinishClick,
+}) => {
   const handledFinishSignal = useRef(0);
   // Criar uma store isolada com middleware de rastreamento
   const isolatedStore = useMemo(() => {
     const trackingMiddleware = createTrackingMiddleware();
-    return createStore(allReducers, initialState, applyMiddleware(trackingMiddleware));
+    return createStore(
+      allReducers,
+      initialState,
+      applyMiddleware(trackingMiddleware)
+    );
   }, [initialState]);
 
   useEffect(() => {
@@ -159,12 +175,11 @@ export const ExamContainer = ({ initialState, onFinish, instructions, finishSign
 
   return (
     <div className="exam-container-root flex h-full w-full overflow-hidden bg-gray-900 fixed inset-0 z-[9999]">
-
       {/* Painel de Instruções Lateral */}
       <div className="w-80 flex-shrink-0 bg-gray-100 border-r flex flex-col shadow-xl z-20">
         <div className="p-4 bg-blue-700 text-white font-bold flex justify-between items-center">
           <span>PARTE PRÁTICA</span>
-          <button 
+          <button
             onClick={handleFinishClick}
             className="px-3 py-1 bg-green-500 hover:bg-green-600 rounded text-xs transition"
           >
@@ -190,7 +205,8 @@ export const ExamContainer = ({ initialState, onFinish, instructions, finishSign
           </ul>
         </div>
         <div className="p-4 border-t bg-gray-50 text-[10px] text-gray-500 italic">
-          Suas ações neste ambiente são monitoradas e não afetam seu computador real.
+          Suas ações neste ambiente são monitoradas e não afetam seu computador
+          real.
         </div>
       </div>
 

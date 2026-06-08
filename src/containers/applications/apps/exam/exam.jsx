@@ -95,11 +95,15 @@ export const ExamView = ({ standalone = false, visible = true }) => {
     { id: "results", label: "Resultados", fafa: "faListCheck" },
     { id: "analytics", label: "Análise", fafa: "faChartSimple" },
   ];
-  
+
   const navItems = isStaff
-    ? user.role === "professor" 
+    ? user.role === "professor"
       ? professorNavItems
-      : professorNavItems.filter((item) => ["dashboard", "applications", "results", "analytics"].includes(item.id))
+      : professorNavItems.filter((item) =>
+          ["dashboard", "applications", "results", "analytics"].includes(
+            item.id
+          )
+        )
     : [
         { id: "dashboard", label: "Resumo", fafa: "faTableColumns" },
         {
@@ -243,8 +247,8 @@ export const ExamView = ({ standalone = false, visible = true }) => {
   );
 
   const renderMobileNav = () => (
-    <nav 
-      className="exam-mobile-nav exam-mobile-only" 
+    <nav
+      className="exam-mobile-nav exam-mobile-only"
       style={{ "--exam-mobile-nav-count": navItems.length }}
     >
       {navItems.map((item) => (
@@ -376,7 +380,9 @@ export const ExamView = ({ standalone = false, visible = true }) => {
           <button
             type="button"
             key={exam.id}
-            className={`exam-list-row ${user.role !== "professor" ? "pointer-events-none" : ""}`}
+            className={`exam-list-row ${
+              user.role !== "professor" ? "pointer-events-none" : ""
+            }`}
             onClick={() => user.role === "professor" && setActiveTab("exams")}
           >
             <span>
@@ -520,10 +526,7 @@ export const ExamView = ({ standalone = false, visible = true }) => {
 
   const beginCurrentExam = async () => {
     const normalizedName = normalizeName(studentStartName).trim();
-    if (
-      !isStaff &&
-      normalizedName.split(/\s+/).filter(Boolean).length < 2
-    ) {
+    if (!isStaff && normalizedName.split(/\s+/).filter(Boolean).length < 2) {
       showAlert("Informe seu nome completo antes de iniciar a avaliação.");
       return;
     }
@@ -604,7 +607,9 @@ export const ExamView = ({ standalone = false, visible = true }) => {
   const practicalCount = questions.filter((q) => q.type === "practical").length;
 
   return (
-    <div className={`exam-view-wrapper ${standalone ? "standalone" : "windowed"}`}>
+    <div
+      className={`exam-view-wrapper ${standalone ? "standalone" : "windowed"}`}
+    >
       <div className="exam-layout">
         {examFlow === "none" && renderSidebar()}
         <div className="exam-main">
