@@ -336,11 +336,11 @@
       flex-wrap: nowrap !important;
       gap: 8px;
       scrollbar-width: none;
-      
+
       &::-webkit-scrollbar {
         display: none !important;
       }
-      
+
       .ribsec {
         flex-shrink: 0 !important;
       }
@@ -373,7 +373,7 @@
     .srchbar {
       display: none !important;
     }
-    
+
     .path-bar {
       width: 100% !important;
     }

@@ -17,8 +17,11 @@ const CHARS_BASE = "abcdefghijklmnopqrstuvwxyzç";
 function setNativeValue(element, value) {
   const valueSetter = Object.getOwnPropertyDescriptor(element, "value")?.set;
   const prototype = Object.getPrototypeOf(element);
-  const prototypeValueSetter = Object.getOwnPropertyDescriptor(prototype, "value")?.set;
-  
+  const prototypeValueSetter = Object.getOwnPropertyDescriptor(
+    prototype,
+    "value"
+  )?.set;
+
   if (prototypeValueSetter && valueSetter !== prototypeValueSetter) {
     prototypeValueSetter.call(element, value);
   } else if (valueSetter) {
@@ -175,7 +178,13 @@ const ROWS = [
     { l: "Alt", k: "Alt", w: 1.2, cls: "vk-action vk-alt" },
     { v: " ", w: 6, cls: "vk-space" },
     { l: "AltGr", k: "AltGraph", w: 1.2, cls: "vk-action vk-altgr" },
-    { l: "Menu", k: "ContextMenu", w: 1.2, cls: "vk-action vk-menu", icon: "menu" },
+    {
+      l: "Menu",
+      k: "ContextMenu",
+      w: 1.2,
+      cls: "vk-action vk-menu",
+      icon: "menu",
+    },
     { l: "Ctrl", k: "Control", w: 1.5, cls: "vk-action vk-ctrl" },
     { l: "←", k: "ArrowLeft", w: 1, cls: "vk-action vk-arrow" },
     { k: "ArrowsUpDown", w: 1, cls: "vk-action vk-arrow-col" },
@@ -194,7 +203,7 @@ function VirtualKeyboard() {
   const [alt, setAlt] = useState(false);
   const [dead, setDead] = useState(null);
   const [pressing, setPressing] = useState(null);
-  
+
   const [capsAnim, setCapsAnim] = useState(false); // Gatilho de animação de letras
 
   const shiftRef = useRef(false);
@@ -224,9 +233,10 @@ function VirtualKeyboard() {
       updateHeight();
     });
 
-    const obs = typeof ResizeObserver !== "undefined"
-      ? new ResizeObserver(updateHeight)
-      : null;
+    const obs =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(updateHeight)
+        : null;
     if (obs && kbRef.current) obs.observe(kbRef.current);
 
     return () => {
@@ -265,7 +275,9 @@ function VirtualKeyboard() {
 
     // Bloquear todos os inputs existentes imediatamente
     const lockAll = () => {
-      document.querySelectorAll("input, textarea, [contenteditable='true']").forEach(lockInput);
+      document
+        .querySelectorAll("input, textarea, [contenteditable='true']")
+        .forEach(lockInput);
     };
     lockAll();
 
@@ -285,7 +297,9 @@ function VirtualKeyboard() {
             if (node.matches("input, textarea, [contenteditable='true']")) {
               lockInput(node);
             }
-            node.querySelectorAll("input, textarea, [contenteditable='true']").forEach(lockInput);
+            node
+              .querySelectorAll("input, textarea, [contenteditable='true']")
+              .forEach(lockInput);
           }
         });
       });
@@ -297,9 +311,11 @@ function VirtualKeyboard() {
       document.removeEventListener("focusin", onFocusIn, true);
       document.removeEventListener("focusout", onFocusOut, true);
       observer.disconnect();
-      document.querySelectorAll("input, textarea, [contenteditable='true']").forEach((el) => {
-        restoreInput(el);
-      });
+      document
+        .querySelectorAll("input, textarea, [contenteditable='true']")
+        .forEach((el) => {
+          restoreInput(el);
+        });
     };
   }, [visible]);
 
@@ -407,10 +423,10 @@ function VirtualKeyboard() {
       if (k === "Meta") {
         dispatchKey("keydown", "Meta", "MetaLeft");
         dispatchKey("keyup", "Meta", "MetaLeft");
-        
+
         // Disparar diretamente o clique de alternância do menu iniciar
         dispatch({ type: "STARTOGG" });
-        
+
         // Limpar modificadores
         setCtrl(false);
         setAlt(false);
@@ -424,9 +440,12 @@ function VirtualKeyboard() {
       }
 
       // Interceptação das combinações de Ctrl de Edição (Sticky Keys)
-      if (ctrlRef.current && ["a", "c", "v", "x", "z", "y"].includes(k.toLowerCase())) {
+      if (
+        ctrlRef.current &&
+        ["a", "c", "v", "x", "z", "y"].includes(k.toLowerCase())
+      ) {
         const char = k.toLowerCase();
-        
+
         if (char === "a") {
           if (editable) {
             if (t === "input" || t === "textarea") {
@@ -442,7 +461,10 @@ function VirtualKeyboard() {
         } else if (char === "c") {
           let selectedText = "";
           if (t === "input" || t === "textarea") {
-            selectedText = el.value.substring(el.selectionStart, el.selectionEnd);
+            selectedText = el.value.substring(
+              el.selectionStart,
+              el.selectionEnd
+            );
           } else {
             selectedText = window.getSelection().toString();
           }
@@ -458,14 +480,17 @@ function VirtualKeyboard() {
             const e = el.selectionEnd;
             selectedText = el.value.substring(s, e);
             if (selectedText) {
-              navigator.clipboard.writeText(selectedText).then(() => {
-                const newValue = el.value.slice(0, s) + el.value.slice(e);
-                setNativeValue(el, newValue);
-                el.selectionStart = el.selectionEnd = s;
-                el.dispatchEvent(new Event("input", { bubbles: true }));
-              }).catch((err) => {
-                console.warn("Falha ao cortar:", err);
-              });
+              navigator.clipboard
+                .writeText(selectedText)
+                .then(() => {
+                  const newValue = el.value.slice(0, s) + el.value.slice(e);
+                  setNativeValue(el, newValue);
+                  el.selectionStart = el.selectionEnd = s;
+                  el.dispatchEvent(new Event("input", { bubbles: true }));
+                })
+                .catch((err) => {
+                  console.warn("Falha ao cortar:", err);
+                });
             }
           } else if (el.isContentEditable) {
             selectedText = window.getSelection().toString();
@@ -476,13 +501,16 @@ function VirtualKeyboard() {
             }
           }
         } else if (char === "v") {
-          navigator.clipboard.readText().then((clipText) => {
-            if (clipText && editable) {
-              insert(clipText);
-            }
-          }).catch((err) => {
-            console.warn("Falha ao colar da area de transferencia:", err);
-          });
+          navigator.clipboard
+            .readText()
+            .then((clipText) => {
+              if (clipText && editable) {
+                insert(clipText);
+              }
+            })
+            .catch((err) => {
+              console.warn("Falha ao colar da area de transferencia:", err);
+            });
         } else if (char === "z") {
           if (editable) {
             document.execCommand("undo", false);
@@ -492,7 +520,7 @@ function VirtualKeyboard() {
             document.execCommand("redo", false);
           }
         }
-        
+
         // Resetar o Ctrl
         setCtrl(false);
         ctrlRef.current = false;
@@ -583,7 +611,7 @@ function VirtualKeyboard() {
         }
         return;
       }
-      
+
       // Dead key secundária (shift + dead key principal, ex: shift + ´ = `)
       if (keyObj.d && shifted && keyObj.s) {
         const deadSec = keyObj.s;
@@ -598,7 +626,7 @@ function VirtualKeyboard() {
 
       const ch = getChar(keyObj);
       const pd = deadRef.current;
-      
+
       // Montar caractere final considerando dead keys
       let finalChar = ch;
       if (pd) {
@@ -607,7 +635,8 @@ function VirtualKeyboard() {
         const map = COMBINE[pd];
         if (map && map[ch.toLowerCase()]) {
           const combined = map[ch.toLowerCase()];
-          finalChar = ch === ch.toUpperCase() ? combined.toUpperCase() : combined;
+          finalChar =
+            ch === ch.toUpperCase() ? combined.toUpperCase() : combined;
         } else {
           // Se não combina, insere a dead key e depois o caractere
           const prevKey = pd;
@@ -650,15 +679,26 @@ function VirtualKeyboard() {
   if (!visible) return null;
 
   return (
-    <div className="virtual-keyboard" ref={kbRef} role="toolbar" aria-label="Teclado virtual">
+    <div
+      className="virtual-keyboard"
+      ref={kbRef}
+      role="toolbar"
+      aria-label="Teclado virtual"
+    >
       {ROWS.map((row, ri) => (
         <div className="vk-row" key={ri}>
           {row.map((keyObj, ki) => {
             if (keyObj.k === "ArrowsUpDown") {
               return (
-                <div key={ki} className="vk-arrow-col" style={{ flex: keyObj.w }}>
+                <div
+                  key={ki}
+                  className="vk-arrow-col"
+                  style={{ flex: keyObj.w }}
+                >
                   <button
-                    className={`vk-key vk-action vk-arrow ${pressing === `${ri}-${ki}-up` ? "vk-key--pressing" : ""}`}
+                    className={`vk-key vk-action vk-arrow ${
+                      pressing === `${ri}-${ki}-up` ? "vk-key--pressing" : ""
+                    }`}
                     onPointerDown={(e) => {
                       e.preventDefault();
                       setPressing(`${ri}-${ki}-up`);
@@ -670,7 +710,9 @@ function VirtualKeyboard() {
                     ↑
                   </button>
                   <button
-                    className={`vk-key vk-action vk-arrow ${pressing === `${ri}-${ki}-down` ? "vk-key--pressing" : ""}`}
+                    className={`vk-key vk-action vk-arrow ${
+                      pressing === `${ri}-${ki}-down` ? "vk-key--pressing" : ""
+                    }`}
                     onPointerDown={(e) => {
                       e.preventDefault();
                       setPressing(`${ri}-${ki}-down`);
@@ -686,11 +728,11 @@ function VirtualKeyboard() {
             }
 
             const isLetter = CHARS_BASE.includes(keyObj.v || "");
-            
+
             const isDeadActive =
               (dead === keyObj.v && keyObj.d && !shift) ||
               (dead === keyObj.s && keyObj.d && shift);
-              
+
             const isShiftActive = keyObj.k === "Shift" && shift;
             const isCapsActive = keyObj.k === "CapsLock" && caps;
             const isAltGrActive = keyObj.k === "AltGraph" && altGr;
@@ -702,7 +744,13 @@ function VirtualKeyboard() {
               keyObj.cls || "",
               isDeadActive ? "vk-key--dead-active" : "",
               keyObj.d ? "vk-key--dead" : "",
-              isShiftActive || isCapsActive || isAltGrActive || isCtrlActive || isAltActive ? "vk-key--active" : "",
+              isShiftActive ||
+              isCapsActive ||
+              isAltGrActive ||
+              isCtrlActive ||
+              isAltActive
+                ? "vk-key--active"
+                : "",
               pressing === `${ri}-${ki}` ? "vk-key--pressing" : "",
               isLetter && capsAnim ? "vk-letter-anim" : "",
             ]
@@ -711,7 +759,7 @@ function VirtualKeyboard() {
 
             const keyStyle = {};
             if (keyObj.w) keyStyle.flex = keyObj.w;
-            
+
             // Lógica de renderização do rótulo da tecla
             let content;
             if (keyObj.icon === "win") {
@@ -728,11 +776,15 @@ function VirtualKeyboard() {
                 </div>
               );
             } else if (isLetter) {
-              const letter = shift || caps ? keyObj.l.toUpperCase() : keyObj.l.toLowerCase();
+              const letter =
+                shift || caps ? keyObj.l.toUpperCase() : keyObj.l.toLowerCase();
               content = <span className="vk-letter">{letter}</span>;
             } else {
               const label = keyObj.l || " ";
-              const displayLabel = (shift || caps) && typeof label === "string" ? label.toUpperCase() : label;
+              const displayLabel =
+                (shift || caps) && typeof label === "string"
+                  ? label.toUpperCase()
+                  : label;
               content = displayLabel;
             }
 
@@ -752,7 +804,9 @@ function VirtualKeyboard() {
                 onPointerUp={() => setPressing(null)}
                 onPointerLeave={() => setPressing(null)}
               >
-                {isCapsLockKey && <div className={`vk-led ${caps ? "vk-led--on" : ""}`} />}
+                {isCapsLockKey && (
+                  <div className={`vk-led ${caps ? "vk-led--on" : ""}`} />
+                )}
                 {content}
               </button>
             );

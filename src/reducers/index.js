@@ -34,7 +34,6 @@ export const allReducers = combineReducers({
   examTracker: examTrackerReducer,
 });
 
-
 var store = createStore(allReducers);
 
 export default store;

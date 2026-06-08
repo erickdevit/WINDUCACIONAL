@@ -4,7 +4,9 @@ import "./battery.scss";
 
 const Battery = ({ pct, invert }) => {
   const dispatch = useDispatch();
-  const btLevel = useSelector((state) => state.setting.system?.power?.battery ?? 100);
+  const btLevel = useSelector(
+    (state) => state.setting.system?.power?.battery ?? 100
+  );
 
   const updateBatteryStatus = (bt) => {
     let level = bt.level * 100 || 100;

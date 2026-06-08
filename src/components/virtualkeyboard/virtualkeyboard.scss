@@ -86,8 +86,7 @@
   background: var(--vk-key-bg);
   border: none;
   border-radius: var(--vk-radius);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset,
     0 2px 4px rgba(0, 0, 0, 0.35);
 
   color: var(--vk-text);
@@ -101,10 +100,7 @@
   touch-action: manipulation;
   padding: 0 3px;
 
-  transition:
-    background 60ms,
-    transform 60ms,
-    box-shadow 60ms;
+  transition: background 60ms, transform 60ms, box-shadow 60ms;
 
   &:focus-visible {
     outline: 2px solid rgba(10, 126, 249, 0.7);
@@ -133,8 +129,7 @@
   background: var(--vk-key-bg-enter) !important;
   color: var(--vk-text-enter) !important;
   font-size: 18px;
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.2) inset,
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2) inset,
     0 2px 8px rgba(10, 126, 249, 0.4);
 }
 
@@ -161,8 +156,7 @@
 .vk-key--active {
   background: var(--vk-key-active) !important;
   color: #fff !important;
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.15) inset,
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.15) inset,
     0 2px 8px rgba(10, 126, 249, 0.3);
 }
 
@@ -230,9 +224,7 @@
 
   &.vk-led--on {
     background: #10b981; /* verde vibrante premium */
-    box-shadow:
-      0 0 6px #10b981,
-      0 0 12px #10b981;
+    box-shadow: 0 0 6px #10b981, 0 0 12px #10b981;
   }
 }
 
@@ -243,8 +235,7 @@
 
 .vk-letter {
   display: inline-block;
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-              color 0.2s;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s;
 }
 
 .vk-letter-anim .vk-letter {

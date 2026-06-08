@@ -177,7 +177,9 @@ const fileReducer = (state = defState, action) => {
       var parent = tmp.data.getId(action.payload.parentId);
       if (parent) {
         var ext = action.payload.ext || "txt";
-        var nameWithExt = action.payload.fileName.toLowerCase().endsWith("." + ext)
+        var nameWithExt = action.payload.fileName
+          .toLowerCase()
+          .endsWith("." + ext)
           ? action.payload.fileName
           : action.payload.fileName + "." + ext;
         var existing = parent.data

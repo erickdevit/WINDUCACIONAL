@@ -1060,11 +1060,9 @@ const requireProfessor = (req, res, next) => {
   if (req.user?.role === "secretaria" && req.method === "GET") {
     return next();
   }
-  return res
-    .status(403)
-    .json({
-      error: "Acesso restrito a professores ou secretaria (apenas leitura).",
-    });
+  return res.status(403).json({
+    error: "Acesso restrito a professores ou secretaria (apenas leitura).",
+  });
 };
 
 const buildBookletCatalog = async () => {

@@ -85,7 +85,10 @@ const wallReducer = (state = defState, action) => {
       var newWps = 0;
       var src = "";
 
-      if (typeof action.payload === "number" || !Number.isNaN(parseInt(action.payload))) {
+      if (
+        typeof action.payload === "number" ||
+        !Number.isNaN(parseInt(action.payload))
+      ) {
         newWps = parseInt(action.payload);
         src = walls[newWps] ? walls[newWps] : walls[0];
       } else {

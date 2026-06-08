@@ -150,12 +150,7 @@ desktop = seedStoredApps(
   desktop
 );
 
-desktop = seedStoredApps(
-  "desktop",
-  "desktop-seed-word-v1",
-  ["Word"],
-  desktop
-);
+desktop = seedStoredApps("desktop", "desktop-seed-word-v1", ["Word"], desktop);
 
 export const taskApps = icons.filter((x) => taskbar.includes(x.name));
 

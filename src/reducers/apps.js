@@ -34,7 +34,7 @@ const appReducer = (state = defState, action) => {
         hide: true,
         max: null,
         z: 0,
-        payload: null
+        payload: null,
       };
     }
     tmpState.hz = 2;
