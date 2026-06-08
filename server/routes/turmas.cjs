@@ -105,11 +105,9 @@ module.exports = function injectTurmasRoutes(ctx) {
           const nome = String(req.body.nome).trim();
           if (nome.length < 2) {
             await client.query("ROLLBACK");
-            return res
-              .status(400)
-              .json({
-                error: "Nome da turma deve ter pelo menos 2 caracteres.",
-              });
+            return res.status(400).json({
+              error: "Nome da turma deve ter pelo menos 2 caracteres.",
+            });
           }
           add("nome", nome);
         }

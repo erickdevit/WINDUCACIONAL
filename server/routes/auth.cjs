@@ -149,11 +149,9 @@ module.exports = function injectAuthRoutes(ctx) {
     try {
       const turmaCode = normalizeTurmaCode(req.body.turmaCode);
       if (!turmaCode || !/^[A-Z0-9]{6}$/.test(turmaCode)) {
-        return res
-          .status(400)
-          .json({
-            error: "Informe um código de turma válido com 6 caracteres.",
-          });
+        return res.status(400).json({
+          error: "Informe um código de turma válido com 6 caracteres.",
+        });
       }
 
       const turmaResult = await pool.query(

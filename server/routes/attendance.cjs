@@ -21,11 +21,9 @@ module.exports = function injectAttendanceRoutes(ctx) {
   app.get("/api/attendance/me", requireAuth, async (req, res, next) => {
     try {
       if (req.user.role !== "aluno") {
-        return res
-          .status(403)
-          .json({
-            error: "Histórico individual disponível apenas para alunos.",
-          });
+        return res.status(403).json({
+          error: "Histórico individual disponível apenas para alunos.",
+        });
       }
 
       const result = await pool.query(
