@@ -27,18 +27,18 @@ describe("Cenários de Regressão - Game de Digitação", () => {
     it("deve remover pontuação e converter para minúsculas", () => {
       const text = buildTypingPvpText(100);
       const words = text.split(/\s+/);
-      
+
       for (const word of words) {
         // Nenhuma palavra deve ter letras maiúsculas
         expect(word).toBe(word.toLowerCase());
-        
+
         // Nenhuma palavra deve conter pontuação
         expect(word).not.toMatch(/[,.]/);
-        
+
         // Todas devem ter tamanho >= 2
         expect(word.length).toBeGreaterThanOrEqual(2);
       }
-      
+
       // Verifica se a palavra 'em' existe no texto gerado (antes era 'Em')
       expect(words).toContain("em");
     });

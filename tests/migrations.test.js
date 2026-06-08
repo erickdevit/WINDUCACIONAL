@@ -24,9 +24,9 @@ describe("Migrations - estrutura", () => {
   });
 
   it("não deve mais aplicar schema.sql diretamente no boot", () => {
-    expect(fs.existsSync(path.resolve(__dirname, "../server/db/schema.sql"))).toBe(
-      false
-    );
+    expect(
+      fs.existsSync(path.resolve(__dirname, "../server/db/schema.sql"))
+    ).toBe(false);
     expect(serverCode).toContain("runMigrations(pool)");
     expect(serverCode).not.toContain("await pool.query(schema)");
   });
@@ -59,7 +59,9 @@ describe("Migrations - runner", () => {
 
   it("deve usar schema_migrations e pg_advisory_lock", () => {
     const runnerCode = fs.readFileSync(migratePath, "utf8");
-    expect(runnerCode).toContain("CREATE TABLE IF NOT EXISTS schema_migrations");
+    expect(runnerCode).toContain(
+      "CREATE TABLE IF NOT EXISTS schema_migrations"
+    );
     expect(runnerCode).toContain("pg_advisory_lock");
     expect(runnerCode).toContain("pg_advisory_unlock");
     expect(runnerCode).toContain("BEGIN");
