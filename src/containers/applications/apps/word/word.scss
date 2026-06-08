@@ -1,7 +1,7 @@
 .wordApp.light-office {
   background: #f3f2f1;
   color: #333;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 
   // Custom styling for scrollbar
   .win11Scroll {
@@ -44,7 +44,8 @@
     color: #106ebe !important;
     font-weight: 600 !important;
 
-    svg, i {
+    svg,
+    i {
       color: #106ebe !important;
     }
   }
@@ -271,7 +272,8 @@
     -webkit-user-select: text !important;
 
     // Custom selection styling override
-    &::selection, *::selection {
+    &::selection,
+    *::selection {
       background: #c2dbff !important; // Soft MS Word Blue selection
       color: #000000 !important;
     }
@@ -317,7 +319,8 @@
       width: 100%;
       margin-bottom: 12pt;
 
-      td, th {
+      td,
+      th {
         border: 1px solid #d2d0ce;
         padding: 6px;
       }
@@ -332,7 +335,7 @@
     .word-comment-highlight {
       cursor: help;
       position: relative;
-      
+
       &:hover::after {
         content: attr(title);
         position: absolute;
@@ -346,7 +349,7 @@
         font-size: 10px;
         white-space: nowrap;
         z-index: 10;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       }
     }
   }
@@ -381,7 +384,7 @@
       height: 2px;
       background: #a19f9d;
       outline: none;
-      
+
       &::-webkit-slider-thumb {
         -webkit-appearance: none;
         width: 10px;
@@ -390,7 +393,7 @@
         background: #185abd;
         cursor: pointer;
         transition: transform 0.1s ease;
-        
+
         &:hover {
           transform: scale(1.3);
         }
