@@ -22,7 +22,7 @@ export const Word = () => {
   const [localClipboard, setLocalClipboard] = useState(null);
   const [renameInput, setRenameInput] = useState("");
   const [activeFormat, setActiveFormat] = useState("Normal"); // Normal, Heading1
-  
+
   const [contextMenu, setContextMenu] = useState({
     visible: false,
     x: 0,
@@ -49,7 +49,7 @@ export const Word = () => {
   // Carrega o arquivo do Redux se fornecido pelo payload (ex.: abrindo do Explorer)
   useEffect(() => {
     if (
-      wnapp && 
+      wnapp &&
       wnapp.payload &&
       typeof wnapp.payload === "string" &&
       wnapp.payload !== "full"
@@ -61,7 +61,7 @@ export const Word = () => {
         }
         setFileName(fileItem.name.replace(/\.docx$/i, ""));
         setCurrentFileId(fileItem.id);
-        
+
         // Pequeno delay para atualizar metadados após injeção de HTML
         setTimeout(() => {
           calculateWordCount();
@@ -75,7 +75,7 @@ export const Word = () => {
   const prevDialogRef = useRef(null);
   useEffect(() => {
     const dialog = files.fileDialog;
-    
+
     // Tratamento de salvamento concluído
     if (
       prevDialogRef.current &&
@@ -86,7 +86,7 @@ export const Word = () => {
       const savedName = prevDialogRef.current.fileName || "Documento 1";
       const cleaned = savedName.replace(/\.docx$/i, "");
       setFileName(cleaned);
-      
+
       const parentDirId = prevDialogRef.current.parentId || files.cdir;
       const folder = files.data.getId(parentDirId);
       if (folder && folder.data) {
@@ -100,7 +100,7 @@ export const Word = () => {
         }
       }
     }
-    
+
     // Tratamento de abertura de arquivo concluído
     if (
       prevDialogRef.current &&
@@ -138,7 +138,9 @@ export const Word = () => {
   // Fecha o menu de contexto ao clicar em qualquer lugar
   useEffect(() => {
     const closeMenu = () => {
-      setContextMenu((prev) => (prev.visible ? { ...prev, visible: false } : prev));
+      setContextMenu((prev) =>
+        prev.visible ? { ...prev, visible: false } : prev
+      );
     };
     window.addEventListener("click", closeMenu);
     return () => {
@@ -248,10 +250,10 @@ export const Word = () => {
       const range = selection.getRangeAt(0);
       const container = document.createElement("div");
       container.appendChild(range.cloneContents());
-      
+
       const textVal = selection.toString();
       const htmlVal = container.innerHTML;
-      
+
       setLocalClipboard({
         html: htmlVal,
         text: textVal,
@@ -270,10 +272,10 @@ export const Word = () => {
       const range = selection.getRangeAt(0);
       const container = document.createElement("div");
       container.appendChild(range.cloneContents());
-      
+
       const textVal = selection.toString();
       const htmlVal = container.innerHTML;
-      
+
       setLocalClipboard({
         html: htmlVal,
         text: textVal,
@@ -282,7 +284,7 @@ export const Word = () => {
       try {
         navigator.clipboard.writeText(textVal);
       } catch (err) {}
-      
+
       range.deleteContents();
       handleEditorInteraction();
     }
@@ -387,7 +389,11 @@ export const Word = () => {
         if (node.nodeType === 3) node = node.parentNode;
         let current = node;
         while (current && current !== editorRef.current) {
-          if (current.tagName === "H1" || current.tagName === "H2" || current.tagName === "H3") {
+          if (
+            current.tagName === "H1" ||
+            current.tagName === "H2" ||
+            current.tagName === "H3"
+          ) {
             format = "Heading1";
             break;
           }
@@ -395,7 +401,6 @@ export const Word = () => {
         }
       }
       setActiveFormat(format);
-
     } catch (err) {
       console.warn("Failed to query editor styles", err);
     }
@@ -536,19 +541,19 @@ export const Word = () => {
   const handleContextMenu = (e) => {
     if (editorRef.current && editorRef.current.contains(e.target)) {
       e.preventDefault();
-      
+
       const menuWidth = 260;
       const menuHeight = 320;
       let posX = e.clientX;
       let posY = e.clientY;
-      
+
       if (posX + menuWidth > window.innerWidth) {
         posX = window.innerWidth - menuWidth - 10;
       }
       if (posY + menuHeight > window.innerHeight) {
         posY = window.innerHeight - menuHeight - 10;
       }
-      
+
       setContextMenu({
         visible: true,
         x: posX,
@@ -562,7 +567,7 @@ export const Word = () => {
     if (!renameInput.trim()) return;
     const cleaned = renameInput.trim().replace(/\.docx$/i, "");
     setFileName(cleaned);
-    
+
     if (currentFileId) {
       const fileItem = files.data.getId(currentFileId);
       if (fileItem) {
@@ -575,11 +580,17 @@ export const Word = () => {
   };
 
   const handleDelete = () => {
-    if (window.confirm("Deseja realmente excluir este arquivo? Isso não poderá ser desfeito.")) {
+    if (
+      window.confirm(
+        "Deseja realmente excluir este arquivo? Isso não poderá ser desfeito."
+      )
+    ) {
       if (currentFileId) {
         const fileItem = files.data.getId(currentFileId);
         if (fileItem && fileItem.host) {
-          fileItem.host.data = fileItem.host.data.filter((x) => x.id !== currentFileId);
+          fileItem.host.data = fileItem.host.data.filter(
+            (x) => x.id !== currentFileId
+          );
           dispatch({ type: "FILEDIR", payload: files.cdir });
         }
       }
@@ -642,10 +653,10 @@ export const Word = () => {
   // Manipulação de cliques na margem esquerda (Padding esquerdo do editor)
   const handleEditorClick = (e) => {
     if (!editorRef.current) return;
-    
+
     const rect = editorRef.current.getBoundingClientRect();
     const relativeX = e.clientX - rect.left;
-    
+
     // Pega o padding left dinâmico do editor
     const style = window.getComputedStyle(editorRef.current);
     const paddingLeft = parseFloat(style.paddingLeft) || 96;
@@ -657,7 +668,10 @@ export const Word = () => {
       const selection = window.getSelection();
 
       // Encontra o range correspondente à linha clicada
-      const range = document.caretRangeFromPoint(rect.left + paddingLeft + 5, e.clientY);
+      const range = document.caretRangeFromPoint(
+        rect.left + paddingLeft + 5,
+        e.clientY
+      );
       if (range) {
         if (clickCount === 1) {
           // 1 clique = Seleciona a linha inteira correspondente
@@ -673,16 +687,16 @@ export const Word = () => {
           // 2 cliques = Seleciona o parágrafo sob o Y
           let node = range.startContainer;
           if (node.nodeType === 3) node = node.parentNode;
-          
+
           let current = node;
           while (
-            current && 
-            current !== editorRef.current && 
+            current &&
+            current !== editorRef.current &&
             !["P", "DIV", "H1", "H2", "H3", "LI"].includes(current.tagName)
           ) {
             current = current.parentNode;
           }
-          
+
           if (current && current !== editorRef.current) {
             const selectRange = document.createRange();
             selectRange.selectNodeContents(current);
@@ -930,7 +944,7 @@ export const Word = () => {
                 <Icon fafa="faEraser" width={12} color="#555" />
               </button>
             </div>
-            
+
             <div className="flex items-center space-x-1">
               <button
                 className={`w-7 h-7 font-bold hover:bg-gray-200 rounded text-gray-800 ${
@@ -987,16 +1001,26 @@ export const Word = () => {
                 X<sup>2</sup>
               </button>
               <div className="w-px h-4 bg-gray-300 mx-1"></div>
-              
-              <div className="flex flex-col ml-1 hover:bg-gray-200 rounded p-0.5 border border-transparent" title="Cor de Realce">
+
+              <div
+                className="flex flex-col ml-1 hover:bg-gray-200 rounded p-0.5 border border-transparent"
+                title="Cor de Realce"
+              >
                 <input
                   type="color"
                   className="w-5 h-5 p-0 border-0 bg-transparent cursor-pointer"
-                  value={activeStyles.hiliteColor === "#ffffff" ? "#ffff00" : activeStyles.hiliteColor}
+                  value={
+                    activeStyles.hiliteColor === "#ffffff"
+                      ? "#ffff00"
+                      : activeStyles.hiliteColor
+                  }
                   onChange={(e) => setHighlightColor(e.target.value)}
                 />
               </div>
-              <div className="flex flex-col ml-1 hover:bg-gray-200 rounded p-0.5 border border-transparent" title="Cor da Fonte">
+              <div
+                className="flex flex-col ml-1 hover:bg-gray-200 rounded p-0.5 border border-transparent"
+                title="Cor da Fonte"
+              >
                 <input
                   type="color"
                   className="w-5 h-5 p-0 border-0 bg-transparent cursor-pointer"
@@ -1005,7 +1029,9 @@ export const Word = () => {
                 />
               </div>
             </div>
-            <div className="text-center text-[10px] text-gray-500 mt-1 pb-1">Fonte</div>
+            <div className="text-center text-[10px] text-gray-500 mt-1 pb-1">
+              Fonte
+            </div>
           </div>
 
           {/* Paragraph */}
@@ -1031,7 +1057,12 @@ export const Word = () => {
                 title="Diminuir Recuo"
                 onClick={() => execCmd("outdent")}
               >
-                <Icon fafa="faIndent" width={12} flip="horizontal" color="#555" />
+                <Icon
+                  fafa="faIndent"
+                  width={12}
+                  flip="horizontal"
+                  color="#555"
+                />
               </button>
               <button
                 className="w-7 h-7 hover:bg-gray-200 rounded flex items-center justify-center"
@@ -1041,7 +1072,7 @@ export const Word = () => {
                 <Icon fafa="faIndent" width={12} color="#555" />
               </button>
             </div>
-            
+
             <div className="flex items-center space-x-1">
               <button
                 className={`w-7 h-7 hover:bg-gray-200 rounded flex items-center justify-center ${
@@ -1080,7 +1111,9 @@ export const Word = () => {
                 <Icon fafa="faAlignJustify" width={12} color="#555" />
               </button>
             </div>
-            <div className="text-center text-[10px] text-gray-500 mt-1 pb-1">Parágrafo</div>
+            <div className="text-center text-[10px] text-gray-500 mt-1 pb-1">
+              Parágrafo
+            </div>
           </div>
 
           {/* Styles */}
@@ -1088,7 +1121,9 @@ export const Word = () => {
             <div className="flex items-center space-x-1 mb-1 bg-white p-1 rounded h-[50px] border border-gray-200">
               <div
                 className={`px-4 h-full border flex flex-col justify-center items-center rounded cursor-pointer ${
-                  activeFormat === "Normal" ? "is-active" : "border-transparent hover:bg-gray-100"
+                  activeFormat === "Normal"
+                    ? "is-active"
+                    : "border-transparent hover:bg-gray-100"
                 }`}
                 onClick={() => applyStyle("Normal")}
                 title="Estilo Normal"
@@ -1098,17 +1133,23 @@ export const Word = () => {
               </div>
               <div
                 className={`px-4 h-full border flex flex-col justify-center items-center rounded cursor-pointer ${
-                  activeFormat === "NoSpacing" ? "is-active" : "border-transparent hover:bg-gray-100"
+                  activeFormat === "NoSpacing"
+                    ? "is-active"
+                    : "border-transparent hover:bg-gray-100"
                 }`}
                 onClick={() => applyStyle("NoSpacing")}
                 title="Sem Espaçamento de Parágrafo"
               >
-                <span className="text-[14px] font-sans leading-tight">AaBbCc</span>
+                <span className="text-[14px] font-sans leading-tight">
+                  AaBbCc
+                </span>
                 <span className="text-[10px]">Sem Espaço</span>
               </div>
               <div
                 className={`px-4 h-full border flex flex-col justify-center items-center rounded cursor-pointer ${
-                  activeFormat === "Heading1" ? "is-active" : "border-transparent hover:bg-gray-100"
+                  activeFormat === "Heading1"
+                    ? "is-active"
+                    : "border-transparent hover:bg-gray-100"
                 }`}
                 onClick={() => applyStyle("Heading1")}
                 title="Título nível 1"
@@ -1117,7 +1158,9 @@ export const Word = () => {
                 <span className="text-[10px]">Título 1</span>
               </div>
             </div>
-            <div className="text-center text-[10px] text-gray-500 mt-1 pb-1">Estilos</div>
+            <div className="text-center text-[10px] text-gray-500 mt-1 pb-1">
+              Estilos
+            </div>
           </div>
 
           {/* Editing, Voice, Editor */}
@@ -1158,36 +1201,50 @@ export const Word = () => {
                 <Icon fafa="faMousePointer" width={12} color="#555" />
                 <span className="w-16 text-left text-gray-700">Selecionar</span>
               </button>
-              <div className="text-center w-full mt-1 text-[10px] text-gray-500 pb-1">Edição</div>
+              <div className="text-center w-full mt-1 text-[10px] text-gray-500 pb-1">
+                Edição
+              </div>
             </div>
-            
+
             <div className="flex flex-col justify-between items-center pr-2 border-r border-gray-300 px-2">
               <div
                 className="flex flex-col justify-center items-center hover:bg-gray-200 cursor-pointer rounded p-2 h-full w-full"
-                onClick={() => alert("O recurso Ditar (Voice-to-Text) não está disponível neste computador.")}
+                onClick={() =>
+                  alert(
+                    "O recurso Ditar (Voice-to-Text) não está disponível neste computador."
+                  )
+                }
               >
                 <Icon fafa="faMicrophone" width={20} color="#555" />
                 <span className="mt-1 text-gray-700">Ditar</span>
               </div>
-              <div className="text-center text-[10px] text-gray-500 mt-1 pb-1">Voz</div>
+              <div className="text-center text-[10px] text-gray-500 mt-1 pb-1">
+                Voz
+              </div>
             </div>
-            
+
             <div className="flex flex-col justify-between items-center px-2">
               <div
                 className="flex flex-col justify-center items-center hover:bg-gray-200 cursor-pointer rounded p-2 h-full w-full"
-                onClick={() => alert("O Editor do Office analisou o documento e não encontrou erros gramaticais.")}
+                onClick={() =>
+                  alert(
+                    "O Editor do Office analisou o documento e não encontrou erros gramaticais."
+                  )
+                }
               >
                 <Icon fafa="faPenSquare" width={22} color="#185abd" />
                 <span className="mt-1 text-gray-700">Editor</span>
               </div>
-              <div className="text-center text-[10px] text-gray-500 mt-1 pb-1">Editor</div>
+              <div className="text-center text-[10px] text-gray-500 mt-1 pb-1">
+                Editor
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Editor Space & Document Area */}
-      <div 
+      <div
         className="flex-grow overflow-auto flex justify-center py-8 win11Scroll bg-[#e1dfdd] relative"
         onContextMenu={handleContextMenu}
       >
@@ -1196,29 +1253,36 @@ export const Word = () => {
           <div className="word-backstage">
             <div className="backstage-sidebar">
               <div className="sidebar-header">
-                <div className="text-sm font-semibold truncate text-[#185abd] mb-1">{fileName}</div>
+                <div className="text-sm font-semibold truncate text-[#185abd] mb-1">
+                  {fileName}
+                </div>
                 <div className="status-text">
                   <Icon fafa="faCloud" width={10} color="#107c41" />
                   <span>Salvo automaticamente</span>
                 </div>
               </div>
-              
-              <div className="sidebar-item" onClick={() => setFileMenuOpen(false)}>
+
+              <div
+                className="sidebar-item"
+                onClick={() => setFileMenuOpen(false)}
+              >
                 <Icon fafa="faArrowLeft" width={14} color="#185abd" />
                 <span>Voltar ao Documento</span>
               </div>
-              
+
               <div className="border-t border-gray-300 my-2"></div>
-              
-              <div 
-                className={`sidebar-item ${backstageTab === "info" ? "active" : ""}`}
+
+              <div
+                className={`sidebar-item ${
+                  backstageTab === "info" ? "active" : ""
+                }`}
                 onClick={() => setBackstageTab("info")}
               >
                 <Icon fafa="faInfoCircle" width={14} />
                 <span>Informações</span>
               </div>
-              
-              <div 
+
+              <div
                 className="sidebar-item"
                 onClick={() => {
                   if (editorRef.current) editorRef.current.innerHTML = "";
@@ -1232,8 +1296,8 @@ export const Word = () => {
                 <Icon fafa="faFile" width={14} />
                 <span>Novo</span>
               </div>
-              
-              <div 
+
+              <div
                 className="sidebar-item"
                 onClick={() => {
                   openOpenDialog();
@@ -1243,8 +1307,8 @@ export const Word = () => {
                 <Icon fafa="faFolderOpen" width={14} />
                 <span>Abrir</span>
               </div>
-              
-              <div 
+
+              <div
                 className="sidebar-item"
                 onClick={() => {
                   handleSave();
@@ -1254,8 +1318,8 @@ export const Word = () => {
                 <Icon fafa="faSave" width={14} />
                 <span>Salvar</span>
               </div>
-              
-              <div 
+
+              <div
                 className="sidebar-item"
                 onClick={() => {
                   openSaveDialog();
@@ -1265,9 +1329,11 @@ export const Word = () => {
                 <Icon fafa="faSave" width={14} />
                 <span>Salvar Como...</span>
               </div>
-              
-              <div 
-                className={`sidebar-item ${backstageTab === "rename" ? "active" : ""}`}
+
+              <div
+                className={`sidebar-item ${
+                  backstageTab === "rename" ? "active" : ""
+                }`}
                 onClick={() => {
                   setBackstageTab("rename");
                   setRenameInput(fileName);
@@ -1276,8 +1342,8 @@ export const Word = () => {
                 <Icon fafa="faPen" width={14} />
                 <span>Renomear</span>
               </div>
-              
-              <div 
+
+              <div
                 className="sidebar-item"
                 onClick={() => {
                   handlePrint();
@@ -1287,18 +1353,15 @@ export const Word = () => {
                 <Icon fafa="faPrint" width={14} />
                 <span>Imprimir</span>
               </div>
-              
+
               <div className="border-t border-gray-300 my-2"></div>
-              
-              <div 
-                className="sidebar-item danger"
-                onClick={handleDelete}
-              >
+
+              <div className="sidebar-item danger" onClick={handleDelete}>
                 <Icon fafa="faTrash" width={14} color="#a80000" />
                 <span>Excluir</span>
               </div>
             </div>
-            
+
             <div className="backstage-content">
               {backstageTab === "info" && (
                 <div>
@@ -1306,37 +1369,52 @@ export const Word = () => {
                   <div className="bg-gray-50 border border-gray-200 rounded p-4 max-w-xl space-y-3 text-sm">
                     <div className="flex justify-between border-b border-gray-200 pb-2">
                       <span className="font-semibold text-gray-600">Nome:</span>
-                      <span className="text-gray-800 font-mono">{fileName}.docx</span>
+                      <span className="text-gray-800 font-mono">
+                        {fileName}.docx
+                      </span>
                     </div>
                     <div className="flex justify-between border-b border-gray-200 pb-2">
-                      <span className="font-semibold text-gray-600">Palavras:</span>
+                      <span className="font-semibold text-gray-600">
+                        Palavras:
+                      </span>
                       <span className="text-gray-800">{wordCount}</span>
                     </div>
                     <div className="flex justify-between border-b border-gray-200 pb-2">
-                      <span className="font-semibold text-gray-600">Páginas estimadas:</span>
+                      <span className="font-semibold text-gray-600">
+                        Páginas estimadas:
+                      </span>
                       <span className="text-gray-800">{pageCount}</span>
                     </div>
                     <div className="flex justify-between border-b border-gray-200 pb-2">
-                      <span className="font-semibold text-gray-600">Localização:</span>
-                      <span className="text-gray-800">Documentos (Salvo em Nuvem)</span>
+                      <span className="font-semibold text-gray-600">
+                        Localização:
+                      </span>
+                      <span className="text-gray-800">
+                        Documentos (Salvo em Nuvem)
+                      </span>
                     </div>
                     <div className="flex justify-between pb-1">
-                      <span className="font-semibold text-gray-600">Status:</span>
+                      <span className="font-semibold text-gray-600">
+                        Status:
+                      </span>
                       <span className="text-[#107c41] font-semibold flex items-center gap-1">
-                        <Icon fafa="faCheck" width={10} color="#107c41" /> Sincronizado e Protegido
+                        <Icon fafa="faCheck" width={10} color="#107c41" />{" "}
+                        Sincronizado e Protegido
                       </span>
                     </div>
                   </div>
                 </div>
               )}
-              
+
               {backstageTab === "rename" && (
                 <div>
                   <h2>Renomear Documento</h2>
                   <div className="max-w-md space-y-4">
                     <div className="flex flex-col space-y-2">
-                      <label className="text-xs text-gray-600 font-semibold">Novo Nome:</label>
-                      <input 
+                      <label className="text-xs text-gray-600 font-semibold">
+                        Novo Nome:
+                      </label>
+                      <input
                         type="text"
                         value={renameInput}
                         onChange={(e) => setRenameInput(e.target.value)}
@@ -1345,13 +1423,13 @@ export const Word = () => {
                       />
                     </div>
                     <div className="flex space-x-2">
-                      <button 
+                      <button
                         className="bg-[#185abd] text-white px-4 py-2 rounded text-sm hover:bg-[#154b9f]"
                         onClick={handleRename}
                       >
                         Renomear
                       </button>
-                      <button 
+                      <button
                         className="bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-300"
                         onClick={() => setFileMenuOpen(false)}
                       >
@@ -1367,16 +1445,16 @@ export const Word = () => {
 
         {/* Custom Context Menu + Mini Toolbar overlay */}
         {contextMenu.visible && (
-          <div 
-            className="word-context-menu" 
+          <div
+            className="word-context-menu"
             style={{ left: contextMenu.x, top: contextMenu.y }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Mini Toolbar */}
             <div className="mini-toolbar">
-              <select 
-                value={activeStyles.fontName} 
-                onChange={(e) => execCmd('fontName', e.target.value)}
+              <select
+                value={activeStyles.fontName}
+                onChange={(e) => execCmd("fontName", e.target.value)}
                 title="Nome da Fonte"
               >
                 <option value="Aptos">Aptos</option>
@@ -1385,10 +1463,10 @@ export const Word = () => {
                 <option value="Calibri">Calibri</option>
                 <option value="Courier New">Courier</option>
               </select>
-              
-              <select 
-                value={activeStyles.fontSize} 
-                onChange={(e) => execCmd('fontSize', e.target.value)}
+
+              <select
+                value={activeStyles.fontSize}
+                onChange={(e) => execCmd("fontSize", e.target.value)}
                 title="Tamanho da Fonte"
               >
                 <option value="1">10</option>
@@ -1399,103 +1477,154 @@ export const Word = () => {
                 <option value="6">20</option>
                 <option value="7">24</option>
               </select>
-              
-              <div 
-                className={`toolbar-btn ${activeStyles.bold ? "is-active" : ""}`}
-                onClick={() => execCmd('bold')}
+
+              <div
+                className={`toolbar-btn ${
+                  activeStyles.bold ? "is-active" : ""
+                }`}
+                onClick={() => execCmd("bold")}
                 title="Negrito"
               >
                 N
               </div>
-              <div 
-                className={`toolbar-btn ${activeStyles.italic ? "is-active" : ""}`}
-                onClick={() => execCmd('italic')}
+              <div
+                className={`toolbar-btn ${
+                  activeStyles.italic ? "is-active" : ""
+                }`}
+                onClick={() => execCmd("italic")}
                 title="Itálico"
               >
                 I
               </div>
-              <div 
-                className={`toolbar-btn ${activeStyles.underline ? "is-active" : ""}`}
-                onClick={() => execCmd('underline')}
+              <div
+                className={`toolbar-btn ${
+                  activeStyles.underline ? "is-active" : ""
+                }`}
+                onClick={() => execCmd("underline")}
                 title="Sublinhado"
               >
                 S
               </div>
-              
+
               <div className="color-picker-wrapper" title="Cor da Fonte">
-                <input 
-                  type="color" 
+                <input
+                  type="color"
                   value={activeStyles.foreColor}
                   onChange={(e) => setFontColor(e.target.value)}
                 />
               </div>
-              
+
               <div className="color-picker-wrapper" title="Cor de Realce">
-                <input 
-                  type="color" 
-                  value={activeStyles.hiliteColor === "#ffffff" ? "#ffff00" : activeStyles.hiliteColor}
+                <input
+                  type="color"
+                  value={
+                    activeStyles.hiliteColor === "#ffffff"
+                      ? "#ffff00"
+                      : activeStyles.hiliteColor
+                  }
                   onChange={(e) => setHighlightColor(e.target.value)}
                 />
               </div>
-              
-              <div 
+
+              <div
                 className="toolbar-btn"
-                onClick={() => execCmd('insertUnorderedList')}
+                onClick={() => execCmd("insertUnorderedList")}
                 title="Marcadores"
               >
                 <Icon fafa="faListUl" width={10} color="#555" />
               </div>
             </div>
-            
+
             {/* Context Menu Items */}
             <div className="menu-items">
               <div className="menu-item" onClick={handleCut}>
-                <span className="item-label"><Icon fafa="faCut" width={12} color="#555" /> Recortar</span>
+                <span className="item-label">
+                  <Icon fafa="faCut" width={12} color="#555" /> Recortar
+                </span>
                 <span className="item-shortcut">Ctrl+X</span>
               </div>
               <div className="menu-item" onClick={handleCopy}>
-                <span className="item-label"><Icon fafa="faCopy" width={12} color="#555" /> Copiar</span>
+                <span className="item-label">
+                  <Icon fafa="faCopy" width={12} color="#555" /> Copiar
+                </span>
                 <span className="item-shortcut">Ctrl+C</span>
               </div>
               <div className="menu-item" onClick={() => handlePaste("normal")}>
-                <span className="item-label"><Icon fafa="faPaste" width={12} color="#e5a100" /> Colar</span>
+                <span className="item-label">
+                  <Icon fafa="faPaste" width={12} color="#e5a100" /> Colar
+                </span>
                 <span className="item-shortcut">Ctrl+V</span>
               </div>
               <div className="menu-item" onClick={() => handlePaste("text")}>
-                <span className="item-label"><Icon fafa="faPaste" width={12} color="#888" /> Colar Somente Texto</span>
+                <span className="item-label">
+                  <Icon fafa="faPaste" width={12} color="#888" /> Colar Somente
+                  Texto
+                </span>
                 <span className="item-shortcut">Ctrl+Shift+V</span>
               </div>
               <div className="menu-item" onClick={() => handlePaste("merge")}>
-                <span className="item-label"><Icon fafa="faPaste" width={12} color="#185abd" /> Colar Mesclando Formatação</span>
+                <span className="item-label">
+                  <Icon fafa="faPaste" width={12} color="#185abd" /> Colar
+                  Mesclando Formatação
+                </span>
                 <span className="item-shortcut">Alt+V</span>
               </div>
-              
+
               <div className="menu-item divider"></div>
-              
+
               <div className="menu-item" onClick={translateSelection}>
-                <span className="item-label"><Icon fafa="faLanguage" width={12} color="#555" /> Traduzir</span>
+                <span className="item-label">
+                  <Icon fafa="faLanguage" width={12} color="#555" /> Traduzir
+                </span>
               </div>
-              
-              <div className="menu-item" onClick={() => alert("Idioma selecionado para verificação ortográfica: Português (Brasil)")}>
-                <span className="item-label"><Icon fafa="faGlobe" width={12} color="#555" /> Idioma de Revisão...</span>
+
+              <div
+                className="menu-item"
+                onClick={() =>
+                  alert(
+                    "Idioma selecionado para verificação ortográfica: Português (Brasil)"
+                  )
+                }
+              >
+                <span className="item-label">
+                  <Icon fafa="faGlobe" width={12} color="#555" /> Idioma de
+                  Revisão...
+                </span>
               </div>
-              
-              <div className="menu-item" onClick={() => {
-                const spacing = prompt("Definir espaçamento entre linhas (ex: 1.0, 1.15, 1.5, 2.0):", "1.15");
-                if (spacing) setLineSpacing(spacing);
-              }}>
-                <span className="item-label"><Icon fafa="faSlidersH" width={12} color="#555" /> Opções de Parágrafo...</span>
+
+              <div
+                className="menu-item"
+                onClick={() => {
+                  const spacing = prompt(
+                    "Definir espaçamento entre linhas (ex: 1.0, 1.15, 1.5, 2.0):",
+                    "1.15"
+                  );
+                  if (spacing) setLineSpacing(spacing);
+                }}
+              >
+                <span className="item-label">
+                  <Icon fafa="faSlidersH" width={12} color="#555" /> Opções de
+                  Parágrafo...
+                </span>
               </div>
-              
-              <div className="menu-item" onClick={() => {
-                const url = prompt("Digite o link da URL:", "https://");
-                if (url) execCmd("createLink", url);
-              }}>
-                <span className="item-label"><Icon fafa="faLink" width={12} color="#555" /> Adicionar Link</span>
+
+              <div
+                className="menu-item"
+                onClick={() => {
+                  const url = prompt("Digite o link da URL:", "https://");
+                  if (url) execCmd("createLink", url);
+                }}
+              >
+                <span className="item-label">
+                  <Icon fafa="faLink" width={12} color="#555" /> Adicionar Link
+                </span>
               </div>
-              
+
               <div className="menu-item" onClick={addComment}>
-                <span className="item-label"><Icon fafa="faCommentMedical" width={12} color="#555" /> Novo Comentário</span>
+                <span className="item-label">
+                  <Icon fafa="faCommentMedical" width={12} color="#555" /> Novo
+                  Comentário
+                </span>
                 <span className="item-shortcut">Ctrl+Alt+M</span>
               </div>
             </div>
@@ -1503,7 +1632,7 @@ export const Word = () => {
         )}
 
         {/* Zoom wrapper of A4 document page */}
-        <div 
+        <div
           style={{
             zoom: zoom / 100,
             transformOrigin: "top center",
@@ -1513,7 +1642,7 @@ export const Word = () => {
           }}
           className="word-page-zoom-container shadow-md"
         >
-          <div 
+          <div
             ref={editorRef}
             className="word-page bg-white p-[2.54cm] focus:outline-none text-black font-['Aptos','Calibri',sans-serif] text-[11pt] min-h-[29.7cm]"
             contentEditable={true}
@@ -1540,47 +1669,57 @@ export const Word = () => {
           </span>
           <span className="text-gray-400">|</span>
           <span className="flex items-center gap-1 cursor-pointer hover:bg-gray-200 px-1 rounded">
-            <Icon fafa="faCheck" width={10} color="#107c41" /> Sugestões do Editor: Mostrando
+            <Icon fafa="faCheck" width={10} color="#107c41" /> Sugestões do
+            Editor: Mostrando
           </span>
         </div>
-        
+
         <div className="status-bar-right flex items-center space-x-2.5">
           <div className="view-modes flex items-center mr-2">
-            <button className="view-mode-btn hover:bg-gray-200 p-1 rounded" title="Modo de Leitura">
+            <button
+              className="view-mode-btn hover:bg-gray-200 p-1 rounded"
+              title="Modo de Leitura"
+            >
               <Icon fafa="faBookOpen" width={11} color="#555" />
             </button>
-            <button className="view-mode-btn active hover:bg-gray-200 p-1 rounded bg-gray-200" title="Layout de Impressão">
+            <button
+              className="view-mode-btn active hover:bg-gray-200 p-1 rounded bg-gray-200"
+              title="Layout de Impressão"
+            >
               <Icon fafa="faFileAlt" width={11} color="#185abd" />
             </button>
-            <button className="view-mode-btn hover:bg-gray-200 p-1 rounded" title="Layout da Web">
+            <button
+              className="view-mode-btn hover:bg-gray-200 p-1 rounded"
+              title="Layout da Web"
+            >
               <Icon fafa="faGlobe" width={11} color="#555" />
             </button>
           </div>
-          
+
           <span className="text-gray-400">|</span>
-          
+
           <div className="flex items-center">
-            <button 
-              className="zoom-btn hover:bg-gray-200 px-1.5 rounded font-bold" 
+            <button
+              className="zoom-btn hover:bg-gray-200 px-1.5 rounded font-bold"
               onClick={() => setZoom(Math.max(50, zoom - 10))}
             >
               -
             </button>
-            <input 
-              type="range" 
-              min="50" 
-              max="150" 
-              value={zoom} 
-              onChange={(e) => setZoom(parseInt(e.target.value))} 
+            <input
+              type="range"
+              min="50"
+              max="150"
+              value={zoom}
+              onChange={(e) => setZoom(parseInt(e.target.value))}
               className="zoom-slider mx-1 cursor-pointer w-20"
             />
-            <button 
-              className="zoom-btn hover:bg-gray-200 px-1.5 rounded font-bold" 
+            <button
+              className="zoom-btn hover:bg-gray-200 px-1.5 rounded font-bold"
               onClick={() => setZoom(Math.min(150, zoom + 10))}
             >
               +
             </button>
-            <span 
+            <span
               className="zoom-percent cursor-pointer hover:bg-gray-200 px-1.5 py-0.5 rounded font-semibold ml-1.5 min-w-[32px] text-right"
               onClick={() => setZoom(100)}
             >
