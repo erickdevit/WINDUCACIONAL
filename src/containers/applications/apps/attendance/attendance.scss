@@ -251,8 +251,12 @@
   }
 
   @keyframes at-loading-slide {
-    0% { background-position: -100% 0; }
-    100% { background-position: 200% 0; }
+    0% {
+      background-position: -100% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
   }
 
   /* ── Cabeçalho de página ─────────────────────────── */
@@ -510,25 +514,45 @@
     }
 
     &.at-stat--blue {
-      .at-stat-icon { background: var(--at-blue-light); color: var(--at-blue); }
-      strong { color: var(--at-blue); }
+      .at-stat-icon {
+        background: var(--at-blue-light);
+        color: var(--at-blue);
+      }
+      strong {
+        color: var(--at-blue);
+      }
     }
 
     &.at-stat--green,
     &.at-stat--good {
-      .at-stat-icon { background: var(--at-green-light); color: var(--at-green); }
-      strong { color: var(--at-green); }
+      .at-stat-icon {
+        background: var(--at-green-light);
+        color: var(--at-green);
+      }
+      strong {
+        color: var(--at-green);
+      }
     }
 
     &.at-stat--red,
     &.at-stat--bad {
-      .at-stat-icon { background: var(--at-red-light); color: var(--at-red); }
-      strong { color: var(--at-red); }
+      .at-stat-icon {
+        background: var(--at-red-light);
+        color: var(--at-red);
+      }
+      strong {
+        color: var(--at-red);
+      }
     }
 
     &.at-stat--warn {
-      .at-stat-icon { background: var(--at-yellow-light); color: var(--at-yellow); }
-      strong { color: var(--at-yellow); }
+      .at-stat-icon {
+        background: var(--at-yellow-light);
+        color: var(--at-yellow);
+      }
+      strong {
+        color: var(--at-yellow);
+      }
     }
   }
 
@@ -608,8 +632,13 @@
     display: inline-block;
     flex-shrink: 0;
 
-    &.at-legend-dot--green { background: var(--at-accent); }
-    &.at-legend-dot--red { background: var(--at-red); opacity: 0.65; }
+    &.at-legend-dot--green {
+      background: var(--at-accent);
+    }
+    &.at-legend-dot--red {
+      background: var(--at-red);
+      opacity: 0.65;
+    }
   }
 
   /* ── Gráfico de barras ───────────────────────────── */
@@ -632,7 +661,11 @@
     font-weight: 700;
     color: var(--at-muted);
 
-    span { display: flex; align-items: center; gap: 4px; }
+    span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
   }
 
   .at-barchart-empty {
@@ -674,9 +707,15 @@
     border-radius: 99px;
     transition: width 300ms ease;
 
-    &.good { background: var(--at-accent); }
-    &.warn { background: var(--at-yellow); }
-    &.bad { background: var(--at-red); }
+    &.good {
+      background: var(--at-accent);
+    }
+    &.warn {
+      background: var(--at-yellow);
+    }
+    &.bad {
+      background: var(--at-red);
+    }
   }
 
   /* Versão com texto ao lado (usada nas tabelas) */
@@ -786,7 +825,9 @@
     padding: 7px 10px;
     border-bottom: 1px solid #f0f4f8;
 
-    &:last-child { border-bottom: 0; }
+    &:last-child {
+      border-bottom: 0;
+    }
 
     .at-student-mini-info {
       min-width: 0;
@@ -842,7 +883,9 @@
     padding: 10px 12px;
     border-bottom: 1px solid #f0f4f8;
 
-    &:last-child { border-bottom: 0; }
+    &:last-child {
+      border-bottom: 0;
+    }
 
     .at-day-info {
       display: flex;
@@ -887,13 +930,21 @@
       }
 
       &.at-day-count--present {
-        b { color: var(--at-green); }
-        small { color: var(--at-muted); }
+        b {
+          color: var(--at-green);
+        }
+        small {
+          color: var(--at-muted);
+        }
       }
 
       &.at-day-count--absent {
-        b { color: var(--at-red); }
-        small { color: var(--at-muted); }
+        b {
+          color: var(--at-red);
+        }
+        small {
+          color: var(--at-muted);
+        }
       }
     }
   }
@@ -960,7 +1011,9 @@
       vertical-align: middle;
     }
 
-    tr:last-child td { border-bottom: 0; }
+    tr:last-child td {
+      border-bottom: 0;
+    }
 
     tr:hover td {
       background: #fafbfd;
@@ -1050,7 +1103,10 @@
     color: var(--at-muted);
     text-align: center;
 
-    svg, img { opacity: 0.45; }
+    svg,
+    img {
+      opacity: 0.45;
+    }
 
     p {
       margin: 0;
@@ -1166,7 +1222,9 @@
         color: var(--at-accent);
       }
 
-      strong { color: var(--at-accent-strong); }
+      strong {
+        color: var(--at-accent-strong);
+      }
     }
   }
 
@@ -1373,7 +1431,9 @@
       margin-bottom: 10px;
       padding: 0 4px;
 
-      h1 { font-size: 18px; }
+      h1 {
+        font-size: 18px;
+      }
     }
 
     .attendance-filter-summary {
@@ -1390,9 +1450,13 @@
       width: 100%;
 
       .attendance-primary,
-      .attendance-secondary { width: 100%; }
+      .attendance-secondary {
+        width: 100%;
+      }
 
-      .attendance-mobile-only { display: inline-flex; }
+      .attendance-mobile-only {
+        display: inline-flex;
+      }
     }
 
     .attendance-primary,
@@ -1428,9 +1492,15 @@
       transition: transform 180ms ease;
       z-index: 50;
 
-      &.mobile-open { transform: translateY(0); }
+      &.mobile-open {
+        transform: translateY(0);
+      }
 
-      select, input { min-height: 42px; width: 100%; }
+      select,
+      input {
+        min-height: 42px;
+        width: 100%;
+      }
     }
 
     .attendance-filter-drawer-head {
@@ -1438,7 +1508,10 @@
       display: flex;
       justify-content: space-between;
 
-      strong { font-size: 16px; font-weight: 900; }
+      strong {
+        font-size: 16px;
+        font-weight: 900;
+      }
 
       button {
         align-items: center;
@@ -1463,7 +1536,9 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
       width: 100%;
 
-      button { min-height: 38px; }
+      button {
+        min-height: 38px;
+      }
     }
 
     /* Stats grid */
@@ -1479,9 +1554,14 @@
       gap: 8px;
       padding: 12px;
 
-      .at-stat-icon { width: 34px; height: 34px; }
+      .at-stat-icon {
+        width: 34px;
+        height: 34px;
+      }
 
-      .at-stat-body strong { font-size: 22px; }
+      .at-stat-body strong {
+        font-size: 22px;
+      }
     }
 
     /* Charts */
@@ -1492,10 +1572,14 @@
       gap: 8px;
     }
 
-    .at-panel { margin: 0 4px 8px; }
+    .at-panel {
+      margin: 0 4px 8px;
+    }
 
     /* Tabelas mobile ocultas */
-    .attendance-desktop-table { display: none; }
+    .attendance-desktop-table {
+      display: none;
+    }
 
     .attendance-card-list {
       display: grid;
@@ -1554,11 +1638,16 @@
         overflow-wrap: anywhere;
       }
 
-      &.compact dl { grid-template-columns: 1fr; }
+      &.compact dl {
+        grid-template-columns: 1fr;
+      }
     }
 
     /* Week calendar mobile */
-    .at-week-cal { gap: 4px; padding: 10px 6px; }
+    .at-week-cal {
+      gap: 4px;
+      padding: 10px 6px;
+    }
 
     .at-week-day .at-week-day-dot {
       width: 26px;
@@ -1566,7 +1655,9 @@
     }
 
     /* Student hero mobile */
-    .at-student-stat-row { grid-template-columns: 1fr 1fr; }
+    .at-student-stat-row {
+      grid-template-columns: 1fr 1fr;
+    }
 
     /* Bottom nav */
     .attendance-mobile-nav {
@@ -1618,8 +1709,12 @@
   }
 
   .attendanceStandalonePage .attendance-view {
-    .attendance-mobile-nav { position: fixed; }
-    .attendance-main { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+    .attendance-mobile-nav {
+      position: fixed;
+    }
+    .attendance-main {
+      padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+    }
   }
 }
 
@@ -1629,7 +1724,9 @@
     margin: 0mm;
   }
 
-  body * { visibility: hidden !important; }
+  body * {
+    visibility: hidden !important;
+  }
 
   .attendance-print-report,
   .attendance-print-report * {

@@ -150,17 +150,12 @@ const DonutChart = ({ present, absent, size = 160 }) => {
 /* ─── Gráfico de Barras por Dia ───────────────────────── */
 const BarChartDays = ({ daily, maxBars = 30 }) => {
   const items = useMemo(
-    () =>
-      [...daily]
-        .sort((a, b) => (a.date > b.date ? 1 : -1))
-        .slice(-maxBars),
+    () => [...daily].sort((a, b) => (a.date > b.date ? 1 : -1)).slice(-maxBars),
     [daily, maxBars]
   );
 
   if (items.length === 0) {
-    return (
-      <div className="at-barchart-empty">Nenhum dado no período.</div>
-    );
+    return <div className="at-barchart-empty">Nenhum dado no período.</div>;
   }
 
   const BAR_W = 14;
@@ -223,7 +218,6 @@ const BarChartDays = ({ daily, maxBars = 30 }) => {
   );
 };
 
-
 /* ─── Mini calendário de 7 dias ───────────────────────── */
 const WeekCalendar = ({ records }) => {
   const days = useMemo(() => {
@@ -234,7 +228,11 @@ const WeekCalendar = ({ records }) => {
       d.setDate(today.getDate() - i);
       const key = toDateInputValue(d);
       const rec = records.find((r) => r.attendanceDate === key);
-      result.push({ date: key, label: d.toLocaleDateString("pt-BR", { weekday: "short" }), rec });
+      result.push({
+        date: key,
+        label: d.toLocaleDateString("pt-BR", { weekday: "short" }),
+        rec,
+      });
     }
     return result;
   }, [records]);
@@ -278,7 +276,9 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [registerDate, setRegisterDate] = useState(toDateInputValue(new Date()));
+  const [registerDate, setRegisterDate] = useState(
+    toDateInputValue(new Date())
+  );
   const [registerTurmaId, setRegisterTurmaId] = useState("");
   const [registerSourceTurmaId, setRegisterSourceTurmaId] = useState("all");
   const [registerStudents, setRegisterStudents] = useState([]);
@@ -290,12 +290,12 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   useEffect(() => {
     if (activeTab.startsWith("reposicao-")) {
       setReposicaoOpen(true);
-      const currentTurma = turmas.find(t => t.id === selectedTurmaId);
+      const currentTurma = turmas.find((t) => t.id === selectedTurmaId);
       if (currentTurma && currentTurma.studentType !== "reposicao") {
         setSelectedTurmaId("");
       }
     } else {
-      const currentTurma = turmas.find(t => t.id === selectedTurmaId);
+      const currentTurma = turmas.find((t) => t.id === selectedTurmaId);
       if (currentTurma && currentTurma.studentType === "reposicao") {
         setSelectedTurmaId("");
       }
@@ -406,7 +406,6 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     if (!isProfessor) setMobileFiltersOpen(false);
   }, [isProfessor]);
 
-
   const printReport = () => {
     window.print();
   };
@@ -515,9 +514,17 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   const renderMobileNav = () => {
     let displayTabs = [...tabs];
     if (activeTab === "reposicao-register") {
-      displayTabs.push({ id: "reposicao-register", label: "Registrar", icon: "faUserCheck" });
+      displayTabs.push({
+        id: "reposicao-register",
+        label: "Registrar",
+        icon: "faUserCheck",
+      });
     } else if (activeTab === "reposicao-records") {
-      displayTabs.push({ id: "reposicao-records", label: "Registros", icon: "faListCheck" });
+      displayTabs.push({
+        id: "reposicao-records",
+        label: "Registros",
+        icon: "faListCheck",
+      });
     }
     return (
       <nav
@@ -553,9 +560,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
           </p>
         ) : null}
       </div>
-      <div className="attendance-actions">
-        {actions}
-      </div>
+      <div className="attendance-actions">{actions}</div>
     </header>
   );
 
@@ -574,7 +579,20 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
         className={`attendance-filters ${
           mobileFiltersOpen ? "mobile-open" : ""
         }`}
-        style={isInline ? { margin: 0, padding: 0, border: "none", boxShadow: "none", flex: "1 1 auto", display: "flex", justifyContent: "flex-end", backgroundColor: "transparent" } : {}}
+        style={
+          isInline
+            ? {
+                margin: 0,
+                padding: 0,
+                border: "none",
+                boxShadow: "none",
+                flex: "1 1 auto",
+                display: "flex",
+                justifyContent: "flex-end",
+                backgroundColor: "transparent",
+              }
+            : {}
+        }
       >
         <div className="attendance-filter-drawer-head attendance-mobile-only">
           <strong>Filtros</strong>
@@ -719,7 +737,9 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               <strong>{student.displayName}</strong>
             </div>
             <span
-              className={`at-badge at-badge--${rateClass(student.attendanceRate)}`}
+              className={`at-badge at-badge--${rateClass(
+                student.attendanceRate
+              )}`}
             >
               {student.attendanceRate}%
             </span>
@@ -777,7 +797,11 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
                 <td className="at-num">{student.presentDays}</td>
                 <td className="at-num">{student.absentDays}</td>
                 <td>
-                  <span className={`at-badge at-badge--${rateClass(student.attendanceRate)}`}>
+                  <span
+                    className={`at-badge at-badge--${rateClass(
+                      student.attendanceRate
+                    )}`}
+                  >
                     {student.attendanceRate}%
                   </span>
                 </td>
@@ -816,7 +840,9 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
           <div className="at-day-row" key={day.date}>
             <div className="at-day-info">
               <strong>{formatDate(day.date)}</strong>
-              <span className={`at-badge at-badge--${rateClass(rate)}`}>{rate}%</span>
+              <span className={`at-badge at-badge--${rateClass(rate)}`}>
+                {rate}%
+              </span>
             </div>
             <div className="at-day-counts">
               <div className="at-day-count at-day-count--present">
@@ -844,9 +870,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               <strong>{record.displayName}</strong>
               <span>{formatDate(record.attendanceDate)}</span>
             </div>
-            <span className="at-badge at-badge--good">
-              Presente
-            </span>
+            <span className="at-badge at-badge--good">Presente</span>
           </header>
           <dl>
             <div>
@@ -974,7 +998,11 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               strongestDays.map((day) => (
                 <div className="at-day-mini" key={day.date}>
                   <span>{formatDate(day.date)}</span>
-                  <span className={`at-badge at-badge--${rateClass(Number(day.attendanceRate) || 0)}`}>
+                  <span
+                    className={`at-badge at-badge--${rateClass(
+                      Number(day.attendanceRate) || 0
+                    )}`}
+                  >
                     {Number(day.attendanceRate) || 0}%
                   </span>
                 </div>
@@ -997,7 +1025,11 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               weakestDays.map((day) => (
                 <div className="at-day-mini" key={day.date}>
                   <span>{formatDate(day.date)}</span>
-                  <span className={`at-badge at-badge--${rateClass(Number(day.attendanceRate) || 0)}`}>
+                  <span
+                    className={`at-badge at-badge--${rateClass(
+                      Number(day.attendanceRate) || 0
+                    )}`}
+                  >
                     {Number(day.attendanceRate) || 0}%
                   </span>
                 </div>
@@ -1024,7 +1056,11 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
                       <strong>{s.displayName}</strong>
                       <small>{s.turmaNome || "Sem turma"}</small>
                     </div>
-                    <span className={`at-badge at-badge--${rateClass(s.attendanceRate)}`}>
+                    <span
+                      className={`at-badge at-badge--${rateClass(
+                        s.attendanceRate
+                      )}`}
+                    >
                       {s.attendanceRate}%
                     </span>
                   </div>
@@ -1041,9 +1077,19 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     <>
       {renderHeader("Alunos")}
       <section className="at-panel">
-        <div className="at-panel-head" style={{ flexWrap: "wrap", gap: "10px", justifyContent: "space-between" }}>
+        <div
+          className="at-panel-head"
+          style={{
+            flexWrap: "wrap",
+            gap: "10px",
+            justifyContent: "space-between",
+          }}
+        >
           <div>
-            <div className="at-search-wrap" style={{ display: "inline-flex", marginRight: "10px" }}>
+            <div
+              className="at-search-wrap"
+              style={{ display: "inline-flex", marginRight: "10px" }}
+            >
               <Icon fafa="faMagnifyingGlass" width={13} />
               <input
                 className="attendance-search"
@@ -1053,7 +1099,8 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               />
             </div>
             <span className="at-panel-sub">
-              {filteredStudents.length} aluno{filteredStudents.length !== 1 ? "s" : ""}
+              {filteredStudents.length} aluno
+              {filteredStudents.length !== 1 ? "s" : ""}
             </span>
           </div>
           {renderFilters(true)}
@@ -1068,7 +1115,14 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     <>
       {renderHeader("Por dia")}
       <section className="at-panel">
-        <div className="at-panel-head" style={{ flexWrap: "wrap", gap: "10px", justifyContent: "space-between" }}>
+        <div
+          className="at-panel-head"
+          style={{
+            flexWrap: "wrap",
+            gap: "10px",
+            justifyContent: "space-between",
+          }}
+        >
           <div>
             <h2>Dias no período</h2>
             <span className="at-panel-sub">{daily.length} dias</span>
@@ -1085,7 +1139,14 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     <>
       {renderHeader("Registros")}
       <section className="at-panel">
-        <div className="at-panel-head" style={{ flexWrap: "wrap", gap: "10px", justifyContent: "space-between" }}>
+        <div
+          className="at-panel-head"
+          style={{
+            flexWrap: "wrap",
+            gap: "10px",
+            justifyContent: "space-between",
+          }}
+        >
           <div>
             <select
               className="attendance-select-compact"
@@ -1100,7 +1161,8 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               ))}
             </select>
             <span className="at-panel-sub" style={{ marginLeft: "10px" }}>
-              {filteredRecords.length} registro{filteredRecords.length !== 1 ? "s" : ""}
+              {filteredRecords.length} registro
+              {filteredRecords.length !== 1 ? "s" : ""}
             </span>
           </div>
           {renderFilters(true)}
@@ -1136,12 +1198,16 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
         try {
           setLoading(true);
           const usersRes = await api.getUsers();
-          let allStudents = (usersRes.users || []).filter(u => u.role === "aluno" && u.active);
-          
+          let allStudents = (usersRes.users || []).filter(
+            (u) => u.role === "aluno" && u.active
+          );
+
           if (registerSourceTurmaId && registerSourceTurmaId !== "all") {
-            allStudents = allStudents.filter(u => u.turmaId === registerSourceTurmaId);
+            allStudents = allStudents.filter(
+              (u) => u.turmaId === registerSourceTurmaId
+            );
           }
-          
+
           setRegisterStudents(
             allStudents.map((s) => ({
               id: s.id,
@@ -1156,7 +1222,11 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
           setLoading(false);
         }
       } else {
-        const turmaStudents = students.filter(s => s.turmaId === registerTurmaId || s.turmaNome === turmas.find(t=>t.id===registerTurmaId)?.nome);
+        const turmaStudents = students.filter(
+          (s) =>
+            s.turmaId === registerTurmaId ||
+            s.turmaNome === turmas.find((t) => t.id === registerTurmaId)?.nome
+        );
         setRegisterStudents(
           turmaStudents.map((s) => ({
             id: s.id,
@@ -1171,7 +1241,10 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     const filteredRegisterStudents = registerStudents.filter((s) => {
       const search = registerSearch.trim().toLowerCase();
       if (!search) return true;
-      return s.displayName.toLowerCase().includes(search) || s.username.toLowerCase().includes(search);
+      return (
+        s.displayName.toLowerCase().includes(search) ||
+        s.username.toLowerCase().includes(search)
+      );
     });
 
     const handleSaveRegister = async () => {
@@ -1181,7 +1254,10 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
         const payload = {
           date: registerDate,
           turmaId: registerTurmaId,
-          students: registerStudents.map(s => ({ id: s.id, isPresent: s.isPresent }))
+          students: registerStudents.map((s) => ({
+            id: s.id,
+            isPresent: s.isPresent,
+          })),
         };
         await api.saveAttendance(payload);
         setMessage("Frequência registrada com sucesso!");
@@ -1195,57 +1271,107 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     };
 
     const filteredTurmas = isReposicao
-      ? turmas.filter(t => t.studentType === "reposicao")
-      : turmas.filter(t => t.studentType !== "reposicao");
+      ? turmas.filter((t) => t.studentType === "reposicao")
+      : turmas.filter((t) => t.studentType !== "reposicao");
 
-    const regularTurmas = turmas.filter(t => t.studentType !== "reposicao");
+    const regularTurmas = turmas.filter((t) => t.studentType !== "reposicao");
 
     return (
       <>
-        {renderHeader(isReposicao ? "Registrar reposição" : "Registrar frequência")}
+        {renderHeader(
+          isReposicao ? "Registrar reposição" : "Registrar frequência"
+        )}
         <section className="at-panel">
           <div className="at-panel-head">
             <h2>Configuração</h2>
           </div>
           <div className="at-panel-body at-panel-body--center">
             <label>
-              <span style={{display: "block", marginBottom: "4px", fontSize: "12px", fontWeight: "700"}}>Data</span>
+              <span
+                style={{
+                  display: "block",
+                  marginBottom: "4px",
+                  fontSize: "12px",
+                  fontWeight: "700",
+                }}
+              >
+                Data
+              </span>
               <input
                 type="date"
                 value={registerDate}
                 onChange={(e) => setRegisterDate(e.target.value)}
-                style={{padding: "6px 8px", borderRadius: "6px", border: "1px solid var(--at-line)"}}
+                style={{
+                  padding: "6px 8px",
+                  borderRadius: "6px",
+                  border: "1px solid var(--at-line)",
+                }}
               />
             </label>
             <label>
-              <span style={{display: "block", marginBottom: "4px", fontSize: "12px", fontWeight: "700"}}>Turma de reposição</span>
+              <span
+                style={{
+                  display: "block",
+                  marginBottom: "4px",
+                  fontSize: "12px",
+                  fontWeight: "700",
+                }}
+              >
+                Turma de reposição
+              </span>
               <select
                 value={registerTurmaId}
                 onChange={(e) => setRegisterTurmaId(e.target.value)}
-                style={{padding: "6px 8px", borderRadius: "6px", border: "1px solid var(--at-line)"}}
+                style={{
+                  padding: "6px 8px",
+                  borderRadius: "6px",
+                  border: "1px solid var(--at-line)",
+                }}
               >
                 <option value="">Selecione...</option>
                 {filteredTurmas.map((t) => (
-                  <option key={t.id} value={t.id}>{t.nome}</option>
+                  <option key={t.id} value={t.id}>
+                    {t.nome}
+                  </option>
                 ))}
               </select>
             </label>
             {isReposicao && (
               <label>
-                <span style={{display: "block", marginBottom: "4px", fontSize: "12px", fontWeight: "700"}}>Alunos da turma</span>
+                <span
+                  style={{
+                    display: "block",
+                    marginBottom: "4px",
+                    fontSize: "12px",
+                    fontWeight: "700",
+                  }}
+                >
+                  Alunos da turma
+                </span>
                 <select
                   value={registerSourceTurmaId}
                   onChange={(e) => setRegisterSourceTurmaId(e.target.value)}
-                  style={{padding: "6px 8px", borderRadius: "6px", border: "1px solid var(--at-line)"}}
+                  style={{
+                    padding: "6px 8px",
+                    borderRadius: "6px",
+                    border: "1px solid var(--at-line)",
+                  }}
                 >
                   <option value="all">Todas as turmas (todos os alunos)</option>
                   {regularTurmas.map((t) => (
-                    <option key={t.id} value={t.id}>{t.nome}</option>
+                    <option key={t.id} value={t.id}>
+                      {t.nome}
+                    </option>
                   ))}
                 </select>
               </label>
             )}
-            <button className="attendance-primary" onClick={loadRegisterStudents} disabled={!registerTurmaId} style={{marginTop: "20px"}}>
+            <button
+              className="attendance-primary"
+              onClick={loadRegisterStudents}
+              disabled={!registerTurmaId}
+              style={{ marginTop: "20px" }}
+            >
               Carregar alunos
             </button>
           </div>
@@ -1253,15 +1379,38 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
 
         {registerStudents.length > 0 && (
           <section className="at-panel">
-            <div className="at-panel-head" style={{flexWrap: "wrap", justifyContent: "space-between", gap: "10px"}}>
+            <div
+              className="at-panel-head"
+              style={{
+                flexWrap: "wrap",
+                justifyContent: "space-between",
+                gap: "10px",
+              }}
+            >
               <div>
-                <h2>Alunos ({filteredRegisterStudents.length}/{registerStudents.length})</h2>
+                <h2>
+                  Alunos ({filteredRegisterStudents.length}/
+                  {registerStudents.length})
+                </h2>
                 <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
-                  <button className="attendance-secondary" onClick={() => handleSelectAll(true)}>Marcar Todos</button>
-                  <button className="attendance-secondary" onClick={() => handleSelectAll(false)}>Desmarcar Todos</button>
+                  <button
+                    className="attendance-secondary"
+                    onClick={() => handleSelectAll(true)}
+                  >
+                    Marcar Todos
+                  </button>
+                  <button
+                    className="attendance-secondary"
+                    onClick={() => handleSelectAll(false)}
+                  >
+                    Desmarcar Todos
+                  </button>
                 </div>
               </div>
-              <div className="at-search-wrap" style={{ display: "inline-flex" }}>
+              <div
+                className="at-search-wrap"
+                style={{ display: "inline-flex" }}
+              >
                 <Icon fafa="faMagnifyingGlass" width={13} />
                 <input
                   className="attendance-search"
@@ -1271,17 +1420,26 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
                 />
               </div>
             </div>
-            <div className="attendance-table-wrap win11Scroll" style={{maxHeight: "400px"}}>
+            <div
+              className="attendance-table-wrap win11Scroll"
+              style={{ maxHeight: "400px" }}
+            >
               <table className="attendance-table wide">
                 <thead>
                   <tr>
-                    <th style={{ width: "60px", textAlign: "center" }}>Status</th>
+                    <th style={{ width: "60px", textAlign: "center" }}>
+                      Status
+                    </th>
                     <th>Aluno</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredRegisterStudents.map((s) => (
-                    <tr key={s.id} onClick={() => handleToggleStudent(s.id)} style={{ cursor: "pointer" }}>
+                    <tr
+                      key={s.id}
+                      onClick={() => handleToggleStudent(s.id)}
+                      style={{ cursor: "pointer" }}
+                    >
                       <td style={{ textAlign: "center" }}>
                         <input
                           type="checkbox"
@@ -1299,9 +1457,20 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
                 </tbody>
               </table>
             </div>
-            <div className="at-panel-body" style={{ textAlign: "right", borderTop: "1px solid var(--at-line)" }}>
-              <button className="attendance-primary" onClick={handleSaveRegister} disabled={savingRegister}>
-                <Icon fafa="faCheck" width={14} /> {savingRegister ? "Salvando..." : "Salvar Registro"}
+            <div
+              className="at-panel-body"
+              style={{
+                textAlign: "right",
+                borderTop: "1px solid var(--at-line)",
+              }}
+            >
+              <button
+                className="attendance-primary"
+                onClick={handleSaveRegister}
+                disabled={savingRegister}
+              >
+                <Icon fafa="faCheck" width={14} />{" "}
+                {savingRegister ? "Salvando..." : "Salvar Registro"}
               </button>
             </div>
           </section>
@@ -1311,8 +1480,10 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
   };
 
   const renderReposicaoRecords = () => {
-    const filteredRepRecords = records.filter(r => {
-      const t = turmas.find(turma => turma.id === r.turmaId || turma.nome === r.turmaNome);
+    const filteredRepRecords = records.filter((r) => {
+      const t = turmas.find(
+        (turma) => turma.id === r.turmaId || turma.nome === r.turmaNome
+      );
       return t?.studentType === "reposicao";
     });
 
@@ -1320,10 +1491,18 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
       <>
         {renderHeader("Registros de reposição")}
         <section className="at-panel">
-          <div className="at-panel-head" style={{ flexWrap: "wrap", gap: "10px", justifyContent: "space-between" }}>
+          <div
+            className="at-panel-head"
+            style={{
+              flexWrap: "wrap",
+              gap: "10px",
+              justifyContent: "space-between",
+            }}
+          >
             <div>
               <span className="at-panel-sub">
-                {filteredRepRecords.length} registro{filteredRepRecords.length !== 1 ? "s" : ""}
+                {filteredRepRecords.length} registro
+                {filteredRepRecords.length !== 1 ? "s" : ""}
               </span>
             </div>
             {renderFilters(true)}
@@ -1339,7 +1518,14 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
     <>
       {renderHeader("Impressão")}
       <section className="at-panel print-preview-panel">
-        <div className="at-panel-head" style={{ flexWrap: "wrap", gap: "10px", justifyContent: "space-between" }}>
+        <div
+          className="at-panel-head"
+          style={{
+            flexWrap: "wrap",
+            gap: "10px",
+            justifyContent: "space-between",
+          }}
+        >
           <h2>Prévia do relatório</h2>
           {renderFilters(true)}
         </div>
@@ -1358,9 +1544,7 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
         {renderHeader("Minha frequência")}
 
         <section className="at-student-hero">
-          <div
-            className={`at-student-today ${todayRecord ? "present" : ""}`}
-          >
+          <div className={`at-student-today ${todayRecord ? "present" : ""}`}>
             <div className="at-student-today-icon">
               <Icon
                 fafa={todayRecord ? "faCircleCheck" : "faCircleXmark"}
@@ -1368,7 +1552,9 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
               />
             </div>
             <div>
-              <strong>{todayRecord ? "Presente hoje" : "Sem registro hoje"}</strong>
+              <strong>
+                {todayRecord ? "Presente hoje" : "Sem registro hoje"}
+              </strong>
               {todayRecord ? (
                 <span>
                   Primeiro acesso às {formatTime(todayRecord.firstLoginAt)}
@@ -1475,7 +1661,8 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
         <div className="at-panel-head">
           <h2>Todos os registros</h2>
           <span className="at-panel-sub">
-            {studentRecords.length} presença{studentRecords.length !== 1 ? "s" : ""}
+            {studentRecords.length} presença
+            {studentRecords.length !== 1 ? "s" : ""}
           </span>
         </div>
         {renderStudentHistoryTable()}
@@ -1485,14 +1672,18 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
 
   /* ── Relatório de impressão ──────────────────────────── */
   const renderPrintReport = () => {
-    const currentTurma = turmas.find(t => t.id === selectedTurmaId);
+    const currentTurma = turmas.find((t) => t.id === selectedTurmaId);
     const isPrintReposicao = currentTurma?.studentType === "reposicao";
 
     if (startDate === endDate) {
-      const dayRecords = records.filter(r => r.attendanceDate === startDate);
+      const dayRecords = records.filter((r) => r.attendanceDate === startDate);
       return (
         <div className="attendance-print-sheet">
-          <h1>{isPrintReposicao ? "Relatório de frequência de reposição" : "Relatório de frequência diária"}</h1>
+          <h1>
+            {isPrintReposicao
+              ? "Relatório de frequência de reposição"
+              : "Relatório de frequência diária"}
+          </h1>
           <p>
             Turma: {filteredTurmaName} | Data: {formatDate(startDate)}
           </p>
@@ -1507,14 +1698,19 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
             </thead>
             <tbody>
               {students.map((student) => {
-                const record = dayRecords.find(r => r.userId === student.id || r.username === student.username);
+                const record = dayRecords.find(
+                  (r) =>
+                    r.userId === student.id || r.username === student.username
+                );
                 return (
                   <tr key={student.id}>
                     <td>{student.displayName}</td>
                     <td>{student.turmaNome || "Sem turma"}</td>
                     <td>
                       {record ? (
-                        <span className="at-badge at-badge--good">Presente</span>
+                        <span className="at-badge at-badge--good">
+                          Presente
+                        </span>
                       ) : (
                         <span className="at-badge at-badge--bad">Ausente</span>
                       )}
@@ -1531,7 +1727,11 @@ export const AttendanceView = ({ standalone = false, visible = true }) => {
 
     return (
       <div className="attendance-print-sheet">
-        <h1>{isPrintReposicao ? "Relatório de frequência de reposição" : "Relatório de frequência"}</h1>
+        <h1>
+          {isPrintReposicao
+            ? "Relatório de frequência de reposição"
+            : "Relatório de frequência"}
+        </h1>
         <p>
           Turma: {filteredTurmaName} | Período:{" "}
           {formatDate(summary?.range?.startDate)} até{" "}
