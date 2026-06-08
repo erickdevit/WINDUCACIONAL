@@ -654,8 +654,11 @@ export const UserManagement = ({ currentUser, onBack }) => {
               <input
                 name="username"
                 value={editForm.username}
+                onChange={
+                  editForm.role === "professor" ? updateEditField : undefined
+                }
                 autoComplete="username"
-                readOnly
+                readOnly={editForm.role !== "professor"}
               />
             </label>
             <label>

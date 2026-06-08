@@ -229,9 +229,12 @@ export const TypingApp = () => {
       fetchRanking();
     }
     if (
-      isStaff &&
-      (view === "ranking" || view === "config" || view.startsWith("games"))
+      (!isStaff && user.turmaId) ||
+      isStaff
     ) {
+      fetchTurmas();
+    }
+    if (view === "ranking" || view === "config" || view.startsWith("games")) {
       fetchTurmas();
     }
   }, [view, rankingTab, selectedTurmaId]);
@@ -274,13 +277,9 @@ export const TypingApp = () => {
       let turmaData;
 
       if (rankingTab === "turma") {
-        if (isStaff && selectedTurmaId) {
-          turmaData = await api.getTypingTurmaRankingById(
-            selectedTurmaId,
-            "normal"
-          );
-        } else {
-          turmaData = await api.getTypingTurmaRanking();
+        const turmaId = isStaff ? selectedTurmaId : user.turmaId;
+        if ((user.role === "professor" || Boolean(user.turmaId)) && turmaId) {
+          turmaData = await api.getTypingTurmaRankingById(turmaId, "normal");
         }
       }
 
@@ -892,7 +891,7 @@ export const TypingApp = () => {
               >
                 Global
               </button>
-              {isStaff && (
+              {(user.role === "professor" || Boolean(user.turmaId)) && (
               <button
                 className={`px-4 py-1.5 text-sm font-bold rounded-md transition-all ${
                   rankingTab === "turma"
