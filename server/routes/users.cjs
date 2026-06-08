@@ -57,7 +57,7 @@ module.exports = function injectUsersRoutes(ctx) {
     async (req, res, next) => {
       try {
         const currentResult = await pool.query(
-          "SELECT id, role, student_type, turma_id, active FROM users WHERE id = $1",
+          "SELECT id, username, role, student_type, turma_id, active FROM users WHERE id = $1",
           [req.params.id]
         );
         if (currentResult.rowCount === 0)
@@ -93,6 +93,26 @@ module.exports = function injectUsersRoutes(ctx) {
             "display_name",
             normalizeDisplayName(String(req.body.displayName))
           );
+        // Professores podem alterar o nome de usuário de qualquer conta
+        // (inclusive alunos). Valida formato e unicidade, ignorando o próprio
+        // usuário para permitir reenviar o mesmo username sem erro.
+        if (req.body.username != null) {
+          const { username: normalizedUsername } = await isUsernameAvailable(
+            req.body.username
+          );
+          if (normalizedUsername !== targetUser.username) {
+            const taken = await pool.query(
+              "SELECT 1 FROM users WHERE username = $1 AND id <> $2",
+              [normalizedUsername, req.params.id]
+            );
+            if (taken.rowCount > 0) {
+              return res
+                .status(409)
+                .json({ error: "Este usuário já está em uso." });
+            }
+            add("username", normalizedUsername);
+          }
+        }
         let nextRole = targetUser.role;
         let nextTurmaId = targetUser.turma_id;
         if (req.body.role != null) {

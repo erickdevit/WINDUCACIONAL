@@ -243,6 +243,7 @@ export const UserManagement = ({ currentUser, onBack }) => {
     setMessage("");
     try {
       const payload = {
+        username: editForm.username,
         displayName: editForm.displayName,
         role: editForm.role,
         studentType:
@@ -306,7 +307,7 @@ export const UserManagement = ({ currentUser, onBack }) => {
 
   return (
     <section className="userAdminPanel">
-      <div className="userAdminTopBar">
+      <div className="userAdminActionBar">
         <button type="button" className="secondaryBtn" onClick={onBack}>
           <Icon fafa="faArrowLeft" width={12} />
           Voltar
@@ -318,50 +319,22 @@ export const UserManagement = ({ currentUser, onBack }) => {
           disabled={loading}
         >
           <Icon fafa="faRotate" width={12} />
-          Atualizar lista
+          Atualizar
         </button>
-      </div>
-
-      <div className="userAdminHero">
-        <div>
-          <h2>Gerenciar outros usuários</h2>
-          <p>
-            Crie contas separadas para alunos e professores, controle o acesso
-            ao simulador e mantenha a separação dos discos virtuais.
-          </p>
-        </div>
-        <div className="userAdminStats" aria-label="Resumo de usuários">
-          <span>{studentCount} alunos</span>
-          <span>{professorCount} professores</span>
-        </div>
+        {isProfessor ? (
+          <button
+            type="button"
+            className="primaryBtn barCreateBtn"
+            onClick={() => openCreateForm()}
+          >
+            <Icon fafa="faUserPlus" width={13} />
+            Criar usuário
+          </button>
+        ) : null}
       </div>
 
       {message && !dialogMode ? (
         <p className="userAdminMessage">{message}</p>
-      ) : null}
-
-      {isProfessor ? (
-        <div className="userAddRow">
-          <div className="userAddInfo">
-            <Icon fafa="faUserPlus" width={18} />
-            <div>
-              <strong>Adicionar outro usuário</strong>
-              <span>
-                Escolha uma criação exclusiva para aluno ou professor.
-              </span>
-            </div>
-          </div>
-          <div className="userAddActions">
-            <button
-              type="button"
-              className={createMode === "usuario" ? "selected" : ""}
-              onClick={() => openCreateForm()}
-            >
-              <Icon fafa="faUserPlus" width={13} />
-              Criar usuário
-            </button>
-          </div>
-        </div>
       ) : null}
 
       <div className="userAdminGrid">
@@ -372,6 +345,10 @@ export const UserManagement = ({ currentUser, onBack }) => {
               <span>
                 {filteredUsers.length} de {users.length} usuários exibidos
               </span>
+            </div>
+            <div className="userAdminStats" aria-label="Resumo de usuários">
+              <span>{studentCount} alunos</span>
+              <span>{professorCount} professores</span>
             </div>
           </div>
           <div className="userDirectoryToolbar">
@@ -654,11 +631,10 @@ export const UserManagement = ({ currentUser, onBack }) => {
               <input
                 name="username"
                 value={editForm.username}
-                onChange={
-                  editForm.role === "professor" ? updateEditField : undefined
-                }
+                onChange={updateEditField}
                 autoComplete="username"
-                readOnly={editForm.role !== "professor"}
+                minLength={3}
+                required
               />
             </label>
             <label>
