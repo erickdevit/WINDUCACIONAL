@@ -1612,6 +1612,244 @@ body[data-theme="dark"] .typingSpaceMissionCard span,
   }
 }
 
+/* =============================================================
+   MOBILE PORTRAIT — DIGITAÇÃO NORMAL (≤480px)
+   Foco em: layout retrato, teclado virtual, toolbar inset, 
+   safe-area, overflow e scroll
+   ============================================================= */
+@media screen and (max-width: 480px) {
+  /* Modo retrato em qualquer altura (tech check) */
+  @media (orientation: portrait) {
+    .typingApp {
+      /* safe-area para notch/home-indicator em iOS/Android */
+      padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+
+      .restWindow {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+      }
+
+      .windowScreen {
+        padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+      }
+
+      .typingLessonsScroll {
+        padding-bottom: calc(
+          20px + env(safe-area-inset-bottom, 0px)
+        ) !important;
+      }
+
+      /* предотвращаем vinyl/overflow da janela do AppWindow */
+      .floatTab {
+        max-width: 100vw !important;
+        width: 100vw !important;
+        max-height: 100dvh !important;
+        height: 100dvh !important;
+        overflow: hidden !important;
+      }
+
+      /* toolbar: garantir que não vaze bordas */
+      .toolbar {
+        border-radius: 0 !important;
+        overflow: hidden !important;
+        white-space: nowrap;
+        min-width: 0;
+      }
+      .topInfo {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .appFullName {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* ---------- SPACE GAME ---------- */
+      .typingSpaceGame {
+        min-height: calc(
+          100dvh - var(--taskbar-height, 0px) - env(safe-area-inset-top, 0px)
+        ) !important;
+        padding-top: max(8px, env(safe-area-inset-top, 0px)) !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+      }
+
+      .typingSpaceHero,
+      .typingSpacePvpHeader {
+        padding: 18px 14px !important;
+      }
+
+      .typingSpaceHero h2,
+      .typingSpacePvpHeader h2,
+      .typingSpaceScoresHeader h2 {
+        font-size: clamp(1.15rem, 4.2vw, 1.55rem) !important;
+      }
+
+      .typingSpaceHero p,
+      .typingSpacePvpHeader p {
+        font-size: 12px !important;
+        line-height: 1.5 !important;
+      }
+
+      .typingSpaceMissionGrid {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+        margin-top: 12px !important;
+      }
+
+      .typingSpaceMissionCard {
+        min-height: auto !important;
+        padding: 16px !important;
+      }
+
+      .typingSpaceArena {
+        width: 100% !important;
+        height: auto !important;
+        aspect-ratio: 3 / 2 !important;
+        max-height: 52dvh !important;
+        max-width: none !important;
+      }
+
+      /* reduzir tamanho de fonte do texto das arenas */
+      .typingSpaceWord span {
+        width: 22px !important;
+        height: 28px !important;
+        font-size: 14px !important;
+      }
+
+      .typingSpaceHud {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+
+      .typingSpaceGauge {
+        width: 68px !important;
+        height: 46px !important;
+      }
+
+      .typingSpaceResult {
+        width: min(300px, calc(100% - 32px)) !important;
+        padding: 22px 16px !important;
+      }
+
+      .typingSpaceResult strong {
+        font-size: 22px !important;
+      }
+
+      /* ---------- LESSON VIEW ---------- */
+      .px-8 {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+      }
+
+      .max-w-6xl {
+        max-width: 100% !important;
+      }
+
+      .p-10 {
+        padding: 14px !important;
+      }
+
+      .border-b.pb-6 {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+        text-align: center !important;
+        padding-bottom: 14px !important;
+      }
+
+      .border-b.pb-6 .md-mt-0 {
+        align-self: center !important;
+      }
+
+      /* campo de digitação */
+      .rounded-\[2rem\] {
+        border-radius: 12px !important;
+        padding: 12px !important;
+      }
+
+      /* texto digitado em tamanho mobile-friendly */
+      .whitespace-pre-wrap {
+        font-size: clamp(1rem, 5vw, 1.4rem) !important;
+        line-height: 1.45 !important;
+      }
+
+      /* stats abaixo do editor */
+      .flex-wrap.gap-4 {
+        flex-wrap: wrap !important;
+      }
+
+      .flex-wrap.gap-4 > div {
+        flex: 1 1 42% !important;
+        min-width: 0 !important;
+        padding: 8px 10px !important;
+        border-radius: 12px !important;
+      }
+
+      .flex-wrap.gap-4 .text-4xl {
+        font-size: 1.4rem !important;
+      }
+
+      .flex-wrap.gap-4 .text-xs {
+        font-size: 9px !important;
+        letter-spacing: 0.04em !important;
+      }
+
+      /* esconder progresso em mobile */
+      .hidden.sm\\:flex {
+        display: none !important;
+      }
+
+      /* overlay de resultado acessível */
+      .typingResultOverlay {
+        align-items: flex-start !important;
+        overflow-y: auto !important;
+        padding: calc(24px + env(safe-area-inset-top, 0px))
+          env(safe-area-inset-left, 0px)
+          calc(24px + env(safe-area-inset-bottom, 0px))
+          env(safe-area-inset-right, 0px) !important;
+      }
+
+      .typingResultCard {
+        margin-top: 20px !important;
+        max-width: 100% !important;
+      }
+
+      .typingResultStatValue {
+        font-size: 22px !important;
+      }
+
+      /* ---------- RANKING ---------- */
+      .typingLessonResultStats {
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+        justify-content: center !important;
+      }
+
+      /* -----=== resultado do space game ===----- */
+      .typingSpaceResult {
+        width: calc(100% - 40px) !important;
+        padding: 18px 12px !important;
+      }
+
+      .typingSpaceResult button {
+        padding: 12px 16px !important;
+        font-size: 13px !important;
+      }
+    }
+  }
+}
+
+/* Landscape do celular: trata-se em @media (max-height: 500px) */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  @media screen and (max-width: 480px) {
+    .typingApp .typingSpaceGame {
+      min-height: calc(100dvh - 60px) !important;
+    }
+  }
+}
+
 .typingLessonResultStats {
   display: flex;
   justify-content: center;

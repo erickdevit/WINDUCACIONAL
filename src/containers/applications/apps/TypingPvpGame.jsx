@@ -83,7 +83,14 @@ const getGameRhythmColor = (ratio) => {
   return "#f97316";
 };
 
-const createFallingWordPvp = (wordString, index, owner, myIndex, seed, baseSpeed) => {
+const createFallingWordPvp = (
+  wordString,
+  index,
+  owner,
+  myIndex,
+  seed,
+  baseSpeed
+) => {
   const laneX =
     owner === 0
       ? 10 + ((seed + index * 17) % 35) // 10% - 45% (Left)

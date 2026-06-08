@@ -219,7 +219,14 @@ const ConversationPanel = ({
     } catch (_) {}
     setSending(false);
     inputRef.current?.focus({ preventScroll: true });
-  }, [text, pendingAttachment, sending, threadId, onClearAttachment, onMessageSent]);
+  }, [
+    text,
+    pendingAttachment,
+    sending,
+    threadId,
+    onClearAttachment,
+    onMessageSent,
+  ]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -592,9 +599,12 @@ export const ChatApp = () => {
               <div className="chat-avatar group-avatar">👥</div>
               <div className="chat-member-info">
                 <span className="chat-member-name">
-                  Grupo: {turmas.find((t) => t.id === selectedTurma)?.nome || "Turma"}
+                  Grupo:{" "}
+                  {turmas.find((t) => t.id === selectedTurma)?.nome || "Turma"}
                 </span>
-                <span className="chat-last-msg">Conversa coletiva da turma</span>
+                <span className="chat-last-msg">
+                  Conversa coletiva da turma
+                </span>
               </div>
             </div>
 
@@ -603,7 +613,8 @@ export const ChatApp = () => {
             <div className="chat-active-dms">
               {activeThreads.length === 0 ? (
                 <div className="chat-members-empty">
-                  Nenhuma conversa ativa. Toque no botão abaixo para iniciar uma conversa!
+                  Nenhuma conversa ativa. Toque no botão abaixo para iniciar uma
+                  conversa!
                 </div>
               ) : (
                 activeThreads
@@ -616,7 +627,8 @@ export const ChatApp = () => {
                     const member = members.find((m) => m.id === peerId);
                     if (!member) return null;
 
-                    const isActive = activeTab === "dm" && dmPeer?.id === peerId;
+                    const isActive =
+                      activeTab === "dm" && dmPeer?.id === peerId;
 
                     return (
                       <div
@@ -634,7 +646,9 @@ export const ChatApp = () => {
                         <Avatar name={member.username} size={32} />
                         <div className="chat-member-info">
                           <div className="chat-member-header">
-                            <span className="chat-member-name">{member.username}</span>
+                            <span className="chat-member-name">
+                              {member.username}
+                            </span>
                             {t.last_at && (
                               <span className="chat-last-time">
                                 {formatTime(t.last_at)}
@@ -704,11 +718,15 @@ export const ChatApp = () => {
               {/* Lista de Colegas */}
               <div className="chat-drawer-list win11Scroll">
                 {members.length === 0 ? (
-                  <div className="chat-members-empty">Nenhum colega encontrado.</div>
+                  <div className="chat-members-empty">
+                    Nenhum colega encontrado.
+                  </div>
                 ) : (
                   members
                     .filter((m) =>
-                      m.username.toLowerCase().includes(searchQuery.toLowerCase())
+                      m.username
+                        .toLowerCase()
+                        .includes(searchQuery.toLowerCase())
                     )
                     .map((m) => (
                       <div
