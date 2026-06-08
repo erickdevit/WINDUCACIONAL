@@ -114,19 +114,24 @@ export const ExamReceipt = ({ examId, submissionId, onBack }) => {
   const hasBothTypes = mcqAnswers.length > 0 && practicalAnswers.length > 0;
 
   const maxScore = answers.reduce((sum, a) => sum + a.pointsTotal, 0);
-  const percentage = maxScore > 0 ? (submission.totalScore / maxScore) * 100 : 0;
-  const scoreLevel = percentage >= 80 ? "high" : percentage >= 61 ? "mid" : "low";
+  const percentage =
+    maxScore > 0 ? (submission.totalScore / maxScore) * 100 : 0;
+  const scoreLevel =
+    percentage >= 80 ? "high" : percentage >= 61 ? "mid" : "low";
 
   const getOptionLabel = (options, letterAnswer) => {
     if (!letterAnswer || !Array.isArray(options)) return "—";
     const index = letterAnswer.charCodeAt(0) - 97;
-    return options[index] != null ? `${letterAnswer}) ${options[index]}` : letterAnswer;
+    return options[index] != null
+      ? `${letterAnswer}) ${options[index]}`
+      : letterAnswer;
   };
 
   const getValidationLabel = (rule) => {
     if (!rule) return "";
     if (rule.type === "ACTION_PERFORMED") return `Ação: ${rule.name || "—"}`;
-    if (rule.type === "FILE_CONTAINS") return `Arquivo: ${rule.path || "—"} contém "${rule.content || "—"}"`;
+    if (rule.type === "FILE_CONTAINS")
+      return `Arquivo: ${rule.path || "—"} contém "${rule.content || "—"}"`;
     return rule.type;
   };
 
@@ -142,7 +147,9 @@ export const ExamReceipt = ({ examId, submissionId, onBack }) => {
         <div className="flex gap-2 items-center">
           {isProfessor && trackedActions.length > 0 && (
             <button
-              className={`btn-secondary compact ${showTimeline ? 'active' : ''}`}
+              className={`btn-secondary compact ${
+                showTimeline ? "active" : ""
+              }`}
               onClick={() => setShowTimeline(!showTimeline)}
             >
               <Icon fafa="faTimeline" width={13} />
@@ -213,7 +220,9 @@ export const ExamReceipt = ({ examId, submissionId, onBack }) => {
             </div>
             <div>
               <label>Total Final</label>
-              <div className={`score-value score-total ${scoreLevel}`}>{submission.totalScore}</div>
+              <div className={`score-value score-total ${scoreLevel}`}>
+                {submission.totalScore}
+              </div>
             </div>
           </div>
         )}
@@ -228,24 +237,42 @@ export const ExamReceipt = ({ examId, submissionId, onBack }) => {
               {mcqAnswers.map((a, i) => (
                 <article key={a.questionId} className="exam-mobile-card">
                   <div className="flex justify-between items-start gap-2">
-                    <h4 className="flex-1 text-sm m-0 leading-snug">{i + 1}. {a.text}</h4>
-                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${a.isCorrect ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                    <h4 className="flex-1 text-sm m-0 leading-snug">
+                      {i + 1}. {a.text}
+                    </h4>
+                    <span
+                      className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
+                        a.isCorrect
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
                       {a.pointsAwarded}/{a.pointsTotal} pts
                     </span>
                   </div>
-                  
+
                   <div className="card-info-row mt-2">
                     <div className="flex flex-col gap-1 w-full">
                       <span className="card-label">Sua Resposta</span>
-                      <span className={`card-value text-xs ${a.isCorrect ? "text-green-700" : "text-red-700"}`}>{getOptionLabel(a.options, a.answerText)}</span>
+                      <span
+                        className={`card-value text-xs ${
+                          a.isCorrect ? "text-green-700" : "text-red-700"
+                        }`}
+                      >
+                        {getOptionLabel(a.options, a.answerText)}
+                      </span>
                     </div>
                   </div>
-                  
+
                   {isProfessor && !a.isCorrect && (
                     <div className="card-info-row bg-green-50 p-2 rounded mt-1 border-0">
                       <div className="flex flex-col gap-1 w-full">
-                        <span className="card-label text-green-800">Gabarito</span>
-                        <span className="card-value text-xs text-green-700">{getOptionLabel(a.options, a.correctAnswer)}</span>
+                        <span className="card-label text-green-800">
+                          Gabarito
+                        </span>
+                        <span className="card-value text-xs text-green-700">
+                          {getOptionLabel(a.options, a.correctAnswer)}
+                        </span>
                       </div>
                     </div>
                   )}
@@ -299,20 +326,32 @@ export const ExamReceipt = ({ examId, submissionId, onBack }) => {
               {practicalAnswers.map((a, i) => (
                 <article key={a.questionId} className="exam-mobile-card">
                   <div className="flex justify-between items-start gap-2">
-                    <h4 className="flex-1 text-sm m-0 leading-snug">{i + 1}. {a.text}</h4>
-                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${a.isCorrect ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                    <h4 className="flex-1 text-sm m-0 leading-snug">
+                      {i + 1}. {a.text}
+                    </h4>
+                    <span
+                      className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
+                        a.isCorrect
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
                       {a.pointsAwarded}/{a.pointsTotal} pts
                     </span>
                   </div>
-                  
-                  {isProfessor && a.validationRules && a.validationRules.length > 0 && (
-                    <div className="card-info-row mt-2 flex-col items-start gap-1">
-                      <span className="card-label">Validação</span>
-                      {a.validationRules.map((rule, ri) => (
-                        <div key={ri} className="validation-detail mt-0">{getValidationLabel(rule)}</div>
-                      ))}
-                    </div>
-                  )}
+
+                  {isProfessor &&
+                    a.validationRules &&
+                    a.validationRules.length > 0 && (
+                      <div className="card-info-row mt-2 flex-col items-start gap-1">
+                        <span className="card-label">Validação</span>
+                        {a.validationRules.map((rule, ri) => (
+                          <div key={ri} className="validation-detail mt-0">
+                            {getValidationLabel(rule)}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                 </article>
               ))}
             </div>

@@ -11,28 +11,40 @@ const formatTime = (ms) => {
 
 const getActionIcon = (action) => {
   switch (action.type) {
-    case "app_open": return "faWindowMaximize";
-    case "app_close": return "faXmark";
-    case "file_op": return "faFile";
-    default: return "faCircle";
+    case "app_open":
+      return "faWindowMaximize";
+    case "app_close":
+      return "faXmark";
+    case "file_op":
+      return "faFile";
+    default:
+      return "faCircle";
   }
 };
 
 const getActionColor = (action) => {
   switch (action.type) {
-    case "app_open": return "#1769aa";
-    case "app_close": return "#637083";
-    case "file_op": return "#16794c";
-    default: return "#637083";
+    case "app_open":
+      return "#1769aa";
+    case "app_close":
+      return "#637083";
+    case "file_op":
+      return "#16794c";
+    default:
+      return "#637083";
   }
 };
 
 const getActionVerb = (action) => {
   switch (action.type) {
-    case "app_open": return "Abriu";
-    case "app_close": return "Fechou";
-    case "file_op": return "";
-    default: return "";
+    case "app_open":
+      return "Abriu";
+    case "app_close":
+      return "Fechou";
+    case "file_op":
+      return "";
+    default:
+      return "";
   }
 };
 
@@ -45,29 +57,39 @@ export const ActivityTimeline = ({ actions = [] }) => {
     );
   }
 
-  const totalDuration = actions.length > 0
-    ? Math.max(...actions.map(a => a.timestamp || 0))
-    : 0;
+  const totalDuration =
+    actions.length > 0 ? Math.max(...actions.map((a) => a.timestamp || 0)) : 0;
 
   return (
     <div className="activity-timeline">
       <div className="timeline-header">
         <span className="timeline-badge">{actions.length} ações</span>
-        <span className="timeline-badge">{formatTime(totalDuration)} duração</span>
+        <span className="timeline-badge">
+          {formatTime(totalDuration)} duração
+        </span>
       </div>
       <div className="timeline-list">
         {actions.map((action, i) => (
           <div key={i} className="timeline-item">
-            <div className="timeline-dot" style={{ background: getActionColor(action) }}>
+            <div
+              className="timeline-dot"
+              style={{ background: getActionColor(action) }}
+            >
               <Icon fafa={getActionIcon(action)} width={10} />
             </div>
             <div className="timeline-connector" />
             <div className="timeline-content">
               <div className="timeline-text">
-                <strong>{getActionVerb(action)} {action.label}</strong>
-                {action.detail && <span className="timeline-detail">{action.detail}</span>}
+                <strong>
+                  {getActionVerb(action)} {action.label}
+                </strong>
+                {action.detail && (
+                  <span className="timeline-detail">{action.detail}</span>
+                )}
               </div>
-              <span className="timeline-time">{formatTime(action.timestamp)}</span>
+              <span className="timeline-time">
+                {formatTime(action.timestamp)}
+              </span>
             </div>
           </div>
         ))}

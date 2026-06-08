@@ -28,7 +28,11 @@ export const ResultsPrintStub = ({ submissions, examTitle, turmaName }) => {
           </div>
           <div class="stub-info-item">
             <label>Data</label>
-            <span>${s.completedAt ? new Date(s.completedAt).toLocaleString("pt-BR") : "—"}</span>
+            <span>${
+              s.completedAt
+                ? new Date(s.completedAt).toLocaleString("pt-BR")
+                : "—"
+            }</span>
           </div>
         </div>
       </div>`
@@ -62,7 +66,9 @@ export const ResultsPrintStub = ({ submissions, examTitle, turmaName }) => {
       <body>
         <div class="print-header">
           <h1>${examTitle}</h1>
-          <p>${turmaName || "Todas as turmas"} &middot; ${submissions.length} aluno${submissions.length === 1 ? "" : "s"}</p>
+          <p>${turmaName || "Todas as turmas"} &middot; ${
+      submissions.length
+    } aluno${submissions.length === 1 ? "" : "s"}</p>
         </div>
         <div class="stub-list">${rows}</div>
       </body>

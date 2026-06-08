@@ -13,7 +13,9 @@ export const ExamResults = () => {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const loadData = async () => {
     setLoading(true);
@@ -29,17 +31,19 @@ export const ExamResults = () => {
 
   useEffect(() => {
     if (selectedExamId !== "all") {
-      api.getExamSubmissions(selectedExamId, selectedTurmaId || undefined).then(data => {
-        setSubmissions(data.submissions || []);
-      });
+      api
+        .getExamSubmissions(selectedExamId, selectedTurmaId || undefined)
+        .then((data) => {
+          setSubmissions(data.submissions || []);
+        });
     } else {
       setSubmissions([]);
     }
   }, [selectedExamId, selectedTurmaId]);
 
-  const selectedExam = exams.find(e => e.id === selectedExamId);
+  const selectedExam = exams.find((e) => e.id === selectedExamId);
   const toggleSelect = (id) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -51,7 +55,7 @@ export const ExamResults = () => {
     if (selectedIds.size === submissions.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(submissions.map(s => s.id)));
+      setSelectedIds(new Set(submissions.map((s) => s.id)));
     }
   };
 
@@ -70,23 +74,35 @@ export const ExamResults = () => {
       <div className="exam-section-head">
         <h2>Resultados</h2>
         <div className="exam-filters">
-          <TurmaSelector value={selectedTurmaId} onChange={setSelectedTurmaId} />
-          <select 
+          <TurmaSelector
+            value={selectedTurmaId}
+            onChange={setSelectedTurmaId}
+          />
+          <select
             className="turma-select"
             value={selectedExamId}
-            onChange={e => setSelectedExamId(e.target.value)}
+            onChange={(e) => setSelectedExamId(e.target.value)}
           >
             <option value="all">Selecione uma prova...</option>
-            {exams.map(e => <option key={e.id} value={e.id}>{e.title}</option>)}
+            {exams.map((e) => (
+              <option key={e.id} value={e.id}>
+                {e.title}
+              </option>
+            ))}
           </select>
         </div>
       </div>
 
       <div className="flex items-center gap-3 mb-4">
-        <label className="flex items-center gap-2 text-sm font-bold cursor-pointer select-none" style={{ color: "var(--muted)" }}>
+        <label
+          className="flex items-center gap-2 text-sm font-bold cursor-pointer select-none"
+          style={{ color: "var(--muted)" }}
+        >
           <input
             type="checkbox"
-            checked={submissions.length > 0 && selectedIds.size === submissions.length}
+            checked={
+              submissions.length > 0 && selectedIds.size === submissions.length
+            }
             onChange={toggleAll}
             className="w-4 h-4"
           />
@@ -94,24 +110,24 @@ export const ExamResults = () => {
         </label>
         {selectedIds.size > 0 && (
           <ResultsPrintStub
-            submissions={submissions.filter(s => selectedIds.has(s.id))}
+            submissions={submissions.filter((s) => selectedIds.has(s.id))}
             examTitle={selectedExam?.title || "Avaliação"}
-            turmaName={submissions.find(s => s.turmaName)?.turmaName || ""}
+            turmaName={submissions.find((s) => s.turmaName)?.turmaName || ""}
           />
         )}
       </div>
 
       <div className="exam-panel exam-results-panel win11Scroll">
         <div className="exam-card-list exam-mobile-only">
-          {submissions.map(sub => (
-            <article 
-              key={sub.id} 
-              className="exam-mobile-card cursor-pointer hover:bg-gray-50 transition" 
+          {submissions.map((sub) => (
+            <article
+              key={sub.id}
+              className="exam-mobile-card cursor-pointer hover:bg-gray-50 transition"
               onClick={() => setSelectedSubmission(sub)}
             >
               <div className="flex justify-between items-start gap-2">
                 <div className="flex gap-2 items-start">
-                  <div onClick={e => e.stopPropagation()} className="pt-1">
+                  <div onClick={(e) => e.stopPropagation()} className="pt-1">
                     <input
                       type="checkbox"
                       checked={selectedIds.has(sub.id)}
@@ -120,15 +136,22 @@ export const ExamResults = () => {
                     />
                   </div>
                   <div>
-                    <h4 className="flex items-center gap-2 m-0 leading-tight">{sub.displayName}</h4>
-                    <span className="text-xs text-gray-400">@{sub.username}</span>
+                    <h4 className="flex items-center gap-2 m-0 leading-tight">
+                      {sub.displayName}
+                    </h4>
+                    <span className="text-xs text-gray-400">
+                      @{sub.username}
+                    </span>
                   </div>
                 </div>
-                <span className={`trace-pill ${sub.status}`} style={{ padding: '4px 8px', fontSize: '10px' }}>
-                  {sub.status === 'completed' ? 'Concluída' : 'Em andamento'}
+                <span
+                  className={`trace-pill ${sub.status}`}
+                  style={{ padding: "4px 8px", fontSize: "10px" }}
+                >
+                  {sub.status === "completed" ? "Concluída" : "Em andamento"}
                 </span>
               </div>
-              
+
               <div className="card-info-row mt-2">
                 <div className="flex flex-col gap-1">
                   <span className="card-label">Teoria</span>
@@ -140,20 +163,26 @@ export const ExamResults = () => {
                 </div>
                 <div className="flex flex-col gap-1 text-right">
                   <span className="card-label">Total</span>
-                  <span className="card-value text-blue-600 font-bold">{sub.totalScore}</span>
+                  <span className="card-value text-blue-600 font-bold">
+                    {sub.totalScore}
+                  </span>
                 </div>
               </div>
 
               <div className="text-right mt-1">
                 <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                  {sub.completedAt ? new Date(sub.completedAt).toLocaleString() : '---'}
+                  {sub.completedAt
+                    ? new Date(sub.completedAt).toLocaleString()
+                    : "---"}
                 </span>
               </div>
             </article>
           ))}
           {submissions.length === 0 && (
             <div className="p-4 text-center text-gray-400 italic">
-              {selectedExamId === 'all' ? 'Selecione uma prova para ver os resultados.' : 'Nenhum resultado encontrado.'}
+              {selectedExamId === "all"
+                ? "Selecione uma prova para ver os resultados."
+                : "Nenhum resultado encontrado."}
             </div>
           )}
         </div>
@@ -171,14 +200,14 @@ export const ExamResults = () => {
             </tr>
           </thead>
           <tbody>
-            {submissions.map(sub => (
+            {submissions.map((sub) => (
               <tr
                 key={sub.id}
                 className="cursor-pointer"
                 onClick={() => setSelectedSubmission(sub)}
                 title="Clique para ver o comprovante"
               >
-                <td style={{ width: 32 }} onClick={e => e.stopPropagation()}>
+                <td style={{ width: 32 }} onClick={(e) => e.stopPropagation()}>
                   <input
                     type="checkbox"
                     checked={selectedIds.has(sub.id)}
@@ -192,14 +221,34 @@ export const ExamResults = () => {
                 </td>
                 <td>
                   <span className={`trace-pill ${sub.status}`}>
-                    {sub.status === 'completed' ? 'Concluída' : 'Em andamento'}
+                    {sub.status === "completed" ? "Concluída" : "Em andamento"}
                   </span>
                 </td>
-                <td style={{ textAlign: "center", fontWeight: 700 }}>{sub.scoreMcq}</td>
-                <td style={{ textAlign: "center", fontWeight: 700 }}>{sub.scorePractical}</td>
-                <td style={{ textAlign: "center", fontWeight: 900, color: "var(--accent)" }}>{sub.totalScore}</td>
-                <td style={{ textAlign: "right", fontSize: 12, color: "var(--muted)" }}>
-                  {sub.completedAt ? new Date(sub.completedAt).toLocaleString() : '---'}
+                <td style={{ textAlign: "center", fontWeight: 700 }}>
+                  {sub.scoreMcq}
+                </td>
+                <td style={{ textAlign: "center", fontWeight: 700 }}>
+                  {sub.scorePractical}
+                </td>
+                <td
+                  style={{
+                    textAlign: "center",
+                    fontWeight: 900,
+                    color: "var(--accent)",
+                  }}
+                >
+                  {sub.totalScore}
+                </td>
+                <td
+                  style={{
+                    textAlign: "right",
+                    fontSize: 12,
+                    color: "var(--muted)",
+                  }}
+                >
+                  {sub.completedAt
+                    ? new Date(sub.completedAt).toLocaleString()
+                    : "---"}
                 </td>
               </tr>
             ))}
@@ -207,7 +256,9 @@ export const ExamResults = () => {
               <tr>
                 <td colSpan={7}>
                   <div className="exam-empty compact">
-                    {selectedExamId === 'all' ? 'Selecione uma prova para ver os resultados.' : 'Nenhuma submissão encontrada.'}
+                    {selectedExamId === "all"
+                      ? "Selecione uma prova para ver os resultados."
+                      : "Nenhuma submissão encontrada."}
                   </div>
                 </td>
               </tr>
