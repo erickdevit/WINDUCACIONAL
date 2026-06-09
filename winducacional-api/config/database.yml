@@ -1,0 +1,17 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  url: <%= ENV.fetch("DATABASE_URL", "postgres://simulador:simulador@localhost:5432/simulador_educacional") %>
+
+development:
+  <<: *default
+
+test:
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  url: <%= ENV.fetch("TEST_DATABASE_URL", "postgres://simulador:simulador@localhost:5432/simulador_educacional_test") %>
+
+production:
+  <<: *default

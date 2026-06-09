@@ -1,0 +1,44 @@
+source "https://rubygems.org"
+
+gem "rails", "~> 7.2.3", ">= 7.2.3.1"
+gem "pg", "~> 1.5"
+gem "puma", "~> 6.4"
+
+# ActionCable em produção usa Redis como adapter de pub/sub
+gem "redis", "~> 5.2"
+
+# Hash de senhas novas (legado scrypt verificado via OpenSSL::KDF)
+gem "bcrypt", "~> 3.1"
+
+# CORS para o frontend React em porta separada durante o desenvolvimento
+gem "rack-cors", "~> 2.0"
+
+# Cliente HTTP para o proxy de geração de imagens e edge proxy
+gem "faraday", "~> 2.9"
+
+# Jobs em background (aplicação de provas em lote)
+gem "sidekiq", "~> 7.3"
+
+# JSON rápido
+gem "oj", "~> 3.16"
+
+gem "tzinfo-data", platforms: %i[ windows jruby ]
+
+gem "bootsnap", require: false
+
+group :development, :test do
+  gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
+  gem "brakeman", require: false
+  gem "rubocop-rails-omakase", require: false
+  gem "dotenv-rails", "~> 3.1"
+  gem "rspec-rails", "~> 7.0"
+  gem "factory_bot_rails", "~> 6.4"
+  gem "faker", "~> 3.4"
+end
+
+group :test do
+  gem "shoulda-matchers", "~> 6.2"
+  gem "database_cleaner-active_record", "~> 2.2"
+  gem "webmock", "~> 3.23"
+  gem "simplecov", require: false
+end
