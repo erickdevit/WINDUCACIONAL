@@ -31,6 +31,7 @@ Leia estes documentos antes de planejar mudanças estruturais:
 - `docs/testing-strategy.md`: estratégia de testes e cenários esperados.
 - `docs/deployment.md`: direção de Docker, Postgres, volume persistente e servidor dedicado.
 - `docs/roadmap.md`: ordem recomendada de evolução.
+- `docs/commit-convention.md`: formato obrigatório de mensagens de commit e tipos permitidos.
 
 ## Stack Atual
 
@@ -66,7 +67,7 @@ docker compose -f compose.dev.yml up -d
 - Use apenas a branch `main` por enquanto.
 - Ao finalizar cada rodada de execução, crie um commit com as alterações realizadas.
 - Antes de commitar, é estritamente obrigatório rodar a compilação (ex: `npm run build`) e validar os testes garantindo que fechem "tudo verde" (sem erros). Só realize o commit se a compilação tiver sucesso total.
-- Commits devem ter mensagens objetivas, em português brasileiro correto ou inglês consistente com o histórico recente.
+- Commits devem ter mensagens objetivas seguindo estritamente o padrão definido em `docs/commit-convention.md` e usando tipos como `feat`, `fix`, `refactor`, `docs`, `style`, `test`, `perf`, `build`, `chore`, `revert`, `ci` ou `security`. Nenhuma outra forma de mensagem deve ser usada.
 - Não misture alterações não relacionadas no mesmo commit quando houver como separar com segurança.
 
 ## Regras De Trabalho
@@ -147,3 +148,4 @@ Atualize este arquivo quando:
 - Um novo serviço, banco, volume ou dependência crítica entrar no projeto.
 - A estratégia de teste ou segurança mudar.
 - Uma dívida técnica relevante for resolvida ou descoberta.
+- O padrão de commits for alterado ou documentado em `docs/commit-convention.md`.
