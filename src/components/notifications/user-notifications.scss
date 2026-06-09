@@ -163,6 +163,34 @@ body[data-theme="dark"] .userNotificationClose:hover {
   .userNotificationStack {
     right: 5px;
     bottom: 74px;
-    width: calc(100vw - 10px);
+    width: min(320px, calc(100vw - 10px));
+    gap: 8px;
+  }
+
+  .userNotificationToast {
+    padding: 12px 36px 12px 12px;
+    gap: 10px;
+    border-radius: 10px;
+  }
+
+  .userNotificationIcon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .userNotificationContent strong {
+    font-size: 13px;
+  }
+
+  .userNotificationContent span:last-child {
+    font-size: 12px;
+  }
+
+  .userNotificationClose {
+    width: 20px;
+    height: 20px;
+    font-size: 15px;
+    top: 8px;
+    right: 8px;
   }
 }
