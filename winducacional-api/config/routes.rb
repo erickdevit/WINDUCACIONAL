@@ -18,5 +18,11 @@ Rails.application.routes.draw do
     post "auth/logout", to: "auth#logout"
   end
 
+  # Rotas por domínio (config/routes/*.rb)
+  draw(:users_turmas)
+  draw(:exams)
+  draw(:typing)
+  draw(:apps)
+
   mount ActionCable.server => "/cable"
 end
