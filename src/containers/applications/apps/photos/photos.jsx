@@ -48,7 +48,7 @@ export const Photos = () => {
       icon={wnapp.icon}
       name={title}
       className="wnPhotos"
-      toolbarProps={{ bg: "#171717" }}
+      toolbarProps={{ bg: "#171717", invert: true }}
       windowScreenClassName="flex flex-col"
       restWindowClassName="flex-grow flex flex-col"
     >

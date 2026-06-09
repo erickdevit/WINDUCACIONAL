@@ -96,7 +96,7 @@ export const Notepad = () => {
         <div className="flex text-xs py-1.5 topBar bg-white dark:bg-[#1f1f1f] select-none">
           {/* Menu Arquivo */}
           <div className="mx-1 relative group">
-            <div className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 px-2 py-1 rounded">
+            <div className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-900 dark:text-gray-100 px-2 py-1 rounded">
               Arquivo
             </div>
             <div className="hidden group-hover:flex absolute top-full left-0 z-50 flex-col bg-white dark:bg-[#2a2a2a] shadow-xl border border-gray-200 dark:border-gray-700 rounded-md min-w-[180px] py-1 text-xs">
@@ -108,29 +108,29 @@ export const Notepad = () => {
                   setCurrentFileId(null);
                 }}
               >
-                <span>Novo</span>
-                <span className="text-gray-400 ml-6">Ctrl+N</span>
+                <span className="text-gray-900 dark:text-gray-100">Novo</span>
+                <span className="text-gray-400 dark:text-gray-500 ml-6">Ctrl+N</span>
               </div>
               <div className="border-t border-gray-100 dark:border-gray-700 my-1" />
               <div
                 className="px-4 py-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 cursor-pointer flex justify-between items-center"
                 onClick={handleSave}
               >
-                <span>Salvar</span>
-                <span className="text-gray-400 ml-6">Ctrl+S</span>
+                <span className="text-gray-900 dark:text-gray-100">Salvar</span>
+                <span className="text-gray-400 dark:text-gray-500 ml-6">Ctrl+S</span>
               </div>
               <div
-                className="px-4 py-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 cursor-pointer"
+                className="px-4 py-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 cursor-pointer text-gray-900 dark:text-gray-100"
                 onClick={openSaveDialog}
               >
                 Salvar Como...
               </div>
             </div>
           </div>
-          <div className="mx-1 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 px-2 py-1 rounded">
+          <div className="mx-1 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-900 dark:text-gray-100 px-2 py-1 rounded">
             Editar
           </div>
-          <div className="mx-1 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 px-2 py-1 rounded">
+          <div className="mx-1 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-900 dark:text-gray-100 px-2 py-1 rounded">
             Exibir
           </div>
         </div>
