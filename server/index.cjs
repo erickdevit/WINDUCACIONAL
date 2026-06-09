@@ -1702,6 +1702,7 @@ require("./routes/typing.cjs")(routeContext);
 require("./routes/exams.cjs")(routeContext);
 require("./routes/notifications.cjs")(routeContext);
 require("./routes/chat.cjs")(routeContext);
+require("./routes/imagegen.cjs")(routeContext);
 
 const { injectPvpRoutes } = require("./typingPvp.cjs");
 injectPvpRoutes(

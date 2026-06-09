@@ -46,7 +46,7 @@ As janelas devem permanecer sempre dentro da área útil do desktop, limitada pe
 
 - `vite.config.js`: build Vite e configuração PWA.
 - `server/index.cjs`: raiz de composição do backend. Concentra configuração, pool PostgreSQL, helpers compartilhados, middleware de autenticação, estado em memória (clientes SSE, usuários online) e a função `start()`. Monta `routeContext` com as dependências compartilhadas e injeta os módulos de rota. Exporta `{ app, start }` e só executa `start()` quando rodado diretamente (`require.main === module`), permitindo carregá-lo em testes sem subir o servidor.
-- `server/routes/*.cjs`: rotas agrupadas por domínio (`auth`, `users`, `turmas`, `booklets`, `attendance`, `fs`, `exams`, `typing`, `notifications`, `chat`, `gestor`, `edgeProxy`). Cada módulo exporta uma função injetora `inject<Dominio>Routes(ctx)` que recebe o `routeContext`, seguindo o mesmo padrão de `server/typingPvp.cjs`.
+- `server/routes/*.cjs`: rotas agrupadas por domínio (`auth`, `users`, `turmas`, `booklets`, `attendance`, `fs`, `exams`, `typing`, `notifications`, `chat`, `gestor`, `edgeProxy`, `imagegen`). Cada módulo exporta uma função injetora `inject<Dominio>Routes(ctx)` que recebe o `routeContext`, seguindo o mesmo padrão de `server/typingPvp.cjs`.
 - `server/db/migrations/`: migrations versionadas do PostgreSQL (`0001_baseline.sql` consolida o schema inicial).
 - `server/db/migrate.cjs`: runner de migrations executado no boot.
 - `Dockerfile`: empacotamento da aplicação.
@@ -78,6 +78,8 @@ Notificações do usuário usam SSE autenticado em `/api/notifications/events` e
 O backend mantém a versão atual da build em `app_metadata`. Quando a versão muda, as sessões persistidas são apagadas, o frontend detecta `/api/app/version`, limpa caches de navegador/service worker e recarrega com parâmetro de versão para forçar o uso da nova build.
 
 O app Apostilas armazena os PDFs em `src/containers/applications/apps/booklets/library`, dentro da própria pasta do app. O backend faz a leitura desse diretório, expõe o catálogo em `/api/booklets/modules`, serve PDFs por IDs de módulo/arquivo validados e persiste em `booklet_module_access` quais módulos ficam visíveis para alunos em geral. A tabela `booklet_student_module_access` registra liberações específicas por aluno, usadas quando o professor precisa dar acesso a módulos pontuais para estudantes selecionados por turma. Professores veem todos os módulos; alunos recebem módulos liberados globalmente ou por exceção individual.
+
+O app Gerador de Imagens consome `/api/imagegen/config` e `/api/imagegen/generate`. O backend atua como proxy autenticado para o provedor externo configurado por `IMAGEGEN_API_TOKEN` e `IMAGEGEN_API_URL`, mantendo o token fora do frontend. A imagem gerada retorna ao cliente como data URL PNG e, ao baixar, é gravada no disco virtual pelo `FileDialog` existente, usando a mesma árvore Redux persistida por `/api/fs/tree`.
 
 ## Arquitetura Alvo
 

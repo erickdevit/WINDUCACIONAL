@@ -1,0 +1,471 @@
+.wnImageGen {
+  --ig-bg: #f4f6fb;
+  --ig-surface: #ffffff;
+  --ig-line: #dce3ed;
+  --ig-text: #1a2535;
+  --ig-muted: #6b7c93;
+  --ig-accent: #2563eb;
+  --ig-accent-strong: #1d4ed8;
+
+  .imgGenLayout {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+    min-height: 0;
+    padding: 14px;
+    background: var(--ig-bg);
+    color: var(--ig-text);
+    font-family: "Segoe UI", system-ui, sans-serif;
+    font-size: 13px;
+    overflow-y: auto;
+
+    * {
+      box-sizing: border-box;
+    }
+  }
+
+  /* ── Abas (professor) ── */
+  .imgGenTabs {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: #e6ebf3;
+    border-radius: 10px;
+    flex-shrink: 0;
+
+    button {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 32px;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--ig-muted);
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+
+      &.active {
+        background: var(--ig-surface);
+        color: var(--ig-text);
+        box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
+      }
+    }
+  }
+
+  /* ── Imagem (topo) ── */
+  .imgGenPreview {
+    position: relative;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Área neutra que centraliza a imagem: dá espaço aos estados vazio/
+       carregando e limita a altura para os botões nunca sumirem sob a barra
+       de tarefas. */
+    min-height: 220px;
+    max-height: 340px;
+
+    /* A própria imagem é a "caixa": assume a proporção da imagem (sem crop,
+       sem letterbox) limitada pela largura disponível e pela altura máxima —
+       um 9:16 vira uma caixa 9:16, um 16:9 uma caixa 16:9. */
+    img {
+      display: block;
+      width: auto;
+      height: auto;
+      max-width: 100%;
+      max-height: 340px;
+      border: 1px solid var(--ig-line);
+      border-radius: 12px;
+      background: repeating-conic-gradient(#eef2f8 0% 25%, #e3e9f2 0% 50%) 50% /
+        24px 24px;
+
+      &[data-dim="true"] {
+        opacity: 0.3;
+        filter: blur(1px);
+      }
+    }
+  }
+
+  .imgGenEmpty,
+  .imgGenNotice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 28px 24px;
+    text-align: center;
+    color: var(--ig-muted);
+    border: 1px dashed var(--ig-line);
+    border-radius: 12px;
+    background: var(--ig-surface);
+
+    strong {
+      color: var(--ig-text);
+      font-size: 14px;
+    }
+  }
+
+  .imgGenEmpty {
+    align-self: stretch;
+    flex: 1;
+    width: 100%;
+  }
+
+  .imgGenNotice {
+    flex: 1 1 auto;
+  }
+
+  .imgGenStatus {
+    position: absolute;
+    inset: auto 12px 12px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.14);
+    font-weight: 600;
+    color: var(--ig-text);
+
+    &.imgGenError {
+      color: #b42318;
+    }
+  }
+
+  .imgGenSpinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(37, 99, 235, 0.25);
+    border-top-color: var(--ig-accent);
+    border-radius: 50%;
+    animation: imgGenSpin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes imgGenSpin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* ── Histórico ── */
+  .imgGenHistory {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .imgGenThumb {
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    cursor: pointer;
+
+    &.active {
+      border-color: var(--ig-accent);
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .imgGenThumbMore {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--ig-line);
+    background: var(--ig-surface);
+    color: var(--ig-muted);
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  /* ── Galeria (aba Histórico) ── */
+  .imgGenGallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+
+  .imgGenGalleryItem {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px;
+    border: 1px solid var(--ig-line);
+    border-radius: 10px;
+    background: var(--ig-surface);
+    cursor: pointer;
+    text-align: left;
+
+    &:hover {
+      border-color: var(--ig-accent);
+    }
+
+    img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 7px;
+    }
+
+    span {
+      font-size: 11px;
+      color: var(--ig-muted);
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  }
+
+  .imgGenSaved {
+    margin: 0;
+    padding: 9px 12px;
+    border-radius: 8px;
+    background: #e7f6ec;
+    color: #15803d;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  /* ── Controles de geração ── */
+  .imgGenForm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .imgGenPrompt {
+    width: 100%;
+    border: 1px solid var(--ig-line);
+    border-radius: 8px;
+    padding: 9px 10px;
+    font: inherit;
+    color: var(--ig-text);
+    background: var(--ig-surface);
+    resize: vertical;
+    min-height: 48px;
+
+    &:focus {
+      outline: none;
+      border-color: var(--ig-accent);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
+    }
+  }
+
+  .imgGenToggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--ig-muted);
+    cursor: pointer;
+
+    input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--ig-accent);
+    }
+  }
+
+  .imgGenRow {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 10px;
+    align-items: stretch;
+
+    select {
+      width: 100%;
+      min-width: 0;
+      border: 1px solid var(--ig-line);
+      border-radius: 8px;
+      padding: 9px 10px;
+      font: inherit;
+      color: var(--ig-text);
+      background: var(--ig-surface);
+
+      &:focus {
+        outline: none;
+        border-color: var(--ig-accent);
+      }
+    }
+  }
+
+  .imgGenGenerate {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--ig-accent);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 120ms ease;
+
+    &:hover:not(:disabled) {
+      background: var(--ig-accent-strong);
+    }
+
+    &:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+  }
+
+  /* ── Ações (rodapé) ── */
+  .imgGenActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex-shrink: 0;
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex: 1 1 auto;
+      min-height: 36px;
+      padding: 0 14px;
+      border: 1px solid var(--ig-line);
+      border-radius: 8px;
+      background: var(--ig-surface);
+      color: var(--ig-text);
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+
+      &:hover:not(:disabled) {
+        background: #eef4fb;
+        border-color: var(--ig-accent);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  /* ── Configurações (professor) ── */
+  .imgGenSettings {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .imgGenSettingsHead {
+    h3 {
+      margin: 0 0 4px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    p {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--ig-muted);
+    }
+  }
+
+  .imgGenField {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    > span {
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--ig-muted);
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid var(--ig-line);
+      border-radius: 8px;
+      padding: 9px 10px;
+      font: inherit;
+      color: var(--ig-text);
+      background: var(--ig-surface);
+
+      &:focus {
+        outline: none;
+        border-color: var(--ig-accent);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
+      }
+
+      &:disabled {
+        background: #eef1f6;
+        color: var(--ig-muted);
+      }
+    }
+  }
+
+  .imgGenSecondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 38px;
+    border: 1px solid var(--ig-line);
+    border-radius: 8px;
+    background: var(--ig-surface);
+    color: var(--ig-text);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      background: #eef4fb;
+      border-color: var(--ig-accent);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .imgGenMsg {
+    margin: 0;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+
+    &.ok {
+      background: #e7f6ec;
+      color: #15803d;
+    }
+
+    &.error {
+      background: #fdecea;
+      color: #b42318;
+    }
+  }
+}

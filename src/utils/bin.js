@@ -247,6 +247,8 @@ export class Bin {
     var info = { icon: "textfile" };
     if (type === "txt") info.icon = "textfile";
     else if (type === "docx") info.icon = "winWord";
+    else if (["png", "jpg", "jpeg", "webp", "gif"].includes(type))
+      info.icon = "photos";
     var file = new Item({
       type: type || "file",
       name: name,

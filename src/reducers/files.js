@@ -159,6 +159,7 @@ const fileReducer = (state = defState, action) => {
         cdir: action.payload.cdir,
         fileName: action.payload.fileName,
         caller: action.payload.caller,
+        mode: "open",
       };
     }
     tmp.fileDialog = null;
@@ -196,6 +197,15 @@ const fileReducer = (state = defState, action) => {
             ext
           );
           if (newFile) newFile.data = action.payload.content || "";
+        }
+        if (action.payload.caller) {
+          tmp.lastClosedDialog = {
+            cdir: action.payload.parentId,
+            fileName: nameWithExt,
+            caller: action.payload.caller,
+            mode: "save",
+            saved: true,
+          };
         }
         mutated = true;
       }

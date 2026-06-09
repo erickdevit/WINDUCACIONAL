@@ -43,6 +43,7 @@ O comando `eval` legado do terminal foi removido durante a primeira implementaç
 - Tratar erros sem vazar stack trace em produção.
 - Canais em tempo real, como SSE, devem reutilizar a sessão HTTP-only, validar autorização antes de abrir a conexão e não aceitar parâmetros de aluno como fonte de permissão.
 - Notificações em tempo real devem ser enviadas somente para usuários autorizados a receber o evento. Mensagens de chat não devem ser notificadas para o próprio remetente, e convites PVP devem carregar apenas dados públicos do desafiante.
+- Geração de imagens deve passar pelo backend autenticado. O frontend nunca deve receber `IMAGEGEN_API_TOKEN`; prompts enviados por usuários devem ser tratados como entrada não confiável e erros do provedor externo não devem vazar segredos.
 - A classificação Kids/Normal deve ser derivada da turma no backend. O frontend não pode escolher livremente o tipo de aluno durante cadastro público ou edição de usuário vinculado a turma.
 - Nomes completos podem ser autoformatados no frontend, mas a normalização final deve ocorrer no backend antes de persistir usuário ou snapshot de avaliação.
 - Frequência de alunos deve ser registrada no backend a partir da sessão autenticada, nunca por envio livre de `userId` pelo frontend. Alunos só podem consultar o próprio histórico, e relatórios por turma/período são restritos a professores.

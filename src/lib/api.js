@@ -401,4 +401,11 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ config }),
     }),
+  // --- Geração de Imagens ---
+  getImageGenConfig: () => request("/api/imagegen/config"),
+  generateImage: (payload) =>
+    request("/api/imagegen/generate", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
 };

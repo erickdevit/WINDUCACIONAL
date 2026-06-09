@@ -6,7 +6,7 @@ Este é um arquivo vivo para agentes, automações e colaboradores que trabalham
 
 - Produto alvo: WINDUCACIONAL, simulador educacional aberto com experiência desktop web.
 - Estado atual: frontend React/Vite/Redux com PWA, assets estáticos e simulação de desktop.
-- Estado atual de backend: Express, PostgreSQL, sessões HTTP-only, usuários com papéis, classificação Kids/Normal para alunos, turmas com código de vínculo, discos virtuais persistidos por usuário e permissões de módulos de apostilas.
+- Estado atual de backend: Express, PostgreSQL, sessões HTTP-only, usuários com papéis, classificação Kids/Normal para alunos, turmas com código de vínculo, discos virtuais persistidos por usuário, permissões de módulos de apostilas e proxy autenticado para geração de imagens.
 - Estado atual de deploy: `Dockerfile`, `docker-compose.yml`, `docker-compose.prod.yml` e `compose.dev.yml`.
 - Estado futuro: ampliação para cenários educacionais, progresso e operação endurecida em servidor dedicado.
 - Prioridade técnica: boas práticas de código, segurança, testes objetivos e documentação viva.
@@ -89,11 +89,13 @@ docker compose -f compose.dev.yml up -d
 - Apps novos devem prever as barras de rolagem necessárias ao cenário, incluindo rolagem vertical e horizontal em painéis, listas, leitores, tabelas, grids ou conteúdos que possam exceder o espaço da janela.
 - O app Apostilas mantém os PDFs em `src/containers/applications/apps/booklets/library`; não deixe a biblioteca de apostilas solta na raiz do projeto.
 - O acesso de alunos a apostilas é controlado no backend pelas tabelas `booklet_module_access` e `booklet_student_module_access`; professores podem ver todos os módulos, liberar módulos para todos ou conceder módulos específicos a alunos selecionados por turma.
+- O app Gerador de Imagens usa o proxy autenticado `server/routes/imagegen.cjs`; o token da API externa fica apenas em `IMAGEGEN_API_TOKEN` no servidor, e imagens baixadas pelo usuário devem ser salvas no disco virtual via `FileDialog`/Redux para acionar a persistência existente.
 - Games dentro do app de Digitação Normal devem ficar separados das lições tradicionais. O modo PVP só deve ser liberado como partida real depois de existir backend com convite, sincronização em tempo real, validação de mesma turma, cálculo de vencedor no servidor e ranking persistido separado.
 
 ## Regras De Segurança
 
 - Nunca coloque segredos no frontend, em `public/`, no README ou em arquivos versionados.
+- Tokens de provedores externos, incluindo `IMAGEGEN_API_TOKEN`, devem ficar somente em variáveis de ambiente do servidor.
 - Trate `localStorage`, parâmetros de URL, dados de APIs externas e conteúdo persistido como não confiáveis.
 - Não introduza `eval`, `new Function`, `dangerouslySetInnerHTML`, `innerHTML` ou `window.open` sem validação centralizada, sanitização e justificativa documentada.
 - Links externos com `target="_blank"` devem usar `rel="noopener noreferrer"` ou proteção equivalente.

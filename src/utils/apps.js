@@ -86,6 +86,12 @@ const apps = [
     action: "CAMERA",
   },
   {
+    name: "Gerador de Imagens",
+    icon: "imagegen",
+    type: "app",
+    action: "IMAGEGEN",
+  },
+  {
     name: "Seu Telefone",
     icon: "yphone",
     type: "app",

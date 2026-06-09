@@ -191,6 +191,7 @@ export const FileDialog = () => {
         payload: {
           parentId: dialog.cdir,
           fileName: name,
+          caller: dialog.caller,
           content: dialog.content || "",
           ext: dialog.ext || "txt",
         },
@@ -348,6 +349,8 @@ export const FileDialog = () => {
             <div className="fdlg-typebox">
               {dialog.ext === "docx"
                 ? "Documento do Word (*.docx)"
+                : dialog.ext === "png"
+                ? "Imagem PNG (*.png)"
                 : `Documentos de texto (*.${dialog.ext || "txt"})`}
             </div>
           </div>

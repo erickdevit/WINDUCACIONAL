@@ -36,6 +36,7 @@ O ponto de hospedagem será um servidor dedicado. A aplicação deverá ser dist
 - Arquivo `.env.example` sem segredos reais.
 - O schema executado na inicialização inclui migrações idempotentes para colunas adicionadas em bancos já existentes.
 - A imagem final copia a biblioteca de PDFs de `src/containers/applications/apps/booklets/library`, usada pelo app Apostilas e servida pelo backend por rotas autenticadas.
+- O serviço `app` aceita `IMAGEGEN_API_TOKEN` e `IMAGEGEN_API_URL` para habilitar o proxy de geração de imagens no backend. O token real deve existir apenas no ambiente do servidor.
 
 O arquivo `.env.example` documenta as variáveis mínimas atuais para execução do backend.
 
@@ -59,6 +60,8 @@ Os nomes finais ainda devem ser definidos, mas a aplicação provavelmente preci
 - `POSTGRES_USER`
 - `POSTGRES_PASSWORD`
 - `APP_PORT`
+- `IMAGEGEN_API_TOKEN`
+- `IMAGEGEN_API_URL`
 
 Segredos reais devem existir apenas no ambiente do servidor, nunca no frontend ou no repositório. A configuração padrão de `Admin`/`Admin` existe apenas para bootstrap operacional e deve ser substituída assim que a implantação estiver disponível.
 
