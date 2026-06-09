@@ -1,0 +1,66 @@
+# Stack da nova API Rails (fase de transição da migração de stack).
+# Roda em paralelo ao servidor Node legado compartilhando o mesmo banco
+# PostgreSQL e o mesmo volume de dados persistentes, permitindo a migração
+# gradual do frontend para a API Rails e o ActionCable.
+services:
+  rails_api:
+    build:
+      context: ./winducacional-api
+      dockerfile: Dockerfile
+    environment:
+      RAILS_ENV: production
+      PORT: 3002
+      DATABASE_URL: postgres://${POSTGRES_USER:-simulador}:${POSTGRES_PASSWORD:-simulador}@postgres:5432/${POSTGRES_DB:-simulador_educacional}
+      REDIS_URL: redis://redis:6379/0
+      PERSISTENT_DATA_DIR: /rails/data
+      BOOKLET_LIBRARY_DIR: /rails/booklets
+      SESSION_DAYS: ${SESSION_DAYS:-7}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?Defina SECRET_KEY_BASE}
+      BOOTSTRAP_TOKEN: ${BOOTSTRAP_TOKEN:-}
+      IMAGEGEN_API_TOKEN: ${IMAGEGEN_API_TOKEN:-}
+      IMAGEGEN_API_URL: ${IMAGEGEN_API_URL:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+    ports:
+      - "${RAILS_PORT:-3002}:3002"
+    volumes:
+      # Mesmo volume do servidor Node para compatibilidade dos discos virtuais
+      - app_data:/rails/data
+      - ./src/containers/applications/apps/booklets/library:/rails/booklets:ro
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3002/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-simulador_educacional}
+      POSTGRES_USER: ${POSTGRES_USER:-simulador}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-simulador}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-simulador} -d ${POSTGRES_DB:-simulador_educacional}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  app_data:
+  postgres_data:
+  redis_data:
