@@ -4,6 +4,8 @@ import { dfApps } from "../utils";
 import { gene_name } from "../utils/apps";
 import newsData from "../reducers/news.json";
 
+const IMAGE_FILE_TYPES = new Set(["png", "jpg", "jpeg", "webp", "gif"]);
+
 export const dispatchAction = (event) => {
   const action = {
     type: event.target.dataset.action,
@@ -270,6 +272,8 @@ export const handleFileOpen = (id) => {
       store.dispatch({ type: "NOTEPAD", payload: item.id });
     } else if (item.type == "docx") {
       store.dispatch({ type: "WORDAPP", payload: item.id });
+    } else if (IMAGE_FILE_TYPES.has(item.type)) {
+      store.dispatch({ type: "PHOTOS", payload: item.id });
     }
   }
 };

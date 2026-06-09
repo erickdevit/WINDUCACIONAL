@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import fs from "node:fs";
 import { Bin } from "../src/utils/bin.js";
 
 describe("Bin - createFile", () => {
@@ -65,6 +66,42 @@ describe("Bin - createFile", () => {
     const homeId = bin.parsePath("C:\\Home");
     const file = bin.createFile(homeId, "teste.txt", "file");
     expect(file.info.icon).not.toBe("notepad");
+  });
+
+  it("deve criar arquivos docx e imagens com ícones próprios do Explorer", () => {
+    const bin = new Bin();
+    bin.parse({
+      "C:": {
+        type: "folder",
+        name: "C:",
+        data: {
+          Home: {
+            type: "folder",
+            name: "Home",
+          },
+        },
+      },
+    });
+
+    const homeId = bin.parsePath("C:\\Home");
+    const docxFile = bin.createFile(homeId, "aula.docx", "docx");
+    const imageFile = bin.createFile(homeId, "imagem.png", "png");
+
+    expect(docxFile.info.icon).toBe("winWord");
+    expect(imageFile.info.icon).toBe("photos");
+  });
+
+  it("deve ter assets de ícones para docx e imagens no Explorer", () => {
+    expect(
+      fs.existsSync(
+        new URL("../public/img/icon/win/winWord.png", import.meta.url)
+      )
+    ).toBe(true);
+    expect(
+      fs.existsSync(
+        new URL("../public/img/icon/win/photos.png", import.meta.url)
+      )
+    ).toBe(true);
   });
 });
 

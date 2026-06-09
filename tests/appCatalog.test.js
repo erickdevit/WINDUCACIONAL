@@ -83,6 +83,20 @@ describe("Catálogo de apps", () => {
     expect(desktopApps.map((item) => item.name)).toContain("Apostilas");
   });
 
+  it("deve registrar o app Fotos como visualizador interno do sistema", async () => {
+    vi.stubGlobal("localStorage", createStorage());
+
+    const { allApps } = await import("../src/utils");
+    const app = allApps.find((item) => item.name === "Fotos");
+
+    expect(app).toMatchObject({
+      name: "Fotos",
+      icon: "photos",
+      action: "PHOTOS",
+      type: "app",
+    });
+  });
+
   it("deve usar o ícone SVG local de frequência", () => {
     const iconSource = fs.readFileSync(
       new URL("../src/utils/general.jsx", import.meta.url),

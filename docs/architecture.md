@@ -81,6 +81,8 @@ O app Apostilas armazena os PDFs em `src/containers/applications/apps/booklets/l
 
 O app Gerador de Imagens consome `/api/imagegen/config` e `/api/imagegen/generate`. O backend atua como proxy autenticado para o provedor externo configurado por `IMAGEGEN_API_TOKEN` e `IMAGEGEN_API_URL`, mantendo o token fora do frontend. A imagem gerada retorna ao cliente como data URL PNG e, ao baixar, é gravada no disco virtual pelo `FileDialog` existente, usando a mesma árvore Redux persistida por `/api/fs/tree`.
 
+O app Fotos é o visualizador interno para imagens armazenadas no disco virtual. O Explorer abre arquivos `png`, `jpg`, `jpeg`, `webp` e `gif` pela ação `PHOTOS`, passando o ID do item como payload; o app lê o conteúdo em `fileItem.data` e renderiza a imagem sem acessar arquivos reais do host.
+
 ## Arquitetura Alvo
 
 A arquitetura alvo deve separar responsabilidades:

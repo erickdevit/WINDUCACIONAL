@@ -188,6 +188,7 @@ const apps = [
     name: "Fotos",
     icon: "photos",
     type: "app",
+    action: "PHOTOS",
   },
   {
     name: "Segurança",

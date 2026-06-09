@@ -1,0 +1,116 @@
+.wnPhotos {
+  .photosLayout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    background: #171717;
+    color: #fafafa;
+    font-family: "Segoe UI", system-ui, sans-serif;
+  }
+
+  .photosCommandBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 46px;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    background: #111111;
+    flex-shrink: 0;
+  }
+
+  .photosFileName {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .photosControls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #fafafa;
+      cursor: pointer;
+
+      &:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.16);
+      }
+
+      &:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  .photosStage {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    padding: 20px;
+    background: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.035) 25%,
+        transparent 25%
+      ),
+      linear-gradient(-45deg, rgba(255, 255, 255, 0.035) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.035) 75%),
+      linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.035) 75%),
+      #171717;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+    background-size: 20px 20px;
+
+    img {
+      display: block;
+      max-width: none;
+      max-height: none;
+      object-fit: contain;
+      transform-origin: center;
+      transition: transform 140ms ease;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+
+      &[data-fit="true"] {
+        width: auto;
+        max-width: 100%;
+        max-height: 100%;
+      }
+    }
+  }
+
+  .photosEmpty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-width: 220px;
+    min-height: 180px;
+    color: #d4d4d4;
+    text-align: center;
+
+    strong {
+      font-size: 14px;
+      font-weight: 600;
+    }
+  }
+}
