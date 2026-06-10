@@ -71,6 +71,21 @@ export interface CreateQuestionRequest {
   orderIndex?: number
 }
 
+export interface AssignBatchRequest {
+  mode: "all" | "balanced"
+  assignments: { examId: string; userId: string }[]
+}
+
+// Resumo do lote retornado por POST /api/exams/assign-batch.
+export interface ExamApplicationBatchSummary {
+  id: string
+  mode: string
+  totalRequested: number
+  totalCreated: number
+  totalExisting: number
+  totalSkipped: number
+}
+
 export const examsApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
     getExams: build.query<{ exams: Exam[] }, void>({
@@ -112,6 +127,9 @@ export const examsApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, { examId }) => [{ type: "Exam", id: examId }],
     }),
+    assignBatch: build.mutation<{ success: boolean; application: ExamApplicationBatchSummary }, AssignBatchRequest>({
+      query: (body) => ({ url: "/exams/assign-batch", method: "POST", body }),
+    }),
   }),
 })
 
@@ -125,4 +143,5 @@ export const {
   useDeleteExamMutation,
   useCreateQuestionMutation,
   useDeleteQuestionMutation,
+  useAssignBatchMutation,
 } = examsApi

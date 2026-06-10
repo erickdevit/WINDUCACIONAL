@@ -800,4 +800,87 @@ describe("App", () => {
 
     expect(await screen.findByText("Publicada")).toBeInTheDocument()
   })
+
+  it("permite ao professor atribuir uma prova publicada aos alunos de uma turma", async () => {
+    const exam = {
+      id: "exam-1",
+      turmaId: null,
+      title: "Prova Publicada",
+      description: null,
+      containerInitialState: null,
+      timeLimit: 0,
+      isPublished: true,
+      active: true,
+      createdAt: "2026-06-10T12:00:00Z",
+      updatedAt: "2026-06-10T12:00:00Z",
+    }
+    const turma = {
+      id: "turma-1",
+      nome: "Turma A",
+      code: "ABC123",
+      studentType: "normal",
+      scheduleDays: ["seg"],
+      scheduleStartTime: "08:00",
+      scheduleEndTime: "10:00",
+      descricao: "",
+      active: true,
+      createdAt: "2026-01-01T00:00:00Z",
+      updatedAt: "2026-01-01T00:00:00Z",
+    }
+    let assignBody: unknown = null
+
+    mockAuthenticatedFetch((url) => {
+      if (url.endsWith("/api/exams")) return jsonResponse({ exams: [exam] })
+      if (url.endsWith("/api/turmas")) return jsonResponse({ turmas: [turma] })
+      if (url.endsWith("/api/users")) {
+        return jsonResponse({
+          users: [
+            { ...studentUser, id: "a1", username: "aluno1", displayName: "Aluno Um" },
+            { ...studentUser, id: "a2", username: "aluno2", displayName: "Aluno Dois" },
+            professorUser,
+          ],
+        })
+      }
+      return undefined
+    })
+
+    const baseFetch = globalThis.fetch
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (request: Request) => {
+        if (request.url.endsWith("/api/exams/assign-batch") && request.method === "POST") {
+          assignBody = await request.json()
+          return jsonResponse({
+            success: true,
+            application: {
+              id: "b1",
+              mode: "all",
+              totalRequested: 2,
+              totalCreated: 2,
+              totalExisting: 0,
+              totalSkipped: 0,
+            },
+          })
+        }
+        return baseFetch(request)
+      }),
+    )
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Avaliações/ }))
+
+    fireEvent.click(await screen.findByRole("button", { name: "Atribuir" }))
+
+    expect(await screen.findByText(/Aluno Um/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole("button", { name: "Selecionar todos" }))
+    fireEvent.click(screen.getByRole("button", { name: "Atribuir a 2 aluno(s)" }))
+
+    expect(await screen.findByText(/2 atribuída\(s\), 0 já existiam, 0 ignorada\(s\)\./)).toBeInTheDocument()
+    expect(assignBody).toMatchObject({ mode: "all" })
+    const assignments = (assignBody as { assignments: { examId: string; userId: string }[] }).assignments
+    expect(assignments).toHaveLength(2)
+    expect(assignments.map((item) => item.examId)).toEqual(["exam-1", "exam-1"])
+    expect(new Set(assignments.map((item) => item.userId))).toEqual(new Set(["a1", "a2"]))
+  })
 })

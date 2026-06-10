@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react"
 import {
+  useAssignBatchMutation,
   useCreateExamMutation,
   useCreateQuestionMutation,
   useDeleteExamMutation,
@@ -9,21 +10,32 @@ import {
   useUpdateExamMutation,
   type Exam,
 } from "@/features/exams/examsApi"
+import { useGetTurmasQuery, useGetUsersQuery } from "@/features/users/usersApi"
 import { getApiErrorMessage } from "@/utils/errors"
 
 const SMALL_BUTTON = "rounded-md bg-white/10 px-2 py-1 text-xs hover:bg-white/20 disabled:opacity-50"
 
 export function ExamsProfessorView() {
   const [editingExam, setEditingExam] = useState<Exam | null>(null)
+  const [assigningExam, setAssigningExam] = useState<Exam | null>(null)
 
   if (editingExam) {
     return <ExamEditor exam={editingExam} onBack={() => setEditingExam(null)} />
   }
+  if (assigningExam) {
+    return <ExamAssigner exam={assigningExam} onBack={() => setAssigningExam(null)} />
+  }
 
-  return <ProfessorExamList onEdit={setEditingExam} />
+  return <ProfessorExamList onEdit={setEditingExam} onAssign={setAssigningExam} />
 }
 
-function ProfessorExamList({ onEdit }: { onEdit: (exam: Exam) => void }) {
+function ProfessorExamList({
+  onEdit,
+  onAssign,
+}: {
+  onEdit: (exam: Exam) => void
+  onAssign: (exam: Exam) => void
+}) {
   const { data, isLoading, isError, error } = useGetExamsQuery()
   const [createExam, { isLoading: isCreating, error: createError }] = useCreateExamMutation()
   const [updateExam] = useUpdateExamMutation()
@@ -105,6 +117,11 @@ function ProfessorExamList({ onEdit }: { onEdit: (exam: Exam) => void }) {
                   >
                     {exam.isPublished ? "Despublicar" : "Publicar"}
                   </button>
+                  {exam.isPublished && (
+                    <button type="button" className={SMALL_BUTTON} onClick={() => onAssign(exam)}>
+                      Atribuir
+                    </button>
+                  )}
                   <button
                     type="button"
                     className={`${SMALL_BUTTON} text-red-400`}
@@ -251,6 +268,125 @@ function ExamEditor({ exam, onBack }: { exam: Exam; onBack: () => void }) {
           </button>
         </div>
       </form>
+    </div>
+  )
+}
+
+function ExamAssigner({ exam, onBack }: { exam: Exam; onBack: () => void }) {
+  const { data: turmasData } = useGetTurmasQuery()
+  const { data: usersData, isLoading, isError, error } = useGetUsersQuery()
+  const [assignBatch, { isLoading: isAssigning, error: assignError }] = useAssignBatchMutation()
+  const [turmaId, setTurmaId] = useState("")
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [summary, setSummary] = useState<string | null>(null)
+
+  const students = (usersData?.users ?? []).filter(
+    (user) => user.role === "aluno" && user.active && (!turmaId || user.turmaId === turmaId),
+  )
+
+  function toggleStudent(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  function toggleAll() {
+    setSelectedIds((prev) =>
+      prev.size === students.length ? new Set() : new Set(students.map((student) => student.id)),
+    )
+  }
+
+  async function handleAssign() {
+    if (selectedIds.size === 0) return
+    const result = await assignBatch({
+      mode: "all",
+      assignments: [...selectedIds].map((userId) => ({ examId: exam.id, userId })),
+    }).unwrap()
+    const application = result.application
+    setSummary(
+      `${application.totalCreated} atribuída(s), ${application.totalExisting} já existiam, ${application.totalSkipped} ignorada(s).`,
+    )
+    setSelectedIds(new Set())
+  }
+
+  if (isLoading) return <p className="text-sm text-white/60">Carregando…</p>
+  if (isError || !usersData) {
+    return <p className="text-sm text-red-400">{getApiErrorMessage(error, "Não foi possível carregar os alunos.")}</p>
+  }
+
+  return (
+    <div className="flex h-full flex-col gap-3 text-sm">
+      <div className="flex items-center justify-between">
+        <span className="truncate font-medium text-white/90">Atribuir: {exam.title}</span>
+        <button type="button" onClick={onBack} className="text-xs text-white/50 hover:text-white">
+          ← Voltar
+        </button>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <select
+          aria-label="Filtrar por turma"
+          value={turmaId}
+          onChange={(event) => {
+            setTurmaId(event.target.value)
+            setSelectedIds(new Set())
+          }}
+          className="rounded-md bg-black/30 px-2 py-1 text-xs text-white outline-none"
+        >
+          <option value="">Todas as turmas</option>
+          {(turmasData?.turmas ?? []).map((turma) => (
+            <option key={turma.id} value={turma.id}>
+              {turma.nome}
+            </option>
+          ))}
+        </select>
+        <button type="button" className={SMALL_BUTTON} onClick={toggleAll}>
+          {selectedIds.size === students.length && students.length > 0 ? "Desmarcar todos" : "Selecionar todos"}
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-auto">
+        {students.length === 0 ? (
+          <p className="text-xs text-white/40">Nenhum aluno encontrado.</p>
+        ) : (
+          <ul className="flex flex-col gap-1">
+            {students.map((student) => (
+              <li key={student.id}>
+                <label className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs hover:bg-white/10">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(student.id)}
+                    onChange={() => toggleStudent(student.id)}
+                  />
+                  <span className="truncate">
+                    {student.displayName} <span className="text-white/40">({student.username})</span>
+                  </span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {assignError && (
+        <p className="text-xs text-red-400">{getApiErrorMessage(assignError, "Não foi possível atribuir a prova.")}</p>
+      )}
+      {summary && <p className="text-xs text-green-400">{summary}</p>}
+
+      <button
+        type="button"
+        disabled={isAssigning || selectedIds.size === 0}
+        onClick={() => void handleAssign()}
+        className="self-end rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {isAssigning ? "Atribuindo…" : `Atribuir a ${selectedIds.size} aluno(s)`}
+      </button>
     </div>
   )
 }

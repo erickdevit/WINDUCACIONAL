@@ -22,6 +22,8 @@ export const baseApi = createApi({
     "Exams",
     "Exam",
     "ExamHistory",
+    "Users",
+    "Turmas",
   ],
   endpoints: () => ({}),
 })
