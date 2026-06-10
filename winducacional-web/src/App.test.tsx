@@ -1,6 +1,7 @@
 import { fireEvent, screen } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { renderApp } from "@/test/renderApp"
+import type { User } from "@/types/user"
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -19,7 +20,7 @@ function mockFetch(handler: (url: string) => Response) {
   )
 }
 
-const professorUser = {
+const professorUser: User = {
   id: "1",
   username: "professor",
   displayName: "Professor Teste",
@@ -31,13 +32,25 @@ const professorUser = {
   updatedAt: "2026-01-01T00:00:00Z",
 }
 
-function mockAuthenticatedFetch(extra?: (url: string) => Response | undefined) {
+const studentUser: User = {
+  id: "2",
+  username: "aluno",
+  displayName: "Aluno Teste",
+  role: "aluno",
+  studentType: "normal",
+  turmaId: "turma-1",
+  active: true,
+  createdAt: "2026-01-01T00:00:00Z",
+  updatedAt: "2026-01-01T00:00:00Z",
+}
+
+function mockAuthenticatedFetch(extra?: (url: string) => Response | undefined, user: User = professorUser) {
   mockFetch((url) => {
     if (url.endsWith("/api/bootstrap/status")) {
       return jsonResponse({ needsBootstrap: false, requiresToken: false })
     }
     if (url.endsWith("/api/auth/me")) {
-      return jsonResponse({ user: professorUser })
+      return jsonResponse({ user })
     }
     const extraResponse = extra?.(url)
     if (extraResponse) return extraResponse
@@ -168,5 +181,50 @@ describe("App", () => {
     fireEvent.click(screen.getByRole("button", { name: "Voltar" }))
 
     expect(await screen.findByText("Desktop")).toBeInTheDocument()
+  })
+
+  it("esconde o app Frequência do menu Iniciar para o perfil professor", async () => {
+    mockAuthenticatedFetch()
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+
+    expect(await screen.findByRole("button", { name: /Sobre/ })).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: /Frequência/ })).not.toBeInTheDocument()
+  })
+
+  it("abre a Frequência para o perfil aluno e mostra os registros", async () => {
+    mockAuthenticatedFetch((url) => {
+      if (url.endsWith("/api/attendance/me")) {
+        return jsonResponse({
+          today: "2026-06-10",
+          todayRecord: null,
+          records: [
+            {
+              id: "r1",
+              userId: "2",
+              attendanceDate: "2026-06-09",
+              firstLoginAt: "2026-06-09T12:30:00Z",
+              lastLoginAt: "2026-06-09T18:00:00Z",
+              loginCount: 3,
+              username: "aluno",
+              displayName: "Aluno Teste",
+              turmaId: "turma-1",
+              turmaNome: "Turma A",
+              classType: "normal",
+            },
+          ],
+        })
+      }
+      return undefined
+    }, studentUser)
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Frequência/ }))
+
+    expect(await screen.findByText("Sem registro hoje")).toBeInTheDocument()
+    expect(screen.getByText("09/06/2026")).toBeInTheDocument()
+    expect(screen.getByText("09:30")).toBeInTheDocument()
   })
 })

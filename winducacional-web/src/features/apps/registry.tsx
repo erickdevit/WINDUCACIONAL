@@ -1,8 +1,10 @@
 import type { ComponentType } from "react"
 import AboutApp from "@/pages/apps/AboutApp"
+import AttendanceApp from "@/pages/apps/AttendanceApp"
 import CalculatorApp from "@/pages/apps/CalculatorApp"
 import ExplorerApp from "@/pages/apps/ExplorerApp"
 import SettingsApp from "@/pages/apps/SettingsApp"
+import type { UserRole } from "@/types/user"
 import type { WindowSize } from "@/features/windows/windowsSlice"
 
 export interface AppDefinition {
@@ -11,6 +13,8 @@ export interface AppDefinition {
   icon: string
   defaultSize: WindowSize
   component: ComponentType
+  // Quando ausente, o app fica visível para todos os perfis.
+  roles?: UserRole[]
 }
 
 // Registro de apps disponíveis no menu Iniciar. Cada item vira uma janela
@@ -43,6 +47,14 @@ export const APPS: AppDefinition[] = [
     icon: "📁",
     defaultSize: { width: 560, height: 420 },
     component: ExplorerApp,
+  },
+  {
+    id: "attendance",
+    title: "Frequência",
+    icon: "📅",
+    defaultSize: { width: 380, height: 420 },
+    component: AttendanceApp,
+    roles: ["aluno"],
   },
 ]
 

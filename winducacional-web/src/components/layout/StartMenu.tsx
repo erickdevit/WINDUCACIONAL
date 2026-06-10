@@ -12,6 +12,7 @@ export function StartMenu({ onClose }: StartMenuProps) {
   const { data } = useGetMeQuery()
   const [logout] = useLogoutMutation()
   const user = data?.user
+  const visibleApps = APPS.filter((app) => !app.roles || (user && app.roles.includes(user.role)))
 
   function handleOpen(appId: string, title: string, size: WindowSize) {
     dispatch(openWindow(appId, title, size))
@@ -34,7 +35,7 @@ export function StartMenu({ onClose }: StartMenuProps) {
           </div>
         )}
         <ul className="flex flex-col gap-1">
-          {APPS.map((app) => (
+          {visibleApps.map((app) => (
             <li key={app.id}>
               <button
                 type="button"
