@@ -6,6 +6,6 @@ module JsValueHelpers
   # Equivalente a Boolean(value) do JavaScript: apenas null/undefined, false,
   # 0 e string vazia são falsos.
   def js_truthy?(value)
-    ![nil, false, 0, ""].include?(value)
+    ![ nil, false, 0, "" ].include?(value)
   end
 end

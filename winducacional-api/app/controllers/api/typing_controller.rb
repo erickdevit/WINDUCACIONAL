@@ -103,7 +103,7 @@ module Api
         wpm: clamp_integer(params[:wpm], 0, 0, 300),
         accuracy: clamp_integer(params[:accuracy], 0, 0, 100),
         hits: clamp_integer(params[:hits], 0, 0, 100_000),
-        errors: clamp_integer(params[:errors], 0, 0, 100_000),
+        error_count: clamp_integer(params[:errors], 0, 0, 100_000),
         status: status,
         time_ms: clamp_integer(params[:timeMs], 0, 0, 24 * 60 * 60 * 1000)
       )
@@ -115,7 +115,7 @@ module Api
       student_type = normalize_student_type(
         params[:studentType].presence || current_user.resolved_student_type
       )
-      rows = select_ranking("typing_ranking", TYPING_RANKING_FIELDS, "student_type = ?", [student_type])
+      rows = select_ranking("typing_ranking", TYPING_RANKING_FIELDS, "student_type = ?", [ student_type ])
       render json: { ranking: rows }
     end
 
@@ -126,7 +126,7 @@ module Api
       rows = select_ranking(
         "typing_ranking", TYPING_RANKING_FIELDS,
         "turma_id = ? AND student_type = ?",
-        [current_user.turma_id, current_user.resolved_student_type]
+        [ current_user.turma_id, current_user.resolved_student_type ]
       )
       render json: { ranking: rows }
     end
@@ -139,7 +139,7 @@ module Api
       rows = select_ranking(
         "typing_ranking", TYPING_RANKING_FIELDS,
         "turma_id = ? AND student_type = ?",
-        [turma.id, turma.student_type]
+        [ turma.id, turma.student_type ]
       )
       render json: { ranking: rows }
     end
@@ -154,7 +154,7 @@ module Api
       student_type = normalize_student_type(
         params[:studentType].presence || current_user.resolved_student_type
       )
-      rows = select_ranking("typing_game_ranking", GAME_RANKING_FIELDS, "student_type = ?", [student_type])
+      rows = select_ranking("typing_game_ranking", GAME_RANKING_FIELDS, "student_type = ?", [ student_type ])
       render json: { ranking: rows }
     end
 
@@ -165,7 +165,7 @@ module Api
       rows = select_ranking(
         "typing_game_ranking", GAME_RANKING_FIELDS,
         "turma_id = ? AND student_type = ?",
-        [current_user.turma_id, current_user.resolved_student_type]
+        [ current_user.turma_id, current_user.resolved_student_type ]
       )
       render json: { ranking: rows }
     end
@@ -178,7 +178,7 @@ module Api
       rows = select_ranking(
         "typing_game_ranking", GAME_RANKING_FIELDS,
         "turma_id = ? AND student_type = ?",
-        [turma.id, turma.student_type]
+        [ turma.id, turma.student_type ]
       )
       render json: { ranking: rows }
     end
@@ -224,7 +224,7 @@ module Api
     def select_ranking(view, fields, where_sql, binds)
       sql = "SELECT #{fields} FROM #{view} WHERE #{where_sql} #{RANKING_ORDER}"
       ApplicationRecord.connection.select_all(
-        ApplicationRecord.sanitize_sql_array([sql, *binds])
+        ApplicationRecord.sanitize_sql_array([ sql, *binds ])
       ).to_a
     end
 

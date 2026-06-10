@@ -311,7 +311,7 @@ CREATE TABLE public.typing_game_scores (
     wpm integer NOT NULL,
     accuracy numeric NOT NULL,
     hits integer DEFAULT 0 NOT NULL,
-    errors integer DEFAULT 0 NOT NULL,
+    error_count integer DEFAULT 0 NOT NULL,
     status text DEFAULT 'lost'::text NOT NULL,
     time_ms integer DEFAULT 0 NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
@@ -1147,6 +1147,7 @@ ALTER TABLE ONLY public.users
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260610000001'),
 ('20260609000002'),
 ('20260609000001');
 
