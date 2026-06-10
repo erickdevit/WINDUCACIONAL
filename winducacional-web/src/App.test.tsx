@@ -480,7 +480,7 @@ describe("App", () => {
     renderApp("/")
 
     fireEvent.click(await screen.findByRole("button", { name: "Início" }))
-    fireEvent.click(await screen.findByRole("button", { name: /Digitação/ }))
+    fireEvent.click(await screen.findByRole("button", { name: /^Digitação$/ }))
 
     expect(await screen.findByText(/Linha Base - Esquerda/)).toBeInTheDocument()
     expect(await screen.findByText(/Meta: 40 PPM · 95% · máx. 7 erros/)).toBeInTheDocument()
@@ -527,7 +527,7 @@ describe("App", () => {
     renderApp("/")
 
     fireEvent.click(await screen.findByRole("button", { name: "Início" }))
-    fireEvent.click(await screen.findByRole("button", { name: /Digitação/ }))
+    fireEvent.click(await screen.findByRole("button", { name: /^Digitação$/ }))
 
     fireEvent.click(await screen.findByText(/Linha Base - Esquerda/))
 
@@ -1011,7 +1011,7 @@ describe("App", () => {
     renderApp("/")
 
     fireEvent.click(await screen.findByRole("button", { name: "Início" }))
-    fireEvent.click(await screen.findByRole("button", { name: /Digitação/ }))
+    fireEvent.click(await screen.findByRole("button", { name: /^Digitação$/ }))
 
     fireEvent.click(await screen.findByRole("button", { name: /Limites/ }))
 
@@ -1023,5 +1023,39 @@ describe("App", () => {
 
     expect(await screen.findByText(/Limites salvos/)).toBeInTheDocument()
     expect(putBody).toEqual({ passMinWpm: 55, passMinAccuracy: 95, maxErrors: 7 })
+  })
+
+  it("mostra o lobby do Duelo de Digitação e envia um desafio", async () => {
+    let challengeBody: unknown = null
+    mockAuthenticatedFetch((url) => {
+      if (url.endsWith("/api/typing-pvp/lobby")) {
+        return jsonResponse({
+          players: [{ ...studentUser, id: "9", username: "colega", displayName: "Colega" }],
+        })
+      }
+      return undefined
+    }, studentUser)
+
+    const baseFetch = globalThis.fetch
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (request: Request) => {
+        if (request.url.endsWith("/api/typing-pvp/challenge") && request.method === "POST") {
+          challengeBody = await request.json()
+          return jsonResponse({ success: true })
+        }
+        return baseFetch(request)
+      }),
+    )
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Duelo de Digitação/ }))
+
+    expect(await screen.findByText(/Colega/)).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "Desafiar" }))
+
+    await waitFor(() => expect(challengeBody).toEqual({ targetId: "9" }))
   })
 })

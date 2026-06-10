@@ -8,6 +8,7 @@ import ExamsApp from "@/pages/apps/ExamsApp"
 import ExplorerApp from "@/pages/apps/ExplorerApp"
 import GestorApp from "@/pages/apps/GestorApp"
 import NotepadApp from "@/pages/apps/NotepadApp"
+import PvpApp from "@/pages/apps/PvpApp"
 import SchoolAdminApp from "@/pages/apps/SchoolAdminApp"
 import SettingsApp from "@/pages/apps/SettingsApp"
 import TypingApp from "@/pages/apps/TypingApp"
@@ -118,6 +119,14 @@ export const APPS: AppDefinition[] = [
     defaultSize: { width: 560, height: 500 },
     component: SchoolAdminApp,
     roles: ["professor", "secretaria"],
+  },
+  {
+    id: "typing-pvp",
+    title: "Duelo de Digitação",
+    icon: "⚔️",
+    defaultSize: { width: 480, height: 460 },
+    component: PvpApp,
+    roles: ["aluno"],
   },
 ]
 
