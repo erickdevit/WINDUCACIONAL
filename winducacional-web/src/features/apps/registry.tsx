@@ -8,6 +8,7 @@ import ExamsApp from "@/pages/apps/ExamsApp"
 import ExplorerApp from "@/pages/apps/ExplorerApp"
 import GestorApp from "@/pages/apps/GestorApp"
 import NotepadApp from "@/pages/apps/NotepadApp"
+import SchoolAdminApp from "@/pages/apps/SchoolAdminApp"
 import SettingsApp from "@/pages/apps/SettingsApp"
 import TypingApp from "@/pages/apps/TypingApp"
 import type { UserRole } from "@/types/user"
@@ -109,6 +110,14 @@ export const APPS: AppDefinition[] = [
     icon: "📋",
     defaultSize: { width: 560, height: 500 },
     component: ExamsApp,
+  },
+  {
+    id: "school-admin",
+    title: "Gestão Escolar",
+    icon: "🏫",
+    defaultSize: { width: 560, height: 500 },
+    component: SchoolAdminApp,
+    roles: ["professor", "secretaria"],
   },
 ]
 

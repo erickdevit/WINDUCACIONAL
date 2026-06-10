@@ -883,4 +883,97 @@ describe("App", () => {
     expect(assignments.map((item) => item.examId)).toEqual(["exam-1", "exam-1"])
     expect(new Set(assignments.map((item) => item.userId))).toEqual(new Set(["a1", "a2"]))
   })
+
+  it("permite ao professor criar turma e usuário na Gestão Escolar", async () => {
+    interface MockTurma {
+      id: string
+      nome: string
+      code: string
+      studentType: string
+      scheduleDays: string[]
+      scheduleStartTime: string
+      scheduleEndTime: string
+      descricao: string
+      active: boolean
+      createdAt: string
+      updatedAt: string
+    }
+    const turmas: MockTurma[] = []
+    const users = [professorUser]
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (request: Request) => {
+        const url = request.url
+        if (url.endsWith("/api/bootstrap/status")) {
+          return jsonResponse({ needsBootstrap: false, requiresToken: false })
+        }
+        if (url.endsWith("/api/auth/me")) {
+          return jsonResponse({ user: professorUser })
+        }
+        if (url.endsWith("/api/turmas") && request.method === "POST") {
+          const body = (await request.json()) as { nome: string; studentType?: string }
+          const turma: MockTurma = {
+            id: "turma-9",
+            nome: body.nome,
+            code: "XYZ789",
+            studentType: body.studentType ?? "normal",
+            scheduleDays: ["seg"],
+            scheduleStartTime: "08:00",
+            scheduleEndTime: "10:00",
+            descricao: "",
+            active: true,
+            createdAt: "2026-06-10T12:00:00Z",
+            updatedAt: "2026-06-10T12:00:00Z",
+          }
+          turmas.push(turma)
+          return jsonResponse({ turma }, 201)
+        }
+        if (url.endsWith("/api/turmas")) {
+          return jsonResponse({ turmas })
+        }
+        if (url.endsWith("/api/users") && request.method === "POST") {
+          const body = (await request.json()) as { username: string; displayName: string; role: string }
+          const user = {
+            ...studentUser,
+            id: "novo-1",
+            username: body.username,
+            displayName: body.displayName,
+            role: body.role,
+          }
+          users.push(user as typeof professorUser)
+          return jsonResponse({ user }, 201)
+        }
+        if (url.endsWith("/api/users")) {
+          return jsonResponse({ users })
+        }
+        throw new Error(`fetch inesperado: ${url}`)
+      }),
+    )
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Gestão Escolar/ }))
+
+    // Aba Turmas: cria uma turma nova.
+    fireEvent.click(await screen.findByRole("button", { name: "Turmas" }))
+    fireEvent.change(await screen.findByLabelText("Nome da nova turma"), {
+      target: { value: "Turma Nova" },
+    })
+    fireEvent.click(screen.getByRole("button", { name: "Criar turma" }))
+
+    expect(await screen.findByText("Turma Nova")).toBeInTheDocument()
+    expect(screen.getByText(/código XYZ789/)).toBeInTheDocument()
+
+    // Aba Usuários: cria um aluno na turma nova.
+    fireEvent.click(screen.getByRole("button", { name: "Usuários" }))
+    fireEvent.change(await screen.findByLabelText("Usuário"), { target: { value: "aluno.novo" } })
+    fireEvent.change(screen.getByLabelText("Nome de exibição do novo usuário"), {
+      target: { value: "Aluno Novo" },
+    })
+    fireEvent.change(screen.getByLabelText("Senha"), { target: { value: "senha12345" } })
+    fireEvent.click(screen.getByRole("button", { name: "Criar usuário" }))
+
+    expect(await screen.findByText("Aluno Novo")).toBeInTheDocument()
+  })
 })
