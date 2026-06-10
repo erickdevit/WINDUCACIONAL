@@ -5,6 +5,17 @@ module Auth
   class UserCreator
     USERNAME_FORMAT = /\A[a-z0-9._-]{3,32}\z/
 
+    # Equivalente ao isUsernameAvailable do Node.
+    def self.username_availability(username)
+      normalized = User.normalize_username(username)
+      unless normalized.match?(USERNAME_FORMAT)
+        raise ApiError.new(
+          "Usuário deve ter de 3 a 32 caracteres e usar apenas letras, números, ponto, hífen ou sublinhado.", 400
+        )
+      end
+      { username: normalized, available: !User.exists?(username: normalized) }
+    end
+
     def self.create!(username:, display_name:, role:, password:,
                      student_type: "normal", turma_id: nil, allow_short_password: false)
       normalized = User.normalize_username(username)
