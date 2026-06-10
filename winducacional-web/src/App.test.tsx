@@ -108,4 +108,19 @@ describe("App", () => {
 
     expect(await screen.findByLabelText("Nome de exibição")).toHaveValue("Professor Teste")
   })
+
+  it("abre a Calculadora e realiza uma operação simples", async () => {
+    mockAuthenticatedFetch()
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Calculadora/ }))
+
+    fireEvent.click(await screen.findByRole("button", { name: "5" }))
+    fireEvent.click(screen.getByRole("button", { name: "Somar" }))
+    fireEvent.click(screen.getByRole("button", { name: "3" }))
+    fireEvent.click(screen.getByRole("button", { name: "Igual" }))
+
+    expect(await screen.findByRole("status", { name: "Visor" })).toHaveTextContent("8")
+  })
 })
