@@ -227,4 +227,54 @@ describe("App", () => {
     expect(screen.getByText("09/06/2026")).toBeInTheDocument()
     expect(screen.getByText("09:30")).toBeInTheDocument()
   })
+
+  it("permite ao professor visualizar e encerrar sessões pelo Gestor de Sessões", async () => {
+    let sessionsCallCount = 0
+    mockAuthenticatedFetch((url) => {
+      if (url.endsWith("/api/gestor/sessions/logout")) {
+        return new Response(null, { status: 204 })
+      }
+      if (url.endsWith("/api/gestor/sessions")) {
+        sessionsCallCount += 1
+        const sessions =
+          sessionsCallCount === 1
+            ? [
+                {
+                  sessionId: "s1",
+                  loginAt: "2026-06-10T12:00:00Z",
+                  userId: "2",
+                  username: "aluno1",
+                  displayName: "Aluno Um",
+                  turmaId: "turma-1",
+                  turmaNome: "Turma A",
+                },
+              ]
+            : []
+        return jsonResponse({ sessions })
+      }
+      return undefined
+    })
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Gestor/ }))
+
+    expect(await screen.findByText("Turma A")).toBeInTheDocument()
+    expect(screen.getByText(/Aluno Um/)).toBeInTheDocument()
+    expect(screen.getByText("1 aluno conectado")).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "Encerrar" }))
+
+    expect(await screen.findByText("Nenhum aluno conectado no momento.")).toBeInTheDocument()
+  })
+
+  it("esconde o app Gestor de Sessões do menu Iniciar para o perfil aluno", async () => {
+    mockAuthenticatedFetch(undefined, studentUser)
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+
+    expect(await screen.findByRole("button", { name: /Frequência/ })).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: /Gestor/ })).not.toBeInTheDocument()
+  })
 })

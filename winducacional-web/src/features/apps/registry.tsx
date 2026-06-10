@@ -3,6 +3,7 @@ import AboutApp from "@/pages/apps/AboutApp"
 import AttendanceApp from "@/pages/apps/AttendanceApp"
 import CalculatorApp from "@/pages/apps/CalculatorApp"
 import ExplorerApp from "@/pages/apps/ExplorerApp"
+import GestorApp from "@/pages/apps/GestorApp"
 import SettingsApp from "@/pages/apps/SettingsApp"
 import type { UserRole } from "@/types/user"
 import type { WindowSize } from "@/features/windows/windowsSlice"
@@ -55,6 +56,14 @@ export const APPS: AppDefinition[] = [
     defaultSize: { width: 380, height: 420 },
     component: AttendanceApp,
     roles: ["aluno"],
+  },
+  {
+    id: "gestor",
+    title: "Gestor de Sessões",
+    icon: "🖥️",
+    defaultSize: { width: 420, height: 440 },
+    component: GestorApp,
+    roles: ["professor", "secretaria"],
   },
 ]
 
