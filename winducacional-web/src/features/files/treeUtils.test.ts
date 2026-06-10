@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest"
-import { formatWindowsPath, getEntryIcon, getNodeAtPath, listEntries, resolveSpecialPath } from "./treeUtils"
+import {
+  formatWindowsPath,
+  getEntryIcon,
+  getNodeAtPath,
+  listEntries,
+  resolveSpecialPath,
+  setNodeAtPath,
+} from "./treeUtils"
 import type { FsTree } from "./types"
 
 const TREE: FsTree = {
@@ -92,5 +99,22 @@ describe("treeUtils", () => {
 
     expect(getEntryIcon(txt)).toBe("📄")
     expect(getEntryIcon(docx)).toBe("📝")
+  })
+
+  it("setNodeAtPath substitui o nó sem mutar a árvore original", () => {
+    const path = ["C:", "Users", "professor", "Documents", "notas.txt"]
+
+    const updated = setNodeAtPath(TREE, path, { type: "txt", data: "novo conteúdo" })
+
+    expect(getNodeAtPath(updated, path)?.data).toBe("novo conteúdo")
+    expect(getNodeAtPath(TREE, path)?.data).toBe("conteúdo")
+    // Ramos não afetados são reaproveitados por referência.
+    expect(getNodeAtPath(updated, ["C:", "Users", "professor", "Desktop"])).toBe(
+      getNodeAtPath(TREE, ["C:", "Users", "professor", "Desktop"]),
+    )
+  })
+
+  it("setNodeAtPath retorna a árvore intacta para caminho inexistente", () => {
+    expect(setNodeAtPath(TREE, ["C:", "Nope", "x.txt"], { type: "txt", data: "x" })).toBe(TREE)
   })
 })

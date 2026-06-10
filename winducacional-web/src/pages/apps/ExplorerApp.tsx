@@ -11,12 +11,18 @@ import {
   selectCanGoUp,
   selectCurrentPath,
 } from "@/features/files/filesSlice"
-import { formatWindowsPath, getEntryIcon, listEntries, resolveSpecialPath } from "@/features/files/treeUtils"
+import { formatWindowsPath, getEntryIcon, listEntries, resolveSpecialPath, type FsEntry } from "@/features/files/treeUtils"
 import { isFolder } from "@/features/files/types"
+import { openWindow } from "@/features/windows/windowsSlice"
 import { getApiErrorMessage } from "@/utils/errors"
 
 const NAV_BUTTON_CLASS =
   "flex h-7 w-7 items-center justify-center rounded-md hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent"
+
+// Tamanho padrão do Bloco de Notas (espelha o registro de apps; importar o
+// registro aqui criaria dependência circular registry → ExplorerApp → registry).
+const NOTEPAD_SIZE = { width: 480, height: 420 }
+const NOTEPAD_TYPES = new Set(["txt"])
 
 export default function ExplorerApp() {
   const dispatch = useAppDispatch()
@@ -46,6 +52,16 @@ export default function ExplorerApp() {
   const entries = listEntries(data.tree, currentPath)
   const term = search.trim().toLowerCase()
   const filtered = term ? entries.filter((entry) => entry.key.toLowerCase().includes(term)) : entries
+
+  function handleOpenEntry(entry: FsEntry) {
+    if (isFolder(entry.node)) {
+      dispatch(navigateTo(entry.path))
+      return
+    }
+    if (NOTEPAD_TYPES.has(entry.node.type ?? "")) {
+      dispatch(openWindow("notepad", entry.key, NOTEPAD_SIZE, { filePath: entry.path }))
+    }
+  }
 
   return (
     <div className="flex h-full flex-col gap-2 text-sm">
@@ -81,20 +97,17 @@ export default function ExplorerApp() {
           <p className="text-xs text-white/40">Esta pasta está vazia.</p>
         ) : (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(72px,1fr))] gap-2">
-            {filtered.map((entry) => {
-              const folder = isFolder(entry.node)
-              return (
-                <button
-                  key={entry.key}
-                  type="button"
-                  onDoubleClick={folder ? () => dispatch(navigateTo(entry.path)) : undefined}
-                  className="flex flex-col items-center gap-1 rounded-md p-2 text-center hover:bg-white/10"
-                >
-                  <span className="text-2xl">{getEntryIcon(entry.node)}</span>
-                  <span className="w-full truncate text-xs">{entry.key}</span>
-                </button>
-              )
-            })}
+            {filtered.map((entry) => (
+              <button
+                key={entry.key}
+                type="button"
+                onDoubleClick={() => handleOpenEntry(entry)}
+                className="flex flex-col items-center gap-1 rounded-md p-2 text-center hover:bg-white/10"
+              >
+                <span className="text-2xl">{getEntryIcon(entry.node)}</span>
+                <span className="w-full truncate text-xs">{entry.key}</span>
+              </button>
+            ))}
           </div>
         )}
       </div>

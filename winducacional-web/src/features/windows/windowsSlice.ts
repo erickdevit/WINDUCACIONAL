@@ -20,6 +20,8 @@ export interface AppWindowState {
   zIndex: number
   minimized: boolean
   maximized: boolean
+  // Dados de abertura específicos do app, ex.: caminho do arquivo para o Bloco de Notas.
+  payload?: unknown
 }
 
 interface WindowsState {
@@ -44,12 +46,14 @@ const windowsSlice = createSlice({
     openWindow: {
       reducer(
         state,
-        action: PayloadAction<{ id: string; appId: string; title: string; size: WindowSize }>,
+        action: PayloadAction<{ id: string; appId: string; title: string; size: WindowSize; payload?: unknown }>,
       ) {
         const existing = state.windows.find((win) => win.appId === action.payload.appId)
         if (existing) {
           existing.minimized = false
           existing.zIndex = state.nextZIndex++
+          existing.title = action.payload.title
+          if (action.payload.payload !== undefined) existing.payload = action.payload.payload
           return
         }
 
@@ -63,10 +67,11 @@ const windowsSlice = createSlice({
           zIndex: state.nextZIndex++,
           minimized: false,
           maximized: false,
+          payload: action.payload.payload,
         })
       },
-      prepare(appId: string, title: string, size: WindowSize) {
-        return { payload: { id: nanoid(), appId, title, size } }
+      prepare(appId: string, title: string, size: WindowSize, payload?: unknown) {
+        return { payload: { id: nanoid(), appId, title, size, payload } }
       },
     },
     closeWindow(state, action: PayloadAction<string>) {

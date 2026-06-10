@@ -17,7 +17,7 @@ export function WindowManager() {
           const AppComponent = app.component
           return (
             <AppWindow key={win.id} window={win}>
-              <AppComponent />
+              <AppComponent payload={win.payload} />
             </AppWindow>
           )
         })}

@@ -41,6 +41,25 @@ export function listEntries(tree: FsTree, path: string[]): FsEntry[] {
   })
 }
 
+// Substitui o nó no caminho informado, recriando apenas os ancestrais
+// (atualização imutável) para que o RTK Query detecte a mudança. Caminhos
+// inexistentes retornam a árvore original intacta.
+export function setNodeAtPath(tree: FsTree, path: string[], node: FsNode): FsTree {
+  const [head, ...rest] = path
+  const current = tree[head]
+  if (!current) return tree
+
+  if (rest.length === 0) {
+    return { ...tree, [head]: node }
+  }
+
+  const children = getNodeChildren(current)
+  const updatedChildren = setNodeAtPath(children, rest, node)
+  if (updatedChildren === children) return tree
+
+  return { ...tree, [head]: { ...current, data: updatedChildren } }
+}
+
 export function resolveSpecialPath(tree: FsTree, spid: string): string[] | null {
   function search(node: FsNode, path: string[]): string[] | null {
     if (node.info?.spid === spid) return path

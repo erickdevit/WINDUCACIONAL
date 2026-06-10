@@ -5,16 +5,22 @@ import BookletsApp from "@/pages/apps/BookletsApp"
 import CalculatorApp from "@/pages/apps/CalculatorApp"
 import ExplorerApp from "@/pages/apps/ExplorerApp"
 import GestorApp from "@/pages/apps/GestorApp"
+import NotepadApp from "@/pages/apps/NotepadApp"
 import SettingsApp from "@/pages/apps/SettingsApp"
 import type { UserRole } from "@/types/user"
 import type { WindowSize } from "@/features/windows/windowsSlice"
+
+export interface AppComponentProps {
+  // Dados de abertura específicos do app, ex.: caminho do arquivo para o Bloco de Notas.
+  payload?: unknown
+}
 
 export interface AppDefinition {
   id: string
   title: string
   icon: string
   defaultSize: WindowSize
-  component: ComponentType
+  component: ComponentType<AppComponentProps>
   // Quando ausente, o app fica visível para todos os perfis.
   roles?: UserRole[]
 }
@@ -72,6 +78,13 @@ export const APPS: AppDefinition[] = [
     icon: "📚",
     defaultSize: { width: 420, height: 480 },
     component: BookletsApp,
+  },
+  {
+    id: "notepad",
+    title: "Bloco de Notas",
+    icon: "📝",
+    defaultSize: { width: 480, height: 420 },
+    component: NotepadApp,
   },
 ]
 

@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react"
+import { fireEvent, screen, waitFor } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { renderApp } from "@/test/renderApp"
 import type { User } from "@/types/user"
@@ -327,7 +327,9 @@ describe("App", () => {
 
     fireEvent.click(checkbox)
 
-    expect(await screen.findByRole("checkbox", { name: "Liberado para alunos" })).toBeChecked()
+    await waitFor(() =>
+      expect(screen.getByRole("checkbox", { name: "Liberado para alunos" })).toBeChecked(),
+    )
   })
 
   it("mostra apenas as apostilas liberadas para o perfil aluno, sem opção de gerenciar", async () => {
@@ -371,5 +373,78 @@ describe("App", () => {
       "href",
       `${window.location.origin}/api/booklets/modules/m1/files/f1/pdf`,
     )
+  })
+
+  it("abre um arquivo .txt do Explorador no Bloco de Notas, edita e salva", async () => {
+    const tree = {
+      "C:": {
+        data: {
+          Users: {
+            data: {
+              professor: {
+                info: { spid: "%user%" },
+                data: {
+                  "notas.txt": { type: "txt", data: "olá" },
+                },
+              },
+            },
+          },
+        },
+      },
+    }
+
+    let savedBody: unknown = null
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (request: Request) => {
+        const url = request.url
+        if (url.endsWith("/api/bootstrap/status")) {
+          return jsonResponse({ needsBootstrap: false, requiresToken: false })
+        }
+        if (url.endsWith("/api/auth/me")) {
+          return jsonResponse({ user: professorUser })
+        }
+        if (url.endsWith("/api/fs/tree") && request.method === "PUT") {
+          savedBody = await request.json()
+          return new Response(null, { status: 204 })
+        }
+        if (url.endsWith("/api/fs/tree")) {
+          return jsonResponse({ tree })
+        }
+        throw new Error(`fetch inesperado: ${url}`)
+      }),
+    )
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Explorador/ }))
+
+    fireEvent.doubleClick(await screen.findByText("notas.txt"))
+
+    const textarea = await screen.findByLabelText("Conteúdo do arquivo")
+    expect(textarea).toHaveValue("olá")
+
+    fireEvent.change(textarea, { target: { value: "olá, mundo" } })
+    fireEvent.click(screen.getByRole("button", { name: "Salvar" }))
+
+    expect(await screen.findByText("Salvo")).toBeInTheDocument()
+    expect(savedBody).toEqual({
+      tree: {
+        "C:": {
+          data: {
+            Users: {
+              data: {
+                professor: {
+                  info: { spid: "%user%" },
+                  data: {
+                    "notas.txt": { type: "txt", data: "olá, mundo" },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    })
   })
 })
