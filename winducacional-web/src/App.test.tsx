@@ -31,7 +31,7 @@ const professorUser = {
   updatedAt: "2026-01-01T00:00:00Z",
 }
 
-function mockAuthenticatedFetch() {
+function mockAuthenticatedFetch(extra?: (url: string) => Response | undefined) {
   mockFetch((url) => {
     if (url.endsWith("/api/bootstrap/status")) {
       return jsonResponse({ needsBootstrap: false, requiresToken: false })
@@ -39,6 +39,8 @@ function mockAuthenticatedFetch() {
     if (url.endsWith("/api/auth/me")) {
       return jsonResponse({ user: professorUser })
     }
+    const extraResponse = extra?.(url)
+    if (extraResponse) return extraResponse
     throw new Error(`fetch inesperado: ${url}`)
   })
 }
@@ -122,5 +124,49 @@ describe("App", () => {
     fireEvent.click(screen.getByRole("button", { name: "Igual" }))
 
     expect(await screen.findByRole("status", { name: "Visor" })).toHaveTextContent("8")
+  })
+
+  it("abre o Explorador de Arquivos e navega entre pastas", async () => {
+    const tree = {
+      "C:": {
+        data: {
+          Users: {
+            data: {
+              professor: {
+                info: { spid: "%user%" },
+                data: {
+                  Desktop: { info: { spid: "%desktop%" }, data: {} },
+                  Documents: {
+                    info: { spid: "%documents%" },
+                    data: { "notas.txt": { type: "txt", data: "oi" } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }
+
+    mockAuthenticatedFetch((url) => {
+      if (url.endsWith("/api/fs/tree")) return jsonResponse({ tree })
+      return undefined
+    })
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Explorador/ }))
+
+    expect(await screen.findByText("Documents")).toBeInTheDocument()
+    expect(screen.getByText("C:\\Users\\professor")).toBeInTheDocument()
+
+    fireEvent.doubleClick(screen.getByText("Documents"))
+
+    expect(await screen.findByText("notas.txt")).toBeInTheDocument()
+    expect(screen.getByText("C:\\Users\\professor\\Documents")).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "Voltar" }))
+
+    expect(await screen.findByText("Desktop")).toBeInTheDocument()
   })
 })

@@ -1,6 +1,7 @@
 import type { ComponentType } from "react"
 import AboutApp from "@/pages/apps/AboutApp"
 import CalculatorApp from "@/pages/apps/CalculatorApp"
+import ExplorerApp from "@/pages/apps/ExplorerApp"
 import SettingsApp from "@/pages/apps/SettingsApp"
 import type { WindowSize } from "@/features/windows/windowsSlice"
 
@@ -35,6 +36,13 @@ export const APPS: AppDefinition[] = [
     icon: "🧮",
     defaultSize: { width: 320, height: 560 },
     component: CalculatorApp,
+  },
+  {
+    id: "explorer",
+    title: "Explorador de Arquivos",
+    icon: "📁",
+    defaultSize: { width: 560, height: 420 },
+    component: ExplorerApp,
   },
 ]
 
