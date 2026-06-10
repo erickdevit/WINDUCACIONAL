@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react"
+import { fireEvent, screen } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { renderApp } from "@/test/renderApp"
 
@@ -17,6 +17,30 @@ function mockFetch(handler: (url: string) => Response) {
     "fetch",
     vi.fn(async (request: Request) => handler(request.url)),
   )
+}
+
+const professorUser = {
+  id: "1",
+  username: "professor",
+  displayName: "Professor Teste",
+  role: "professor",
+  studentType: "normal",
+  turmaId: null,
+  active: true,
+  createdAt: "2026-01-01T00:00:00Z",
+  updatedAt: "2026-01-01T00:00:00Z",
+}
+
+function mockAuthenticatedFetch() {
+  mockFetch((url) => {
+    if (url.endsWith("/api/bootstrap/status")) {
+      return jsonResponse({ needsBootstrap: false, requiresToken: false })
+    }
+    if (url.endsWith("/api/auth/me")) {
+      return jsonResponse({ user: professorUser })
+    }
+    throw new Error(`fetch inesperado: ${url}`)
+  })
 }
 
 describe("App", () => {
@@ -53,31 +77,35 @@ describe("App", () => {
     expect(await screen.findByRole("heading", { name: "Configuração inicial" })).toBeInTheDocument()
   })
 
-  it("mostra a área autenticada para usuários com sessão válida", async () => {
-    mockFetch((url) => {
-      if (url.endsWith("/api/bootstrap/status")) {
-        return jsonResponse({ needsBootstrap: false, requiresToken: false })
-      }
-      if (url.endsWith("/api/auth/me")) {
-        return jsonResponse({
-          user: {
-            id: "1",
-            username: "professor",
-            displayName: "Professor Teste",
-            role: "professor",
-            studentType: "normal",
-            turmaId: null,
-            active: true,
-            createdAt: "2026-01-01T00:00:00Z",
-            updatedAt: "2026-01-01T00:00:00Z",
-          },
-        })
-      }
-      throw new Error(`fetch inesperado: ${url}`)
-    })
+  it("mostra a área de trabalho para usuários com sessão válida", async () => {
+    mockAuthenticatedFetch()
 
     renderApp("/")
 
-    expect(await screen.findByRole("heading", { name: "Bem-vindo, Professor Teste!" })).toBeInTheDocument()
+    expect(await screen.findByRole("button", { name: "Início" })).toBeInTheDocument()
+  })
+
+  it("abre e fecha o app Sobre pelo menu Iniciar", async () => {
+    mockAuthenticatedFetch()
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Sobre/ }))
+
+    expect(await screen.findByText("Professor Teste")).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "Fechar" }))
+
+    expect(screen.queryByText("Professor Teste")).not.toBeInTheDocument()
+  })
+
+  it("abre o app Configurações com o nome de exibição atual", async () => {
+    mockAuthenticatedFetch()
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Configurações/ }))
+
+    expect(await screen.findByLabelText("Nome de exibição")).toHaveValue("Professor Teste")
   })
 })
