@@ -613,4 +613,91 @@ describe("App", () => {
     expect(await screen.findByText("Olá!")).toBeInTheDocument()
     expect(screen.getByLabelText("Mensagem")).toHaveValue("")
   })
+
+  it("permite ao aluno responder e enviar uma prova de múltipla escolha", async () => {
+    const exam = {
+      id: "exam-1",
+      turmaId: "turma-1",
+      title: "Prova de Informática",
+      description: "Conceitos básicos",
+      containerInitialState: null,
+      timeLimit: 0,
+      isPublished: true,
+      active: true,
+      createdAt: "2026-06-01T00:00:00Z",
+      updatedAt: "2026-06-01T00:00:00Z",
+    }
+    let submitBody: unknown = null
+
+    mockAuthenticatedFetch((url) => {
+      if (url.endsWith("/api/exams")) {
+        return jsonResponse({ exams: [{ ...exam, submissionStatus: "pending" }] })
+      }
+      if (url.endsWith("/api/exams/student/history")) {
+        return jsonResponse({ submissions: [] })
+      }
+      if (url.endsWith("/api/exams/exam-1")) {
+        return jsonResponse({
+          exam,
+          questions: [
+            {
+              id: "q1",
+              examId: "exam-1",
+              type: "mcq",
+              text: "O que é um mouse?",
+              options: ["Dispositivo de entrada", "Dispositivo de saída"],
+              points: 10,
+              timeLimit: 0,
+              orderIndex: 0,
+            },
+          ],
+        })
+      }
+      return undefined
+    }, studentUser)
+
+    // Intercepta o POST de submissão por cima do mock base.
+    const baseFetch = globalThis.fetch
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (request: Request) => {
+        if (request.url.endsWith("/api/exams/exam-1/submit") && request.method === "POST") {
+          submitBody = await request.json()
+          return jsonResponse({
+            submission: {
+              id: "s1",
+              examId: "exam-1",
+              userId: studentUser.id,
+              status: "completed",
+              scoreMcq: 10,
+              scorePractical: 0,
+              totalScore: 10,
+              startedAt: "2026-06-10T12:00:00Z",
+              completedAt: "2026-06-10T12:05:00Z",
+              username: null,
+              displayName: "Aluno Teste",
+            },
+          })
+        }
+        return baseFetch(request)
+      }),
+    )
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Avaliações/ }))
+
+    expect(await screen.findByText("Prova de Informática")).toBeInTheDocument()
+    fireEvent.click(screen.getByRole("button", { name: "Iniciar" }))
+
+    fireEvent.click(await screen.findByLabelText("Dispositivo de entrada"))
+    fireEvent.click(screen.getByRole("button", { name: "Finalizar prova" }))
+
+    expect(await screen.findByText("Prova enviada!")).toBeInTheDocument()
+    expect(screen.getByText("10")).toBeInTheDocument()
+    expect(submitBody).toEqual({
+      status: "completed",
+      answers: [{ questionId: "q1", answerText: "Dispositivo de entrada" }],
+    })
+  })
 })

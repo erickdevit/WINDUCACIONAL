@@ -19,6 +19,8 @@ export const baseApi = createApi({
     "TypingSettings",
     "TypingRanking",
     "ChatMessages",
+    "Exams",
+    "ExamHistory",
   ],
   endpoints: () => ({}),
 })

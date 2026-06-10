@@ -4,6 +4,7 @@ import AttendanceApp from "@/pages/apps/AttendanceApp"
 import BookletsApp from "@/pages/apps/BookletsApp"
 import CalculatorApp from "@/pages/apps/CalculatorApp"
 import ChatApp from "@/pages/apps/ChatApp"
+import ExamsApp from "@/pages/apps/ExamsApp"
 import ExplorerApp from "@/pages/apps/ExplorerApp"
 import GestorApp from "@/pages/apps/GestorApp"
 import NotepadApp from "@/pages/apps/NotepadApp"
@@ -101,6 +102,13 @@ export const APPS: AppDefinition[] = [
     icon: "💬",
     defaultSize: { width: 560, height: 460 },
     component: ChatApp,
+  },
+  {
+    id: "exams",
+    title: "Avaliações",
+    icon: "📋",
+    defaultSize: { width: 560, height: 500 },
+    component: ExamsApp,
   },
 ]
 
