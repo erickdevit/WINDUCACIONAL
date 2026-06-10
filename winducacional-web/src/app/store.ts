@@ -1,6 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit"
 import { baseApi } from "@/api/baseApi"
 import filesReducer from "@/features/files/filesSlice"
+import notificationsReducer from "@/features/notifications/notificationsSlice"
 import windowsReducer from "@/features/windows/windowsSlice"
 
 export function createAppStore() {
@@ -9,6 +10,7 @@ export function createAppStore() {
       [baseApi.reducerPath]: baseApi.reducer,
       windows: windowsReducer,
       files: filesReducer,
+      notifications: notificationsReducer,
     },
     middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(baseApi.middleware),
   })
