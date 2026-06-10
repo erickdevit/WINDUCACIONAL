@@ -60,5 +60,8 @@ module WinducacionalApi
     config.x.booklet_library_dir = ENV.fetch("BOOKLET_LIBRARY_DIR") {
       Rails.root.join("..", "src", "containers", "applications", "apps", "booklets", "library").to_s
     }
+    config.x.base_tree_path = ENV.fetch("BASE_TREE_PATH") {
+      Rails.root.join("..", "src", "reducers", "dir.json").to_s
+    }
   end
 end

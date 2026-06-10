@@ -23,6 +23,7 @@ Rails.application.routes.draw do
   draw(:exams)
   draw(:typing)
   draw(:apps)
+  draw(:fs)
 
   mount ActionCable.server => "/cable"
 end
