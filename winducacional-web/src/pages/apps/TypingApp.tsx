@@ -19,10 +19,13 @@ import {
   useGetTypingRankingTurmaQuery,
   useGetTypingSettingsQuery,
   useSaveTypingScoreMutation,
+  useUpdateTypingSettingsMutation,
 } from "@/features/typing/typingApi"
+import { useTypingSettingsChannel } from "@/features/typing/useTypingSettingsChannel"
+import type { StudentType } from "@/types/user"
 import { getApiErrorMessage } from "@/utils/errors"
 
-type View = "menu" | "lesson" | "result" | "ranking"
+type View = "menu" | "lesson" | "result" | "ranking" | "settings"
 
 interface Session {
   lesson: TypingLesson
@@ -52,6 +55,8 @@ export default function TypingApp() {
   const user = me?.user
   const studentType = user?.studentType === "kids" ? "kids" : "normal"
   const { data: settingsData } = useGetTypingSettingsQuery(studentType, { skip: !user })
+  // Alunos recebem ao vivo as mudanças de limites feitas pelo professor.
+  useTypingSettingsChannel(studentType, user?.role === "aluno")
 
   const [view, setView] = useState<View>("menu")
   const [session, setSession] = useState<Session | null>(null)
@@ -155,6 +160,10 @@ export default function TypingApp() {
     return <TypingRanking onBack={() => setView("menu")} />
   }
 
+  if (view === "settings") {
+    return <TypingSettingsPanel onBack={() => setView("menu")} />
+  }
+
   if (view === "lesson" && session) {
     return (
       <div className="flex h-full flex-col gap-3 text-sm">
@@ -253,13 +262,24 @@ export default function TypingApp() {
         <span className="text-xs text-white/60">
           Meta: {passMinWpm} PPM · {passMinAccuracy}% · máx. {maxErrors} erros
         </span>
-        <button
-          type="button"
-          onClick={() => setView("ranking")}
-          className="rounded-md bg-white/10 px-2 py-1 text-xs hover:bg-white/20"
-        >
-          🏆 Ranking
-        </button>
+        <div className="flex gap-1">
+          {user.role === "professor" && (
+            <button
+              type="button"
+              onClick={() => setView("settings")}
+              className="rounded-md bg-white/10 px-2 py-1 text-xs hover:bg-white/20"
+            >
+              ⚙️ Limites
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setView("ranking")}
+            className="rounded-md bg-white/10 px-2 py-1 text-xs hover:bg-white/20"
+          >
+            🏆 Ranking
+          </button>
+        </div>
       </div>
       <div className="grid flex-1 grid-cols-2 content-start gap-2 overflow-auto">
         {TYPING_LESSONS.map((lesson) => (
@@ -340,6 +360,119 @@ function TypingRanking({ onBack }: { onBack: () => void }) {
           </table>
         )}
       </div>
+    </div>
+  )
+}
+
+function TypingSettingsPanel({ onBack }: { onBack: () => void }) {
+  const [editingType, setEditingType] = useState<StudentType>("normal")
+  const { data, isLoading } = useGetTypingSettingsQuery(editingType)
+  const [updateSettings, { isLoading: isSaving, isSuccess, error }] = useUpdateTypingSettingsMutation()
+  const [passMinWpm, setPassMinWpm] = useState("")
+  const [passMinAccuracy, setPassMinAccuracy] = useState("")
+  const [maxErrors, setMaxErrors] = useState("")
+  const [loadedType, setLoadedType] = useState<string | null>(null)
+
+  // Preenche o formulário quando os dados do tipo selecionado chegam
+  // (ajuste de estado durante o render, sem useEffect).
+  const loadKey = data ? `${editingType}:${data.settings.updatedAt ?? "default"}` : null
+  if (loadKey && data && loadKey !== loadedType) {
+    setPassMinWpm(String(data.settings.passMinWpm))
+    setPassMinAccuracy(String(data.settings.passMinAccuracy))
+    setMaxErrors(String(data.settings.maxErrors))
+    setLoadedType(loadKey)
+  }
+
+  function handleSave() {
+    void updateSettings({
+      studentType: editingType,
+      passMinWpm: Number(passMinWpm) || 40,
+      passMinAccuracy: Number(passMinAccuracy) || 95,
+      maxErrors: Number(maxErrors) || 7,
+    })
+  }
+
+  const fieldClass =
+    "w-20 rounded-md bg-black/30 px-2 py-1 text-xs text-white outline-none focus:ring-1 focus:ring-accent"
+
+  return (
+    <div className="flex h-full flex-col gap-3 text-sm">
+      <div className="flex items-center justify-between">
+        <div className="flex gap-1">
+          {(["normal", "kids"] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setEditingType(value)}
+              className={`rounded-md px-2 py-1 text-xs ${editingType === value ? "bg-accent text-white" : "bg-white/10 hover:bg-white/20"}`}
+            >
+              {value === "normal" ? "Normal" : "Kids"}
+            </button>
+          ))}
+        </div>
+        <button type="button" onClick={onBack} className="text-xs text-white/50 hover:text-white">
+          ← Voltar
+        </button>
+      </div>
+
+      {isLoading ? (
+        <p className="text-xs text-white/60">Carregando…</p>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <label className="flex items-center justify-between text-xs text-white/70">
+            PPM mínimo (10–120)
+            <input
+              type="number"
+              aria-label="PPM mínimo"
+              min={10}
+              max={120}
+              value={passMinWpm}
+              onChange={(event) => setPassMinWpm(event.target.value)}
+              className={fieldClass}
+            />
+          </label>
+          <label className="flex items-center justify-between text-xs text-white/70">
+            Precisão mínima % (50–100)
+            <input
+              type="number"
+              aria-label="Precisão mínima"
+              min={50}
+              max={100}
+              value={passMinAccuracy}
+              onChange={(event) => setPassMinAccuracy(event.target.value)}
+              className={fieldClass}
+            />
+          </label>
+          <label className="flex items-center justify-between text-xs text-white/70">
+            Máximo de erros (3–10)
+            <input
+              type="number"
+              aria-label="Máximo de erros"
+              min={3}
+              max={10}
+              value={maxErrors}
+              onChange={(event) => setMaxErrors(event.target.value)}
+              className={fieldClass}
+            />
+          </label>
+
+          {error && (
+            <p className="text-xs text-red-400">
+              {getApiErrorMessage(error, "Não foi possível salvar os limites.")}
+            </p>
+          )}
+          {isSuccess && <p className="text-xs text-green-400">Limites salvos — alunos atualizados ao vivo.</p>}
+
+          <button
+            type="button"
+            disabled={isSaving}
+            onClick={handleSave}
+            className="self-end rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-hover disabled:opacity-50"
+          >
+            {isSaving ? "Salvando…" : "Salvar limites"}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

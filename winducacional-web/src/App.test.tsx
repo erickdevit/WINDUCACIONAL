@@ -976,4 +976,52 @@ describe("App", () => {
 
     expect(await screen.findByText("Aluno Novo")).toBeInTheDocument()
   })
+
+  it("permite ao professor ajustar os limites de digitação", async () => {
+    let settings = {
+      studentType: "normal",
+      passMinWpm: 40,
+      passMinAccuracy: 95,
+      maxErrors: 7,
+      updatedAt: null as string | null,
+    }
+    let putBody: unknown = null
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (request: Request) => {
+        const url = request.url
+        if (url.endsWith("/api/bootstrap/status")) {
+          return jsonResponse({ needsBootstrap: false, requiresToken: false })
+        }
+        if (url.endsWith("/api/auth/me")) {
+          return jsonResponse({ user: professorUser })
+        }
+        if (url.endsWith("/api/typing/settings/normal") && request.method === "PUT") {
+          putBody = await request.json()
+          settings = { ...settings, ...(putBody as object), updatedAt: "2026-06-10T12:00:00Z" }
+          return jsonResponse({ settings })
+        }
+        if (url.endsWith("/api/typing/settings/normal")) {
+          return jsonResponse({ settings })
+        }
+        throw new Error(`fetch inesperado: ${url}`)
+      }),
+    )
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Digitação/ }))
+
+    fireEvent.click(await screen.findByRole("button", { name: /Limites/ }))
+
+    const wpmInput = await screen.findByLabelText("PPM mínimo")
+    expect(wpmInput).toHaveValue(40)
+
+    fireEvent.change(wpmInput, { target: { value: "55" } })
+    fireEvent.click(screen.getByRole("button", { name: "Salvar limites" }))
+
+    expect(await screen.findByText(/Limites salvos/)).toBeInTheDocument()
+    expect(putBody).toEqual({ passMinWpm: 55, passMinAccuracy: 95, maxErrors: 7 })
+  })
 })
