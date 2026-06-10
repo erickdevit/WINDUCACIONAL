@@ -447,4 +447,96 @@ describe("App", () => {
       },
     })
   })
+
+  it("abre a Digitação, lista as lições e mostra o ranking da turma", async () => {
+    mockAuthenticatedFetch((url) => {
+      if (url.endsWith("/api/typing/settings/normal")) {
+        return jsonResponse({
+          settings: {
+            studentType: "normal",
+            passMinWpm: 40,
+            passMinAccuracy: 95,
+            maxErrors: 7,
+            updatedAt: null,
+          },
+        })
+      }
+      if (url.endsWith("/api/typing/ranking/turma")) {
+        return jsonResponse({
+          ranking: [
+            {
+              name: "Aluno Um",
+              lessons_completed: 4,
+              points: 320,
+              best_wpm: 52,
+              best_accuracy: 97.5,
+              best_time: 41000,
+            },
+          ],
+        })
+      }
+      return undefined
+    }, studentUser)
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Digitação/ }))
+
+    expect(await screen.findByText(/Linha Base - Esquerda/)).toBeInTheDocument()
+    expect(await screen.findByText(/Meta: 40 PPM · 95% · máx. 7 erros/)).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: /Ranking/ }))
+
+    expect(await screen.findByText("Aluno Um")).toBeInTheDocument()
+    expect(screen.getByText("52")).toBeInTheDocument()
+    expect(screen.getByText("97%")).toBeInTheDocument()
+  })
+
+  it("conclui uma lição de digitação e envia a pontuação", async () => {
+    // Garante a variante 0 da lição, já que a rotação fica no localStorage.
+    localStorage.clear()
+    let scoreBody: unknown = null
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (request: Request) => {
+        const url = request.url
+        if (url.endsWith("/api/bootstrap/status")) {
+          return jsonResponse({ needsBootstrap: false, requiresToken: false })
+        }
+        if (url.endsWith("/api/auth/me")) {
+          return jsonResponse({ user: studentUser })
+        }
+        if (url.endsWith("/api/typing/settings/normal")) {
+          return jsonResponse({
+            settings: {
+              studentType: "normal",
+              passMinWpm: 40,
+              passMinAccuracy: 95,
+              maxErrors: 7,
+              updatedAt: null,
+            },
+          })
+        }
+        if (url.endsWith("/api/typing/score")) {
+          scoreBody = await request.json()
+          return jsonResponse({ ok: true }, 201)
+        }
+        throw new Error(`fetch inesperado: ${url}`)
+      }),
+    )
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Digitação/ }))
+
+    fireEvent.click(await screen.findByText(/Linha Base - Esquerda/))
+
+    const input = await screen.findByLabelText("Digite o texto da lição")
+    const lessonText = "asdf asdf asdf fada saca fada casa asdf saca fada casa"
+    fireEvent.change(input, { target: { value: lessonText } })
+
+    expect(await screen.findByText(/Lição concluída!|Tente novamente/)).toBeInTheDocument()
+    await waitFor(() => expect(scoreBody).not.toBeNull())
+    expect(scoreBody).toMatchObject({ lessonId: 1, accuracy: 100 })
+  })
 })

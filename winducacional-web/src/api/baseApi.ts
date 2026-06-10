@@ -11,6 +11,6 @@ export const baseApi = createApi({
     baseUrl: `${window.location.origin}/api`,
     credentials: "include",
   }),
-  tagTypes: ["User", "GestorSessions", "BookletModules", "FsTree"],
+  tagTypes: ["User", "GestorSessions", "BookletModules", "FsTree", "TypingSettings", "TypingRanking"],
   endpoints: () => ({}),
 })

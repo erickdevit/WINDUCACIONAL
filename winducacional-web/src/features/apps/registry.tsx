@@ -7,6 +7,7 @@ import ExplorerApp from "@/pages/apps/ExplorerApp"
 import GestorApp from "@/pages/apps/GestorApp"
 import NotepadApp from "@/pages/apps/NotepadApp"
 import SettingsApp from "@/pages/apps/SettingsApp"
+import TypingApp from "@/pages/apps/TypingApp"
 import type { UserRole } from "@/types/user"
 import type { WindowSize } from "@/features/windows/windowsSlice"
 
@@ -85,6 +86,13 @@ export const APPS: AppDefinition[] = [
     icon: "📝",
     defaultSize: { width: 480, height: 420 },
     component: NotepadApp,
+  },
+  {
+    id: "typing",
+    title: "Digitação",
+    icon: "⌨️",
+    defaultSize: { width: 640, height: 520 },
+    component: TypingApp,
   },
 ]
 
