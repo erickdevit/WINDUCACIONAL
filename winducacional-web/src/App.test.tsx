@@ -539,4 +539,78 @@ describe("App", () => {
     await waitFor(() => expect(scoreBody).not.toBeNull())
     expect(scoreBody).toMatchObject({ lessonId: 1, accuracy: 100 })
   })
+
+  it("abre o Chat no grupo da turma e envia uma mensagem", async () => {
+    const baseMessage = {
+      thread_id: "thread-1",
+      attachment: null,
+      sender_role: "aluno",
+    }
+    const messages = [
+      {
+        ...baseMessage,
+        id: "m1",
+        sender_id: "9",
+        body: "Bom dia, turma!",
+        created_at: "2026-06-10T12:00:00Z",
+        sender_name: "Colega",
+        sender_username: "colega",
+      },
+    ]
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (request: Request) => {
+        const url = request.url
+        if (url.endsWith("/api/bootstrap/status")) {
+          return jsonResponse({ needsBootstrap: false, requiresToken: false })
+        }
+        if (url.endsWith("/api/auth/me")) {
+          return jsonResponse({ user: studentUser })
+        }
+        if (url.endsWith("/api/chat/turmas")) {
+          return jsonResponse({ turmas: [{ id: "turma-1", nome: "Turma A" }] })
+        }
+        if (url.endsWith("/api/chat/turmas/turma-1/group-thread")) {
+          return jsonResponse({ threadId: "thread-1" })
+        }
+        if (url.endsWith("/api/chat/turmas/turma-1/members")) {
+          return jsonResponse({
+            members: [{ id: "9", username: "colega", displayName: "Colega", role: "aluno" }],
+          })
+        }
+        if (url.endsWith("/api/chat/threads/thread-1/messages") && request.method === "POST") {
+          const body = (await request.json()) as { body: string }
+          messages.push({
+            ...baseMessage,
+            id: `m${messages.length + 1}`,
+            sender_id: studentUser.id,
+            body: body.body,
+            created_at: "2026-06-10T12:01:00Z",
+            sender_name: studentUser.displayName,
+            sender_username: studentUser.username,
+          })
+          return jsonResponse({ message: messages[messages.length - 1] }, 201)
+        }
+        if (url.endsWith("/api/chat/threads/thread-1/messages")) {
+          return jsonResponse({ messages })
+        }
+        throw new Error(`fetch inesperado: ${url}`)
+      }),
+    )
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Chat/ }))
+
+    fireEvent.click(await screen.findByRole("button", { name: /Grupo da turma/ }))
+
+    expect(await screen.findByText("Bom dia, turma!")).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText("Mensagem"), { target: { value: "Olá!" } })
+    fireEvent.click(screen.getByRole("button", { name: "Enviar" }))
+
+    expect(await screen.findByText("Olá!")).toBeInTheDocument()
+    expect(screen.getByLabelText("Mensagem")).toHaveValue("")
+  })
 })

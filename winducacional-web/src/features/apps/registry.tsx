@@ -3,6 +3,7 @@ import AboutApp from "@/pages/apps/AboutApp"
 import AttendanceApp from "@/pages/apps/AttendanceApp"
 import BookletsApp from "@/pages/apps/BookletsApp"
 import CalculatorApp from "@/pages/apps/CalculatorApp"
+import ChatApp from "@/pages/apps/ChatApp"
 import ExplorerApp from "@/pages/apps/ExplorerApp"
 import GestorApp from "@/pages/apps/GestorApp"
 import NotepadApp from "@/pages/apps/NotepadApp"
@@ -93,6 +94,13 @@ export const APPS: AppDefinition[] = [
     icon: "⌨️",
     defaultSize: { width: 640, height: 520 },
     component: TypingApp,
+  },
+  {
+    id: "chat",
+    title: "Chat",
+    icon: "💬",
+    defaultSize: { width: 560, height: 460 },
+    component: ChatApp,
   },
 ]
 
