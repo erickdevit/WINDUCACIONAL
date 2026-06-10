@@ -277,4 +277,99 @@ describe("App", () => {
     expect(await screen.findByRole("button", { name: /Frequência/ })).toBeInTheDocument()
     expect(screen.queryByRole("button", { name: /Gestor/ })).not.toBeInTheDocument()
   })
+
+  it("permite ao professor liberar uma apostila para os alunos", async () => {
+    let modulesCallCount = 0
+    const file = {
+      id: "f1",
+      title: "Introdução",
+      fileName: "1 - Introdução.pdf",
+      order: 1,
+      size: 2048,
+      url: "/api/booklets/modules/m1/files/f1/pdf",
+    }
+
+    mockAuthenticatedFetch((url) => {
+      if (url.endsWith("/api/booklets/modules/access")) {
+        return jsonResponse({ modules: [] })
+      }
+      if (url.endsWith("/api/booklets/modules")) {
+        modulesCallCount += 1
+        const globalEnabled = modulesCallCount > 1
+        return jsonResponse({
+          modules: [
+            {
+              id: "m1",
+              title: "Informática Básica",
+              folderName: "1 - Informática Básica",
+              order: 1,
+              totalFiles: 1,
+              files: [file],
+              globalEnabled,
+              studentEnabled: false,
+              enabled: globalEnabled,
+            },
+          ],
+        })
+      }
+      return undefined
+    })
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Apostilas/ }))
+
+    expect(await screen.findByText("Informática Básica")).toBeInTheDocument()
+    expect(screen.getByText("2.0 KB")).toBeInTheDocument()
+
+    const checkbox = screen.getByRole("checkbox", { name: "Liberado para alunos" })
+    expect(checkbox).not.toBeChecked()
+
+    fireEvent.click(checkbox)
+
+    expect(await screen.findByRole("checkbox", { name: "Liberado para alunos" })).toBeChecked()
+  })
+
+  it("mostra apenas as apostilas liberadas para o perfil aluno, sem opção de gerenciar", async () => {
+    mockAuthenticatedFetch((url) => {
+      if (url.endsWith("/api/booklets/modules")) {
+        return jsonResponse({
+          modules: [
+            {
+              id: "m1",
+              title: "Informática Básica",
+              folderName: "1 - Informática Básica",
+              order: 1,
+              totalFiles: 1,
+              files: [
+                {
+                  id: "f1",
+                  title: "Introdução",
+                  fileName: "1 - Introdução.pdf",
+                  order: 1,
+                  size: 2048,
+                  url: "/api/booklets/modules/m1/files/f1/pdf",
+                },
+              ],
+              globalEnabled: true,
+              studentEnabled: false,
+              enabled: true,
+            },
+          ],
+        })
+      }
+      return undefined
+    }, studentUser)
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Apostilas/ }))
+
+    expect(await screen.findByText("Informática Básica")).toBeInTheDocument()
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument()
+    expect(screen.getByRole("link", { name: /Introdução/ })).toHaveAttribute(
+      "href",
+      `${window.location.origin}/api/booklets/modules/m1/files/f1/pdf`,
+    )
+  })
 })

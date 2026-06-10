@@ -11,6 +11,6 @@ export const baseApi = createApi({
     baseUrl: `${window.location.origin}/api`,
     credentials: "include",
   }),
-  tagTypes: ["User", "GestorSessions"],
+  tagTypes: ["User", "GestorSessions", "BookletModules"],
   endpoints: () => ({}),
 })

@@ -1,6 +1,7 @@
 import type { ComponentType } from "react"
 import AboutApp from "@/pages/apps/AboutApp"
 import AttendanceApp from "@/pages/apps/AttendanceApp"
+import BookletsApp from "@/pages/apps/BookletsApp"
 import CalculatorApp from "@/pages/apps/CalculatorApp"
 import ExplorerApp from "@/pages/apps/ExplorerApp"
 import GestorApp from "@/pages/apps/GestorApp"
@@ -64,6 +65,13 @@ export const APPS: AppDefinition[] = [
     defaultSize: { width: 420, height: 440 },
     component: GestorApp,
     roles: ["professor", "secretaria"],
+  },
+  {
+    id: "booklets",
+    title: "Apostilas",
+    icon: "📚",
+    defaultSize: { width: 420, height: 480 },
+    component: BookletsApp,
   },
 ]
 
