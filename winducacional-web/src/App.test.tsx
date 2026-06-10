@@ -1058,4 +1058,58 @@ describe("App", () => {
 
     await waitFor(() => expect(challengeBody).toEqual({ targetId: "9" }))
   })
+
+  it("abre o Navegador apontando para o proxy e navega por pesquisa", async () => {
+    mockAuthenticatedFetch()
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Navegador/ }))
+
+    const iframe = (await screen.findByTitle("Navegador")) as HTMLIFrameElement
+    expect(iframe.src).toContain("/api/edge-proxy?url=")
+
+    fireEvent.change(screen.getByLabelText("Endereço"), { target: { value: "gatos fofos" } })
+    fireEvent.click(screen.getByRole("button", { name: "Ir" }))
+
+    expect((screen.getByTitle("Navegador") as HTMLIFrameElement).src).toContain(
+      encodeURIComponent("google.com/search?igu=1&q=gatos%20fofos"),
+    )
+  })
+
+  it("gera uma imagem pelo Gerador de Imagens", async () => {
+    let generateBody: unknown = null
+    mockAuthenticatedFetch((url) => {
+      if (url.endsWith("/api/imagegen/config")) {
+        return jsonResponse({ provider: "worker", label: "Worker", configured: true })
+      }
+      return undefined
+    })
+
+    const baseFetch = globalThis.fetch
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (request: Request) => {
+        if (request.url.endsWith("/api/imagegen/generate") && request.method === "POST") {
+          generateBody = await request.json()
+          return jsonResponse({ image: "data:image/png;base64,abc123" })
+        }
+        return baseFetch(request)
+      }),
+    )
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Gerador de Imagens/ }))
+
+    fireEvent.change(await screen.findByLabelText("Descrição da imagem"), {
+      target: { value: "um gato astronauta" },
+    })
+    fireEvent.click(screen.getByRole("button", { name: "16:9" }))
+    fireEvent.click(screen.getByRole("button", { name: "Gerar" }))
+
+    const image = await screen.findByAltText("um gato astronauta")
+    expect(image).toHaveAttribute("src", "data:image/png;base64,abc123")
+    expect(generateBody).toEqual({ prompt: "um gato astronauta", aspect: "16:9" })
+  })
 })

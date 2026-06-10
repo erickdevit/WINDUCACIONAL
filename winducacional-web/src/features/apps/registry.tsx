@@ -4,8 +4,10 @@ import AttendanceApp from "@/pages/apps/AttendanceApp"
 import BookletsApp from "@/pages/apps/BookletsApp"
 import CalculatorApp from "@/pages/apps/CalculatorApp"
 import ChatApp from "@/pages/apps/ChatApp"
+import EdgeApp from "@/pages/apps/EdgeApp"
 import ExamsApp from "@/pages/apps/ExamsApp"
 import ExplorerApp from "@/pages/apps/ExplorerApp"
+import ImagegenApp from "@/pages/apps/ImagegenApp"
 import GestorApp from "@/pages/apps/GestorApp"
 import NotepadApp from "@/pages/apps/NotepadApp"
 import PvpApp from "@/pages/apps/PvpApp"
@@ -127,6 +129,20 @@ export const APPS: AppDefinition[] = [
     defaultSize: { width: 480, height: 460 },
     component: PvpApp,
     roles: ["aluno"],
+  },
+  {
+    id: "edge",
+    title: "Navegador",
+    icon: "🌐",
+    defaultSize: { width: 720, height: 520 },
+    component: EdgeApp,
+  },
+  {
+    id: "imagegen",
+    title: "Gerador de Imagens",
+    icon: "🎨",
+    defaultSize: { width: 520, height: 520 },
+    component: ImagegenApp,
   },
 ]
 
