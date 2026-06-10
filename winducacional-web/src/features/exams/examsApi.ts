@@ -42,11 +42,33 @@ export interface ExamSubmission {
   displayName: string | null
 }
 
+// Shape completo visto por professor/secretaria (as_public_json_full).
+export interface ExamQuestionFull extends ExamQuestion {
+  correctAnswer: string | null
+  validationRules: unknown[]
+}
+
 export interface SubmitExamRequest {
   examId: string
   status: "in_progress" | "completed"
   answers: { questionId: string; answerText: string | null }[]
   practicalSnapshot?: unknown
+}
+
+export interface CreateExamRequest {
+  title: string
+  description?: string
+  timeLimit?: number
+}
+
+export interface CreateQuestionRequest {
+  examId: string
+  type: "mcq" | "practical"
+  text: string
+  options?: string[]
+  correctAnswer?: string
+  points?: number
+  orderIndex?: number
 }
 
 export const examsApi = baseApi.injectEndpoints({
@@ -57,6 +79,7 @@ export const examsApi = baseApi.injectEndpoints({
     }),
     getExam: build.query<{ exam: Exam; questions: ExamQuestion[] }, string>({
       query: (examId) => `/exams/${examId}`,
+      providesTags: (_result, _error, examId) => [{ type: "Exam", id: examId }],
     }),
     submitExam: build.mutation<{ submission: ExamSubmission }, SubmitExamRequest>({
       query: ({ examId, ...body }) => ({ url: `/exams/${examId}/submit`, method: "POST", body }),
@@ -66,6 +89,29 @@ export const examsApi = baseApi.injectEndpoints({
       query: () => "/exams/student/history",
       providesTags: ["ExamHistory"],
     }),
+    createExam: build.mutation<{ exam: Exam }, CreateExamRequest>({
+      query: (body) => ({ url: "/exams", method: "POST", body }),
+      invalidatesTags: ["Exams"],
+    }),
+    updateExam: build.mutation<{ exam: Exam }, { examId: string } & Partial<CreateExamRequest> & { isPublished?: boolean; active?: boolean }>({
+      query: ({ examId, ...body }) => ({ url: `/exams/${examId}`, method: "PUT", body }),
+      invalidatesTags: (_result, _error, { examId }) => ["Exams", { type: "Exam", id: examId }],
+    }),
+    deleteExam: build.mutation<void, string>({
+      query: (examId) => ({ url: `/exams/${examId}`, method: "DELETE" }),
+      invalidatesTags: ["Exams"],
+    }),
+    createQuestion: build.mutation<{ question: ExamQuestionFull }, CreateQuestionRequest>({
+      query: ({ examId, ...body }) => ({ url: `/exams/${examId}/questions`, method: "POST", body }),
+      invalidatesTags: (_result, _error, { examId }) => [{ type: "Exam", id: examId }],
+    }),
+    deleteQuestion: build.mutation<void, { examId: string; questionId: string }>({
+      query: ({ examId, questionId }) => ({
+        url: `/exams/${examId}/questions/${questionId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (_result, _error, { examId }) => [{ type: "Exam", id: examId }],
+    }),
   }),
 })
 
@@ -74,4 +120,9 @@ export const {
   useGetExamQuery,
   useSubmitExamMutation,
   useGetStudentHistoryQuery,
+  useCreateExamMutation,
+  useUpdateExamMutation,
+  useDeleteExamMutation,
+  useCreateQuestionMutation,
+  useDeleteQuestionMutation,
 } = examsApi

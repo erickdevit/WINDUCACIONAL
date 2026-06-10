@@ -8,6 +8,7 @@ import {
   type Exam,
   type ExamSubmission,
 } from "@/features/exams/examsApi"
+import { ExamsProfessorView } from "@/pages/apps/ExamsProfessorView"
 import { getApiErrorMessage } from "@/utils/errors"
 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
@@ -22,6 +23,10 @@ export default function ExamsApp() {
   const [lastResult, setLastResult] = useState<ExamSubmission | null>(null)
 
   if (!me) return <p className="text-sm text-white/60">Carregando…</p>
+
+  if (me.user.role !== "aluno") {
+    return <ExamsProfessorView />
+  }
 
   if (lastResult) {
     return (
@@ -54,12 +59,13 @@ export default function ExamsApp() {
     )
   }
 
-  return <ExamList isStudent={me.user.role === "aluno"} onOpen={setActiveExam} />
+  return <ExamList onOpen={setActiveExam} />
 }
 
-function ExamList({ isStudent, onOpen }: { isStudent: boolean; onOpen: (exam: Exam) => void }) {
+// Lista de provas atribuídas ao aluno (professor/secretaria usam ExamsProfessorView).
+function ExamList({ onOpen }: { onOpen: (exam: Exam) => void }) {
   const { data, isLoading, isError, error } = useGetExamsQuery()
-  const history = useGetStudentHistoryQuery(undefined, { skip: !isStudent })
+  const history = useGetStudentHistoryQuery()
 
   if (isLoading) return <p className="text-sm text-white/60">Carregando…</p>
   if (isError || !data) {
@@ -80,11 +86,9 @@ function ExamList({ isStudent, onOpen }: { isStudent: boolean; onOpen: (exam: Ex
                 <li key={exam.id} className="rounded-md bg-black/30 p-2">
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-medium text-white/90">{exam.title}</span>
-                    {isStudent && (
-                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}>
-                        {status.label}
-                      </span>
-                    )}
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}>
+                      {status.label}
+                    </span>
                   </div>
                   {exam.description && <p className="mt-0.5 text-xs text-white/50">{exam.description}</p>}
                   <div className="mt-1 flex items-center justify-between text-xs text-white/40">
@@ -106,7 +110,7 @@ function ExamList({ isStudent, onOpen }: { isStudent: boolean; onOpen: (exam: Ex
         )}
       </div>
 
-      {isStudent && history.data && history.data.submissions.length > 0 && (
+      {history.data && history.data.submissions.length > 0 && (
         <div className="border-t border-desktop-border pt-2">
           <p className="mb-1 text-xs font-medium text-white/60">Histórico</p>
           <ul className="flex max-h-24 flex-col gap-1 overflow-auto text-xs">

@@ -20,6 +20,7 @@ export const baseApi = createApi({
     "TypingRanking",
     "ChatMessages",
     "Exams",
+    "Exam",
     "ExamHistory",
   ],
   endpoints: () => ({}),

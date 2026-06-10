@@ -700,4 +700,104 @@ describe("App", () => {
       answers: [{ questionId: "q1", answerText: "Dispositivo de entrada" }],
     })
   })
+
+  it("permite ao professor criar uma prova, adicionar questão e publicar", async () => {
+    interface MockExam {
+      id: string
+      turmaId: string | null
+      title: string
+      description: string | null
+      containerInitialState: null
+      timeLimit: number
+      isPublished: boolean
+      active: boolean
+      createdAt: string
+      updatedAt: string
+    }
+    const exams: MockExam[] = []
+    const questions: { id: string; examId: string; type: string; text: string; options: string[]; points: number; timeLimit: number; orderIndex: number }[] = []
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (request: Request) => {
+        const url = request.url
+        if (url.endsWith("/api/bootstrap/status")) {
+          return jsonResponse({ needsBootstrap: false, requiresToken: false })
+        }
+        if (url.endsWith("/api/auth/me")) {
+          return jsonResponse({ user: professorUser })
+        }
+        if (url.endsWith("/api/exams") && request.method === "POST") {
+          const body = (await request.json()) as { title: string; timeLimit?: number }
+          const exam: MockExam = {
+            id: "exam-1",
+            turmaId: null,
+            title: body.title,
+            description: null,
+            containerInitialState: null,
+            timeLimit: body.timeLimit ?? 0,
+            isPublished: false,
+            active: true,
+            createdAt: "2026-06-10T12:00:00Z",
+            updatedAt: "2026-06-10T12:00:00Z",
+          }
+          exams.push(exam)
+          return jsonResponse({ exam }, 201)
+        }
+        if (url.endsWith("/api/exams")) {
+          return jsonResponse({ exams })
+        }
+        if (url.endsWith("/api/exams/exam-1/questions") && request.method === "POST") {
+          const body = (await request.json()) as { text: string; options: string[]; points: number }
+          const question = {
+            id: `q${questions.length + 1}`,
+            examId: "exam-1",
+            type: "mcq",
+            text: body.text,
+            options: body.options,
+            points: body.points,
+            timeLimit: 0,
+            orderIndex: questions.length,
+          }
+          questions.push(question)
+          return jsonResponse({ question }, 201)
+        }
+        if (url.endsWith("/api/exams/exam-1") && request.method === "PUT") {
+          const body = (await request.json()) as { isPublished?: boolean }
+          if (typeof body.isPublished === "boolean") exams[0].isPublished = body.isPublished
+          return jsonResponse({ exam: exams[0] })
+        }
+        if (url.endsWith("/api/exams/exam-1")) {
+          return jsonResponse({ exam: exams[0], questions })
+        }
+        throw new Error(`fetch inesperado: ${url}`)
+      }),
+    )
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Avaliações/ }))
+
+    fireEvent.change(await screen.findByLabelText("Título da nova prova"), {
+      target: { value: "Prova Nova" },
+    })
+    fireEvent.click(screen.getByRole("button", { name: "Criar prova" }))
+
+    // Após criar, entra direto no editor de questões.
+    fireEvent.change(await screen.findByLabelText("Enunciado da questão"), {
+      target: { value: "Quanto é 2+2?" },
+    })
+    fireEvent.change(screen.getByLabelText("Alternativa 1"), { target: { value: "4" } })
+    fireEvent.change(screen.getByLabelText("Alternativa 2"), { target: { value: "5" } })
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar questão" }))
+
+    expect(await screen.findByText(/Quanto é 2\+2\?/)).toBeInTheDocument()
+    expect(screen.getByText(/2 alternativas · 10 pts/)).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "← Voltar" }))
+
+    fireEvent.click(await screen.findByRole("button", { name: "Publicar" }))
+
+    expect(await screen.findByText("Publicada")).toBeInTheDocument()
+  })
 })
