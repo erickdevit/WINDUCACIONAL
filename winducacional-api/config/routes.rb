@@ -24,6 +24,9 @@ Rails.application.routes.draw do
   draw(:typing)
   draw(:apps)
   draw(:fs)
+  draw(:gestor)
+  draw(:imagegen)
+  draw(:edge_proxy)
 
   mount ActionCable.server => "/cable"
 end
