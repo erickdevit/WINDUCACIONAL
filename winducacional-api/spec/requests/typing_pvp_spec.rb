@@ -83,23 +83,63 @@ RSpec.describe "Duelos de digitação (PVP)", type: :request do
       post "/api/typing-pvp/accept", params: { challengerId: aluno_b.id }, as: :json
       expect(response).to have_http_status(:ok)
 
+      login_as(aluno_b)
+      post "/api/typing-pvp/sync", params: { state: { wordsCompleted: 3 } }, as: :json
+      expect(response).to have_http_status(:ok)
+
+      login_as(aluno_a)
       expect {
-        post "/api/typing-pvp/sync", params: { state: { wordsCompleted: 5 } }, as: :json
+        post "/api/typing-pvp/sync", params: { state: { wordsCompleted: 20 } }, as: :json
       }.to have_broadcasted_to("typing_pvp:#{aluno_b.id}").with(hash_including("type" => "sync"))
 
       expect {
-        post "/api/typing-pvp/win", params: { winnerScore: 10, loserScore: 3 }, as: :json
+        post "/api/typing-pvp/win", params: { winnerScore: 1, loserScore: 999 }, as: :json
       }.to have_broadcasted_to("typing_pvp:#{aluno_b.id}").with(hash_including("type" => "match_finished"))
       expect(response).to have_http_status(:ok)
       expect(json_body[:match][:winnerId]).to eq(aluno_a.id)
       expect(json_body[:match][:loserId]).to eq(aluno_b.id)
-      expect(json_body[:match][:winnerScore]).to eq(10)
+      expect(json_body[:match][:winnerScore]).to eq(20)
       expect(json_body[:match][:loserScore]).to eq(3)
 
       match = TypingPvpMatch.last
       expect(match.winner_id).to eq(aluno_a.id)
       expect(match.loser_id).to eq(aluno_b.id)
       expect(match.turma_id).to eq(turma.id)
+    end
+
+    it "rejeita vitória forjada sem progresso completo" do
+      login_as(aluno_a)
+      post "/api/typing-pvp/accept", params: { challengerId: aluno_b.id }, as: :json
+      expect(response).to have_http_status(:ok)
+
+      post "/api/typing-pvp/sync", params: { state: { wordsCompleted: 5 } }, as: :json
+      expect(response).to have_http_status(:ok)
+
+      post "/api/typing-pvp/win", params: { winnerScore: 999, loserScore: 0 }, as: :json
+      expect(response).to have_http_status(:conflict)
+      expect(json_body[:error]).to eq("Partida ainda não concluída.")
+      expect(TypingPvpMatch.count).to eq(0)
+    end
+
+    it "calcula vencedor pelo estado da sala mesmo quando o perdedor finaliza" do
+      login_as(aluno_a)
+      post "/api/typing-pvp/accept", params: { challengerId: aluno_b.id }, as: :json
+      expect(response).to have_http_status(:ok)
+
+      login_as(aluno_b)
+      post "/api/typing-pvp/sync", params: { state: { wordsCompleted: 20 } }, as: :json
+      expect(response).to have_http_status(:ok)
+
+      login_as(aluno_a)
+      post "/api/typing-pvp/sync", params: { state: { wordsCompleted: 7 } }, as: :json
+      expect(response).to have_http_status(:ok)
+
+      post "/api/typing-pvp/lose", params: { winnerScore: 1, loserScore: 999 }, as: :json
+      expect(response).to have_http_status(:ok)
+      expect(json_body[:match][:winnerId]).to eq(aluno_b.id)
+      expect(json_body[:match][:loserId]).to eq(aluno_a.id)
+      expect(json_body[:match][:winnerScore]).to eq(20)
+      expect(json_body[:match][:loserScore]).to eq(7)
     end
 
     it "retorna 400 quando não está em uma partida" do

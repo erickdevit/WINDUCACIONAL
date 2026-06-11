@@ -227,14 +227,16 @@ function PvpDuel({
     setTyped(value)
   }
 
-  // Vitória: o primeiro a completar todas as palavras chama /win; o servidor
-  // emite match_finished para os dois lados.
+  // Vitória: o cliente só sinaliza que terminou; o servidor decide o vencedor
+  // usando o progresso sincronizado da sala.
   useEffect(() => {
     if (wordIndex >= MATCH_WORD_COUNT && !finishedRef.current) {
       finishedRef.current = true
-      void win({ winnerScore: wordIndex, loserScore: opponentState.wordsCompleted })
+      void sync({ state: { wordsCompleted: wordIndex, wpm: myWpm } })
+        .unwrap()
+        .then(() => win().unwrap())
     }
-  }, [wordIndex, opponentState.wordsCompleted, win])
+  }, [myWpm, sync, win, wordIndex])
 
   const myProgress = Math.min((wordIndex / MATCH_WORD_COUNT) * 100, 100)
   const opponentProgress = Math.min((opponentState.wordsCompleted / MATCH_WORD_COUNT) * 100, 100)

@@ -67,17 +67,13 @@ module Api
 
     # POST /api/typing-pvp/win
     def win
-      match = Typing::PvpLobby.finish_match(
-        current_user, role: :winner, winner_score: params[:winnerScore], loser_score: params[:loserScore]
-      )
+      match = Typing::PvpLobby.finish_match(current_user, role: :winner)
       render json: { success: true, match: match }
     end
 
     # POST /api/typing-pvp/lose
     def lose
-      match = Typing::PvpLobby.finish_match(
-        current_user, role: :loser, winner_score: params[:winnerScore], loser_score: params[:loserScore]
-      )
+      match = Typing::PvpLobby.finish_match(current_user, role: :loser)
       render json: { success: true, match: match }
     end
 

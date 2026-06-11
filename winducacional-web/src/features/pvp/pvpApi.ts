@@ -41,8 +41,8 @@ export const pvpApi = baseApi.injectEndpoints({
     pvpLeave: build.mutation<{ success: boolean }, void>({
       query: () => ({ url: "/typing-pvp/leave", method: "POST" }),
     }),
-    pvpWin: build.mutation<{ success: boolean }, { winnerScore: number; loserScore: number }>({
-      query: (body) => ({ url: "/typing-pvp/win", method: "POST", body }),
+    pvpWin: build.mutation<{ success: boolean }, void>({
+      query: () => ({ url: "/typing-pvp/win", method: "POST" }),
     }),
   }),
 })

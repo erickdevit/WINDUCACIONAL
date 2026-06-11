@@ -3,6 +3,7 @@ module Typing
   # pvpLobby/pvpClients de server/typingPvp.cjs). Usa Redis para que o
   # estado seja compartilhado entre processos/workers do Puma.
   class PvpLobby
+    MATCH_WORD_COUNT = 20
     SCORE_LIMIT = 1_000_000
 
     def self.redis
@@ -77,7 +78,7 @@ module Typing
       raise ApiError.new("Não está em uma partida", 400) if room_id.blank?
 
       if state.is_a?(Hash) && state.key?("wordsCompleted")
-        redis.hset(player_key(current_user.id), "words_completed", coerce_score(state["wordsCompleted"]))
+        record_progress(current_user.id, state["wordsCompleted"])
       end
 
       other_id = opponent_id(room_id, current_user.id)
@@ -100,7 +101,7 @@ module Typing
     end
 
     # POST /api/typing-pvp/win e /api/typing-pvp/lose
-    def self.finish_match(current_user, role:, winner_score:, loser_score:)
+    def self.finish_match(current_user, role: nil)
       room_id = room_id_for(current_user.id)
       raise ApiError.new("Não está em uma partida", 400) if room_id.blank?
 
@@ -110,9 +111,11 @@ module Typing
         raise ApiError.new(message, 409)
       end
 
-      winner, loser = role == :winner ? [ current_user, opponent ] : [ opponent, current_user ]
-      final_winner_score = [ coerce_score(winner_score), score_for(winner.id) ].max
-      final_loser_score = [ coerce_score(loser_score), score_for(loser.id) ].max
+      winner, loser = result_for(room_id)
+      raise ApiError.new("Partida ainda não concluída.", 409) unless winner && loser
+
+      final_winner_score = score_for(winner.id)
+      final_loser_score = score_for(loser.id)
 
       TypingPvpMatch.create!(
         winner_id: winner.id,
@@ -191,7 +194,7 @@ module Typing
       room_id = SecureRandom.uuid
       redis.sadd(room_key(room_id), [ player_a.id, player_b.id ])
       [ player_a, player_b ].each do |player|
-        redis.hset(player_key(player.id), "room_id", room_id, "words_completed", 0)
+        redis.hset(player_key(player.id), "room_id", room_id, "words_completed", 0, "completed_at", "")
       end
 
       payload = {
@@ -215,6 +218,36 @@ module Typing
       redis.hget(player_key(user_id), "words_completed").to_i
     end
     private_class_method :score_for
+
+    def self.completed_at_for(user_id)
+      value = redis.hget(player_key(user_id), "completed_at")
+      value.present? ? value.to_f : Float::INFINITY
+    end
+    private_class_method :completed_at_for
+
+    def self.record_progress(user_id, value)
+      score = [ score_for(user_id), coerce_score(value) ].max.clamp(0, MATCH_WORD_COUNT)
+      redis.hset(player_key(user_id), "words_completed", score)
+      if score >= MATCH_WORD_COUNT && redis.hget(player_key(user_id), "completed_at").blank?
+        redis.hset(player_key(user_id), "completed_at", Time.current.to_f)
+      end
+      score
+    end
+    private_class_method :record_progress
+
+    def self.result_for(room_id)
+      users = User.where(id: redis.smembers(room_key(room_id))).index_by(&:id)
+      players = users.values
+      return [ nil, nil ] unless players.length == 2
+
+      finished = players.select { |player| score_for(player.id) >= MATCH_WORD_COUNT }
+      return [ nil, nil ] if finished.empty?
+
+      winner = finished.min_by { |player| [ completed_at_for(player.id), player.id ] }
+      loser = players.find { |player| player.id != winner.id }
+      [ winner, loser ]
+    end
+    private_class_method :result_for
 
     def self.coerce_score(value)
       number = Float(value)
