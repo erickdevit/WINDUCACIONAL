@@ -171,6 +171,30 @@ RSpec.describe "Duelos de digitação (PVP)", type: :request do
       expect(json_body[:matches].length).to eq(1)
     end
 
+    it "permite professor filtrar histórico por turma" do
+      professor = create(:user, :professor)
+      outra_turma = create(:turma, student_type: "normal")
+      outro_a = create(:user, turma: outra_turma)
+      outro_b = create(:user, turma: outra_turma)
+      TypingPvpMatch.create!(winner: aluno_a, loser: aluno_b, winner_score: 10, loser_score: 5, turma: turma)
+      TypingPvpMatch.create!(winner: outro_a, loser: outro_b, winner_score: 20, loser_score: 15, turma: outra_turma)
+
+      login_as(professor)
+      get "/api/typing-pvp/scores", params: { turmaId: turma.id }
+      expect(response).to have_http_status(:ok)
+      expect(json_body[:matches].map { |match| match[:winner_id] }).to eq([ aluno_a.id ])
+    end
+
+    it "permite secretaria filtrar histórico por turma em modo leitura" do
+      secretaria = create(:user, :secretaria)
+      TypingPvpMatch.create!(winner: aluno_a, loser: aluno_b, winner_score: 10, loser_score: 5, turma: turma)
+
+      login_as(secretaria)
+      get "/api/typing-pvp/scores", params: { turmaId: turma.id }
+      expect(response).to have_http_status(:ok)
+      expect(json_body[:matches].length).to eq(1)
+    end
+
     it "retorna lista vazia sem turma no escopo global sem partidas" do
       login_as(aluno_a)
       get "/api/typing-pvp/scores", params: { scope: "global" }

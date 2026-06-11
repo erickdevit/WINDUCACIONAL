@@ -147,7 +147,8 @@ module Typing
       binds = []
 
       if scope != "global"
-        turma_id = current_user.role == "professor" && turma_id_param.present? ? turma_id_param : current_user.turma_id
+        can_filter_turma = %w[professor secretaria].include?(current_user.role)
+        turma_id = can_filter_turma && turma_id_param.present? ? turma_id_param : current_user.turma_id
         return [] if turma_id.blank?
 
         binds << turma_id

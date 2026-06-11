@@ -33,8 +33,11 @@ export const pvpApi = baseApi.injectEndpoints({
       query: () => "/typing-pvp/lobby",
       providesTags: ["PvpLobby"],
     }),
-    getPvpScores: build.query<{ matches: PvpScoreRow[] }, { scope: PvpScoreScope }>({
-      query: ({ scope }) => ({ url: "/typing-pvp/scores", params: { scope } }),
+    getPvpScores: build.query<{ matches: PvpScoreRow[] }, { scope: PvpScoreScope; turmaId?: string }>({
+      query: ({ scope, turmaId }) => ({
+        url: "/typing-pvp/scores",
+        params: { scope, ...(turmaId ? { turmaId } : {}) },
+      }),
       providesTags: ["PvpScores"],
     }),
     pvpChallenge: build.mutation<{ success: boolean }, { targetId: string }>({

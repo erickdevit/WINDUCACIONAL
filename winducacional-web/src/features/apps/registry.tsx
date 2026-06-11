@@ -139,7 +139,7 @@ export const APPS: AppDefinition[] = [
     icon: "swords",
     defaultSize: { width: 480, height: 460 },
     component: PvpApp,
-    roles: ["aluno"],
+    roles: ["aluno", "professor", "secretaria"],
   },
   {
     id: "edge",

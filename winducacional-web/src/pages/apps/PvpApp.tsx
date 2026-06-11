@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useGetMeQuery } from "@/features/auth/authApi"
+import { useGetTurmasQuery } from "@/features/users/usersApi"
 import {
   useGetPvpLobbyQuery,
   useGetPvpScoresQuery,
@@ -16,7 +17,7 @@ import { getPvpPlayerName, getPvpScoreOutcome, getPvpScoreTitle } from "@/featur
 import { generatePvpWords } from "@/features/pvp/pvpWords"
 import { usePvpChannel, type PvpEvent } from "@/features/pvp/usePvpChannel"
 import { getApiErrorMessage } from "@/utils/errors"
-import type { User } from "@/types/user"
+import type { User, UserRole } from "@/types/user"
 
 const MATCH_WORD_COUNT = 20
 
@@ -82,7 +83,7 @@ export default function PvpApp() {
 
   return (
     <PvpLobby
-      currentUserId={user.id}
+      currentUser={user}
       incomingChallenge={challenge}
       onChallengeHandled={() => setChallenge(null)}
       result={result}
@@ -92,39 +93,43 @@ export default function PvpApp() {
 }
 
 function PvpLobby({
-  currentUserId,
+  currentUser,
   incomingChallenge,
   onChallengeHandled,
   result,
   onDismissResult,
 }: {
-  currentUserId: string
+  currentUser: User
   incomingChallenge: User | null
   onChallengeHandled: () => void
   result: MatchResult | null
   onDismissResult: () => void
 }) {
-  const { data, isLoading, isError, error } = useGetPvpLobbyQuery(undefined, { pollingInterval: 10000 })
+  const canPlay = currentUser.role === "aluno"
+  const { data, isLoading, isError, error } = useGetPvpLobbyQuery(undefined, {
+    pollingInterval: 10000,
+    skip: !canPlay,
+  })
   const [sendChallenge, { isLoading: isChallenging }] = usePvpChallengeMutation()
   const [accept] = usePvpAcceptMutation()
   const [reject] = usePvpRejectMutation()
   const [scoreScope, setScoreScope] = useState<PvpScoreScope>("turma")
 
-  if (isLoading) return <p className="text-sm text-white/60">Carregando…</p>
-  if (isError || !data) {
+  if (canPlay && isLoading) return <p className="text-sm text-white/60">Carregando…</p>
+  if (canPlay && (isError || !data)) {
     return <p className="text-sm text-red-400">{getApiErrorMessage(error, "Não foi possível carregar o lobby.")}</p>
   }
 
   return (
     <div className="flex h-full flex-col gap-3 text-sm">
-      {result && (
+      {canPlay && result && (
         <div
           className={`flex items-center justify-between rounded-md px-3 py-2 text-xs ${
-            result.winnerId === currentUserId ? "bg-green-600/20 text-green-300" : "bg-red-600/20 text-red-300"
+            result.winnerId === currentUser.id ? "bg-green-600/20 text-green-300" : "bg-red-600/20 text-red-300"
           }`}
         >
           <span>
-            {result.winnerId === currentUserId ? "Você venceu!" : "Você perdeu."} ({result.winnerScore} ×{" "}
+            {result.winnerId === currentUser.id ? "Você venceu!" : "Você perdeu."} ({result.winnerScore} ×{" "}
             {result.loserScore})
           </span>
           <button type="button" onClick={onDismissResult} aria-label="Fechar resultado">
@@ -133,7 +138,7 @@ function PvpLobby({
         </div>
       )}
 
-      {incomingChallenge && (
+      {canPlay && incomingChallenge && (
         <div className="flex items-center justify-between rounded-md bg-accent/20 px-3 py-2 text-xs">
           <span>
             <strong>{incomingChallenge.displayName}</strong> desafiou você!
@@ -163,37 +168,43 @@ function PvpLobby({
         </div>
       )}
 
-      <p className="text-xs text-white/60">Desafie um colega da sua turma para um duelo de digitação.</p>
-
-      <div className="min-h-[120px] overflow-auto">
-        {data.players.length === 0 ? (
-          <p className="text-xs text-white/40">Nenhum colega disponível no momento.</p>
-        ) : (
-          <ul className="flex flex-col gap-1">
-            {data.players.map((player) => (
-              <li
-                key={player.id}
-                className="flex items-center justify-between gap-2 rounded-md bg-black/30 px-2 py-1.5 text-xs"
-              >
-                <span className="truncate">
-                  {player.displayName} <span className="text-white/40">({player.username})</span>
-                </span>
-                <button
-                  type="button"
-                  disabled={isChallenging}
-                  onClick={() => void sendChallenge({ targetId: player.id })}
-                  className="shrink-0 rounded-md bg-accent px-2 py-1 font-medium text-white hover:bg-accent-hover disabled:opacity-50"
-                >
-                  Desafiar
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {canPlay ? (
+        <>
+          <p className="text-xs text-white/60">Desafie um colega da sua turma para um duelo de digitação.</p>
+          <div className="min-h-[120px] overflow-auto">
+            {(data?.players ?? []).length === 0 ? (
+              <p className="text-xs text-white/40">Nenhum colega disponível no momento.</p>
+            ) : (
+              <ul className="flex flex-col gap-1">
+                {(data?.players ?? []).map((player) => (
+                  <li
+                    key={player.id}
+                    className="flex items-center justify-between gap-2 rounded-md bg-black/30 px-2 py-1.5 text-xs"
+                  >
+                    <span className="truncate">
+                      {player.displayName} <span className="text-white/40">({player.username})</span>
+                    </span>
+                    <button
+                      type="button"
+                      disabled={isChallenging}
+                      onClick={() => void sendChallenge({ targetId: player.id })}
+                      className="shrink-0 rounded-md bg-accent px-2 py-1 font-medium text-white hover:bg-accent-hover disabled:opacity-50"
+                    >
+                      Desafiar
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </>
+      ) : (
+        <p className="text-xs text-white/60">Acompanhe os duelos de digitação por turma ou no histórico global.</p>
+      )}
 
       <PvpScoresPanel
-        currentUserId={currentUserId}
+        currentUserId={currentUser.id}
+        currentUserRole={currentUser.role}
         scope={scoreScope}
         onScopeChange={setScoreScope}
       />
@@ -203,16 +214,23 @@ function PvpLobby({
 
 function PvpScoresPanel({
   currentUserId,
+  currentUserRole,
   scope,
   onScopeChange,
 }: {
   currentUserId: string
+  currentUserRole: UserRole
   scope: PvpScoreScope
   onScopeChange: (scope: PvpScoreScope) => void
 }) {
+  const canSelectTurma = currentUserRole !== "aluno"
+  const { data: turmasData, isLoading: isLoadingTurmas } = useGetTurmasQuery(undefined, { skip: !canSelectTurma })
+  const turmas = turmasData?.turmas ?? []
+  const [selectedTurmaId, setSelectedTurmaId] = useState("")
+  const effectiveTurmaId = canSelectTurma ? selectedTurmaId || turmas[0]?.id : undefined
   const { data, isLoading, isError, error } = useGetPvpScoresQuery(
-    { scope },
-    { refetchOnMountOrArgChange: true },
+    { scope, turmaId: scope === "turma" ? effectiveTurmaId : undefined },
+    { refetchOnMountOrArgChange: true, skip: scope === "turma" && canSelectTurma && !effectiveTurmaId },
   )
   const matches = data?.matches ?? []
 
@@ -236,9 +254,31 @@ function PvpScoresPanel({
         </div>
       </div>
 
+      {scope === "turma" && canSelectTurma && (
+        <select
+          aria-label="Filtrar histórico PVP por turma"
+          value={effectiveTurmaId ?? ""}
+          onChange={(event) => setSelectedTurmaId(event.target.value)}
+          className="rounded-md bg-black/30 px-2 py-1 text-xs text-white outline-none focus:ring-1 focus:ring-accent"
+          disabled={isLoadingTurmas || turmas.length === 0}
+        >
+          {turmas.length === 0 ? (
+            <option value="">Nenhuma turma disponível</option>
+          ) : (
+            turmas.map((turma) => (
+              <option key={turma.id} value={turma.id}>
+                {turma.nome}
+              </option>
+            ))
+          )}
+        </select>
+      )}
+
       <div className="min-h-[120px] flex-1 overflow-auto">
-        {isLoading ? (
+        {isLoading || (scope === "turma" && canSelectTurma && isLoadingTurmas) ? (
           <p className="text-xs text-white/60">Carregando histórico…</p>
+        ) : scope === "turma" && canSelectTurma && !effectiveTurmaId ? (
+          <p className="text-xs text-white/40">Cadastre uma turma para acompanhar o histórico.</p>
         ) : isError ? (
           <p className="text-xs text-red-400">
             {getApiErrorMessage(error, "Não foi possível carregar o histórico.")}
