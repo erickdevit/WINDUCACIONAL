@@ -28,6 +28,7 @@ export const baseApi = createApi({
     "Users",
     "Turmas",
     "PvpLobby",
+    "PvpScores",
   ],
   endpoints: () => ({}),
 })

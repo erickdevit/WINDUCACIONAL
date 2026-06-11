@@ -14,11 +14,28 @@ export interface PvpMatchResult {
   loserScore: number
 }
 
+export type PvpScoreScope = "turma" | "global"
+
+export interface PvpScoreRow {
+  id: string
+  created_at: string
+  winner_id: string | null
+  winner_name: string | null
+  winner_score: number
+  loser_id: string | null
+  loser_name: string | null
+  loser_score: number
+}
+
 export const pvpApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
     getPvpLobby: build.query<{ players: User[] }, void>({
       query: () => "/typing-pvp/lobby",
       providesTags: ["PvpLobby"],
+    }),
+    getPvpScores: build.query<{ matches: PvpScoreRow[] }, { scope: PvpScoreScope }>({
+      query: ({ scope }) => ({ url: "/typing-pvp/scores", params: { scope } }),
+      providesTags: ["PvpScores"],
     }),
     pvpChallenge: build.mutation<{ success: boolean }, { targetId: string }>({
       query: (body) => ({ url: "/typing-pvp/challenge", method: "POST", body }),
@@ -43,12 +60,14 @@ export const pvpApi = baseApi.injectEndpoints({
     }),
     pvpWin: build.mutation<{ success: boolean }, void>({
       query: () => ({ url: "/typing-pvp/win", method: "POST" }),
+      invalidatesTags: ["PvpScores"],
     }),
   }),
 })
 
 export const {
   useGetPvpLobbyQuery,
+  useGetPvpScoresQuery,
   usePvpChallengeMutation,
   usePvpAcceptMutation,
   usePvpRejectMutation,

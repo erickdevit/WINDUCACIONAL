@@ -47,7 +47,7 @@ Criar uma suíte objetiva, rápida e útil para proteger a evolução do simulad
 - Professor zera o ranking de digitação de uma turma usando o código da turma, sem afetar pontuações de outras turmas ou tipos.
 - Professor salva metas de PPM e precisão dos apps de digitação Normal e Kids, e alunos recebem os novos valores em tempo real mesmo com uma lição aberta.
 - Game solo do app de Digitação Normal usa missões separadas das lições, aceita apenas palavras, calcula vidas, PPM e precisão, recebe configurações próprias em tempo real e mantém rankings global e por turma separados das lições.
-- PVP de digitação valida pareamento por turma, sincroniza progresso em tempo real, finaliza apenas com progresso completo registrado no servidor, calcula vencedor e placar no backend, exibe o placar final dos dois jogadores e grava histórico próprio do modo.
+- PVP de digitação valida pareamento por turma, sincroniza progresso em tempo real, finaliza apenas com progresso completo registrado no servidor, calcula vencedor e placar no backend, exibe o placar final dos dois jogadores e lista o histórico próprio do modo por turma/global.
 - Backend registra presença automaticamente ao criar sessão de aluno dentro dos dias e horários configurados para a turma, mantendo um registro único por aluno/data com primeiro login, último login e contador de logins.
 - Professor configura dias da semana e horário de aula na área de Turmas; o app Frequência usa essa agenda para calcular presença e ausência sem contar dias sem aula.
 - Professor filtra frequência por turma e período, confere métricas de presença/ausência baseadas na agenda da turma e imprime relatório; aluno visualiza apenas o próprio histórico.

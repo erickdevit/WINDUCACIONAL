@@ -2,13 +2,17 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { useGetMeQuery } from "@/features/auth/authApi"
 import {
   useGetPvpLobbyQuery,
+  useGetPvpScoresQuery,
   usePvpAcceptMutation,
   usePvpChallengeMutation,
   usePvpRejectMutation,
   usePvpSyncMutation,
   usePvpWinMutation,
+  type PvpScoreRow,
+  type PvpScoreScope,
   type PvpSyncState,
 } from "@/features/pvp/pvpApi"
+import { getPvpPlayerName, getPvpScoreOutcome, getPvpScoreTitle } from "@/features/pvp/pvpScoresFormat"
 import { generatePvpWords } from "@/features/pvp/pvpWords"
 import { usePvpChannel, type PvpEvent } from "@/features/pvp/usePvpChannel"
 import { getApiErrorMessage } from "@/utils/errors"
@@ -104,6 +108,7 @@ function PvpLobby({
   const [sendChallenge, { isLoading: isChallenging }] = usePvpChallengeMutation()
   const [accept] = usePvpAcceptMutation()
   const [reject] = usePvpRejectMutation()
+  const [scoreScope, setScoreScope] = useState<PvpScoreScope>("turma")
 
   if (isLoading) return <p className="text-sm text-white/60">Carregando…</p>
   if (isError || !data) {
@@ -160,7 +165,7 @@ function PvpLobby({
 
       <p className="text-xs text-white/60">Desafie um colega da sua turma para um duelo de digitação.</p>
 
-      <div className="flex-1 overflow-auto">
+      <div className="min-h-[120px] overflow-auto">
         {data.players.length === 0 ? (
           <p className="text-xs text-white/40">Nenhum colega disponível no momento.</p>
         ) : (
@@ -186,8 +191,105 @@ function PvpLobby({
           </ul>
         )}
       </div>
+
+      <PvpScoresPanel
+        currentUserId={currentUserId}
+        scope={scoreScope}
+        onScopeChange={setScoreScope}
+      />
     </div>
   )
+}
+
+function PvpScoresPanel({
+  currentUserId,
+  scope,
+  onScopeChange,
+}: {
+  currentUserId: string
+  scope: PvpScoreScope
+  onScopeChange: (scope: PvpScoreScope) => void
+}) {
+  const { data, isLoading, isError, error } = useGetPvpScoresQuery(
+    { scope },
+    { refetchOnMountOrArgChange: true },
+  )
+  const matches = data?.matches ?? []
+
+  return (
+    <section className="flex min-h-0 flex-1 flex-col gap-2 border-t border-white/10 pt-2">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-medium text-white/70">Histórico</span>
+        <div className="flex gap-1">
+          {(["turma", "global"] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => onScopeChange(value)}
+              className={`rounded-md px-2 py-1 text-xs ${
+                scope === value ? "bg-accent text-white" : "bg-white/10 hover:bg-white/20"
+              }`}
+            >
+              {value === "turma" ? "Minha turma" : "Global"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="min-h-[120px] flex-1 overflow-auto">
+        {isLoading ? (
+          <p className="text-xs text-white/60">Carregando histórico…</p>
+        ) : isError ? (
+          <p className="text-xs text-red-400">
+            {getApiErrorMessage(error, "Não foi possível carregar o histórico.")}
+          </p>
+        ) : matches.length === 0 ? (
+          <p className="text-xs text-white/40">Nenhum duelo registrado ainda.</p>
+        ) : (
+          <ul className="flex flex-col gap-1">
+            {matches.map((match) => (
+              <PvpScoreItem key={match.id} match={match} currentUserId={currentUserId} />
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
+  )
+}
+
+function PvpScoreItem({ match, currentUserId }: { match: PvpScoreRow; currentUserId: string }) {
+  const outcome = getPvpScoreOutcome(match, currentUserId)
+  const tone =
+    outcome === "win"
+      ? "bg-green-600/15 text-green-300"
+      : outcome === "loss"
+        ? "bg-red-600/15 text-red-300"
+        : "bg-black/30 text-white/70"
+
+  return (
+    <li className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 rounded-md bg-black/30 px-2 py-1.5 text-xs">
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <span className={`rounded px-1.5 py-0.5 font-medium ${tone}`}>
+            {getPvpScoreTitle(match, currentUserId)}
+          </span>
+          <span className="truncate text-white/80">
+            {getPvpPlayerName(match.winner_name)} venceu {getPvpPlayerName(match.loser_name)}
+          </span>
+        </div>
+        <p className="mt-0.5 text-white/40">{formatPvpDate(match.created_at)}</p>
+      </div>
+      <span className="self-center font-mono text-white/80">
+        {match.winner_score}×{match.loser_score}
+      </span>
+    </li>
+  )
+}
+
+function formatPvpDate(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "Data indisponível"
+  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(date)
 }
 
 function PvpDuel({
