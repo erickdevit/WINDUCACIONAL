@@ -3,5 +3,6 @@
 RSpec.configure do |config|
   config.before do
     OnlineUserTracker.redis.flushdb
+    Security::RateLimiter.reset!
   end
 end

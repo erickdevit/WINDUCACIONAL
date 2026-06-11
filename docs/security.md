@@ -14,7 +14,7 @@
 - Vários reducers e utilitários leem `localStorage` diretamente e assumem formato válido.
 - `public/dycalendar.js` manipula `innerHTML` diretamente.
 - A aplicação carrega scripts estáticos em `index.html`, e cabeçalhos de segurança de produção ainda não estão definidos no repositório.
-- O cadastro público de aluno usa código de turma e ainda precisa de rate limit e monitoramento antes de uso com dados reais.
+- O cadastro público de aluno usa código de turma e já possui rate limit básico por IP e código; monitoramento e ajuste fino de limites ainda devem ser revisados antes de uso com dados reais.
 
 O comando `eval` legado do terminal foi removido durante a primeira implementação de autenticação. Os demais pontos devem ser tratados antes de usar a aplicação com dados reais de usuários.
 
@@ -42,7 +42,7 @@ O comando `eval` legado do terminal foi removido durante a primeira implementaç
 - Definir CORS restrito para origens conhecidas.
 - Em produção, não use origens localhost em CORS. Quando frontend e API estiverem no mesmo domínio pelo proxy, deixe `CORS_ORIGINS` vazio; quando houver domínio separado, liste apenas as origens oficiais.
 - Quando houver TLS em proxy externo, encaminhar `X-Forwarded-Proto=https` para o Rails e definir `RAILS_ASSUME_SSL=true`; use `RAILS_FORCE_SSL=true` apenas quando o proxy público estiver preparado para HTTPS e o healthcheck interno continuar em `/api/health`.
-- Aplicar rate limit em login, endpoints sensíveis e operações caras.
+- Aplicar rate limit em endpoints sensíveis e operações caras. A stack Rails já limita login, cadastro público, bootstrap inicial e geração de imagens com janela configurável por ambiente.
 - Criar o primeiro professor pelo fluxo `/api/bootstrap`, protegido por `BOOTSTRAP_TOKEN` em produção; não reintroduzir seed automático `Admin`/`Admin` na nova stack.
 - Registrar eventos relevantes sem gravar senhas, tokens ou dados sensíveis em logs.
 - Tratar erros sem vazar stack trace em produção.

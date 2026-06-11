@@ -4,6 +4,9 @@ module Api
 
     skip_before_action :authenticate_user!,
       only: %i[login register bootstrap bootstrap_status]
+    before_action :rate_limit_login!, only: :login
+    before_action :rate_limit_register!, only: :register
+    before_action :rate_limit_bootstrap!, only: :bootstrap
 
     def me
       render json: { user: current_user.as_public_json }
@@ -88,6 +91,35 @@ module Api
       token = Auth::SessionService.create_session(user)
       Auth::SessionService.set_cookie(cookies, token, secure: request.ssl?)
       render json: { user: user.as_public_json }, status: :created
+    end
+
+    private
+
+    def rate_limit_login!
+      enforce_rate_limit!(
+        scope: "auth_login",
+        discriminator: "#{request.remote_ip}:#{User.normalize_username(params[:username])}",
+        limit: rate_limit_value("AUTH_RATE_LIMIT_LOGIN_LIMIT", 10),
+        period: rate_limit_period
+      )
+    end
+
+    def rate_limit_register!
+      enforce_rate_limit!(
+        scope: "auth_register",
+        discriminator: "#{request.remote_ip}:#{Turma.normalize_code(params[:turmaCode])}",
+        limit: rate_limit_value("AUTH_RATE_LIMIT_REGISTER_LIMIT", 5),
+        period: rate_limit_period
+      )
+    end
+
+    def rate_limit_bootstrap!
+      enforce_rate_limit!(
+        scope: "auth_bootstrap",
+        discriminator: request.remote_ip,
+        limit: rate_limit_value("AUTH_RATE_LIMIT_BOOTSTRAP_LIMIT", 5),
+        period: rate_limit_period
+      )
     end
   end
 end

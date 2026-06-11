@@ -3,6 +3,7 @@ module Api
   # geração via proxy (Cloudflare Worker).
   class ImagegenController < ApplicationController
     include Authenticatable
+    before_action :rate_limit_generate!, only: :generate
 
     ASPECTS = {
       "1:1" => { width: 1024, height: 1024 },
@@ -36,6 +37,17 @@ module Api
       return render json: { error: result.error }, status: result.status if result.error
 
       render json: { image: result.image }
+    end
+
+    private
+
+    def rate_limit_generate!
+      enforce_rate_limit!(
+        scope: "imagegen_generate",
+        discriminator: current_user.id,
+        limit: rate_limit_value("IMAGEGEN_RATE_LIMIT_GENERATE_LIMIT", 20),
+        period: rate_limit_period
+      )
     end
   end
 end
