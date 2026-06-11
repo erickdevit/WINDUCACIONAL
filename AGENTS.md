@@ -5,10 +5,11 @@ Este é um arquivo vivo para agentes, automações e colaboradores que trabalham
 ## Resumo Do Projeto
 
 - Produto alvo: WINDUCACIONAL, simulador educacional aberto com experiência desktop web.
-- Estado atual: frontend React/Vite/Redux com PWA, assets estáticos e simulação de desktop.
-- Estado atual de backend: Express, PostgreSQL, sessões HTTP-only, usuários com papéis, classificação Kids/Normal para alunos, turmas com código de vínculo, discos virtuais persistidos por usuário, permissões de módulos de apostilas e proxy autenticado para geração de imagens.
-- Estado atual de deploy: `Dockerfile`, `docker-compose.yml`, `docker-compose.prod.yml` e `compose.dev.yml`.
-- Estado futuro: ampliação para cenários educacionais, progresso e operação endurecida em servidor dedicado.
+- Estado atual: migração para `winducacional-api` (Rails API) e `winducacional-web` (React/TypeScript) em andamento.
+- Estado atual de backend alvo: Rails API, PostgreSQL, sessões HTTP-only, usuários com papéis, classificação Kids/Normal para alunos, turmas com código de vínculo, discos virtuais persistidos por usuário, ActionCable, permissões de módulos de apostilas, avaliações, frequência, chat, digitação/PVP, Gestor e proxy autenticado para geração de imagens.
+- Estado atual de frontend alvo: React, TypeScript, Vite, Redux Toolkit, RTK Query, React Router e Tailwind em `winducacional-web`.
+- Estado atual de deploy alvo: `docker-compose.rails.yml` com `rails_api`, `postgres` e `redis`; o frontend novo roda separadamente em desenvolvimento e deve ter container estático/proxy próprio antes da remoção do legado.
+- Estado do legado: `src/`, `server/`, `public`, `Dockerfile`, `docker-compose.yml`, `docker-compose.prod.yml` e `compose.dev.yml` permanecem apenas para transição até a nova stack atingir paridade funcional.
 - Prioridade técnica: boas práticas de código, segurança, testes objetivos e documentação viva.
 
 ## Idioma E Escrita
@@ -33,33 +34,33 @@ Leia estes documentos antes de planejar mudanças estruturais:
 - `docs/roadmap.md`: ordem recomendada de evolução.
 - `docs/commit-convention.md`: formato obrigatório de mensagens de commit e tipos permitidos.
 
-## Stack Atual
+## Stack Alvo
 
-- React 18 com `react-dom/client`.
-- Redux clássico com reducers em `src/reducers`.
-- Vite 3 como build/dev server.
-- SCSS/CSS e Tailwind configurado, sem design system formal.
-- PWA via `vite-plugin-pwa` e assets em `public/`.
-- O foco de distribuição é web/PWA com backend Express e Docker. Não manter empacotadores desktop sem decisão explícita.
+- Backend Rails API em `winducacional-api`.
+- Frontend React/TypeScript em `winducacional-web`.
+- Redux Toolkit e RTK Query para estado e API no frontend novo.
+- React Router para rotas autenticadas, incluindo `/frequencia`.
+- PostgreSQL como banco principal e Redis para ActionCable.
+- Recursos compartilhados fora do legado em `shared/booklets` e `shared/base-tree/dir.json`.
+- O foco de distribuição é web/PWA com Rails atrás de proxy para `/api` e `/cable`. Não manter empacotadores desktop sem decisão explícita.
 
 ## Comandos Atuais
 
 ```bash
-npm run start
-npm run dev
-npm run test
-npm run build
-npm run prettier
+cd winducacional-api && bundle exec rspec
+cd winducacional-web && npm run dev
+cd winducacional-web && npm run test
+cd winducacional-web && npm run lint
+cd winducacional-web && npm run build
 ```
 
-`npm run dev` inicia o Vite. `npm run test` executa a suíte Vitest. `npm run start` inicia o servidor Express e espera uma build em `build/`.
+`winducacional-web/npm run dev` inicia o Vite com proxy para a Rails API em `http://localhost:3002`. `bundle exec rspec` executa a suíte Rails. `npm run test` executa a suíte Vitest do frontend novo.
 
 Comandos de infraestrutura atuais:
 
 ```bash
-docker compose up -d
-docker compose down
-docker compose -f compose.dev.yml up -d
+docker compose -f docker-compose.rails.yml up -d --build
+docker compose -f docker-compose.rails.yml down
 ```
 
 ## Fluxo Git
@@ -77,7 +78,7 @@ docker compose -f compose.dev.yml up -d
 - Preserve o comportamento existente enquanto a migração para simulador educacional não tiver uma especificação detalhada.
 - Não implemente backend, banco, Docker ou autenticação sem atualizar primeiro os documentos relevantes.
 - Regras de autenticação, autorização e isolamento de disco devem ser implementadas no servidor.
-- A implantação padrão cria automaticamente o usuário inicial `Admin` com senha `Admin` e papel `professor` quando o banco está vazio.
+- Na stack Rails, o primeiro professor deve ser criado pelo fluxo `/api/bootstrap`; em produção, defina `BOOTSTRAP_TOKEN`. Não reintroduza seed automático `Admin`/`Admin` na nova stack.
 - A tela de login permite cadastro público de aluno usando código de turma ativa, criando a sessão e vinculando o aluno à turma informada.
 - A agenda de dias e horários de aula deve ser configurada na área de Turmas das Configurações e usada como fonte de verdade pelos apps que precisem calcular presença, ausência ou disponibilidade por turma.
 - O app Frequência também deve funcionar pela rota direta `/frequencia`, como app web normal autenticado, sem montar desktop, taskbar ou menus do simulador; mantenha esse modo em sincronia com o app aberto pela janela do simulador.
@@ -86,11 +87,11 @@ docker compose -f compose.dev.yml up -d
 - Prefira alterações pequenas e revisáveis, com testes correspondentes ao risco.
 - Evite refatorações amplas que não estejam diretamente ligadas ao objetivo da tarefa.
 - Novas janelas internas do simulador devem seguir o padrão das janelas de apps: moldura própria, barra superior, foco visual, controles de janela, movimentação e redimensionamento, como no Windows.
-- Todo novo app com janela principal deve usar o wrapper compartilhado `src/components/shared/AppWindow.jsx`, preservando o shell padrão antigo antes de adicionar conteúdo específico.
+- Todo novo app com janela principal no frontend novo deve usar o gerenciador de janelas compartilhado de `winducacional-web/src/components/windows/AppWindow.tsx`, preservando o shell padrão antes de adicionar conteúdo específico.
 - Apps novos devem prever as barras de rolagem necessárias ao cenário, incluindo rolagem vertical e horizontal em painéis, listas, leitores, tabelas, grids ou conteúdos que possam exceder o espaço da janela.
-- O app Apostilas mantém os PDFs em `src/containers/applications/apps/booklets/library`; não deixe a biblioteca de apostilas solta na raiz do projeto.
+- O app Apostilas mantém os PDFs em `shared/booklets`; não volte a acoplar a biblioteca a `src/containers/applications/apps/booklets/library`.
 - O acesso de alunos a apostilas é controlado no backend pelas tabelas `booklet_module_access` e `booklet_student_module_access`; professores podem ver todos os módulos, liberar módulos para todos ou conceder módulos específicos a alunos selecionados por turma.
-- O app Gerador de Imagens usa o proxy autenticado `server/routes/imagegen.cjs`; o token da API externa fica apenas em `IMAGEGEN_API_TOKEN` no servidor, e imagens baixadas pelo usuário devem ser salvas no disco virtual via `FileDialog`/Redux para acionar a persistência existente.
+- O app Gerador de Imagens usa proxy autenticado no backend; o token da API externa fica apenas em `IMAGEGEN_API_TOKEN` no servidor, e imagens baixadas pelo usuário devem ser salvas no disco virtual pela persistência existente.
 - O app Fotos é o visualizador interno de imagens do sistema; arquivos `png`, `jpg`, `jpeg`, `webp` e `gif` abertos pelo Explorer devem usar a ação `PHOTOS` e receber ícone próprio no Explorer.
 - Games dentro do app de Digitação Normal devem ficar separados das lições tradicionais. O modo PVP só deve ser liberado como partida real depois de existir backend com convite, sincronização em tempo real, validação de mesma turma, cálculo de vencedor no servidor e ranking persistido separado.
 
@@ -118,25 +119,25 @@ A suíte inicial usa Vitest. A estratégia alvo está em `docs/testing-strategy.
 
 ## Dívidas Técnicas Conhecidas
 
-- `src/reducers/apps.js` abre URLs externas com `window.open`; precisa de allowlist e proteção equivalente a `noopener noreferrer`.
-- Dados persistidos em `localStorage` são usados como estado confiável em vários pontos; validar antes de migrar ou sincronizar com backend.
-- `public/dycalendar.js` manipula HTML diretamente; manter isolado ou substituir por componente seguro quando mexer no calendário.
+- O legado em `src/reducers/apps.js` abre URLs externas com `window.open`; trate como dívida até a remoção do legado.
+- Dados persistidos em `localStorage` no legado são usados como estado confiável em vários pontos; validar antes de migrar ou sincronizar com backend.
+- `public/dycalendar.js` no legado manipula HTML diretamente; manter isolado ou substituir por componente seguro se ainda for migrado.
 - A cobertura automatizada ainda é inicial e precisa evoluir para testes de componentes, integração e e2e.
 - **Refatoração pendente de componentes gigantes do frontend:** `typing/typing.jsx` (~1970 linhas) e `attendance/attendance.jsx` (~1630 linhas) ainda são dominados por um único componente extenso (`TypingApp` e `AttendanceView`). A divisão segura desses componentes exige extrair lógica/estado interno e, idealmente, testes de renderização antes, para garantir preservação de comportamento. Tratar em sessão dedicada. O app de Configurações já foi modularizado (`settings.jsx`, `settingsShared.jsx`, `UserManagement.jsx`, `TurmaManagement.jsx`) e serve de referência de padrão.
 
 ## Organização Do Backend
 
-- O backend é modularizado por domínio. `server/index.cjs` é a raiz de composição: configuração, pool, helpers compartilhados, middleware de autenticação, estado em memória e `start()`. Ele monta o objeto `routeContext` e injeta cada módulo de rota.
-- As rotas ficam em `server/routes/<dominio>.cjs`, cada um exportando `inject<Dominio>Routes(ctx)`, no mesmo padrão de `server/typingPvp.cjs`. Ao criar um novo endpoint, coloque-o no módulo de domínio correspondente (ou crie um novo módulo e injete-o em `index.cjs`); não volte a concentrar rotas em `index.cjs`.
-- Qualquer helper, constante ou estado novo que precise ser compartilhado entre módulos deve ser definido em `index.cjs` e adicionado ao `routeContext`.
-- `server/index.cjs` exporta `{ app, start }` e só chama `start()` quando executado diretamente; preserve esse guard para manter o backend carregável em testes sem subir o servidor.
+- A stack alvo usa Rails API em `winducacional-api`.
+- Rotas ficam em `winducacional-api/config/routes.rb` e arquivos de domínio em `winducacional-api/config/routes/*.rb`.
+- Controllers ficam em `winducacional-api/app/controllers/api/`, services em `winducacional-api/app/services/` e modelos em `winducacional-api/app/models/`.
+- Preserve autorização por papel em concerns como `Authenticatable` e `ProfessorRequired`; secretaria tem acesso somente leitura onde o concern permitir.
+- O Express em `server/` é legado de transição. Não crie endpoints novos nele sem pedido explícito.
 
 ## Migrations Versionadas
 
-- O schema do banco é aplicado por migrations versionadas em `server/db/migrations/`, executadas no boot pelo runner `server/db/migrate.cjs` (chamado em `server/index.cjs`).
-- O runner cria a tabela `schema_migrations`, adquire `pg_advisory_lock` antes de aplicar qualquer arquivo e roda cada migration em sua própria transação, registrando apenas as que aplicam com sucesso. Arquivos já registrados nunca são reexecutados.
-- `0001_baseline.sql` consolida todo o estado atual do schema (tabelas, views, índices e os `ALTER`/`DO $$` idempotentes que migravam bancos legados). Não edite a baseline nem reaproveite arquivos já aplicados.
-- **REGRA:** toda mudança estrutural no banco deve ser uma nova migration numerada (`0002_...`, `0003_...`), nunca uma edição da baseline ou um `ALTER` solto no boot. Use o padrão `NNNN_descricao.sql`. Ver `server/db/migrations/README.md`.
+- O schema da stack alvo é aplicado por migrations Rails em `winducacional-api/db/migrate/`.
+- `winducacional-api/db/baseline/0001_baseline.sql` representa o ponto de adoção do legado e não deve ser editado para mudanças futuras.
+- **REGRA:** toda mudança estrutural no banco deve ser uma nova migration Rails em `winducacional-api/db/migrate/`, nunca edição da baseline nem `ALTER` solto no boot.
 
 ## Política De Atualização
 

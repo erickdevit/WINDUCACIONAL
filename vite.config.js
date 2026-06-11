@@ -62,6 +62,9 @@ const config = ({ mode }) => {
         "/api": "http://localhost:3001",
       },
     },
+    test: {
+      include: ["tests/**/*.{test,spec}.{js,jsx,ts,tsx}"],
+    },
   });
 };
 

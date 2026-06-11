@@ -5,7 +5,7 @@
 - Segurança deve ser padrão, não ajuste posterior.
 - Qualquer dado vindo do usuário, URL, `localStorage`, API externa ou arquivo persistente deve ser tratado como não confiável.
 - Segredos nunca devem ir para o bundle frontend, assets públicos ou repositório.
-- O backend futuro deve centralizar validação, autorização, auditoria e acesso a dados.
+- A API Rails deve centralizar validação, autorização, auditoria e acesso a dados.
 - Toda exceção de segurança deve ser documentada com motivo, impacto e plano de remoção.
 
 ## Riscos Atuais Observados
@@ -29,7 +29,7 @@ O comando `eval` legado do terminal foi removido durante a primeira implementaç
 - PWA/service worker deve ter política clara de cache para não expor dados sensíveis.
 - Frontend pode ocultar opções, mas nunca deve ser a única barreira de autorização.
 
-## Requisitos Para Backend Futuro
+## Requisitos Para Backend Rails
 
 - Validar entrada em todas as rotas.
 - Usar queries parametrizadas ou ORM seguro para PostgreSQL.
@@ -39,6 +39,7 @@ O comando `eval` legado do terminal foi removido durante a primeira implementaç
 - Usar IDs públicos não previsíveis para recursos expostos.
 - Definir CORS restrito para origens conhecidas.
 - Aplicar rate limit em login, endpoints sensíveis e operações caras.
+- Criar o primeiro professor pelo fluxo `/api/bootstrap`, protegido por `BOOTSTRAP_TOKEN` em produção; não reintroduzir seed automático `Admin`/`Admin` na nova stack.
 - Registrar eventos relevantes sem gravar senhas, tokens ou dados sensíveis em logs.
 - Tratar erros sem vazar stack trace em produção.
 - Canais em tempo real, como SSE, devem reutilizar a sessão HTTP-only, validar autorização antes de abrir a conexão e não aceitar parâmetros de aluno como fonte de permissão.

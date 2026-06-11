@@ -2,7 +2,9 @@
 
 ## Estado Atual
 
-O projeto atual gera uma build estática com Vite em `build/`, possui um servidor Express inicial para API e arquivos estáticos, e já conta com `Dockerfile`, `docker-compose.yml`, `docker-compose.prod.yml` e `compose.dev.yml`.
+O projeto está em migração para `winducacional-api` + `winducacional-web`. A stack alvo atual sobe a API Rails com PostgreSQL e Redis por `docker-compose.rails.yml`. O frontend React/TypeScript ainda roda separadamente em desenvolvimento e deve ganhar container estático/proxy próprio antes da remoção do legado.
+
+O Express/Vite legado ainda possui `Dockerfile`, `docker-compose.yml`, `docker-compose.prod.yml` e `compose.dev.yml`, mas esses arquivos são compatibilidade de transição, não o deploy alvo.
 
 ## Objetivo De Hospedagem
 
@@ -10,9 +12,13 @@ O ponto de hospedagem será um servidor dedicado. A aplicação deverá ser dist
 
 ## Arquitetura De Deploy Alvo
 
-- Aplicação: container principal com frontend e backend, ou containers separados se a arquitetura final pedir.
+- Frontend público: container estático com build de `winducacional-web`, servido por Nginx, Caddy ou equivalente.
+- Backend: container Rails API acessível somente atrás de proxy para `/api` e `/cable`.
 - PostgreSQL: container ou serviço gerenciado, com volume próprio.
+- Redis: container ou serviço gerenciado para ActionCable.
 - Diretório persistente: volume montado em `PERSISTENT_DATA_DIR` para discos virtuais e arquivos gerados pelo simulador.
+- Apostilas: montagem somente leitura de `shared/booklets`.
+- Árvore base do disco: montagem somente leitura de `shared/base-tree`.
 - Reverse proxy: Nginx, Caddy, Traefik ou proxy do ambiente, com TLS no ponto público.
 - Backups: rotina para banco e arquivos persistentes.
 
@@ -26,17 +32,20 @@ O ponto de hospedagem será um servidor dedicado. A aplicação deverá ser dist
 - Volumes explícitos para dados persistentes.
 - Logs em stdout/stderr para coleta pelo host.
 
-## Compose Atual
+## Compose Rails Atual
 
-- Serviço `app`.
+- Serviço `rails_api`.
 - Serviço `postgres`.
+- Serviço `redis`.
 - Volume `app_data` para discos virtuais.
 - Volume `postgres_data` para o banco.
+- Volume `redis_data` para Redis.
 - Healthcheck de banco e healthcheck de aplicação no container.
-- Arquivo `.env.example` sem segredos reais.
-- O schema executado na inicialização inclui migrações idempotentes para colunas adicionadas em bancos já existentes.
-- A imagem final copia a biblioteca de PDFs de `src/containers/applications/apps/booklets/library`, usada pelo app Apostilas e servida pelo backend por rotas autenticadas.
-- O serviço `app` aceita `IMAGEGEN_API_TOKEN` e `IMAGEGEN_API_URL` para habilitar o proxy de geração de imagens no backend. O token real deve existir apenas no ambiente do servidor.
+- Arquivos `.env.example` sem segredos reais.
+- Rails usa migrations em `winducacional-api/db/migrate`.
+- `shared/booklets` é montado em `/rails/booklets`.
+- `shared/base-tree` é montado em `/rails/base-tree`.
+- O serviço `rails_api` aceita `IMAGEGEN_API_TOKEN` e `IMAGEGEN_API_URL` para habilitar o proxy de geração de imagens no backend. O token real deve existir apenas no ambiente do servidor.
 
 O arquivo `.env.example` documenta as variáveis mínimas atuais para execução do backend.
 
@@ -50,10 +59,8 @@ Os nomes finais ainda devem ser definidos, mas a aplicação provavelmente preci
 - `PERSISTENT_DATA_DIR`
 - `BOOTSTRAP_TOKEN`
 - `SESSION_DAYS`
-- `SEED_ADMIN_ENABLED`
-- `SEED_ADMIN_USERNAME`
-- `SEED_ADMIN_PASSWORD`
-- `SEED_ADMIN_DISPLAY_NAME`
+- `BOOKLET_LIBRARY_DIR`
+- `BASE_TREE_PATH`
 - `APP_VERSION`
 - `SOURCE_VERSION`
 - `POSTGRES_DB`
@@ -63,24 +70,22 @@ Os nomes finais ainda devem ser definidos, mas a aplicação provavelmente preci
 - `IMAGEGEN_API_TOKEN`
 - `IMAGEGEN_API_URL`
 
-Segredos reais devem existir apenas no ambiente do servidor, nunca no frontend ou no repositório. A configuração padrão de `Admin`/`Admin` existe apenas para bootstrap operacional e deve ser substituída assim que a implantação estiver disponível.
+Segredos reais devem existir apenas no ambiente do servidor, nunca no frontend ou no repositório. A stack Rails cria o primeiro professor por `/api/bootstrap`; não use seed automático `Admin`/`Admin` como bootstrap da nova stack.
 
 `APP_VERSION` ou `SOURCE_VERSION` podem ser definidos pelo pipeline de deploy para identificar a build publicada. Se não forem definidos, o servidor deriva a versão a partir de `build/index.html`. Quando a versão muda, o backend invalida as sessões armazenadas e o frontend limpa caches/service workers antes de recarregar, evitando que usuários continuem usando assets antigos após uma recompilação.
 
 ## Bootstrap Inicial
 
-Quando `SEED_ADMIN_ENABLED=true` e o banco está vazio, a aplicação cria automaticamente:
+Na stack Rails, consulte:
 
-- Usuário: `Admin`
-- Senha: `Admin`
-- Papel: `professor`
+- `GET /api/bootstrap/status`
 
-Se você quiser outro bootstrap, defina `SEED_ADMIN_USERNAME`, `SEED_ADMIN_PASSWORD` e `SEED_ADMIN_DISPLAY_NAME` antes da primeira subida.
+Se `needsBootstrap` for verdadeiro, envie `POST /api/bootstrap` com usuário, nome, senha e `token` quando `BOOTSTRAP_TOKEN` estiver configurado.
 
 ## Antes De Produção
 
-- Evoluir modelo de autenticação e autorização conforme os cenários educacionais.
-- Criar fluxo formal de migrations do banco.
+- Criar container final do frontend `winducacional-web`.
+- Configurar proxy público para frontend, `/api` e `/cable`.
 - Definir estratégia de backup.
 - Configurar TLS e cabeçalhos de segurança.
 - Rodar suíte de testes automatizados.

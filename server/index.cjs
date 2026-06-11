@@ -8,16 +8,12 @@ const { runMigrations } = require("./db/migrate.cjs");
 
 const rootDir = path.resolve(__dirname, "..");
 const buildDir = path.join(rootDir, "build");
-const sourceTreePath = path.join(rootDir, "src", "reducers", "dir.json");
-const bookletLibraryDir = path.join(
-  rootDir,
-  "src",
-  "containers",
-  "applications",
-  "apps",
-  "booklets",
-  "library"
-);
+const sourceTreePath = process.env.BASE_TREE_PATH
+  ? path.resolve(process.env.BASE_TREE_PATH)
+  : path.join(rootDir, "shared", "base-tree", "dir.json");
+const bookletLibraryDir = process.env.BOOKLET_LIBRARY_DIR
+  ? path.resolve(process.env.BOOKLET_LIBRARY_DIR)
+  : path.join(rootDir, "shared", "booklets");
 
 const config = {
   port: Number(process.env.PORT || 3001),

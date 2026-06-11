@@ -14,6 +14,7 @@ services:
       REDIS_URL: redis://redis:6379/0
       PERSISTENT_DATA_DIR: /rails/data
       BOOKLET_LIBRARY_DIR: /rails/booklets
+      BASE_TREE_PATH: /rails/base-tree/dir.json
       SESSION_DAYS: ${SESSION_DAYS:-7}
       SECRET_KEY_BASE: ${SECRET_KEY_BASE:?Defina SECRET_KEY_BASE}
       BOOTSTRAP_TOKEN: ${BOOTSTRAP_TOKEN:-}
@@ -25,7 +26,8 @@ services:
     volumes:
       # Mesmo volume do servidor Node para compatibilidade dos discos virtuais
       - app_data:/rails/data
-      - ./src/containers/applications/apps/booklets/library:/rails/booklets:ro
+      - ./shared/booklets:/rails/booklets:ro
+      - ./shared/base-tree:/rails/base-tree:ro
     restart: unless-stopped
     depends_on:
       postgres:

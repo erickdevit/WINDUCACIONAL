@@ -167,10 +167,11 @@ describe("Backend - frequência", () => {
 });
 
 describe("Backend - apostilas", () => {
-  it("deve ler apostilas da pasta interna do app", () => {
+  it("deve ler apostilas da pasta compartilhada", () => {
     expect(serverCode).toContain("bookletLibraryDir");
+    expect(serverCode).toContain("BOOKLET_LIBRARY_DIR");
+    expect(serverCode).toContain('"shared"');
     expect(serverCode).toContain('"booklets"');
-    expect(serverCode).toContain('"library"');
   });
 
   it("deve expor catálogo e permissões de módulos com autenticação", () => {

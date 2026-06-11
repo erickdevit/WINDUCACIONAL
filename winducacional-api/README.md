@@ -1,24 +1,43 @@
-# README
+# winducacional-api
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+API Rails do WINDUCACIONAL. Esta é a API alvo da migração e mantém o contrato `/api/*` usado pelo frontend novo em `winducacional-web`.
 
-Things you may want to cover:
+## Desenvolvimento
 
-* Ruby version
+```bash
+bundle install
+bin/rails db:prepare
+bin/rails server -p 3002
+```
 
-* System dependencies
+## Testes
 
-* Configuration
+```bash
+bundle exec rspec
+```
 
-* Database creation
+## Configuração
 
-* Database initialization
+Use `.env.example` como referência. Variáveis principais:
 
-* How to run the test suite
+- `DATABASE_URL`
+- `TEST_DATABASE_URL`
+- `REDIS_URL`
+- `PERSISTENT_DATA_DIR`
+- `BOOKLET_LIBRARY_DIR`
+- `BASE_TREE_PATH`
+- `BOOTSTRAP_TOKEN`
+- `IMAGEGEN_API_TOKEN`
+- `IMAGEGEN_API_URL`
+- `CORS_ORIGINS`
 
-* Services (job queues, cache servers, search engines, etc.)
+O primeiro professor é criado por `POST /api/bootstrap` quando `GET /api/bootstrap/status` indicar `needsBootstrap: true`. Em produção, defina `BOOTSTRAP_TOKEN`.
 
-* Deployment instructions
+## Recursos Compartilhados
 
-* ...
+Por padrão, a API lê:
+
+- apostilas em `../shared/booklets`;
+- árvore base do disco virtual em `../shared/base-tree/dir.json`.
+
+Esses caminhos podem ser sobrescritos por `BOOKLET_LIBRARY_DIR` e `BASE_TREE_PATH`.

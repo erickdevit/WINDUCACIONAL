@@ -112,6 +112,14 @@ export const examsApi = baseApi.injectEndpoints({
       query: ({ examId, ...body }) => ({ url: `/exams/${examId}`, method: "PUT", body }),
       invalidatesTags: (_result, _error, { examId }) => ["Exams", { type: "Exam", id: examId }],
     }),
+    publishExam: build.mutation<{ exam: Exam }, { examId: string; isPublished: boolean }>({
+      query: ({ examId, isPublished }) => ({
+        url: `/exams/${examId}/publish`,
+        method: "PATCH",
+        body: { isPublished },
+      }),
+      invalidatesTags: (_result, _error, { examId }) => ["Exams", { type: "Exam", id: examId }],
+    }),
     deleteExam: build.mutation<void, string>({
       query: (examId) => ({ url: `/exams/${examId}`, method: "DELETE" }),
       invalidatesTags: ["Exams"],
@@ -140,6 +148,7 @@ export const {
   useGetStudentHistoryQuery,
   useCreateExamMutation,
   useUpdateExamMutation,
+  usePublishExamMutation,
   useDeleteExamMutation,
   useCreateQuestionMutation,
   useDeleteQuestionMutation,

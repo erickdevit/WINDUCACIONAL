@@ -1,6 +1,6 @@
 # Documentação Do Projeto
 
-Esta pasta contém os documentos-chave do simulador educacional. Ela deve evoluir junto com o código e servir como fonte primária para decisões técnicas.
+Esta pasta contém os documentos-chave do simulador educacional. Ela deve evoluir junto com o código e servir como fonte primária para decisões técnicas, especialmente durante a migração para `winducacional-api` + `winducacional-web`.
 
 ## Documentos
 

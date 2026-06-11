@@ -1,8 +1,17 @@
 # Arquitetura
 
-## Arquitetura Atual
+## Arquitetura Atual Em Migração
 
-O projeto atual combina uma SPA React com um backend inicial em Express:
+A arquitetura alvo em implementação é composta por:
+
+- `winducacional-api`: Rails API com PostgreSQL, sessões HTTP-only, ActionCable, controllers por domínio e services para regras de negócio.
+- `winducacional-web`: React/TypeScript com Vite, Redux Toolkit, RTK Query, React Router e Tailwind.
+- `shared/booklets`: biblioteca neutra de PDFs usada pelo app Apostilas.
+- `shared/base-tree/dir.json`: árvore base neutra do disco virtual usada pela API Rails e pelo legado enquanto a migração não termina.
+
+O código Express/Vite legado em `server/`, `src/` e `public/` permanece apenas para transição. Não trate essas pastas como arquitetura alvo para novas funcionalidades.
+
+O legado ainda combina uma SPA React com um backend inicial em Express:
 
 - `src/index.jsx`: entrada React e Provider Redux.
 - `src/App.jsx`: composição principal da experiência desktop.
@@ -59,7 +68,7 @@ A persistência atual está dividida:
 - PostgreSQL guarda usuários, papéis, turmas com classificação Kids/Normal e código público de vínculo, sessões, metadados de versão da aplicação e configurações de dificuldade dos apps de digitação.
 - `PERSISTENT_DATA_DIR` guarda um `disk.json` por usuário com o conteúdo do disco virtual.
 - `localStorage` ainda guarda preferências visuais legadas e não deve ser usado para autorização ou dados sensíveis.
-- Quando o banco está vazio, o backend pode semear automaticamente o professor inicial conforme as variáveis `SEED_ADMIN_*`.
+- Na stack Rails, o primeiro professor é criado por `/api/bootstrap`; o seed automático por `SEED_ADMIN_*` pertence apenas ao legado Express enquanto ele existir.
 
 Alunos recebem apenas o próprio diretório em `C:\Users`. Professores recebem a visão completa de `C:\Users` e podem administrar usuários e turmas nas Configurações. Turmas possuem `student_type` (`kids` ou `normal`) e `code`, um identificador único de 6 letras ou números maiúsculos usado no cadastro público de aluno. A turma é a fonte de verdade da classificação Kids/Normal: ao vincular ou editar alunos, o backend deriva automaticamente o `student_type` do aluno a partir da turma, e ao alterar o tipo da turma todos os alunos vinculados herdam o novo tipo. A interface usa essa classificação derivada para exibir somente os apps educacionais correspondentes ao tipo do aluno, mantendo os apps padrão do Windows visíveis para todos e liberando tudo para professores. Nomes completos são normalizados no cadastro, edição e inicialização do backend, que também ajusta registros antigos de usuários. Professores também podem zerar o ranking de digitação de uma turma informando esse código, operação que remove apenas as pontuações dos alunos vinculados à turma indicada e ao tipo da turma.
 
@@ -67,7 +76,7 @@ As configurações de aprovação dos apps de digitação ficam em `typing_setti
 
 O app de Digitação Normal também contém uma área de games separada das lições tradicionais. O modo solo inicial, Defesa Orbital, usa missões próprias de palavras, nave e tiros por letra. Suas configurações ficam em `typing_game_settings`, também por `student_type`, com PPM mínimo, precisão mínima, vidas do game, velocidade percentual de descida das palavras e aceleração percentual por palavra destruída. Essas duas últimas opções são exclusivas do game e não afetam as lições tradicionais. Alunos recebem mudanças em tempo real por SSE em `/api/typing/game/settings/events`, e os rankings oficiais do game usam `typing_game_scores` e a view `typing_game_ranking`, com listagens global e por turma e reset próprio por código de turma. O histórico em `localStorage` pode existir apenas como fallback visual quando a API não estiver disponível. O modo PVP usa endpoints autenticados em `/api/typing-pvp/*` para lobby, convite, pareamento aleatório, sincronização SSE, finalização e histórico persistido em `typing_pvp_matches`; os placares são listados por escopo global ou turma, filtrando a turma do aluno ou a turma selecionada pelo professor. A finalização atual identifica os participantes da sala no servidor e persiste a pontuação enviada pelo cliente; a validação autoritativa de cada palavra digitada no servidor permanece como etapa futura de endurecimento.
 
-O app Frequência usa `attendance_records` para registrar automaticamente a presença diária de alunos no momento em que uma sessão é criada dentro da agenda da turma. Cada turma mantém `schedule_days`, `schedule_start_time` e `schedule_end_time`, configurados na área de Turmas das Configurações, e essa agenda é a fonte de verdade para apps que precisem saber dias e horários de aula. Cada aluno tem no máximo um registro por data, com primeiro login, último login e contador de logins do dia. O cálculo de data usa o fuso `America/Sao_Paulo`. Professores acessam painéis por turma e período, com métricas de presença, ausências, lista analítica e impressão da frequência calculadas apenas sobre dias esperados de aula. Alunos acessam apenas o próprio resumo e histórico. A mesma visualização pode rodar dentro da janela do simulador ou diretamente pela rota `/frequencia`, que mantém autenticação por sessão e evita montar desktop, taskbar e menus do simulador para funcionar como app web normal em celulares.
+O app Frequência usa `attendance_records` para registrar automaticamente a presença diária de alunos no momento em que uma sessão é criada dentro da agenda da turma. Cada turma mantém `schedule_days`, `schedule_start_time` e `schedule_end_time`, configurados na área de Turmas das Configurações, e essa agenda é a fonte de verdade para apps que precisem saber dias e horários de aula. Cada aluno tem no máximo um registro por data, com primeiro login, último login e contador de logins do dia. O cálculo de data usa o fuso `America/Sao_Paulo`. Professores e secretaria acessam painéis por turma e período, com métricas de presença, ausências e lista analítica calculadas apenas sobre dias esperados de aula; apenas professor registra presença manual em lote por turma. Alunos acessam apenas o próprio resumo e histórico. A mesma visualização roda dentro da janela do simulador ou diretamente pela rota `/frequencia`, que mantém autenticação por sessão e evita montar desktop, taskbar e menus do simulador.
 
 O app Avaliação usa `exams`, `exam_questions`, `exam_assignments`, `exam_submissions` e `exam_answers`. Professores criam provas, definem tempo global em minutos, publicam e atribuem avaliações a alunos. Cada questão também pode ter um tempo próprio em minutos, usado pela interface do aluno para avançar a questão quando o tempo expira. Antes de iniciar a avaliação, o aluno confirma o nome completo puxado do cadastro; se editar, o frontend aplica a autoformatação e o backend normaliza e atualiza o cadastro. A submissão mantém `student_display_name` como snapshot do nome confirmado. Alunos só listam e abrem provas publicadas e atribuídas a eles. A correção de múltipla escolha e das regras práticas é calculada no backend a partir das respostas e de um snapshot do container prático; o frontend não envia pontuação nem resposta correta como fonte de verdade. As regras práticas iniciais cobrem existência de arquivo, conteúdo de arquivo e ação/atalho executado no container simulado.
 
@@ -77,21 +86,21 @@ Notificações do usuário usam SSE autenticado em `/api/notifications/events` e
 
 O backend mantém a versão atual da build em `app_metadata`. Quando a versão muda, as sessões persistidas são apagadas, o frontend detecta `/api/app/version`, limpa caches de navegador/service worker e recarrega com parâmetro de versão para forçar o uso da nova build.
 
-O app Apostilas armazena os PDFs em `src/containers/applications/apps/booklets/library`, dentro da própria pasta do app. O backend faz a leitura desse diretório, expõe o catálogo em `/api/booklets/modules`, serve PDFs por IDs de módulo/arquivo validados e persiste em `booklet_module_access` quais módulos ficam visíveis para alunos em geral. A tabela `booklet_student_module_access` registra liberações específicas por aluno, usadas quando o professor precisa dar acesso a módulos pontuais para estudantes selecionados por turma. Professores veem todos os módulos; alunos recebem módulos liberados globalmente ou por exceção individual.
+O app Apostilas armazena os PDFs em `shared/booklets`, fora de `src/`, para que Rails, Docker e qualquer frontend em transição usem a mesma biblioteca sem depender da árvore legado. O backend faz a leitura desse diretório, expõe o catálogo em `/api/booklets/modules`, serve PDFs por IDs de módulo/arquivo validados e persiste em `booklet_module_access` quais módulos ficam visíveis para alunos em geral. A tabela `booklet_student_module_access` registra liberações específicas por aluno, usadas quando o professor precisa dar acesso a módulos pontuais para estudantes selecionados por turma. Professores veem todos os módulos e gerenciam liberações globais e individuais; secretaria tem leitura; alunos recebem módulos liberados globalmente ou por exceção individual.
 
 O app Gerador de Imagens consome `/api/imagegen/config` e `/api/imagegen/generate`. O backend atua como proxy autenticado para o provedor externo configurado por `IMAGEGEN_API_TOKEN` e `IMAGEGEN_API_URL`, mantendo o token fora do frontend. A imagem gerada retorna ao cliente como data URL PNG e, ao baixar, é gravada no disco virtual pelo `FileDialog` existente, usando a mesma árvore Redux persistida por `/api/fs/tree`.
 
 O app Fotos é o visualizador interno para imagens armazenadas no disco virtual. O Explorer abre arquivos `png`, `jpg`, `jpeg`, `webp` e `gif` pela ação `PHOTOS`, passando o ID do item como payload; o app lê o conteúdo em `fileItem.data` e renderiza a imagem sem acessar arquivos reais do host.
 
-## Arquitetura Alvo
+## Arquitetura Alvo Final
 
-A arquitetura alvo deve separar responsabilidades:
+A arquitetura alvo final deve separar responsabilidades:
 
-- Frontend: simulador, interface desktop, fluxos educacionais e consumo de API.
-- Backend: autenticação, usuários, progresso, administração, validação de entrada e regras de negócio.
+- Frontend React/TypeScript: simulador, interface desktop, rotas diretas autenticadas, fluxos educacionais e consumo de API.
+- Rails API: autenticação, usuários, progresso, administração, validação de entrada, ActionCable e regras de negócio.
 - PostgreSQL: dados relacionais como usuários, perfis, sessões, progresso e auditoria.
 - Diretório persistente: discos virtuais, arquivos gerados, uploads permitidos, exports e dados não relacionais que exigem volume.
-- Docker: empacotamento reprodutível para servidor dedicado.
+- Docker: empacotamento reprodutível para servidor dedicado, com frontend público e Rails atrás de proxy para `/api` e `/cable`.
 
 ## Princípios
 

@@ -14,7 +14,10 @@ export const baseApi = createApi({
   tagTypes: [
     "User",
     "GestorSessions",
+    "AttendanceSummary",
+    "AttendanceMe",
     "BookletModules",
+    "BookletStudentAccess",
     "FsTree",
     "TypingSettings",
     "TypingRanking",

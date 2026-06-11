@@ -7,7 +7,7 @@ import {
   useDeleteQuestionMutation,
   useGetExamQuery,
   useGetExamsQuery,
-  useUpdateExamMutation,
+  usePublishExamMutation,
   type Exam,
 } from "@/features/exams/examsApi"
 import { useGetTurmasQuery, useGetUsersQuery } from "@/features/users/usersApi"
@@ -38,7 +38,7 @@ function ProfessorExamList({
 }) {
   const { data, isLoading, isError, error } = useGetExamsQuery()
   const [createExam, { isLoading: isCreating, error: createError }] = useCreateExamMutation()
-  const [updateExam] = useUpdateExamMutation()
+  const [publishExam, { error: publishError }] = usePublishExamMutation()
   const [deleteExam] = useDeleteExamMutation()
   const [title, setTitle] = useState("")
   const [timeLimit, setTimeLimit] = useState("")
@@ -88,6 +88,11 @@ function ProfessorExamList({
       {createError && (
         <p className="text-xs text-red-400">{getApiErrorMessage(createError, "Não foi possível criar a prova.")}</p>
       )}
+      {publishError && (
+        <p className="text-xs text-red-400">
+          {getApiErrorMessage(publishError, "Não foi possível alterar a publicação da prova.")}
+        </p>
+      )}
 
       <div className="flex-1 overflow-auto">
         {data.exams.length === 0 ? (
@@ -113,7 +118,7 @@ function ProfessorExamList({
                   <button
                     type="button"
                     className={SMALL_BUTTON}
-                    onClick={() => void updateExam({ examId: exam.id, isPublished: !exam.isPublished })}
+                    onClick={() => void publishExam({ examId: exam.id, isPublished: !exam.isPublished })}
                   >
                     {exam.isPublished ? "Despublicar" : "Publicar"}
                   </button>

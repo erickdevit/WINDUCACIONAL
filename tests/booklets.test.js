@@ -145,11 +145,8 @@ describe("App Apostilas", () => {
     expect(mobileBlock).toContain("overflow-y: auto");
   });
 
-  it("deve manter a biblioteca de PDFs dentro da pasta do app", () => {
-    const libraryDir = path.resolve(
-      __dirname,
-      "../src/containers/applications/apps/booklets/library"
-    );
+  it("deve manter a biblioteca de PDFs na pasta compartilhada", () => {
+    const libraryDir = path.resolve(__dirname, "../shared/booklets");
     expect(fs.existsSync(libraryDir)).toBe(true);
     expect(fs.existsSync(path.resolve(__dirname, "../apostilas"))).toBe(false);
   });

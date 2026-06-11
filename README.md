@@ -1,33 +1,18 @@
 # WINDUCACIONAL
 
-WINDUCACIONAL é um simulador educacional aberto com experiência desktop web. A aplicação combina frontend React/Vite/Redux, backend Express, PostgreSQL, sessões HTTP-only, turmas, papéis de usuário e discos virtuais persistidos para apoiar atividades de aprendizagem.
-
-O objetivo do produto é oferecer uma plataforma de simulação com cenários educacionais, usuários, progresso persistente e instalação em servidor dedicado via imagem Docker.
+WINDUCACIONAL é um simulador educacional aberto com experiência desktop web. A migração em andamento reescreve a aplicação para uma stack formada por API Rails e frontend React/TypeScript, preservando o código Express/Vite legado apenas até a nova stack atingir paridade funcional e deploy próprio.
 
 ## Estado Atual
 
-- Frontend em React 18, Redux, Vite, SCSS/CSS e PWA.
-- Backend inicial em Express, com autenticação, sessão HTTP-only e API protegida.
-- PostgreSQL para usuários, papéis, classificação de alunos, turmas com código de vínculo e sessões.
-- Diretório persistente para discos virtuais por usuário.
-- Stack Docker pronta para aplicação e banco.
-- Experiência visual inspirada em ambiente desktop, com aplicativos simulados em `src/containers/applications/apps`.
-- Suíte inicial de testes automatizados com Vitest.
-
-## Direção Do Produto
-
-O projeto deverá crescer como um simulador educacional guiado por boas práticas de código, segurança e testes. A evolução planejada inclui:
-
-- Evolução da API backend para progresso, cenários e administração.
-- Ampliação do PostgreSQL para dados relacionais do domínio educacional.
-- Ampliação do diretório persistente para arquivos e dados gerados pelo simulador.
-- Imagem Docker de produção com `docker build`.
-- `docker compose` para ambiente local e hospedagem em servidor dedicado.
-- Testes unitários, de integração e de fluxo crítico antes de mudanças de maior risco.
+- Backend alvo em `winducacional-api`: Rails API, PostgreSQL, sessões HTTP-only, usuários com papéis, turmas, discos virtuais persistidos, ActionCable, apostilas, frequência, avaliações, chat, digitação, PVP, Gestor e proxy autenticado para geração de imagens.
+- Frontend alvo em `winducacional-web`: React, TypeScript, Vite, Redux Toolkit, RTK Query, React Router e Tailwind.
+- Recursos compartilhados em `shared/`: biblioteca de PDFs em `shared/booklets` e árvore base do disco virtual em `shared/base-tree/dir.json`.
+- Código legado ainda presente em `src/`, `server/` e `public/` para transição, sem ser a stack alvo.
+- Compose de transição Rails em `docker-compose.rails.yml`, com `rails_api`, `postgres` e `redis`.
 
 ## Documentação
 
-A documentação viva do projeto fica em `docs/` e deve ser atualizada junto com as decisões técnicas:
+A documentação viva fica em `docs/` e deve ser atualizada junto com decisões técnicas:
 
 - [Índice de documentos](docs/README.md)
 - [Visão do produto](docs/product-vision.md)
@@ -37,67 +22,70 @@ A documentação viva do projeto fica em `docs/` e deve ser atualizada junto com
 - [Deploy e infraestrutura](docs/deployment.md)
 - [Roadmap técnico](docs/roadmap.md)
 
-O arquivo [AGENTS.md](AGENTS.md) é o guia operacional para agentes e colaboradores automatizados. Ele deve ser atualizado sempre que uma regra, decisão de arquitetura, comando, fluxo de teste ou documento-chave mudar.
+O arquivo [AGENTS.md](AGENTS.md) é o guia operacional para agentes e colaboradores automatizados.
 
 ## Desenvolvimento Local
 
-Requisitos atuais:
+Requisitos:
 
-- Node.js compatível com o lockfile existente.
-- npm.
+- Ruby compatível com `winducacional-api/.ruby-version`.
+- Bundler.
+- Node.js e npm compatíveis com `winducacional-web/package-lock.json`.
+- PostgreSQL e Redis, localmente ou via Docker.
 
-Comandos disponíveis hoje:
+API Rails:
 
 ```bash
+cd winducacional-api
+bundle install
+bin/rails db:prepare
+bin/rails server -p 3002
+bundle exec rspec
+```
+
+Frontend React/TypeScript:
+
+```bash
+cd winducacional-web
 npm install
 npm run dev
 npm run test
+npm run lint
 npm run build
-npm run start
 ```
 
-O comando `npm run dev` inicia o Vite para desenvolvimento. O comando `npm run test` executa a suíte Vitest. O comando `npm run start` inicia o servidor Express e serve a build gerada em `build/`.
+O Vite roda em `http://localhost:5173` e faz proxy de `/api` e `/cable` para a API Rails em `http://localhost:3002`.
 
-Variáveis principais do backend:
+## Docker De Transição
 
-- `DATABASE_URL`: conexão PostgreSQL.
-- `PERSISTENT_DATA_DIR`: diretório persistente dos discos virtuais.
-- `BOOTSTRAP_TOKEN`: token exigido para criar o primeiro professor em produção.
-- `SESSION_DAYS`: duração da sessão em dias.
-- `PORT`: porta do servidor Express. O padrão local é `3001`.
-- `SEED_ADMIN_*`: define o usuário inicial automático quando o banco está vazio.
-
-Para desenvolvimento local, `compose.dev.yml` sobe apenas o PostgreSQL:
+Para subir a nova API Rails com PostgreSQL e Redis:
 
 ```bash
-docker compose -f compose.dev.yml up -d
-npm run build
-npm run start
+docker compose -f docker-compose.rails.yml up -d --build
 ```
 
-Para subir a stack completa com Docker:
+O compose monta:
 
-```bash
-docker compose up -d --build
-```
+- `app_data` em `/rails/data` para discos virtuais.
+- `shared/booklets` em `/rails/booklets`.
+- `shared/base-tree` em `/rails/base-tree`.
 
-Na primeira implantação com banco vazio, a aplicação cria automaticamente o usuário `Admin` com senha `Admin` e papel de professor. Isso atende ao fluxo pedido para bootstrap operacional, mas a troca dessa senha deve ser tratada como passo obrigatório após a subida inicial.
+## Bootstrap
 
-Alunos podem criar conta pela tela de login usando o código de uma turma ativa. O cadastro cria sessão automaticamente e vincula o aluno à turma informada.
+A criação do primeiro professor na stack Rails é feita pelo endpoint autenticado de bootstrap:
+
+- `GET /api/bootstrap/status`
+- `POST /api/bootstrap`
+
+Em produção, defina `BOOTSTRAP_TOKEN` e informe esse token no `POST /api/bootstrap`. A nova stack não depende de seed automático `Admin`/`Admin`; qualquer senha operacional padrão existente pertence apenas ao legado e deve ser removida com ele.
 
 ## Qualidade E Segurança
 
-Novas mudanças devem seguir estes princípios:
+Antes de commitar mudanças na nova stack, rode:
 
-- Evitar APIs perigosas no frontend, como `eval`, HTML bruto sem sanitização e navegação externa sem validação.
-- Tratar `localStorage`, parâmetros de URL, respostas de API e conteúdo persistido como dados não confiáveis.
-- Não colocar segredos em código cliente, assets públicos ou variáveis expostas ao bundle.
-- Tratar isolamento de dados sempre no servidor, não apenas na interface.
-- Criar ou atualizar testes quando houver alteração de comportamento.
-- Documentar decisões técnicas antes de implementar componentes estruturais como backend, banco, persistência e Docker.
+```bash
+cd winducacional-api && bundle exec rspec
+cd ../winducacional-web && npm run test && npm run lint && npm run build
+```
 
-Os detalhes estão em [docs/security.md](docs/security.md) e [docs/testing-strategy.md](docs/testing-strategy.md).
-
-## Licença
-
-Este repositório usa a licença CC0-1.0. Antes de publicar distribuições, revise a compatibilidade da licença com qualquer novo componente, asset ou dependência adicionada.
+Segredos devem ficar somente em variáveis de ambiente do servidor. O frontend nunca deve receber tokens de provedores externos, incluindo `IMAGEGEN_API_TOKEN`.

@@ -2,7 +2,12 @@
 
 ## Estado Atual
 
-Há uma suíte inicial em Vitest, executada com `npm run test`, cobrindo verificações objetivas de schema, contrato básico do backend, cliente de API e utilitários. Ela ainda não substitui testes de integração reais com PostgreSQL nem testes de componentes no navegador.
+Há suítes separadas para a nova stack:
+
+- `winducacional-api`: RSpec para requests, controllers e regras de backend Rails.
+- `winducacional-web`: Vitest e Testing Library para utilitários, slices, contratos de tela e fluxos principais do frontend React/TypeScript.
+
+O legado ainda possui testes próprios na raiz, mas novas funcionalidades devem ser protegidas prioritariamente nas pastas da nova stack.
 
 ## Objetivo
 
@@ -65,7 +70,7 @@ Criar uma suíte objetiva, rápida e útil para proteger a evolução do simulad
 - Vitest para testes unitários e de componentes.
 - React Testing Library para interação com componentes.
 - Playwright para fluxos end-to-end.
-- Supertest ou equivalente quando o backend for criado.
+- RSpec para requests da API Rails.
 - Testcontainers ou banco PostgreSQL em Compose para integração, quando houver backend.
 
 ## Política Para Novas Mudanças
@@ -82,8 +87,10 @@ Criar uma suíte objetiva, rápida e útil para proteger a evolução do simulad
 Antes de merges importantes, o mínimo esperado será:
 
 ```bash
-npm run test
-npm run build
+cd winducacional-api && bundle exec rspec
+cd winducacional-web && npm run test
+cd winducacional-web && npm run lint
+cd winducacional-web && npm run build
 ```
 
-O projeto ainda não possui comando de lint dedicado.
+Quando a alteração também tocar o legado de transição, rode os testes/builds correspondentes da raiz antes do commit.

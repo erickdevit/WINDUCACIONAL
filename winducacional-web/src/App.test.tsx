@@ -183,14 +183,57 @@ describe("App", () => {
     expect(await screen.findByText("Desktop")).toBeInTheDocument()
   })
 
-  it("esconde o app Frequência do menu Iniciar para o perfil professor", async () => {
-    mockAuthenticatedFetch()
+  it("abre a Frequência administrativa para o perfil professor", async () => {
+    mockAuthenticatedFetch((url) => {
+      if (url.endsWith("/api/turmas")) {
+        return jsonResponse({ turmas: [{ id: "turma-1", nome: "Turma A", code: "ABC123", studentType: "normal" }] })
+      }
+      if (url.includes("/api/attendance/summary")) {
+        return jsonResponse({
+          range: { startDate: "2026-05-10", endDate: "2026-06-10", totalDays: 1 },
+          totals: { students: 1, presences: 1, absences: 0, attendanceRate: 100 },
+          students: [
+            {
+              id: "2",
+              username: "aluno",
+              displayName: "Aluno Teste",
+              turmaId: "turma-1",
+              turmaNome: "Turma A",
+              presentDays: 1,
+              absentDays: 0,
+              attendanceRate: 100,
+              lastLoginAt: "2026-06-10T12:00:00Z",
+              records: [
+                {
+                  id: "r1",
+                  userId: "2",
+                  attendanceDate: "2026-06-10",
+                  firstLoginAt: "2026-06-10T12:00:00Z",
+                  lastLoginAt: "2026-06-10T12:00:00Z",
+                  loginCount: 1,
+                  username: "aluno",
+                  displayName: "Aluno Teste",
+                  turmaId: "turma-1",
+                  turmaNome: "Turma A",
+                  classType: "normal",
+                },
+              ],
+            },
+          ],
+          daily: [{ date: "2026-06-10", expected: 1, present: 1, absent: 0, attendanceRate: 100 }],
+          records: [],
+        })
+      }
+      return undefined
+    })
     renderApp("/")
 
     fireEvent.click(await screen.findByRole("button", { name: "Início" }))
 
-    expect(await screen.findByRole("button", { name: /Sobre/ })).toBeInTheDocument()
-    expect(screen.queryByRole("button", { name: /Frequência/ })).not.toBeInTheDocument()
+    fireEvent.click(await screen.findByRole("button", { name: /Frequência/ }))
+
+    expect(await screen.findByText("Registro manual")).toBeInTheDocument()
+    expect(screen.getAllByText("Aluno Teste").length).toBeGreaterThan(0)
   })
 
   it("abre a Frequência para o perfil aluno e mostra os registros", async () => {
@@ -226,6 +269,21 @@ describe("App", () => {
     expect(await screen.findByText("Sem registro hoje")).toBeInTheDocument()
     expect(screen.getByText("09/06/2026")).toBeInTheDocument()
     expect(screen.getByText("09:30")).toBeInTheDocument()
+  })
+
+  it("renderiza a rota direta de Frequência sem montar a área de trabalho", async () => {
+    mockAuthenticatedFetch((url) => {
+      if (url.endsWith("/api/attendance/me")) {
+        return jsonResponse({ today: "2026-06-10", todayRecord: null, records: [] })
+      }
+      return undefined
+    }, studentUser)
+    renderApp("/frequencia")
+
+    expect(await screen.findByRole("heading", { name: "Frequência" })).toBeInTheDocument()
+    expect(screen.getByText("Acesso direto autenticado")).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Início" })).not.toBeInTheDocument()
+    expect(await screen.findByText("Nenhum registro de frequência ainda.")).toBeInTheDocument()
   })
 
   it("permite ao professor visualizar e encerrar sessões pelo Gestor de Sessões", async () => {
@@ -290,6 +348,12 @@ describe("App", () => {
     }
 
     mockAuthenticatedFetch((url) => {
+      if (url.endsWith("/api/turmas")) {
+        return jsonResponse({ turmas: [{ id: "turma-1", nome: "Turma A", code: "ABC123", studentType: "normal" }] })
+      }
+      if (url.includes("/api/booklets/student-access")) {
+        return jsonResponse({ students: [] })
+      }
       if (url.endsWith("/api/booklets/modules/access")) {
         return jsonResponse({ modules: [] })
       }
@@ -330,6 +394,81 @@ describe("App", () => {
     await waitFor(() =>
       expect(screen.getByRole("checkbox", { name: "Liberado para alunos" })).toBeChecked(),
     )
+  })
+
+  it("permite ao professor liberar apostila específica para um aluno", async () => {
+    let savedBody: unknown = null
+    const module = {
+      id: "m1",
+      title: "Informática Básica",
+      folderName: "1 - Informática Básica",
+      order: 1,
+      totalFiles: 0,
+      files: [],
+      globalEnabled: false,
+      studentEnabled: false,
+      enabled: false,
+    }
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (request: Request) => {
+        const url = request.url
+        if (url.endsWith("/api/bootstrap/status")) {
+          return jsonResponse({ needsBootstrap: false, requiresToken: false })
+        }
+        if (url.endsWith("/api/auth/me")) {
+          return jsonResponse({ user: professorUser })
+        }
+        if (url.endsWith("/api/turmas")) {
+          return jsonResponse({ turmas: [{ id: "turma-1", nome: "Turma A", code: "ABC123", studentType: "normal" }] })
+        }
+        if (url.endsWith("/api/booklets/modules")) {
+          return jsonResponse({ modules: [module] })
+        }
+        if (url.includes("/api/booklets/student-access") && request.method === "PUT") {
+          savedBody = await request.json()
+          return jsonResponse({
+            students: [
+              {
+                id: "2",
+                username: "aluno",
+                displayName: "Aluno Teste",
+                turmaId: "turma-1",
+                turmaNome: "Turma A",
+                moduleIds: ["m1"],
+              },
+            ],
+          })
+        }
+        if (url.includes("/api/booklets/student-access")) {
+          return jsonResponse({
+            students: [
+              {
+                id: "2",
+                username: "aluno",
+                displayName: "Aluno Teste",
+                turmaId: "turma-1",
+                turmaNome: "Turma A",
+                moduleIds: [],
+              },
+            ],
+          })
+        }
+        throw new Error(`fetch inesperado: ${url}`)
+      }),
+    )
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Apostilas/ }))
+
+    fireEvent.click(await screen.findByRole("checkbox", { name: /Aluno Teste/ }))
+    fireEvent.click(screen.getByRole("checkbox", { name: "Informática Básica" }))
+    fireEvent.click(screen.getByRole("button", { name: "Salvar liberação" }))
+
+    expect(await screen.findByText("1 aluno(s) atualizado(s).")).toBeInTheDocument()
+    expect(savedBody).toEqual({ turmaId: "", userIds: ["2"], moduleIds: ["m1"] })
   })
 
   it("mostra apenas as apostilas liberadas para o perfil aluno, sem opção de gerenciar", async () => {
@@ -762,7 +901,7 @@ describe("App", () => {
           questions.push(question)
           return jsonResponse({ question }, 201)
         }
-        if (url.endsWith("/api/exams/exam-1") && request.method === "PUT") {
+        if (url.endsWith("/api/exams/exam-1/publish") && request.method === "PATCH") {
           const body = (await request.json()) as { isPublished?: boolean }
           if (typeof body.isPublished === "boolean") exams[0].isPublished = body.isPublished
           return jsonResponse({ exam: exams[0] })

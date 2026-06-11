@@ -11,6 +11,8 @@ services:
       PORT: 3001
       DATABASE_URL: postgres://simulador:${POSTGRES_PASSWORD:-simulador}@postgres:5432/${POSTGRES_DB:-simulador_educacional}
       PERSISTENT_DATA_DIR: /app/data
+      BOOKLET_LIBRARY_DIR: /app/shared/booklets
+      BASE_TREE_PATH: /app/shared/base-tree/dir.json
       SESSION_DAYS: ${SESSION_DAYS:-7}
       SEED_ADMIN_ENABLED: ${SEED_ADMIN_ENABLED:-true}
       SEED_ADMIN_USERNAME: ${SEED_ADMIN_USERNAME:-Admin}

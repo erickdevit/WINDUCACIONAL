@@ -1,5 +1,5 @@
 import { Bin } from "../utils/bin";
-import fdata from "./dir.json";
+import fdata from "../../shared/base-tree/dir.json";
 
 const defState = {
   cdir: "%user%",

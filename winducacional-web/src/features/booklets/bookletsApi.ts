@@ -25,6 +25,25 @@ export interface BookletsModulesResponse {
   modules: BookletModule[]
 }
 
+export interface BookletStudentAccess {
+  id: string
+  username: string
+  displayName: string
+  turmaId: string | null
+  turmaNome: string
+  moduleIds: string[]
+}
+
+export interface BookletStudentAccessResponse {
+  students: BookletStudentAccess[]
+}
+
+export interface UpdateBookletStudentAccessRequest {
+  turmaId?: string
+  userIds: string[]
+  moduleIds: string[]
+}
+
 export const bookletsApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
     getBookletModules: build.query<BookletsModulesResponse, void>({
@@ -35,7 +54,23 @@ export const bookletsApi = baseApi.injectEndpoints({
       query: (body) => ({ url: "/booklets/modules/access", method: "PUT", body }),
       invalidatesTags: ["BookletModules"],
     }),
+    getBookletStudentAccess: build.query<BookletStudentAccessResponse, { turmaId?: string } | void>({
+      query: (params) => ({
+        url: "/booklets/student-access",
+        params: params?.turmaId ? { turmaId: params.turmaId } : undefined,
+      }),
+      providesTags: ["BookletStudentAccess"],
+    }),
+    updateBookletStudentAccess: build.mutation<BookletStudentAccessResponse, UpdateBookletStudentAccessRequest>({
+      query: (body) => ({ url: "/booklets/student-access", method: "PUT", body }),
+      invalidatesTags: ["BookletStudentAccess", "BookletModules"],
+    }),
   }),
 })
 
-export const { useGetBookletModulesQuery, useUpdateBookletAccessMutation } = bookletsApi
+export const {
+  useGetBookletModulesQuery,
+  useUpdateBookletAccessMutation,
+  useGetBookletStudentAccessQuery,
+  useUpdateBookletStudentAccessMutation,
+} = bookletsApi

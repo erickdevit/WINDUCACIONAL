@@ -53,15 +53,15 @@ module WinducacionalApi
     config.time_zone = "America/Sao_Paulo"
     config.active_record.default_timezone = :utc
 
-    # Configurações compartilhadas com o servidor legado
+    # Configurações compartilhadas entre a API Rails e os frontends em migração.
     config.x.session_cookie_name = ENV.fetch("SESSION_COOKIE_NAME", "simulador.sid")
     config.x.session_days = Integer(ENV.fetch("SESSION_DAYS", "7"))
     config.x.data_dir = ENV.fetch("PERSISTENT_DATA_DIR") { Rails.root.join("data").to_s }
     config.x.booklet_library_dir = ENV.fetch("BOOKLET_LIBRARY_DIR") {
-      Rails.root.join("..", "src", "containers", "applications", "apps", "booklets", "library").to_s
+      Rails.root.join("..", "shared", "booklets").to_s
     }
     config.x.base_tree_path = ENV.fetch("BASE_TREE_PATH") {
-      Rails.root.join("..", "src", "reducers", "dir.json").to_s
+      Rails.root.join("..", "shared", "base-tree", "dir.json").to_s
     }
   end
 end

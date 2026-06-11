@@ -67,9 +67,9 @@ export const APPS: AppDefinition[] = [
     id: "attendance",
     title: "Frequência",
     icon: "📅",
-    defaultSize: { width: 380, height: 420 },
+    defaultSize: { width: 720, height: 560 },
     component: AttendanceApp,
-    roles: ["aluno"],
+    roles: ["aluno", "professor", "secretaria"],
   },
   {
     id: "gestor",
