@@ -37,7 +37,7 @@ O ponto de hospedagem será um servidor dedicado. A aplicação deverá ser dist
 - Serviço `web`, entrada pública que serve o build de `winducacional-web`.
 - Serviço `rails_api`, exposto apenas na rede interna do Compose.
 - Serviço `postgres`.
-- Serviço `redis`.
+- Serviço `redis`, usado por ActionCable, presença online e salas PVP. A stack Rails atual não executa worker de jobs em background; dependências de fila devem voltar apenas junto com jobs reais e serviço próprio no compose.
 - Volume `app_data` para discos virtuais.
 - Volume `postgres_data` para o banco.
 - Volume `redis_data` para Redis.

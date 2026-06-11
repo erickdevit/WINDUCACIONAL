@@ -16,9 +16,6 @@ gem "rack-cors", "~> 2.0"
 # Cliente HTTP para o proxy de geração de imagens e edge proxy
 gem "faraday", "~> 2.9"
 
-# Jobs em background (aplicação de provas em lote)
-gem "sidekiq", "~> 7.3"
-
 # JSON rápido
 gem "oj", "~> 3.16"
 
