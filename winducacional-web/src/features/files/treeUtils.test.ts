@@ -7,6 +7,8 @@ import {
   getNodeAtPath,
   isImageFileType,
   listEntries,
+  removeNodeAtPath,
+  renameNodeAtPath,
   resolveSpecialPath,
   setNodeAtPath,
   sanitizeWindowsFileName,
@@ -152,5 +154,26 @@ describe("treeUtils", () => {
     expect(result?.path).toEqual(["C:", "Users", "professor", "Documents", "notas (2).txt"])
     expect(getNodeAtPath(result!.tree, result!.path)?.data).toBe("nova")
     expect(getNodeAtPath(TREE, result!.path)).toBeNull()
+  })
+
+  it("remove um nó sem permitir remoção de raiz", () => {
+    const removed = removeNodeAtPath(TREE, ["C:", "Users", "professor", "Documents", "notas.txt"])
+
+    expect(getNodeAtPath(removed!, ["C:", "Users", "professor", "Documents", "notas.txt"])).toBeNull()
+    expect(getNodeAtPath(TREE, ["C:", "Users", "professor", "Documents", "notas.txt"])).not.toBeNull()
+    expect(removeNodeAtPath(TREE, ["C:"])).toBeNull()
+  })
+
+  it("renomeia um nó e evita colisão com irmãos existentes", () => {
+    const renamed = renameNodeAtPath(
+      TREE,
+      ["C:", "Users", "professor", "Documents", "notas.txt"],
+      "apresentacao.docx",
+    )
+
+    expect(renamed?.name).toBe("apresentacao (2).docx")
+    expect(renamed?.path).toEqual(["C:", "Users", "professor", "Documents", "apresentacao (2).docx"])
+    expect(getNodeAtPath(renamed!.tree, renamed!.path)?.data).toBe("conteúdo")
+    expect(getNodeAtPath(renamed!.tree, ["C:", "Users", "professor", "Documents", "notas.txt"])).toBeNull()
   })
 })

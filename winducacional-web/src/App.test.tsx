@@ -2,6 +2,7 @@ import { fireEvent, screen, waitFor } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { renderApp } from "@/test/renderApp"
 import type { User } from "@/types/user"
+import type { FsTree } from "@/features/files/types"
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -222,6 +223,81 @@ describe("App", () => {
     const image = await screen.findByRole("img", { name: "Imagem aula.png" })
     expect(image).toHaveAttribute("src", imageData)
     expect(screen.getByText("C:\\Users\\professor\\Pictures\\aula.png")).toBeInTheDocument()
+  })
+
+  it("cria, renomeia e exclui itens no Explorador persistindo a árvore", async () => {
+    let tree: FsTree = {
+      "C:": {
+        data: {
+          Users: {
+            data: {
+              professor: {
+                info: { spid: "%user%" },
+                data: {},
+              },
+            },
+          },
+        },
+      },
+    }
+    const savedTrees: unknown[] = []
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (request: Request) => {
+        const url = request.url
+        if (url.endsWith("/api/bootstrap/status")) {
+          return jsonResponse({ needsBootstrap: false, requiresToken: false })
+        }
+        if (url.endsWith("/api/auth/me")) {
+          return jsonResponse({ user: professorUser })
+        }
+        if (url.endsWith("/api/fs/tree") && request.method === "PUT") {
+          const body = (await request.json()) as { tree: FsTree }
+          tree = body.tree
+          savedTrees.push(body.tree)
+          return new Response(null, { status: 204 })
+        }
+        if (url.endsWith("/api/fs/tree")) {
+          return jsonResponse({ tree })
+        }
+        throw new Error(`fetch inesperado: ${url}`)
+      }),
+    )
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    fireEvent.click(await screen.findByRole("button", { name: /Explorador/ }))
+
+    const nameInput = await screen.findByLabelText("Nome do item")
+    fireEvent.change(nameInput, { target: { value: "Projetos" } })
+    fireEvent.click(screen.getByRole("button", { name: "Nova pasta" }))
+
+    expect(await screen.findByText("Pasta criada: Projetos.")).toBeInTheDocument()
+    expect(await screen.findByText("Projetos")).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText("Nome do item"), { target: { value: "anotação" } })
+    fireEvent.click(screen.getByRole("button", { name: "Novo texto" }))
+
+    expect(await screen.findByText("Arquivo criado: anotação.txt.")).toBeInTheDocument()
+    const textFile = await screen.findByRole("button", { name: /anotação\.txt/ })
+
+    fireEvent.click(textFile)
+    fireEvent.change(screen.getByLabelText("Nome do item"), { target: { value: "resumo.txt" } })
+    fireEvent.click(screen.getByRole("button", { name: "Renomear" }))
+
+    expect(await screen.findByText("Item renomeado para resumo.txt.")).toBeInTheDocument()
+    const renamedFile = await screen.findByRole("button", { name: /resumo\.txt/ })
+
+    fireEvent.click(renamedFile)
+    fireEvent.click(screen.getByRole("button", { name: "Excluir" }))
+
+    expect(await screen.findByText("Item excluído: resumo.txt.")).toBeInTheDocument()
+    expect(savedTrees).toHaveLength(4)
+    const cDriveData = tree["C:"].data as Record<string, { data: Record<string, { data: Record<string, { data: unknown }> }> }>
+    expect(cDriveData.Users.data.professor.data).toEqual({
+      Projetos: { type: "folder", data: {} },
+    })
   })
 
   it("abre a Frequência administrativa para o perfil professor", async () => {

@@ -95,6 +95,8 @@ O app Gerador de Imagens consome `/api/imagegen/config` e `/api/imagegen/generat
 
 O app Fotos é o visualizador interno para imagens armazenadas no disco virtual. No frontend novo, o Explorador abre arquivos `png`, `jpg`, `jpeg`, `webp` e `gif` pela janela interna `photos`, passando o caminho do arquivo como payload. O app lê a árvore autenticada de `/api/fs/tree`, valida que o nó é imagem raster e renderiza apenas conteúdo `data:image/...` compatível, sem acessar arquivos reais do host. O app é oculto do menu Iniciar e funciona como visualizador de sistema acionado pelo Explorador.
 
+O Explorador do frontend novo lê e grava a árvore autenticada por `/api/fs/tree`. Ele navega por pastas, abre arquivos `.txt` no Bloco de Notas, abre imagens no Fotos, cria novas pastas, cria arquivos de texto, renomeia itens e exclui itens selecionados. As operações usam atualização imutável da árvore, nomes sanitizados para regras do Windows e geração de nomes únicos para evitar sobrescrita acidental.
+
 ## Arquitetura Alvo Final
 
 A arquitetura alvo final deve separar responsabilidades:

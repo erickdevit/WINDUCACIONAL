@@ -122,6 +122,60 @@ export function addFileToFolder(
   }
 }
 
+export function removeNodeAtPath(tree: FsTree, path: string[]): FsTree | null {
+  if (path.length <= 1) return null
+
+  const parentPath = path.slice(0, -1)
+  const name = path[path.length - 1]
+  const parent = getNodeAtPath(tree, parentPath)
+  if (!parent || !isFolder(parent)) return null
+
+  const children = getNodeChildren(parent)
+  if (!(name in children)) return null
+
+  const remainingChildren = { ...children }
+  delete remainingChildren[name]
+  return setNodeAtPath(tree, parentPath, { ...parent, type: "folder", data: remainingChildren })
+}
+
+export function renameNodeAtPath(
+  tree: FsTree,
+  path: string[],
+  requestedName: string,
+): { tree: FsTree; path: string[]; name: string } | null {
+  if (path.length <= 1) return null
+
+  const parentPath = path.slice(0, -1)
+  const currentName = path[path.length - 1]
+  const parent = getNodeAtPath(tree, parentPath)
+  if (!parent || !isFolder(parent)) return null
+
+  const children = getNodeChildren(parent)
+  const node = children[currentName]
+  if (!node) return null
+
+  const siblingNames = Object.keys(children).filter((name) => name !== currentName)
+  const newName = buildUniqueFileName(siblingNames, requestedName)
+  if (newName === currentName) return { tree, path, name: currentName }
+
+  const remainingChildren = { ...children }
+  delete remainingChildren[currentName]
+  const updatedParent: FsNode = {
+    ...parent,
+    type: "folder",
+    data: {
+      ...remainingChildren,
+      [newName]: node,
+    },
+  }
+
+  return {
+    tree: setNodeAtPath(tree, parentPath, updatedParent),
+    path: [...parentPath, newName],
+    name: newName,
+  }
+}
+
 export function resolveSpecialPath(tree: FsTree, spid: string): string[] | null {
   function search(node: FsNode, path: string[]): string[] | null {
     if (node.info?.spid === spid) return path
