@@ -10,6 +10,7 @@ import ExplorerApp from "@/pages/apps/ExplorerApp"
 import ImagegenApp from "@/pages/apps/ImagegenApp"
 import GestorApp from "@/pages/apps/GestorApp"
 import NotepadApp from "@/pages/apps/NotepadApp"
+import PhotosApp from "@/pages/apps/PhotosApp"
 import PvpApp from "@/pages/apps/PvpApp"
 import SchoolAdminApp from "@/pages/apps/SchoolAdminApp"
 import SettingsApp from "@/pages/apps/SettingsApp"
@@ -31,6 +32,7 @@ export interface AppDefinition {
   component: ComponentType<AppComponentProps>
   // Quando ausente, o app fica visível para todos os perfis.
   roles?: UserRole[]
+  showInStart?: boolean
 }
 
 // Registro de apps disponíveis no menu Iniciar. Cada item vira uma janela
@@ -93,6 +95,14 @@ export const APPS: AppDefinition[] = [
     icon: "document",
     defaultSize: { width: 480, height: 420 },
     component: NotepadApp,
+  },
+  {
+    id: "photos",
+    title: "Fotos",
+    icon: "image",
+    defaultSize: { width: 640, height: 480 },
+    component: PhotosApp,
+    showInStart: false,
   },
   {
     id: "typing",

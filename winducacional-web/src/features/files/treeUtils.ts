@@ -88,6 +88,10 @@ export function formatWindowsPath(path: string[]): string {
   return path.join("\\")
 }
 
+export function isImageFileType(type: string | null | undefined): boolean {
+  return type === "png" || type === "jpg" || type === "jpeg" || type === "webp" || type === "gif"
+}
+
 const FILE_ICONS: Record<string, IconName> = {
   txt: "document",
   docx: "document",

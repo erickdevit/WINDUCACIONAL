@@ -3,6 +3,7 @@ import {
   formatWindowsPath,
   getEntryIcon,
   getNodeAtPath,
+  isImageFileType,
   listEntries,
   resolveSpecialPath,
   setNodeAtPath,
@@ -99,6 +100,16 @@ describe("treeUtils", () => {
 
     expect(getEntryIcon(txt)).toBe("document")
     expect(getEntryIcon(docx)).toBe("document")
+  })
+
+  it("identifica apenas tipos raster aceitos pelo Fotos", () => {
+    expect(isImageFileType("png")).toBe(true)
+    expect(isImageFileType("jpeg")).toBe(true)
+    expect(isImageFileType("webp")).toBe(true)
+    expect(isImageFileType("gif")).toBe(true)
+    expect(isImageFileType("svg")).toBe(false)
+    expect(isImageFileType("txt")).toBe(false)
+    expect(isImageFileType(null)).toBe(false)
   })
 
   it("setNodeAtPath substitui o nó sem mutar a árvore original", () => {

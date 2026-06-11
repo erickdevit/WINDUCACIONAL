@@ -183,6 +183,47 @@ describe("App", () => {
     expect(await screen.findByText("Desktop")).toBeInTheDocument()
   })
 
+  it("abre imagens do Explorador no app Fotos sem exibir Fotos no menu Iniciar", async () => {
+    const imageData = "data:image/png;base64,iVBORw0KGgo="
+    const tree = {
+      "C:": {
+        data: {
+          Users: {
+            data: {
+              professor: {
+                info: { spid: "%user%" },
+                data: {
+                  Pictures: {
+                    data: {
+                      "aula.png": { type: "png", data: imageData },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }
+
+    mockAuthenticatedFetch((url) => {
+      if (url.endsWith("/api/fs/tree")) return jsonResponse({ tree })
+      return undefined
+    })
+    renderApp("/")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Início" }))
+    expect(screen.queryByRole("button", { name: /Fotos/ })).not.toBeInTheDocument()
+
+    fireEvent.click(await screen.findByRole("button", { name: /Explorador/ }))
+    fireEvent.doubleClick(await screen.findByText("Pictures"))
+    fireEvent.doubleClick(await screen.findByText("aula.png"))
+
+    const image = await screen.findByRole("img", { name: "Imagem aula.png" })
+    expect(image).toHaveAttribute("src", imageData)
+    expect(screen.getByText("C:\\Users\\professor\\Pictures\\aula.png")).toBeInTheDocument()
+  })
+
   it("abre a Frequência administrativa para o perfil professor", async () => {
     mockAuthenticatedFetch((url) => {
       if (url.endsWith("/api/turmas")) {

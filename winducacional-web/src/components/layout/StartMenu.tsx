@@ -13,7 +13,7 @@ export function StartMenu({ onClose }: StartMenuProps) {
   const { data } = useGetMeQuery()
   const [logout] = useLogoutMutation()
   const user = data?.user
-  const visibleApps = APPS.filter((app) => !app.roles || (user && app.roles.includes(user.role)))
+  const visibleApps = APPS.filter((app) => app.showInStart !== false && (!app.roles || (user && app.roles.includes(user.role))))
 
   function handleOpen(appId: string, title: string, size: WindowSize) {
     dispatch(openWindow(appId, title, size))

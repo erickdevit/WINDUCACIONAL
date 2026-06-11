@@ -96,7 +96,7 @@ serviço `web`.
 - O app Apostilas mantém os PDFs em `shared/booklets`; não volte a acoplar a biblioteca a `src/containers/applications/apps/booklets/library`.
 - O acesso de alunos a apostilas é controlado no backend pelas tabelas `booklet_module_access` e `booklet_student_module_access`; professores podem ver todos os módulos, liberar módulos para todos ou conceder módulos específicos a alunos selecionados por turma.
 - O app Gerador de Imagens usa proxy autenticado no backend; o token da API externa fica apenas em `IMAGEGEN_API_TOKEN` no servidor, e imagens baixadas pelo usuário devem ser salvas no disco virtual pela persistência existente.
-- O app Fotos é o visualizador interno de imagens do sistema; arquivos `png`, `jpg`, `jpeg`, `webp` e `gif` abertos pelo Explorer devem usar a ação `PHOTOS` e receber ícone próprio no Explorer.
+- O app Fotos é o visualizador interno de imagens do sistema no frontend novo; arquivos `png`, `jpg`, `jpeg`, `webp` e `gif` abertos pelo Explorador devem abrir a janela interna `photos` com payload de caminho do arquivo, sem expor arquivos reais do host.
 - Games dentro do app de Digitação Normal devem ficar separados das lições tradicionais. O modo PVP só deve ser liberado como partida real depois de existir backend com convite, sincronização em tempo real, validação de mesma turma, cálculo de vencedor no servidor e ranking persistido separado.
 
 ## Regras De Segurança

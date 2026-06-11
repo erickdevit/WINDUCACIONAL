@@ -11,7 +11,14 @@ import {
   selectCanGoUp,
   selectCurrentPath,
 } from "@/features/files/filesSlice"
-import { formatWindowsPath, getEntryIcon, listEntries, resolveSpecialPath, type FsEntry } from "@/features/files/treeUtils"
+import {
+  formatWindowsPath,
+  getEntryIcon,
+  isImageFileType,
+  listEntries,
+  resolveSpecialPath,
+  type FsEntry,
+} from "@/features/files/treeUtils"
 import { isFolder } from "@/features/files/types"
 import { openWindow } from "@/features/windows/windowsSlice"
 import { getApiErrorMessage } from "@/utils/errors"
@@ -24,6 +31,7 @@ const NAV_BUTTON_CLASS =
 // registro aqui criaria dependência circular registry → ExplorerApp → registry).
 const NOTEPAD_SIZE = { width: 480, height: 420 }
 const NOTEPAD_TYPES = new Set(["txt"])
+const PHOTOS_SIZE = { width: 640, height: 480 }
 
 export default function ExplorerApp() {
   const dispatch = useAppDispatch()
@@ -61,6 +69,10 @@ export default function ExplorerApp() {
     }
     if (NOTEPAD_TYPES.has(entry.node.type ?? "")) {
       dispatch(openWindow("notepad", entry.key, NOTEPAD_SIZE, { filePath: entry.path }))
+      return
+    }
+    if (isImageFileType(entry.node.type)) {
+      dispatch(openWindow("photos", entry.key, PHOTOS_SIZE, { filePath: entry.path }))
     }
   }
 
