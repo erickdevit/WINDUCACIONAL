@@ -4,20 +4,81 @@ import {
   useGetImagegenConfigQuery,
   type ImagegenAspect,
 } from "@/features/imagegen/imagegenApi"
+import { useLazyGetFsTreeQuery, useUpdateFsTreeMutation } from "@/features/files/fileSystemApi"
+import {
+  addFileToFolder,
+  formatWindowsPath,
+  resolveSpecialPath,
+  sanitizeWindowsFileName,
+} from "@/features/files/treeUtils"
 import { getApiErrorMessage } from "@/utils/errors"
 
 const ASPECTS: ImagegenAspect[] = ["1:1", "16:9", "9:16", "4:3", "3:4"]
+const IMAGE_DATA_URL_PATTERN = /^data:image\/(png|jpeg|jpg|webp|gif);base64,/i
+
+function getImageExtension(dataUrl: string): string {
+  const match = dataUrl.match(IMAGE_DATA_URL_PATTERN)
+  if (!match) return "png"
+  return match[1].toLowerCase() === "jpeg" ? "jpg" : match[1].toLowerCase()
+}
+
+function buildGeneratedImageName(prompt: string, dataUrl: string): string {
+  const baseName = sanitizeWindowsFileName(prompt, "imagem-gerada")
+  return `${baseName}.${getImageExtension(dataUrl)}`
+}
 
 export default function ImagegenApp() {
   const { data: config, isLoading } = useGetImagegenConfigQuery()
   const [generate, { data, isLoading: isGenerating, error }] = useGenerateImageMutation()
+  const [loadTree] = useLazyGetFsTreeQuery()
+  const [updateTree, { isLoading: isSaving }] = useUpdateFsTreeMutation()
   const [prompt, setPrompt] = useState("")
   const [aspect, setAspect] = useState<ImagegenAspect>("1:1")
+  const [saveMessage, setSaveMessage] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
     if (!prompt.trim() || isGenerating) return
+    setSaveMessage(null)
+    setSaveError(null)
     void generate({ prompt: prompt.trim(), aspect })
+  }
+
+  async function handleSaveToDisk() {
+    const image = data?.image
+    if (!image || isSaving) return
+    setSaveMessage(null)
+    setSaveError(null)
+
+    if (!IMAGE_DATA_URL_PATTERN.test(image)) {
+      setSaveError("A imagem gerada não está em um formato válido para salvar.")
+      return
+    }
+
+    try {
+      const fsData = await loadTree(undefined, false).unwrap()
+      const picturesPath = resolveSpecialPath(fsData.tree, "%pictures%")
+      if (!picturesPath) {
+        setSaveError("A pasta Imagens não foi encontrada no disco virtual.")
+        return
+      }
+
+      const fileName = buildGeneratedImageName(prompt, image)
+      const result = addFileToFolder(fsData.tree, picturesPath, fileName, {
+        type: getImageExtension(image),
+        data: image,
+      })
+      if (!result) {
+        setSaveError("Não foi possível salvar a imagem na pasta Imagens.")
+        return
+      }
+
+      await updateTree({ tree: result.tree }).unwrap()
+      setSaveMessage(`Imagem salva em ${formatWindowsPath(result.path)}.`)
+    } catch {
+      setSaveError(getApiErrorMessage(undefined, "Não foi possível salvar a imagem no disco virtual."))
+    }
   }
 
   if (isLoading) return <p className="text-sm text-white/60">Carregando…</p>
@@ -62,8 +123,10 @@ export default function ImagegenApp() {
       {error && (
         <p className="text-xs text-red-400">{getApiErrorMessage(error, "Não foi possível gerar a imagem.")}</p>
       )}
+      {saveError && <p className="text-xs text-red-400">{saveError}</p>}
+      {saveMessage && <p className="text-xs text-emerald-400">{saveMessage}</p>}
 
-      <div className="flex flex-1 items-center justify-center overflow-auto rounded-md bg-black/30">
+      <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto rounded-md bg-black/30">
         {isGenerating ? (
           <p className="text-xs text-white/40">Gerando imagem…</p>
         ) : data?.image ? (
@@ -72,6 +135,18 @@ export default function ImagegenApp() {
           <p className="text-xs text-white/40">A imagem gerada aparecerá aqui.</p>
         )}
       </div>
+      {data?.image && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            disabled={isSaving}
+            onClick={() => void handleSaveToDisk()}
+            className="rounded-md bg-white/10 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isSaving ? "Salvando…" : "Salvar no disco"}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

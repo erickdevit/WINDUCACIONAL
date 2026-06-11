@@ -59,6 +59,7 @@ Criar uma suíte objetiva, rápida e útil para proteger a evolução do simulad
 - Backend de avaliação ignora pontuação enviada pelo cliente e calcula acertos com base nas respostas, regras persistidas e snapshot prático.
 - Professor libera ou bloqueia módulos de apostilas para todos, concede módulos específicos para alunos selecionados por turma, aluno enxerga somente módulos liberados para seu caso e PDFs são abertos por rotas autenticadas sem expor caminho local.
 - Explorador abre arquivos de imagem `png`, `jpg`, `jpeg`, `webp` e `gif` no app interno Fotos, sem exibir Fotos como app solto no menu Iniciar e sem renderizar conteúdo que não seja data URL de imagem raster válida.
+- Gerador de Imagens usa apenas o proxy autenticado do backend, nunca expõe `IMAGEGEN_API_TOKEN` no frontend e salva imagens geradas no disco virtual pela pasta `Pictures` da árvore `/api/fs/tree`.
 - Quando a build muda, sessões são invalidadas, caches são limpos e o cliente recarrega automaticamente para a nova versão.
 - Cenário educacional inicia, salva progresso e retoma.
 - Ações do usuário geram eventos consistentes no backend.

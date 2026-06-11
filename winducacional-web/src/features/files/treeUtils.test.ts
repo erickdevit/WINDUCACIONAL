@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest"
 import {
+  addFileToFolder,
+  buildUniqueFileName,
   formatWindowsPath,
   getEntryIcon,
   getNodeAtPath,
@@ -7,6 +9,7 @@ import {
   listEntries,
   resolveSpecialPath,
   setNodeAtPath,
+  sanitizeWindowsFileName,
 } from "./treeUtils"
 import type { FsTree } from "./types"
 
@@ -127,5 +130,27 @@ describe("treeUtils", () => {
 
   it("setNodeAtPath retorna a árvore intacta para caminho inexistente", () => {
     expect(setNodeAtPath(TREE, ["C:", "Nope", "x.txt"], { type: "txt", data: "x" })).toBe(TREE)
+  })
+
+  it("normaliza nomes de arquivo inválidos do Windows", () => {
+    expect(sanitizeWindowsFileName('  aula: 01 / imagem?.png  ')).toBe("aula 01 imagem .png")
+    expect(sanitizeWindowsFileName("   ", "imagem-gerada")).toBe("imagem-gerada")
+  })
+
+  it("gera nome único sem sobrescrever arquivos existentes", () => {
+    expect(buildUniqueFileName(["foto.png", "foto (2).png"], "foto.png")).toBe("foto (3).png")
+    expect(buildUniqueFileName(["FOTO.PNG"], "foto.png")).toBe("foto (2).png")
+  })
+
+  it("adiciona arquivo em uma pasta existente sem mutar a árvore original", () => {
+    const result = addFileToFolder(TREE, ["C:", "Users", "professor", "Documents"], "notas.txt", {
+      type: "txt",
+      data: "nova",
+    })
+
+    expect(result?.fileName).toBe("notas (2).txt")
+    expect(result?.path).toEqual(["C:", "Users", "professor", "Documents", "notas (2).txt"])
+    expect(getNodeAtPath(result!.tree, result!.path)?.data).toBe("nova")
+    expect(getNodeAtPath(TREE, result!.path)).toBeNull()
   })
 })

@@ -14,4 +14,4 @@ export const fileSystemApi = baseApi.injectEndpoints({
   }),
 })
 
-export const { useGetFsTreeQuery, useUpdateFsTreeMutation } = fileSystemApi
+export const { useGetFsTreeQuery, useLazyGetFsTreeQuery, useUpdateFsTreeMutation } = fileSystemApi

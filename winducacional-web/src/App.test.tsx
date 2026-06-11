@@ -1257,24 +1257,51 @@ describe("App", () => {
     )
   })
 
-  it("gera uma imagem pelo Gerador de Imagens", async () => {
+  it("gera uma imagem pelo Gerador de Imagens e salva no disco virtual", async () => {
     let generateBody: unknown = null
-    mockAuthenticatedFetch((url) => {
-      if (url.endsWith("/api/imagegen/config")) {
-        return jsonResponse({ provider: "worker", label: "Worker", configured: true })
-      }
-      return undefined
-    })
+    let savedBody: unknown = null
+    const tree = {
+      "C:": {
+        data: {
+          Users: {
+            data: {
+              professor: {
+                info: { spid: "%user%" },
+                data: {
+                  Pictures: { info: { spid: "%pictures%" }, data: {} },
+                },
+              },
+            },
+          },
+        },
+      },
+    }
 
-    const baseFetch = globalThis.fetch
     vi.stubGlobal(
       "fetch",
       vi.fn(async (request: Request) => {
-        if (request.url.endsWith("/api/imagegen/generate") && request.method === "POST") {
+        const url = request.url
+        if (url.endsWith("/api/bootstrap/status")) {
+          return jsonResponse({ needsBootstrap: false, requiresToken: false })
+        }
+        if (url.endsWith("/api/auth/me")) {
+          return jsonResponse({ user: professorUser })
+        }
+        if (url.endsWith("/api/imagegen/config")) {
+          return jsonResponse({ provider: "worker", label: "Worker", configured: true })
+        }
+        if (url.endsWith("/api/imagegen/generate") && request.method === "POST") {
           generateBody = await request.json()
           return jsonResponse({ image: "data:image/png;base64,abc123" })
         }
-        return baseFetch(request)
+        if (url.endsWith("/api/fs/tree") && request.method === "GET") {
+          return jsonResponse({ tree })
+        }
+        if (url.endsWith("/api/fs/tree") && request.method === "PUT") {
+          savedBody = await request.json()
+          return new Response(null, { status: 204 })
+        }
+        throw new Error(`fetch inesperado: ${url}`)
       }),
     )
     renderApp("/")
@@ -1291,5 +1318,33 @@ describe("App", () => {
     const image = await screen.findByAltText("um gato astronauta")
     expect(image).toHaveAttribute("src", "data:image/png;base64,abc123")
     expect(generateBody).toEqual({ prompt: "um gato astronauta", aspect: "16:9" })
+
+    fireEvent.click(screen.getByRole("button", { name: "Salvar no disco" }))
+
+    expect(await screen.findByText("Imagem salva em C:\\Users\\professor\\Pictures\\um gato astronauta.png.")).toBeInTheDocument()
+    expect(savedBody).toEqual({
+      tree: {
+        "C:": {
+          data: {
+            Users: {
+              data: {
+                professor: {
+                  info: { spid: "%user%" },
+                  data: {
+                    Pictures: {
+                      info: { spid: "%pictures%" },
+                      type: "folder",
+                      data: {
+                        "um gato astronauta.png": { type: "png", data: "data:image/png;base64,abc123" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    })
   })
 })
