@@ -8,7 +8,7 @@ WINDUCACIONAL é um simulador educacional aberto com experiência desktop web. A
 - Frontend alvo em `winducacional-web`: React, TypeScript, Vite, Redux Toolkit, RTK Query, React Router e Tailwind.
 - Recursos compartilhados em `shared/`: biblioteca de PDFs em `shared/booklets` e árvore base do disco virtual em `shared/base-tree/dir.json`.
 - Código legado ainda presente em `src/`, `server/` e `public/` para transição, sem ser a stack alvo.
-- Compose de transição Rails em `docker-compose.rails.yml`, com `rails_api`, `postgres` e `redis`.
+- Compose Rails em `docker-compose.rails.yml`, com `web`, `rails_api`, `postgres` e `redis`.
 
 ## Documentação
 
@@ -56,13 +56,18 @@ npm run build
 
 O Vite roda em `http://localhost:5173` e faz proxy de `/api` e `/cable` para a API Rails em `http://localhost:3002`.
 
-## Docker De Transição
+## Docker Da Nova Stack
 
-Para subir a nova API Rails com PostgreSQL e Redis:
+Para subir a nova stack Rails + React/TypeScript com PostgreSQL e Redis:
 
 ```bash
 docker compose -f docker-compose.rails.yml up -d --build
 ```
+
+Por padrão, o frontend fica disponível em `http://localhost:8080`. O serviço
+`web` serve o build de `winducacional-web` por Nginx e faz proxy de `/api` e
+`/cable` para o Rails na rede interna do Compose. O serviço `rails_api` não é
+publicado diretamente no host nesse compose.
 
 O compose monta:
 

@@ -2,7 +2,7 @@
 
 ## Estado Atual
 
-O projeto está em migração para `winducacional-api` + `winducacional-web`. A stack alvo atual sobe a API Rails com PostgreSQL e Redis por `docker-compose.rails.yml`. O frontend React/TypeScript ainda roda separadamente em desenvolvimento e deve ganhar container estático/proxy próprio antes da remoção do legado.
+O projeto está em migração para `winducacional-api` + `winducacional-web`. A stack alvo atual sobe frontend React/TypeScript, API Rails, PostgreSQL e Redis por `docker-compose.rails.yml`. O frontend novo é servido por Nginx no serviço `web` e faz proxy de `/api` e `/cable` para o Rails na rede interna do Compose.
 
 O Express/Vite legado ainda possui `Dockerfile`, `docker-compose.yml`, `docker-compose.prod.yml` e `compose.dev.yml`, mas esses arquivos são compatibilidade de transição, não o deploy alvo.
 
@@ -34,7 +34,8 @@ O ponto de hospedagem será um servidor dedicado. A aplicação deverá ser dist
 
 ## Compose Rails Atual
 
-- Serviço `rails_api`.
+- Serviço `web`, entrada pública que serve o build de `winducacional-web`.
+- Serviço `rails_api`, exposto apenas na rede interna do Compose.
 - Serviço `postgres`.
 - Serviço `redis`.
 - Volume `app_data` para discos virtuais.
@@ -46,6 +47,7 @@ O ponto de hospedagem será um servidor dedicado. A aplicação deverá ser dist
 - `shared/booklets` é montado em `/rails/booklets`.
 - `shared/base-tree` é montado em `/rails/base-tree`.
 - O serviço `rails_api` aceita `IMAGEGEN_API_TOKEN` e `IMAGEGEN_API_URL` para habilitar o proxy de geração de imagens no backend. O token real deve existir apenas no ambiente do servidor.
+- O serviço `web` publica `WEB_PORT` (`8080` por padrão), aplica fallback de SPA e repassa WebSocket de `/cable`.
 
 O arquivo `.env.example` documenta as variáveis mínimas atuais para execução do backend.
 
@@ -67,6 +69,7 @@ Os nomes finais ainda devem ser definidos, mas a aplicação provavelmente preci
 - `POSTGRES_USER`
 - `POSTGRES_PASSWORD`
 - `APP_PORT`
+- `WEB_PORT`
 - `IMAGEGEN_API_TOKEN`
 - `IMAGEGEN_API_URL`
 
@@ -82,10 +85,52 @@ Na stack Rails, consulte:
 
 Se `needsBootstrap` for verdadeiro, envie `POST /api/bootstrap` com usuário, nome, senha e `token` quando `BOOTSTRAP_TOKEN` estiver configurado.
 
+## Operação Com Docker
+
+Subida da nova stack:
+
+```bash
+docker compose -f docker-compose.rails.yml up -d --build
+```
+
+Parada controlada:
+
+```bash
+docker compose -f docker-compose.rails.yml down
+```
+
+O ponto público padrão é `http://localhost:8080`. Em produção, coloque TLS no proxy externo do servidor ou no balanceador que encaminha tráfego para `WEB_PORT`. O Rails não deve receber porta pública direta nesse compose; chamadas HTTP e ActionCable entram por `/api` e `/cable` no serviço `web`.
+
+## Backup E Restore
+
+Backup do PostgreSQL:
+
+```bash
+docker compose -f docker-compose.rails.yml exec -T postgres pg_dump -U "${POSTGRES_USER:-simulador}" "${POSTGRES_DB:-simulador_educacional}" > backup-postgres.sql
+```
+
+Backup dos discos virtuais:
+
+```bash
+docker compose -f docker-compose.rails.yml exec -T rails_api tar czf - -C /rails/data . > backup-app-data.tar.gz
+```
+
+Restore do PostgreSQL em ambiente parado ou recém-criado:
+
+```bash
+docker compose -f docker-compose.rails.yml exec -T postgres psql -U "${POSTGRES_USER:-simulador}" "${POSTGRES_DB:-simulador_educacional}" < backup-postgres.sql
+```
+
+Restore dos discos virtuais:
+
+```bash
+docker compose -f docker-compose.rails.yml exec -T rails_api sh -c "rm -rf /rails/data/* && tar xzf - -C /rails/data" < backup-app-data.tar.gz
+```
+
+Valide o restore em ambiente separado antes de usar esses arquivos como rotina de produção. Banco e volume `app_data` devem pertencer ao mesmo ponto no tempo para evitar metadados sem arquivos ou arquivos sem registro correspondente.
+
 ## Antes De Produção
 
-- Criar container final do frontend `winducacional-web`.
-- Configurar proxy público para frontend, `/api` e `/cable`.
 - Definir estratégia de backup.
 - Configurar TLS e cabeçalhos de segurança.
 - Rodar suíte de testes automatizados.

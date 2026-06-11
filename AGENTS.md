@@ -8,7 +8,7 @@ Este é um arquivo vivo para agentes, automações e colaboradores que trabalham
 - Estado atual: migração para `winducacional-api` (Rails API) e `winducacional-web` (React/TypeScript) em andamento.
 - Estado atual de backend alvo: Rails API, PostgreSQL, sessões HTTP-only, usuários com papéis, classificação Kids/Normal para alunos, turmas com código de vínculo, discos virtuais persistidos por usuário, ActionCable, permissões de módulos de apostilas, avaliações, frequência, chat, digitação/PVP, Gestor e proxy autenticado para geração de imagens.
 - Estado atual de frontend alvo: React, TypeScript, Vite, Redux Toolkit, RTK Query, React Router e Tailwind em `winducacional-web`.
-- Estado atual de deploy alvo: `docker-compose.rails.yml` com `rails_api`, `postgres` e `redis`; o frontend novo roda separadamente em desenvolvimento e deve ter container estático/proxy próprio antes da remoção do legado.
+- Estado atual de deploy alvo: `docker-compose.rails.yml` com `web`, `rails_api`, `postgres` e `redis`; o frontend novo é servido por container Nginx próprio e faz proxy de `/api` e `/cable` para o Rails.
 - Estado do legado: `src/`, `server/`, `public`, `Dockerfile`, `docker-compose.yml`, `docker-compose.prod.yml` e `compose.dev.yml` permanecem apenas para transição até a nova stack atingir paridade funcional.
 - Prioridade técnica: boas práticas de código, segurança, testes objetivos e documentação viva.
 
@@ -62,6 +62,10 @@ Comandos de infraestrutura atuais:
 docker compose -f docker-compose.rails.yml up -d --build
 docker compose -f docker-compose.rails.yml down
 ```
+
+Esse compose publica o frontend novo em `WEB_PORT` (`8080` por padrão). O
+Rails fica acessível apenas dentro da rede do Compose, atrás do proxy do
+serviço `web`.
 
 ## Fluxo Git
 

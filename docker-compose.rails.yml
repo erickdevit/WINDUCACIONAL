@@ -1,8 +1,18 @@
-# Stack da nova API Rails (fase de transição da migração de stack).
-# Roda em paralelo ao servidor Node legado compartilhando o mesmo banco
-# PostgreSQL e o mesmo volume de dados persistentes, permitindo a migração
-# gradual do frontend para a API Rails e o ActionCable.
+# Stack alvo Rails + React/TypeScript.
+# O frontend novo é a entrada pública e faz proxy para Rails em /api e /cable.
+# O legado Express/Vite permanece fora deste compose, apenas como transição.
 services:
+  web:
+    build:
+      context: ./winducacional-web
+      dockerfile: Dockerfile
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    restart: unless-stopped
+    depends_on:
+      rails_api:
+        condition: service_healthy
+
   rails_api:
     build:
       context: ./winducacional-api
@@ -20,9 +30,9 @@ services:
       BOOTSTRAP_TOKEN: ${BOOTSTRAP_TOKEN:-}
       IMAGEGEN_API_TOKEN: ${IMAGEGEN_API_TOKEN:-}
       IMAGEGEN_API_URL: ${IMAGEGEN_API_URL:-}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
-    ports:
-      - "${RAILS_PORT:-3002}:3002"
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:8080}
+    expose:
+      - "3002"
     volumes:
       # Mesmo volume do servidor Node para compatibilidade dos discos virtuais
       - app_data:/rails/data

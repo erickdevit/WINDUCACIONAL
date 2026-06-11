@@ -41,9 +41,9 @@ Este roadmap organiza a evolução recomendada. Ele não substitui issues ou pla
 
 ## Fase 6: Docker E Servidor Dedicado
 
-- Criar Dockerfile.
-- Criar Compose com app, banco e volumes.
-- Configurar variáveis e `.env.example`.
-- Configurar healthcheck.
-- Documentar backup, restore e operação.
+- Criar Dockerfile do frontend novo. Concluído para `winducacional-web`.
+- Criar Compose com frontend, Rails, banco, Redis e volumes. Concluído em `docker-compose.rails.yml`.
+- Configurar variáveis e `.env.example`. Concluído para a stack Rails + React/TypeScript.
+- Configurar healthcheck. Concluído para Rails e imagem do frontend.
+- Documentar backup, restore e operação. Concluído em `docs/deployment.md`.
 - Validar deploy em ambiente de teste antes de produção.

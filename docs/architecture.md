@@ -6,6 +6,7 @@ A arquitetura alvo em implementação é composta por:
 
 - `winducacional-api`: Rails API com PostgreSQL, sessões HTTP-only, ActionCable, controllers por domínio e services para regras de negócio.
 - `winducacional-web`: React/TypeScript com Vite, Redux Toolkit, RTK Query, React Router e Tailwind.
+- `winducacional-web/Dockerfile` e `winducacional-web/nginx.conf`: build estático do frontend novo e proxy de `/api` e `/cable` para o Rails no compose alvo.
 - `shared/booklets`: biblioteca neutra de PDFs usada pelo app Apostilas.
 - `shared/base-tree/dir.json`: árvore base neutra do disco virtual usada pela API Rails e pelo legado enquanto a migração não termina.
 
