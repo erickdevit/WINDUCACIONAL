@@ -3,6 +3,7 @@ require "rails_helper"
 RSpec.describe "File System", type: :request do
   let(:turma) { create(:turma) }
   let(:professor) { create(:user, :professor) }
+  let(:secretaria) { create(:user, :secretaria) }
   let(:aluno) { create(:user, turma: turma) }
   let(:data_dir) { Dir.mktmpdir }
 
@@ -32,6 +33,16 @@ RSpec.describe "File System", type: :request do
       users = json_body[:tree][:"C:"][:data][:Users][:data]
       expect(users.keys).to contain_exactly(:Public, aluno.username.to_sym)
       expect(users[aluno.username.to_sym][:info][:spid]).to eq("%user%")
+    end
+
+    it "permite leitura para secretaria" do
+      aluno
+      login_as(secretaria)
+      get "/api/fs/tree"
+      expect(response).to have_http_status(:ok)
+
+      users = json_body[:tree][:"C:"][:data][:Users][:data]
+      expect(users.keys).to include(:Public, aluno.username.to_sym)
     end
 
     it "exige autenticação" do
@@ -75,6 +86,20 @@ RSpec.describe "File System", type: :request do
       expect(home[:data]["Desktop"]["data"]["novo.txt"]).to eq(novo_arquivo)
     end
 
+    it "nega escrita para secretaria" do
+      login_as(secretaria)
+      tree = {
+        "C:" => { "data" => { "Users" => { "data" => {
+          aluno.username => { "data" => { "Desktop" => { "data" => { "novo.txt" => novo_arquivo } } } }
+        } } } }
+      }
+
+      put "/api/fs/tree", params: { tree: tree }, as: :json
+
+      expect(response).to have_http_status(:forbidden)
+      expect(json_body[:error]).to eq("Acesso restrito a professores ou ao próprio aluno.")
+    end
+
     it "nega quando o disco do próprio aluno está ausente da árvore" do
       login_as(aluno)
       tree = { "C:" => { "data" => { "Users" => { "data" => { aluno.username => {} } } } } }
@@ -89,6 +114,38 @@ RSpec.describe "File System", type: :request do
       put "/api/fs/tree", params: { tree: { foo: "bar" } }, as: :json
       expect(response).to have_http_status(:bad_request)
       expect(json_body[:error]).to eq("Árvore de arquivos inválida.")
+    end
+
+    it "rejeita disco de usuário com formato inválido" do
+      login_as(aluno)
+      tree = {
+        "C:" => { "data" => { "Users" => { "data" => {
+          aluno.username => { "data" => "conteúdo inválido" }
+        } } } }
+      }
+
+      put "/api/fs/tree", params: { tree: tree }, as: :json
+
+      expect(response).to have_http_status(:bad_request)
+      expect(json_body[:error]).to eq("Disco de usuário inválido.")
+    end
+
+    it "não faz gravação parcial quando professor envia algum disco inválido" do
+      outro_aluno = create(:user, turma: turma)
+      login_as(professor)
+      tree = {
+        "C:" => { "data" => { "Users" => { "data" => {
+          aluno.username => { "data" => { "Desktop" => { "data" => { "novo.txt" => novo_arquivo } } } },
+          outro_aluno.username => { "data" => "conteúdo inválido" }
+        } } } }
+      }
+
+      put "/api/fs/tree", params: { tree: tree }, as: :json
+
+      expect(response).to have_http_status(:bad_request)
+      expect(json_body[:error]).to eq("Disco de usuário inválido.")
+      home = Filesystem::UserDiskService.read_home(aluno, professor.username)
+      expect(home[:data].dig("Desktop", "data", "novo.txt")).to be_nil
     end
   end
 

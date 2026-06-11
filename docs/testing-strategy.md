@@ -65,6 +65,7 @@ Criar uma suíte objetiva, rápida e útil para proteger a evolução do simulad
 - Cenário educacional inicia, salva progresso e retoma.
 - Ações do usuário geram eventos consistentes no backend.
 - Permissões impedem acesso a progresso ou arquivos de outro usuário.
+- API de disco virtual permite escrita de terceiros apenas para professor, permite aluno gravar apenas o próprio disco, mantém secretaria somente leitura e rejeita payload de disco com formato inválido.
 - Uploads ou arquivos gerados respeitam validação e quota.
 - Backup/restore não quebra consistência entre banco e diretório persistente.
 

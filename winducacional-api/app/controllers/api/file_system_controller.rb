@@ -17,16 +17,27 @@ module Api
       users_data = Filesystem::TreeBuilder.extract_visible_homes(tree)
       return render json: { error: "Árvore de arquivos inválida." }, status: :bad_request unless users_data
 
-      if current_user.role != "aluno"
+      if current_user.role == "professor"
+        writable_homes = []
         User.active.each do |user|
           home_data = users_data.dig(user.username, "data")
-          Filesystem::UserDiskService.write_home(user, home_data) if home_data
+          next unless home_data
+
+          unless home_data.is_a?(Hash)
+            return render json: { error: "Disco de usuário inválido." }, status: :bad_request
+          end
+
+          writable_homes << [ user, home_data ]
         end
-      else
+        writable_homes.each { |user, home_data| Filesystem::UserDiskService.write_home(user, home_data) }
+      elsif current_user.role == "aluno"
         home_data = users_data.dig(current_user.username, "data")
         return render json: { error: "Disco do usuário ausente." }, status: :forbidden unless home_data
+        return render json: { error: "Disco de usuário inválido." }, status: :bad_request unless home_data.is_a?(Hash)
 
         Filesystem::UserDiskService.write_home(current_user, home_data)
+      else
+        return render json: { error: "Acesso restrito a professores ou ao próprio aluno." }, status: :forbidden
       end
 
       head :no_content

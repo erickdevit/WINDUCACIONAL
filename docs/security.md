@@ -36,6 +36,8 @@ O comando `eval` legado do terminal foi removido durante a primeira implementaç
 - Aplicar autorização por recurso, não apenas por rota.
 - Garantir que alunos só acessem o próprio disco virtual.
 - Permitir acesso a discos de alunos apenas a usuários com papel `professor`.
+- Manter secretaria em modo somente leitura para `/api/fs/tree`.
+- Validar que cada home persistida em disco virtual seja um objeto antes de gravar `disk.json`.
 - Usar IDs públicos não previsíveis para recursos expostos.
 - Definir CORS restrito para origens conhecidas.
 - Aplicar rate limit em login, endpoints sensíveis e operações caras.
