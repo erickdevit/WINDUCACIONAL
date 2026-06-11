@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react"
+import { SystemIcon } from "@/components/icons/SystemIcon"
 
 // Domínios espelham EdgeProxyController::ALLOWED_DOMAINS (winducacional-api).
 const HOME_URL = "https://www.google.com/webhp?igu=1"
@@ -39,7 +40,7 @@ export default function EdgeApp() {
           }}
           className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md hover:bg-white/10"
         >
-          🏠
+          <SystemIcon name="home" className="h-4 w-4" />
         </button>
         <input
           type="text"

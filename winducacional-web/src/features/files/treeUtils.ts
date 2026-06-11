@@ -1,4 +1,5 @@
 import { getNodeChildren, isFolder, type FsNode, type FsTree } from "./types"
+import type { IconName } from "@/components/icons/SystemIcon"
 
 export interface FsEntry {
   key: string
@@ -87,19 +88,19 @@ export function formatWindowsPath(path: string[]): string {
   return path.join("\\")
 }
 
-const FILE_ICONS: Record<string, string> = {
-  txt: "📄",
-  docx: "📝",
-  doc: "📝",
-  pdf: "📕",
-  png: "🖼️",
-  jpg: "🖼️",
-  jpeg: "🖼️",
-  webp: "🖼️",
-  gif: "🖼️",
+const FILE_ICONS: Record<string, IconName> = {
+  txt: "document",
+  docx: "document",
+  doc: "document",
+  pdf: "file-pdf",
+  png: "file-image",
+  jpg: "file-image",
+  jpeg: "file-image",
+  webp: "file-image",
+  gif: "file-image",
 }
 
-export function getEntryIcon(node: FsNode): string {
-  if (isFolder(node)) return "📁"
-  return FILE_ICONS[node.type ?? ""] ?? "📄"
+export function getEntryIcon(node: FsNode): IconName {
+  if (isFolder(node)) return "folder"
+  return FILE_ICONS[node.type ?? ""] ?? "document"
 }

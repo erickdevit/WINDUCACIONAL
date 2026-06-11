@@ -15,6 +15,7 @@ import { formatWindowsPath, getEntryIcon, listEntries, resolveSpecialPath, type 
 import { isFolder } from "@/features/files/types"
 import { openWindow } from "@/features/windows/windowsSlice"
 import { getApiErrorMessage } from "@/utils/errors"
+import { SystemIcon } from "@/components/icons/SystemIcon"
 
 const NAV_BUTTON_CLASS =
   "flex h-7 w-7 items-center justify-center rounded-md hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent"
@@ -104,7 +105,7 @@ export default function ExplorerApp() {
                 onDoubleClick={() => handleOpenEntry(entry)}
                 className="flex flex-col items-center gap-1 rounded-md p-2 text-center hover:bg-white/10"
               >
-                <span className="text-2xl">{getEntryIcon(entry.node)}</span>
+                <SystemIcon name={getEntryIcon(entry.node)} className="h-8 w-8 text-white/80" />
                 <span className="w-full truncate text-xs">{entry.key}</span>
               </button>
             ))}

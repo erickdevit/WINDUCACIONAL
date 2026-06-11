@@ -2,6 +2,7 @@ import { useAppDispatch } from "@/app/hooks"
 import { useGetMeQuery, useLogoutMutation } from "@/features/auth/authApi"
 import { APPS } from "@/features/apps/registry"
 import { openWindow, type WindowSize } from "@/features/windows/windowsSlice"
+import { SystemIcon } from "@/components/icons/SystemIcon"
 
 interface StartMenuProps {
   onClose: () => void
@@ -42,7 +43,7 @@ export function StartMenu({ onClose }: StartMenuProps) {
                 className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-white/10"
                 onClick={() => handleOpen(app.id, app.title, app.defaultSize)}
               >
-                <span aria-hidden="true">{app.icon}</span>
+                <SystemIcon name={app.icon} className="h-4 w-4 shrink-0 text-white/80" />
                 {app.title}
               </button>
             </li>

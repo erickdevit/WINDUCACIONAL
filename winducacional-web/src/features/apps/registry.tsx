@@ -16,6 +16,7 @@ import SettingsApp from "@/pages/apps/SettingsApp"
 import TypingApp from "@/pages/apps/TypingApp"
 import type { UserRole } from "@/types/user"
 import type { WindowSize } from "@/features/windows/windowsSlice"
+import type { IconName } from "@/components/icons/SystemIcon"
 
 export interface AppComponentProps {
   // Dados de abertura específicos do app, ex.: caminho do arquivo para o Bloco de Notas.
@@ -25,7 +26,7 @@ export interface AppComponentProps {
 export interface AppDefinition {
   id: string
   title: string
-  icon: string
+  icon: IconName
   defaultSize: WindowSize
   component: ComponentType<AppComponentProps>
   // Quando ausente, o app fica visível para todos os perfis.
@@ -38,35 +39,35 @@ export const APPS: AppDefinition[] = [
   {
     id: "about",
     title: "Sobre",
-    icon: "🧑‍🎓",
+    icon: "about",
     defaultSize: { width: 360, height: 280 },
     component: AboutApp,
   },
   {
     id: "settings",
     title: "Configurações",
-    icon: "⚙️",
+    icon: "settings",
     defaultSize: { width: 380, height: 320 },
     component: SettingsApp,
   },
   {
     id: "calculator",
     title: "Calculadora",
-    icon: "🧮",
+    icon: "calculator",
     defaultSize: { width: 320, height: 560 },
     component: CalculatorApp,
   },
   {
     id: "explorer",
     title: "Explorador de Arquivos",
-    icon: "📁",
+    icon: "folder",
     defaultSize: { width: 560, height: 420 },
     component: ExplorerApp,
   },
   {
     id: "attendance",
     title: "Frequência",
-    icon: "📅",
+    icon: "calendar",
     defaultSize: { width: 720, height: 560 },
     component: AttendanceApp,
     roles: ["aluno", "professor", "secretaria"],
@@ -74,7 +75,7 @@ export const APPS: AppDefinition[] = [
   {
     id: "gestor",
     title: "Gestor de Sessões",
-    icon: "🖥️",
+    icon: "monitor",
     defaultSize: { width: 420, height: 440 },
     component: GestorApp,
     roles: ["professor", "secretaria"],
@@ -82,42 +83,42 @@ export const APPS: AppDefinition[] = [
   {
     id: "booklets",
     title: "Apostilas",
-    icon: "📚",
+    icon: "book",
     defaultSize: { width: 420, height: 480 },
     component: BookletsApp,
   },
   {
     id: "notepad",
     title: "Bloco de Notas",
-    icon: "📝",
+    icon: "document",
     defaultSize: { width: 480, height: 420 },
     component: NotepadApp,
   },
   {
     id: "typing",
     title: "Digitação",
-    icon: "⌨️",
+    icon: "keyboard",
     defaultSize: { width: 640, height: 520 },
     component: TypingApp,
   },
   {
     id: "chat",
     title: "Chat",
-    icon: "💬",
+    icon: "chat",
     defaultSize: { width: 560, height: 460 },
     component: ChatApp,
   },
   {
     id: "exams",
     title: "Avaliações",
-    icon: "📋",
+    icon: "clipboard",
     defaultSize: { width: 560, height: 500 },
     component: ExamsApp,
   },
   {
     id: "school-admin",
     title: "Gestão Escolar",
-    icon: "🏫",
+    icon: "school",
     defaultSize: { width: 560, height: 500 },
     component: SchoolAdminApp,
     roles: ["professor", "secretaria"],
@@ -125,7 +126,7 @@ export const APPS: AppDefinition[] = [
   {
     id: "typing-pvp",
     title: "Duelo de Digitação",
-    icon: "⚔️",
+    icon: "swords",
     defaultSize: { width: 480, height: 460 },
     component: PvpApp,
     roles: ["aluno"],
@@ -133,14 +134,14 @@ export const APPS: AppDefinition[] = [
   {
     id: "edge",
     title: "Navegador",
-    icon: "🌐",
+    icon: "globe",
     defaultSize: { width: 720, height: 520 },
     component: EdgeApp,
   },
   {
     id: "imagegen",
     title: "Gerador de Imagens",
-    icon: "🎨",
+    icon: "palette",
     defaultSize: { width: 520, height: 520 },
     component: ImagegenApp,
   },

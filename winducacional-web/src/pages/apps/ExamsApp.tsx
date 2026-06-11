@@ -188,7 +188,7 @@ function ExamSession({
         <span className="font-medium text-white/90">{exam.title}</span>
         {remainingSec !== null && (
           <span className={`text-xs font-medium ${remainingSec <= 60 ? "text-red-400" : "text-white/60"}`}>
-            ⏱ {Math.floor(remainingSec / 60)}:{String(remainingSec % 60).padStart(2, "0")}
+            Tempo {Math.floor(remainingSec / 60)}:{String(remainingSec % 60).padStart(2, "0")}
           </span>
         )}
       </div>

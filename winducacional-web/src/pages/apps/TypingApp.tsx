@@ -269,7 +269,7 @@ export default function TypingApp() {
               onClick={() => setView("settings")}
               className="rounded-md bg-white/10 px-2 py-1 text-xs hover:bg-white/20"
             >
-              ⚙️ Limites
+              Limites
             </button>
           )}
           <button
@@ -277,7 +277,7 @@ export default function TypingApp() {
             onClick={() => setView("ranking")}
             className="rounded-md bg-white/10 px-2 py-1 text-xs hover:bg-white/20"
           >
-            🏆 Ranking
+            Ranking
           </button>
         </div>
       </div>

@@ -90,15 +90,15 @@ describe("treeUtils", () => {
   it("getEntryIcon retorna ícone de pasta para diretórios", () => {
     const folder = getNodeAtPath(TREE, ["C:", "Users", "professor", "Documents"])!
 
-    expect(getEntryIcon(folder)).toBe("📁")
+    expect(getEntryIcon(folder)).toBe("folder")
   })
 
   it("getEntryIcon retorna ícone específico para arquivos conhecidos", () => {
     const txt = getNodeAtPath(TREE, ["C:", "Users", "professor", "Documents", "notas.txt"])!
     const docx = getNodeAtPath(TREE, ["C:", "Users", "professor", "Documents", "apresentacao.docx"])!
 
-    expect(getEntryIcon(txt)).toBe("📄")
-    expect(getEntryIcon(docx)).toBe("📝")
+    expect(getEntryIcon(txt)).toBe("document")
+    expect(getEntryIcon(docx)).toBe("document")
   })
 
   it("setNodeAtPath substitui o nó sem mutar a árvore original", () => {

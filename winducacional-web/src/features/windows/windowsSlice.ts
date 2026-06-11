@@ -11,6 +11,11 @@ export interface WindowSize {
   height: number
 }
 
+export interface WindowGeometry {
+  position: WindowPosition
+  size: WindowSize
+}
+
 export interface AppWindowState {
   id: string
   appId: string
@@ -38,6 +43,37 @@ const initialState: WindowsState = {
 const CASCADE_STEP = 24
 const CASCADE_LIMIT = 8
 const INITIAL_POSITION: WindowPosition = { x: 80, y: 48 }
+export const MIN_WINDOW_SIZE: WindowSize = { width: 300, height: 220 }
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max)
+}
+
+export function constrainWindowGeometry(
+  position: WindowPosition,
+  size: WindowSize,
+  workArea?: WindowSize,
+): WindowGeometry {
+  const maxWidth = workArea ? Math.max(MIN_WINDOW_SIZE.width, workArea.width) : Number.POSITIVE_INFINITY
+  const maxHeight = workArea ? Math.max(MIN_WINDOW_SIZE.height, workArea.height) : Number.POSITIVE_INFINITY
+  const width = clamp(Math.round(size.width), MIN_WINDOW_SIZE.width, maxWidth)
+  const height = clamp(Math.round(size.height), MIN_WINDOW_SIZE.height, maxHeight)
+
+  if (!workArea) {
+    return {
+      position: { x: Math.round(position.x), y: Math.max(0, Math.round(position.y)) },
+      size: { width, height },
+    }
+  }
+
+  return {
+    position: {
+      x: clamp(Math.round(position.x), 0, Math.max(0, workArea.width - width)),
+      y: clamp(Math.round(position.y), 0, Math.max(0, workArea.height - height)),
+    },
+    size: { width, height },
+  }
+}
 
 const windowsSlice = createSlice({
   name: "windows",
@@ -91,14 +127,22 @@ const windowsSlice = createSlice({
       const win = state.windows.find((win) => win.id === action.payload)
       if (win) win.maximized = !win.maximized
     },
-    moveWindow(state, action: PayloadAction<{ id: string; position: WindowPosition }>) {
+    moveWindow(state, action: PayloadAction<{ id: string; position: WindowPosition; workArea?: WindowSize }>) {
       const win = state.windows.find((win) => win.id === action.payload.id)
-      if (win) win.position = action.payload.position
+      if (!win) return
+      win.position = constrainWindowGeometry(action.payload.position, win.size, action.payload.workArea).position
+    },
+    resizeWindow(state, action: PayloadAction<{ id: string; position: WindowPosition; size: WindowSize; workArea?: WindowSize }>) {
+      const win = state.windows.find((win) => win.id === action.payload.id)
+      if (!win) return
+      const geometry = constrainWindowGeometry(action.payload.position, action.payload.size, action.payload.workArea)
+      win.position = geometry.position
+      win.size = geometry.size
     },
   },
 })
 
-export const { openWindow, closeWindow, focusWindow, toggleMinimize, toggleMaximize, moveWindow } =
+export const { openWindow, closeWindow, focusWindow, toggleMinimize, toggleMaximize, moveWindow, resizeWindow } =
   windowsSlice.actions
 
 export const selectWindows = (state: RootState) => state.windows.windows

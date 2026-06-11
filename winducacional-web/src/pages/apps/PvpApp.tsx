@@ -119,7 +119,7 @@ function PvpLobby({
           }`}
         >
           <span>
-            {result.winnerId === currentUserId ? "🏆 Você venceu!" : "Você perdeu."} ({result.winnerScore} ×{" "}
+            {result.winnerId === currentUserId ? "Você venceu!" : "Você perdeu."} ({result.winnerScore} ×{" "}
             {result.loserScore})
           </span>
           <button type="button" onClick={onDismissResult} aria-label="Fechar resultado">
@@ -131,7 +131,7 @@ function PvpLobby({
       {incomingChallenge && (
         <div className="flex items-center justify-between rounded-md bg-accent/20 px-3 py-2 text-xs">
           <span>
-            ⚔️ <strong>{incomingChallenge.displayName}</strong> desafiou você!
+            <strong>{incomingChallenge.displayName}</strong> desafiou você!
           </span>
           <span className="flex gap-1">
             <button

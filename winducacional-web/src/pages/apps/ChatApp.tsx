@@ -107,7 +107,7 @@ function TurmaSidebar({
             className={itemClass(activeThreadId === groupData.threadId)}
             onClick={() => onSelect({ threadId: groupData.threadId, title: `Grupo · ${turmaNome}` })}
           >
-            👥 Grupo da turma
+            Grupo da turma
           </button>
         </li>
       )}
@@ -118,7 +118,7 @@ function TurmaSidebar({
             className={itemClass(false)}
             onClick={() => void handleOpenDm(member.id, member.displayName)}
           >
-            💬 {member.displayName}
+            {member.displayName}
           </button>
         </li>
       ))}

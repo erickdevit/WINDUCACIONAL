@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest"
 import reducer, {
   closeWindow,
+  constrainWindowGeometry,
   focusWindow,
   moveWindow,
   openWindow,
+  resizeWindow,
   toggleMaximize,
   toggleMinimize,
 } from "./windowsSlice"
@@ -75,5 +77,41 @@ describe("windowsSlice", () => {
     state = reducer(state, moveWindow({ id, position: { x: 120, y: 64 } }))
 
     expect(state.windows[0].position).toEqual({ x: 120, y: 64 })
+  })
+
+  it("mantém a janela dentro da área útil ao mover", () => {
+    let state = reducer(undefined, openWindow("about", "Sobre", SIZE))
+    const id = state.windows[0].id
+
+    state = reducer(state, moveWindow({ id, position: { x: 900, y: -20 }, workArea: { width: 800, height: 600 } }))
+
+    expect(state.windows[0].position).toEqual({ x: 400, y: 0 })
+  })
+
+  it("redimensiona a janela respeitando tamanho mínimo e área útil", () => {
+    let state = reducer(undefined, openWindow("about", "Sobre", SIZE))
+    const id = state.windows[0].id
+
+    state = reducer(
+      state,
+      resizeWindow({
+        id,
+        position: { x: -40, y: 500 },
+        size: { width: 120, height: 900 },
+        workArea: { width: 700, height: 600 },
+      }),
+    )
+
+    expect(state.windows[0].position).toEqual({ x: 0, y: 0 })
+    expect(state.windows[0].size).toEqual({ width: 300, height: 600 })
+  })
+
+  it("expõe o cálculo de geometria para o componente de janela", () => {
+    expect(
+      constrainWindowGeometry({ x: 640.4, y: 500.8 }, { width: 260, height: 180 }, { width: 800, height: 600 }),
+    ).toEqual({
+      position: { x: 500, y: 380 },
+      size: { width: 300, height: 220 },
+    })
   })
 })
