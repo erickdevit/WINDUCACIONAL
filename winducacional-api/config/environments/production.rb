@@ -34,15 +34,26 @@ Rails.application.configure do
   # config.action_cable.url = "wss://example.com/cable"
   # config.action_cable.allowed_request_origins = [ "http://example.com", /http:\/\/example.*/ ]
 
-  # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  # Can be used together with config.force_ssl for Strict-Transport-Security and secure cookies.
-  # config.assume_ssl = true
+  force_ssl = ActiveModel::Type::Boolean.new.cast(ENV.fetch("RAILS_FORCE_SSL", "false"))
+  assume_ssl = ActiveModel::Type::Boolean.new.cast(ENV.fetch("RAILS_ASSUME_SSL", force_ssl.to_s))
+
+  # Em Docker, o Rails fica atrás do serviço web/reverse proxy. Habilite
+  # RAILS_FORCE_SSL apenas quando o proxy público já estiver terminando TLS e
+  # encaminhando X-Forwarded-Proto=https para /api e /cable.
+  config.assume_ssl = assume_ssl
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  config.force_ssl = true
+  config.force_ssl = force_ssl
 
-  # Skip http-to-https redirect for the default health check endpoint.
-  # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
+  # O healthcheck interno do container usa HTTP direto contra rails_api.
+  config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/api/health" } } }
+
+  config.action_dispatch.default_headers = {
+    "X-Frame-Options" => "SAMEORIGIN",
+    "X-Content-Type-Options" => "nosniff",
+    "Referrer-Policy" => "strict-origin-when-cross-origin",
+    "Permissions-Policy" => "camera=(), microphone=(), geolocation=()"
+  }
 
   # Log to STDOUT by default
   config.logger = ActiveSupport::Logger.new(STDOUT)

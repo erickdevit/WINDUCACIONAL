@@ -48,6 +48,7 @@ O ponto de hospedagem será um servidor dedicado. A aplicação deverá ser dist
 - `shared/base-tree` é montado em `/rails/base-tree`.
 - O serviço `rails_api` aceita `IMAGEGEN_API_TOKEN` e `IMAGEGEN_API_URL` para habilitar o proxy de geração de imagens no backend. O token real deve existir apenas no ambiente do servidor.
 - O serviço `web` publica `WEB_PORT` (`8080` por padrão), aplica fallback de SPA e repassa WebSocket de `/cable`.
+- O serviço `web` encaminha `X-Forwarded-Proto` para o Rails. No compose local/teste, `RAILS_FORCE_SSL=false` evita redirecionar o tráfego HTTP interno. Em produção atrás de proxy TLS externo, defina `RAILS_ASSUME_SSL=true` e, quando quiser HSTS/redirecionamento no Rails, `RAILS_FORCE_SSL=true`; o proxy público deve encaminhar `X-Forwarded-Proto=https`.
 
 O arquivo `.env.example` documenta as variáveis mínimas atuais para execução do backend.
 
@@ -61,6 +62,8 @@ Os nomes finais ainda devem ser definidos, mas a aplicação provavelmente preci
 - `PERSISTENT_DATA_DIR`
 - `BOOTSTRAP_TOKEN`
 - `SESSION_DAYS`
+- `RAILS_FORCE_SSL`
+- `RAILS_ASSUME_SSL`
 - `BOOKLET_LIBRARY_DIR`
 - `BASE_TREE_PATH`
 - `APP_VERSION`

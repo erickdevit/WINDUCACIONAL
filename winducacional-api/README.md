@@ -27,6 +27,8 @@ Use `.env.example` como referência. Variáveis principais:
 - `BOOKLET_LIBRARY_DIR`
 - `BASE_TREE_PATH`
 - `BOOTSTRAP_TOKEN`
+- `RAILS_FORCE_SSL`
+- `RAILS_ASSUME_SSL`
 - `IMAGEGEN_API_TOKEN`
 - `IMAGEGEN_API_URL`
 - `CORS_ORIGINS`

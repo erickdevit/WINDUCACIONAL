@@ -26,6 +26,8 @@ services:
       BOOKLET_LIBRARY_DIR: /rails/booklets
       BASE_TREE_PATH: /rails/base-tree/dir.json
       SESSION_DAYS: ${SESSION_DAYS:-7}
+      RAILS_FORCE_SSL: ${RAILS_FORCE_SSL:-false}
+      RAILS_ASSUME_SSL: ${RAILS_ASSUME_SSL:-false}
       SECRET_KEY_BASE: ${SECRET_KEY_BASE:?Defina SECRET_KEY_BASE}
       BOOTSTRAP_TOKEN: ${BOOTSTRAP_TOKEN:-}
       IMAGEGEN_API_TOKEN: ${IMAGEGEN_API_TOKEN:-}

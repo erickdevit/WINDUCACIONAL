@@ -40,6 +40,8 @@ O comando `eval` legado do terminal foi removido durante a primeira implementaç
 - Validar que cada home persistida em disco virtual seja um objeto antes de gravar `disk.json`.
 - Usar IDs públicos não previsíveis para recursos expostos.
 - Definir CORS restrito para origens conhecidas.
+- Em produção, não use origens localhost em CORS. Quando frontend e API estiverem no mesmo domínio pelo proxy, deixe `CORS_ORIGINS` vazio; quando houver domínio separado, liste apenas as origens oficiais.
+- Quando houver TLS em proxy externo, encaminhar `X-Forwarded-Proto=https` para o Rails e definir `RAILS_ASSUME_SSL=true`; use `RAILS_FORCE_SSL=true` apenas quando o proxy público estiver preparado para HTTPS e o healthcheck interno continuar em `/api/health`.
 - Aplicar rate limit em login, endpoints sensíveis e operações caras.
 - Criar o primeiro professor pelo fluxo `/api/bootstrap`, protegido por `BOOTSTRAP_TOKEN` em produção; não reintroduzir seed automático `Admin`/`Admin` na nova stack.
 - Registrar eventos relevantes sem gravar senhas, tokens ou dados sensíveis em logs.

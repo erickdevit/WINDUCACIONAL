@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { renderHook, act, cleanup } from "@testing-library/react";
 import {
   useTypingEngine,
   calculateLiveWpm,
@@ -78,6 +78,10 @@ describe("Typing Kids Engine", () => {
     localStorage.clear();
     typingSettingsMock.subscribers = {};
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   describe("Math Helpers", () => {
