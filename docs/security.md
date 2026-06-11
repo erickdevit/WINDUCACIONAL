@@ -56,6 +56,7 @@ O comando `eval` legado do terminal foi removido durante a primeira implementaç
 - O PVP de digitação deve manter convites, salas e histórico restritos à turma autorizada. A finalização calcula vencedor e placar no servidor a partir do progresso sincronizado da sala e ignora placares enviados pelo cliente; a validação autoritativa de cada palavra digitada ainda é dívida de segurança antes de uso competitivo real.
 - O app Avaliação deve corrigir notas no backend. O cliente pode enviar respostas e snapshot do container prático, mas não pode enviar `isCorrect`, pontuação concedida, resposta correta ou regras de validação como autoridade. Alunos só podem abrir e enviar provas publicadas e atribuídas ao próprio usuário.
 - Mudança de versão da build invalida sessões no banco e força limpeza de caches no cliente; esse fluxo não deve expor tokens nem depender de dados sensíveis em `localStorage`.
+- O app de Digitação pode usar `localStorage` apenas como cache visual de rotação de variantes. A leitura desse cache deve passar por helper sanitizado, tratando JSON inválido, formatos inesperados, números não finitos e falha de storage como mapa vazio.
 
 ## Requisitos Para PostgreSQL
 

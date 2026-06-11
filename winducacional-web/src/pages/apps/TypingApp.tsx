@@ -14,6 +14,7 @@ import {
   areTypingCharactersEquivalent,
 } from "@/features/typing/typingInput"
 import { TYPING_LESSONS, type TypingLesson } from "@/features/typing/typingLessons"
+import { bumpVariant, loadVariantMap } from "@/features/typing/typingVariantCache"
 import {
   useGetTypingRankingGlobalQuery,
   useGetTypingRankingTurmaQuery,
@@ -30,24 +31,6 @@ type View = "menu" | "lesson" | "result" | "ranking" | "settings"
 interface Session {
   lesson: TypingLesson
   text: string
-}
-
-function variantStorageKey(username: string) {
-  return `typingLessonVariants_${username}`
-}
-
-function loadVariantMap(username: string): Record<string, number> {
-  try {
-    return JSON.parse(localStorage.getItem(variantStorageKey(username)) ?? "{}") as Record<string, number>
-  } catch {
-    return {}
-  }
-}
-
-function bumpVariant(username: string, lessonId: number) {
-  const map = loadVariantMap(username)
-  map[lessonId] = (Number(map[lessonId]) || 0) + 1
-  localStorage.setItem(variantStorageKey(username), JSON.stringify(map))
 }
 
 export default function TypingApp() {
