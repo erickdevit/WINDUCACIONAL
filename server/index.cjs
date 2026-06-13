@@ -1416,14 +1416,15 @@ const sendUserNotification = (userId, notification) => {
   if (clients.size === 0) notificationClients.delete(userId);
 };
 
-const getOnlinePvpUsers = (viewer) => {
-  if (!viewer?.turma_id) return [];
+const getOnlinePvpUsers = (viewer, overrideTurmaId) => {
+  const turmaId = overrideTurmaId && viewer.role === "professor" ? String(overrideTurmaId) : String(viewer.turma_id);
+  if (!turmaId || turmaId === "undefined" || turmaId === "null") return [];
   return Array.from(onlineUsers.values())
     .filter(
       (onlineUser) =>
         onlineUser.user.id !== viewer.id &&
         onlineUser.user.role === "aluno" &&
-        onlineUser.user.turma_id === viewer.turma_id
+        String(onlineUser.user.turma_id) === turmaId
     )
     .map((onlineUser) => publicUser(onlineUser.user));
 };

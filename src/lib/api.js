@@ -236,7 +236,12 @@ export const api = {
     };
   },
   // --- PVP ---
-  getTypingPvpLobby: () => request("/api/typing-pvp/lobby"),
+  getTypingPvpLobby: ({ turmaId } = {}) => {
+    const params = new URLSearchParams();
+    if (turmaId) params.set("turmaId", turmaId);
+    const suffix = params.toString() ? `?${params.toString()}` : "";
+    return request(`/api/typing-pvp/lobby${suffix}`);
+  },
   challengePvpPlayer: (targetId) =>
     request("/api/typing-pvp/challenge", {
       method: "POST",

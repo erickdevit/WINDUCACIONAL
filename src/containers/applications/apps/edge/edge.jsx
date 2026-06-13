@@ -4,25 +4,6 @@ import { useSelector, useDispatch } from "react-redux";
 import { Icon, LazyComponent } from "../../../../utils/general";
 import { AppWindow } from "../../../../components/shared/AppWindow";
 
-const googleProfileStorageKey = (person) =>
-  `edgeGoogleProfile_${person?.id || person?.username || "guest"}`;
-
-const isGoogleAddress = (address) => {
-  try {
-    const hostname = new URL(address).hostname.replace(/^www\./, "");
-    return (
-      hostname === "google.com" ||
-      hostname.endsWith(".google.com") ||
-      hostname === "google.com.br" ||
-      hostname.endsWith(".google.com.br") ||
-      hostname === "youtube.com" ||
-      hostname.endsWith(".youtube.com")
-    );
-  } catch (err) {
-    return false;
-  }
-};
-
 export const EdgeMenu = () => {
   const wnapp = useSelector((state) => state.apps.edge);
   const person = useSelector((state) => state.setting.person);
@@ -36,17 +17,11 @@ export const EdgeMenu = () => {
   };
   const [tabs, setTabs] = useState([defaultTab]);
   const [activeTab, setActiveTab] = useState(0);
-  const [googleProfile, setGoogleProfile] = useState(null);
-  const [googleForm, setGoogleForm] = useState({
-    name: person?.name || person?.displayName || person?.username || "",
-    email: person?.username ? `${person.username}@simulador.local` : "",
-  });
   const dispatch = useDispatch();
 
   const currentTab = tabs[activeTab];
   const { url, hist, isTyping } = currentTab;
   const currentUrl = !isTyping ? url : hist[0];
-  const isGooglePage = isGoogleAddress(currentUrl);
 
   const updateTab = (updates) => {
     setTabs((prevTabs) =>
@@ -148,27 +123,6 @@ export const EdgeMenu = () => {
   };
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(googleProfileStorageKey(person));
-      const parsed = saved ? JSON.parse(saved) : null;
-      setGoogleProfile(parsed);
-      setGoogleForm({
-        name:
-          parsed?.name ||
-          person?.name ||
-          person?.displayName ||
-          person?.username ||
-          "",
-        email:
-          parsed?.email ||
-          (person?.username ? `${person.username}@simulador.local` : ""),
-      });
-    } catch (err) {
-      setGoogleProfile(null);
-    }
-  }, [person?.id, person?.username, person?.name, person?.displayName]);
-
-  useEffect(() => {
     if (wnapp.url) {
       updateTab({ isTyping: false, url: wnapp.url });
       dispatch({ type: "EDGELINK" });
@@ -182,33 +136,6 @@ export const EdgeMenu = () => {
     } catch (err) {
       return "Nova guia";
     }
-  };
-
-  const changeGoogleForm = (event) => {
-    const { name, value } = event.target;
-    setGoogleForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const saveGoogleProfile = (event) => {
-    event.preventDefault();
-    const nextProfile = {
-      name: googleForm.name.trim(),
-      email: googleForm.email.trim(),
-      savedAt: new Date().toISOString(),
-    };
-
-    if (!nextProfile.name || !nextProfile.email) return;
-
-    localStorage.setItem(
-      googleProfileStorageKey(person),
-      JSON.stringify(nextProfile)
-    );
-    setGoogleProfile(nextProfile);
-  };
-
-  const disconnectGoogleProfile = () => {
-    localStorage.removeItem(googleProfileStorageKey(person));
-    setGoogleProfile(null);
   };
 
   return (
@@ -353,45 +280,6 @@ export const EdgeMenu = () => {
             ></iframe>
           ))}
         </LazyComponent>
-
-        {isGooglePage ? (
-          <div className="edgeGoogleAccount">
-            {googleProfile ? (
-              <>
-                <div className="edgeGoogleAvatar">
-                  {googleProfile.name.charAt(0).toUpperCase()}
-                </div>
-                <div className="edgeGoogleInfo">
-                  <strong>{googleProfile.name}</strong>
-                  <span>{googleProfile.email}</span>
-                </div>
-                <button type="button" onClick={disconnectGoogleProfile}>
-                  Sair
-                </button>
-              </>
-            ) : (
-              <form onSubmit={saveGoogleProfile}>
-                <strong>Entrar no Google</strong>
-                <input
-                  name="email"
-                  value={googleForm.email}
-                  onChange={changeGoogleForm}
-                  placeholder="email@gmail.com"
-                  type="email"
-                  required
-                />
-                <input
-                  name="name"
-                  value={googleForm.name}
-                  onChange={changeGoogleForm}
-                  placeholder="Nome da conta"
-                  required
-                />
-                <button type="submit">Salvar login</button>
-              </form>
-            )}
-          </div>
-        ) : null}
       </div>
     </AppWindow>
   );
