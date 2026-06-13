@@ -381,7 +381,7 @@ describe("Backend - ranking de digitação", () => {
     expect(serverCode).toContain("onlineUsers");
     expect(serverCode).toContain("getOnlinePvpUsers");
     expect(serverCode).toContain("onlineUsers.set(req.user.id");
-    expect(pvpServerCode).toContain("getOnlinePvpUsers(req.user)");
+    expect(pvpServerCode).toContain("getOnlinePvpUsers(req.user");
     expect(pvpServerCode).toContain("targetClient");
     expect(pvpServerCode).toContain("sendUserNotification(targetId");
   });

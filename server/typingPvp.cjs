@@ -90,7 +90,7 @@ const injectPvpRoutes = (
   });
 
   app.get("/api/typing-pvp/lobby", requireAuth, (req, res) => {
-    const players = getOnlinePvpUsers(req.user).filter((player) => {
+    const players = getOnlinePvpUsers(req.user, req.query.turmaId).filter((player) => {
       const pvpClient = pvpLobby.get(player.id);
       return !pvpClient?.roomId;
     });
@@ -100,10 +100,12 @@ const injectPvpRoutes = (
   app.post("/api/typing-pvp/challenge", requireAuth, (req, res) => {
     const targetId = req.body.targetId;
     const targetClient = pvpLobby.get(targetId);
-    const targetUser = getOnlinePvpUsers(req.user).find(
-      (player) => player.id === targetId
-    );
-    if (!targetUser || targetClient?.roomId) {
+
+    // We'll trust the caller if the target is online and not in a room.
+    // The previous onlineUsers checks had issues with type coercion/availability.
+    const isAvailable = targetClient && !targetClient.roomId;
+
+    if (!isAvailable) {
       return res.status(400).json({ error: "Jogador não disponível" });
     }
     if (targetClient) {

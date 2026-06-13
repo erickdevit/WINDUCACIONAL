@@ -228,7 +228,7 @@ export const TypingPvpGame = ({
       const interval = setInterval(fetchLobby, 5000);
       return () => clearInterval(interval);
     }
-  }, [gameTab, rankingTab, selectedTurmaId]);
+  }, [gameTab, rankingTab, selectedTurmaId, isProfessor]);
 
   useEffect(() => {
     if (!pendingChallenge?.id) return;
@@ -403,7 +403,8 @@ export const TypingPvpGame = ({
 
   const fetchLobby = async () => {
     try {
-      const res = await api.getTypingPvpLobby();
+      const payload = isProfessor && selectedTurmaId ? { turmaId: selectedTurmaId } : undefined;
+      const res = await api.getTypingPvpLobby(payload);
       setLobbyPlayers(res.players || []);
     } catch (e) {}
   };
@@ -1070,16 +1071,33 @@ export const TypingPvpGame = ({
               Arena PVP
             </h2>
           </div>
-          <button
-            onClick={toggleRandom}
-            className={`px-6 py-2.5 rounded-lg font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm ${
-              isWaitingRandom
-                ? "bg-orange-500 hover:bg-orange-600"
-                : "bg-purple-600 hover:bg-purple-700"
-            }`}
-          >
-            {isWaitingRandom ? "Buscando..." : "Rodada aleatória"}
-          </button>
+
+          <div className="flex gap-4 items-center">
+            {isProfessor && turmas.length > 0 && (
+              <select
+                value={selectedTurmaId}
+                onChange={(event) => onSelectedTurmaChange(event.target.value)}
+                className="rounded-lg border border-gray-300 bg-white px-4 py-2 font-bold text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white outline-none focus:border-[#ffcc02]"
+              >
+                {turmas.map((turma) => (
+                  <option key={turma.id} value={turma.id}>
+                    {turma.nome}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            <button
+              onClick={toggleRandom}
+              className={`px-6 py-2.5 rounded-lg font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm ${
+                isWaitingRandom
+                  ? "bg-orange-500 hover:bg-orange-600"
+                  : "bg-purple-600 hover:bg-purple-700"
+              }`}
+            >
+              {isWaitingRandom ? "Buscando..." : "Rodada aleatória"}
+            </button>
+          </div>
         </div>
 
         <div className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
