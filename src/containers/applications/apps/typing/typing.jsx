@@ -19,6 +19,7 @@ import {
 import { TypingRankingScrollArea } from "../TypingRankingScrollArea";
 import { TypingSpaceGame } from "../TypingSpaceGame";
 import { TypingPvpGame } from "../TypingPvpGame";
+import SimulatedKeyboard from "./SimulatedKeyboard";
 
 const COMBO_REWARDS = {
   8: "Aquecendo",
@@ -1086,26 +1087,43 @@ export const TypingApp = () => {
 
             <div className="w-full max-w-6xl mx-auto border-b border-gray-100 dark:border-gray-800 pb-4">
               <div className="flex justify-between items-center">
-                <div className="text-left">
+                <div className="text-left w-[250px]">
                   <div className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">
                     Lição em andamento
                   </div>
-                  <div className="text-gray-900 dark:text-white font-bold text-lg">
+                  <div className="text-gray-900 dark:text-white font-bold text-lg flex items-center gap-3">
                     {currentLesson.title}
+                    <span className="text-xs font-black text-[#ffcc02] bg-amber-100/20 border border-amber-500/30 px-2 py-0.5 rounded whitespace-nowrap">
+                      Var {currentLesson.variantIndex + 1}/{currentLesson.variantCount}
+                    </span>
                   </div>
                 </div>
 
-                <div className="text-center hidden md:block">
-                  <div className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">
-                    Variação ativa
-                  </div>
-                  <div className="text-sm font-black text-[#ffcc02]">
-                    {currentLesson.variantIndex + 1}/
-                    {currentLesson.variantCount}
+                <div className="text-center flex justify-center gap-4 flex-grow">
+                  <div className="flex gap-4 md:gap-6 items-center">
+                    <div className="flex flex-col items-center">
+                      <span className="text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400 font-mono leading-none">{formatTime(elapsedMs)}</span>
+                      <span className="text-[9px] md:text-[10px] uppercase font-bold text-gray-400 mt-1">Tempo</span>
+                    </div>
+                    <div className="w-px h-6 bg-gray-200 dark:bg-gray-800"></div>
+                    <div className="flex flex-col items-center">
+                      <span className={`text-lg md:text-xl font-bold font-mono leading-none ${displayWpm >= passMinWpm ? "text-orange-600 dark:text-orange-400" : "text-red-500 dark:text-red-400"}`}>{displayWpm}</span>
+                      <span className="text-[9px] md:text-[10px] uppercase font-bold text-gray-400 mt-1">PPM</span>
+                    </div>
+                    <div className="w-px h-6 bg-gray-200 dark:bg-gray-800"></div>
+                    <div className="flex flex-col items-center">
+                      <span className={`text-lg md:text-xl font-bold font-mono leading-none ${accuracy >= passMinAccuracy ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}>{accuracy}%</span>
+                      <span className="text-[9px] md:text-[10px] uppercase font-bold text-gray-400 mt-1">Precisão</span>
+                    </div>
+                    <div className="w-px h-6 bg-gray-200 dark:bg-gray-800 hidden sm:block"></div>
+                    <div className="flex flex-col items-center hidden sm:flex">
+                      <span className="text-lg md:text-xl font-bold text-purple-600 dark:text-purple-400 font-mono leading-none">{userInput.length}<span className="text-sm opacity-50">/{currentLesson.text.length}</span></span>
+                      <span className="text-[9px] md:text-[10px] uppercase font-bold text-gray-400 mt-1">Progresso</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="w-[140px] flex justify-end">
+                <div className="w-[250px] flex justify-end">
                   {isStaff && (
                     <span className="text-[10px] text-purple-500 font-bold uppercase border border-purple-500/30 px-2 py-1 rounded">
                       {isProfessor ? "Modo Professor" : "Modo Equipe"}
@@ -1169,57 +1187,8 @@ export const TypingApp = () => {
                   : "opacity-100 translate-y-0"
               }`}
             >
-              <div className="flex flex-wrap justify-center gap-4 sm:gap-6 lg:gap-8 pb-4 pt-8">
-                <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 px-6 py-4 rounded-2xl flex flex-col items-center min-w-[120px]">
-                  <span className="text-4xl font-bold text-blue-600 dark:text-blue-400 font-mono">
-                    {formatTime(elapsedMs)}
-                  </span>
-                  <span className="text-[10px] uppercase font-bold text-blue-400 dark:text-blue-500/70 mt-1">
-                    Tempo
-                  </span>
-                </div>
-
-                <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30 px-6 py-4 rounded-2xl flex flex-col items-center min-w-[120px]">
-                  <span
-                    className={`text-4xl font-bold font-mono ${
-                      displayWpm >= passMinWpm
-                        ? "text-orange-600 dark:text-orange-400"
-                        : "text-red-500 dark:text-red-400"
-                    }`}
-                  >
-                    {displayWpm}
-                  </span>
-                  <span className="text-[10px] uppercase font-bold text-orange-400 dark:text-orange-500/70 mt-1">
-                    PPM (Meta: {passMinWpm})
-                  </span>
-                </div>
-
-                <div className="bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30 px-6 py-4 rounded-2xl flex flex-col items-center min-w-[120px]">
-                  <span
-                    className={`text-4xl font-bold font-mono ${
-                      accuracy >= passMinAccuracy
-                        ? "text-green-600 dark:text-green-400"
-                        : "text-red-500 dark:text-red-400"
-                    }`}
-                  >
-                    {accuracy}%
-                  </span>
-                  <span className="text-[10px] uppercase font-bold text-green-400 dark:text-green-500/70 mt-1">
-                    Precisão (Meta: {passMinAccuracy}%)
-                  </span>
-                </div>
-
-                <div className="bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-900/30 px-6 py-4 rounded-2xl flex flex-col items-center min-w-[120px] hidden sm:flex">
-                  <span className="text-4xl font-bold text-purple-600 dark:text-purple-400 font-mono">
-                    {userInput.length}
-                    <span className="text-lg opacity-50">
-                      /{currentLesson.text.length}
-                    </span>
-                  </span>
-                  <span className="text-[10px] uppercase font-bold text-purple-400 dark:text-purple-500/70 mt-1">
-                    Progresso
-                  </span>
-                </div>
+              <div className="pb-4 pt-4">
+                <SimulatedKeyboard expectedKey={currentLesson.text[userInput.length] || null} />
               </div>
             </div>
 
