@@ -162,10 +162,15 @@ const mapCharToKey = (char) => {
 const SimulatedKeyboard = ({ expectedKey }) => {
   const { targetId, modifierIds } = useMemo(() => mapCharToKey(expectedKey), [expectedKey]);
 
+  // Determine hand states based on targetId (if we had all images, we'd map them perfectly. For now, use resting hands or space)
+  const isSpace = targetId === 'Space';
+  const leftHandImg = isSpace ? '/assets/hands/space.png' : '/assets/hands/left-resting-hand.png';
+  const rightHandImg = isSpace ? '/assets/hands/space.png' : '/assets/hands/right-resting-hand.png';
+
   return (
-    <div className="w-max max-w-full mx-auto bg-white/50 dark:bg-black/40 p-2 rounded-xl border border-gray-200 dark:border-gray-800 backdrop-blur-md shadow-xl transform scale-[0.8] origin-bottom transition-transform duration-300">
+    <div className="w-max max-w-full mx-auto bg-white/50 dark:bg-black/40 p-2 rounded-xl border border-gray-200 dark:border-gray-800 backdrop-blur-md shadow-xl transform scale-[0.8] origin-bottom transition-transform duration-300 relative">
       <div 
-        className="flex flex-col"
+        className="flex flex-col relative z-10"
         style={{ gap: `${GAP}px` }}
       >
         {ABNT2_LAYOUT.map((row, rowIndex) => (
@@ -241,6 +246,18 @@ const SimulatedKeyboard = ({ expectedKey }) => {
             })}
           </div>
         ))}
+      </div>
+
+      {/* Hands Overlay */}
+      <div className="absolute left-0 w-full pointer-events-none z-30 flex justify-between px-[2%]" style={{ bottom: '-35%', height: '140%' }}>
+        {isSpace ? (
+          <img src="/assets/hands/space.png" className="w-full h-full object-contain object-bottom opacity-70 drop-shadow-2xl transition-all duration-300" alt="Hands" />
+        ) : (
+          <>
+            <img src={leftHandImg} className="h-full w-[48%] object-contain object-bottom opacity-70 drop-shadow-2xl transition-all duration-300" alt="Left hand" />
+            <img src={rightHandImg} className="h-full w-[48%] object-contain object-bottom opacity-70 drop-shadow-2xl transition-all duration-300" alt="Right hand" />
+          </>
+        )}
       </div>
     </div>
   );
