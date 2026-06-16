@@ -1063,7 +1063,7 @@ export const TypingApp = () => {
 
         {view === "lesson" && currentLesson && (
           <div
-            className={`absolute inset-0 flex flex-col p-8 bg-white dark:bg-[#121212] transition-[transform,box-shadow] duration-200 ${
+            className={`absolute inset-0 flex flex-col p-2 md:p-4 overflow-hidden bg-white dark:bg-[#121212] transition-[transform,box-shadow] duration-200 ${
               penaltyFlash
                 ? "typingPenaltyShake shadow-[inset_0_0_0_2px_rgba(239,68,68,0.35)]"
                 : ""
@@ -1133,8 +1133,8 @@ export const TypingApp = () => {
               </div>
             </div>
 
-            <div className="flex-grow flex flex-col items-center justify-center w-full max-w-5xl mx-auto px-4 relative">
-              <div className="h-24 flex items-end justify-center pointer-events-none">
+            <div className="flex-1 min-h-0 flex flex-col items-center justify-center w-full max-w-5xl mx-auto px-4 relative">
+              <div className="h-8 md:h-12 flex items-end justify-center pointer-events-none">
                 {feedbackPulse && !finished && (
                   <div key={feedbackPulse.id} className="typingFeedbackPop">
                     <div
@@ -1168,12 +1168,12 @@ export const TypingApp = () => {
               )}
 
               <div
-                className={`w-full text-center transition-all duration-300 ${
+                className={`w-full text-center flex-1 min-h-0 flex flex-col justify-center transition-all duration-300 ${
                   focusLost && !finished ? "blur-sm opacity-50" : ""
                 }`}
               >
-                <div className="inline-block rounded-[2rem] px-6 py-8 border border-gray-200 dark:border-gray-800 bg-gradient-to-br from-white via-white to-amber-50/50 dark:from-[#151515] dark:via-[#151515] dark:to-[#241d05] shadow-[0_18px_60px_rgba(17,24,39,0.08)]">
-                  <div className="text-[2.2rem] lg:text-[3.2rem] leading-[1.5] font-mono tracking-tight whitespace-pre-wrap select-none inline-block text-center">
+                <div className="inline-block rounded-[2rem] px-4 py-4 md:px-6 md:py-6 border border-gray-200 dark:border-gray-800 bg-gradient-to-br from-white via-white to-amber-50/50 dark:from-[#151515] dark:via-[#151515] dark:to-[#241d05] shadow-[0_18px_60px_rgba(17,24,39,0.08)] overflow-y-auto">
+                  <div className="text-[1.8rem] md:text-[2.2rem] lg:text-[2.6rem] leading-[1.4] font-mono tracking-tight whitespace-pre-wrap select-none inline-block text-center">
                     {renderText()}
                   </div>
                 </div>
@@ -1181,13 +1181,13 @@ export const TypingApp = () => {
             </div>
 
             <div
-              className={`w-full max-w-5xl mx-auto transition-all duration-500 ${
+              className={`w-full max-w-5xl mx-auto flex-shrink-0 transition-all duration-500 ${
                 finished
-                  ? "opacity-0 translate-y-4"
+                  ? "opacity-0 translate-y-4 pointer-events-none absolute"
                   : "opacity-100 translate-y-0"
               }`}
             >
-              <div className="pb-4 pt-4">
+              <div className="pb-2 pt-2">
                 <SimulatedKeyboard expectedKey={currentLesson.text[userInput.length] || null} />
               </div>
             </div>
