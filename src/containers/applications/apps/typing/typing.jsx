@@ -19,7 +19,6 @@ import {
 import { TypingRankingScrollArea } from "../TypingRankingScrollArea";
 import { TypingSpaceGame } from "../TypingSpaceGame";
 import { TypingPvpGame } from "../TypingPvpGame";
-import SimulatedKeyboard from "./SimulatedKeyboard";
 
 const COMBO_REWARDS = {
   8: "Aquecendo",
@@ -1180,17 +1179,6 @@ export const TypingApp = () => {
               </div>
             </div>
 
-            <div
-              className={`w-full max-w-5xl mx-auto flex-shrink-0 transition-all duration-500 ${
-                finished
-                  ? "opacity-0 translate-y-4 pointer-events-none absolute"
-                  : "opacity-100 translate-y-0"
-              }`}
-            >
-              <div className="pb-2 pt-2">
-                <SimulatedKeyboard expectedKey={currentLesson.text[userInput.length] || null} />
-              </div>
-            </div>
 
             {finished && (
               <div
