@@ -19,6 +19,7 @@ import {
 import { TypingRankingScrollArea } from "../TypingRankingScrollArea";
 import { TypingSpaceGame } from "../TypingSpaceGame";
 import { TypingPvpGame } from "../TypingPvpGame";
+import TypingKeyboard from "./TypingKeyboard";
 
 const COMBO_REWARDS = {
   8: "Aquecendo",
@@ -149,6 +150,7 @@ export const TypingApp = () => {
   const gameSpeed = typingGameSettings.settings.gameSpeed;
   const gameSpeedBoost = typingGameSettings.settings.gameSpeedBoost;
 
+  const [pendingDeadKey, setPendingDeadKey] = useState("");
   const inputRef = useRef(null);
   const pendingDeadKeyRef = useRef("");
   const lastRoutePayloadRef = useRef(null);
@@ -407,6 +409,7 @@ export const TypingApp = () => {
   const launchLesson = (lesson) => {
     const activeLesson = createLessonSession(lesson, lessonVariants);
     pendingDeadKeyRef.current = "";
+    setPendingDeadKey("");
     setCurrentLesson(activeLesson);
     setUserInput("");
     setStartTime(null);
@@ -449,6 +452,7 @@ export const TypingApp = () => {
     const mark = resolveDeadKeyMarkFromEvent(event);
     if (!mark) return;
     pendingDeadKeyRef.current = mark;
+    setPendingDeadKey(mark);
   };
 
   const handleInputChange = (e) => {
@@ -461,6 +465,7 @@ export const TypingApp = () => {
       referenceText: currentLesson.text,
     });
     pendingDeadKeyRef.current = normalizedInput.pendingMark;
+    setPendingDeadKey(normalizedInput.pendingMark || "");
     if (normalizedInput.ignored) {
       e.target.value = userInput;
       return;
@@ -1179,6 +1184,12 @@ export const TypingApp = () => {
               </div>
             </div>
 
+            <TypingKeyboard
+              text={currentLesson.text}
+              userInput={userInput}
+              pendingDeadKey={pendingDeadKey}
+              finished={finished}
+            />
 
             {finished && (
               <div
