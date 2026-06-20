@@ -1423,7 +1423,6 @@ const getOnlinePvpUsers = (viewer, overrideTurmaId) => {
     .filter(
       (onlineUser) =>
         onlineUser.user.id !== viewer.id &&
-        onlineUser.user.role === "aluno" &&
         String(onlineUser.user.turma_id) === turmaId
     )
     .map((onlineUser) => publicUser(onlineUser.user));

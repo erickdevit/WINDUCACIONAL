@@ -231,7 +231,7 @@ export const TypingApp = () => {
       fetchRanking();
     }
     if (
-      (!isStaff && user.turmaId) ||
+      (!isStaff && (user.turmaId || user.turma_id)) ||
       isStaff
     ) {
       fetchTurmas();
@@ -279,8 +279,8 @@ export const TypingApp = () => {
       let turmaData;
 
       if (rankingTab === "turma") {
-        const turmaId = isStaff ? selectedTurmaId : user.turmaId;
-        if ((user.role === "professor" || Boolean(user.turmaId)) && turmaId) {
+        const turmaId = isStaff ? selectedTurmaId : (user.turmaId || user.turma_id);
+        if ((user.role === "professor" || Boolean(user.turmaId || user.turma_id)) && turmaId) {
           turmaData = await api.getTypingTurmaRankingById(turmaId, "normal");
         }
       }
@@ -896,7 +896,7 @@ export const TypingApp = () => {
               >
                 Global
               </button>
-              {(user.role === "professor" || Boolean(user.turmaId)) && (
+              {(user.role === "professor" || Boolean(user.turmaId || user.turma_id)) && (
               <button
                 className={`px-4 py-1.5 text-sm font-bold rounded-md transition-all ${
                   rankingTab === "turma"
@@ -1043,7 +1043,7 @@ export const TypingApp = () => {
               gameSpeed={gameSpeed}
               gameSpeedBoost={gameSpeedBoost}
               isProfessor={isStaff}
-              turmaId={user?.turmaId}
+              turmaId={user?.turmaId || user?.turma_id}
               turmas={turmas}
               gameTab={view}
               rankingTab={rankingTab}
@@ -1859,7 +1859,7 @@ export const TypingApp = () => {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                          {!user.turmaId && !isStaff ? (
+                          {!(user.turmaId || user.turma_id) && !isStaff ? (
                             <tr>
                               <td
                                 colSpan="6"
