@@ -538,6 +538,16 @@ export const Word = () => {
     }
   };
 
+
+  const insertImage = () => {
+    const url = prompt("Digite o link da URL da imagem:", "https://");
+    if (url) {
+      if (editorRef.current) editorRef.current.focus();
+      document.execCommand("insertImage", false, url);
+      handleEditorInteraction();
+    }
+  };
+
   const handleContextMenu = (e) => {
     if (editorRef.current && editorRef.current.contains(e.target)) {
       e.preventDefault();
@@ -1201,12 +1211,28 @@ export const Word = () => {
                 <Icon fafa="faMousePointer" width={12} color="#555" />
                 <span className="w-16 text-left text-gray-700">Selecionar</span>
               </button>
+
               <div className="text-center w-full mt-1 text-[10px] text-gray-500 pb-1">
                 Edição
               </div>
             </div>
 
             <div className="flex flex-col justify-between items-center pr-2 border-r border-gray-300 px-2">
+              <div
+                className="flex flex-col justify-center items-center hover:bg-gray-200 cursor-pointer rounded p-2 h-full w-full"
+                onClick={insertImage}
+                title="Inserir Imagem"
+              >
+                <Icon fafa="faImage" width={20} color="#555" />
+                <span className="mt-1 text-gray-700">Imagem</span>
+              </div>
+              <div className="text-center text-[10px] text-gray-500 mt-1 pb-1">
+                Mídia
+              </div>
+            </div>
+
+            <div className="flex flex-col justify-between items-center pr-2 border-r border-gray-300 px-2">
+
               <div
                 className="flex flex-col justify-center items-center hover:bg-gray-200 cursor-pointer rounded p-2 h-full w-full"
                 onClick={() =>
