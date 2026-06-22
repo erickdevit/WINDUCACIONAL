@@ -116,6 +116,64 @@
       }
     }
 
+  // Image resize overlay and handles
+  .word-img-resize-overlay {
+    position: fixed;
+    z-index: 200;
+    pointer-events: none;
+
+    .word-img-resize-handle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #ffffff;
+      border: 2px solid #185abd;
+      border-radius: 2px;
+      pointer-events: auto;
+      cursor: nwse-resize;
+      z-index: 201;
+
+      &.nw {
+        top: -5px;
+        left: -5px;
+        cursor: nwse-resize;
+      }
+      &.ne {
+        top: -5px;
+        right: -5px;
+        cursor: nesw-resize;
+      }
+      &.sw {
+        bottom: -5px;
+        left: -5px;
+        cursor: nesw-resize;
+      }
+      &.se {
+        bottom: -5px;
+        right: -5px;
+        cursor: nwse-resize;
+      }
+
+      &:hover {
+        background: #185abd;
+      }
+    }
+
+    .word-img-size-label {
+      position: absolute;
+      bottom: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #323130;
+      color: #fff;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+  }
+
     .backstage-content {
       flex-grow: 1;
       padding: 40px;
@@ -329,6 +387,25 @@
     a {
       color: #185abd;
       text-decoration: underline;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      cursor: pointer;
+      outline: 2px solid transparent;
+      outline-offset: 2px;
+      transition: outline-color 0.1s ease;
+      vertical-align: middle;
+
+      &:hover {
+        outline-color: #90c8ff;
+      }
+
+      &.word-img-selected {
+        outline: 2px solid #185abd;
+        outline-offset: 2px;
+      }
     }
 
     // Comentário inserido

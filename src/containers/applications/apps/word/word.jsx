@@ -29,6 +29,11 @@ export const Word = () => {
     y: 0,
   });
 
+  const imageFileInputRef = useRef(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isResizing, setIsResizing] = useState(false);
+  const resizeRef = useRef({ startX: 0, startY: 0, startW: 0, startH: 0, img: null, corner: "" });
+
   const [activeStyles, setActiveStyles] = useState({
     bold: false,
     italic: false,
@@ -161,6 +166,35 @@ export const Word = () => {
     };
   }, []);
 
+  // Atualiza posição do overlay de resize ao rolar o editor
+  useEffect(() => {
+    if (!selectedImage || isResizing) return;
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    const updatePosition = () => {
+      const img = editor.querySelector(".word-img-selected");
+      if (!img) {
+        deselectImage();
+        return;
+      }
+      const rect = img.getBoundingClientRect();
+      setSelectedImage((prev) =>
+        prev
+          ? { ...prev, top: rect.top, left: rect.left, width: img.offsetWidth, height: img.offsetHeight }
+          : prev
+      );
+    };
+
+    const scrollParent = editor.closest(".win11Scroll") || editor.parentElement;
+    scrollParent.addEventListener("scroll", updatePosition, { passive: true });
+    window.addEventListener("scroll", updatePosition, { passive: true });
+    return () => {
+      scrollParent.removeEventListener("scroll", updatePosition);
+      window.removeEventListener("scroll", updatePosition);
+    };
+  }, [selectedImage, isResizing]);
+
   const openSaveDialog = () => {
     dispatch({
       type: "FILEDIALOG_OPEN",
@@ -220,15 +254,6 @@ export const Word = () => {
     } else if (isMeta && e.key.toLowerCase() === "x") {
       e.preventDefault();
       handleCut();
-    } else if (isMeta && e.key.toLowerCase() === "v") {
-      e.preventDefault();
-      handlePaste("normal");
-    } else if (isMeta && e.shiftKey && e.key.toLowerCase() === "v") {
-      e.preventDefault();
-      handlePaste("text");
-    } else if (isMeta && e.altKey && e.key.toLowerCase() === "v") {
-      e.preventDefault();
-      handlePaste("merge");
     } else if (isMeta && e.altKey && e.key.toLowerCase() === "m") {
       e.preventDefault();
       addComment();
@@ -291,14 +316,51 @@ export const Word = () => {
     setContextMenu((prev) => ({ ...prev, visible: false }));
   };
 
-  const handlePaste = async (mode = "normal") => {
+  const handlePaste = async (mode = "normal", nativeEvent) => {
     if (editorRef.current) {
       editorRef.current.focus();
     }
+
+    if (nativeEvent && nativeEvent.clipboardData) {
+      const items = nativeEvent.clipboardData.items;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith("image/")) {
+          nativeEvent.preventDefault();
+          const blob = items[i].getAsFile();
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            const imgHtml = `<img src="${ev.target.result}" style="max-width:100%;height:auto;display:inline-block;vertical-align:middle;" />`;
+            document.execCommand("insertHTML", false, imgHtml);
+            handleEditorInteraction();
+          };
+          reader.readAsDataURL(blob);
+          setContextMenu((prev) => ({ ...prev, visible: false }));
+          return;
+        }
+      }
+    }
+
     let htmlContent = "";
     let textContent = "";
 
     try {
+      const clipboardItems = await navigator.clipboard.read();
+      for (const item of clipboardItems) {
+        for (const type of item.types) {
+          if (type.startsWith("image/")) {
+            const blob = await item.getType(type);
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              const imgHtml = `<img src="${ev.target.result}" style="max-width:100%;height:auto;display:inline-block;vertical-align:middle;" />`;
+              document.execCommand("insertHTML", false, imgHtml);
+              handleEditorInteraction();
+            };
+            reader.readAsDataURL(blob);
+            setContextMenu((prev) => ({ ...prev, visible: false }));
+            return;
+          }
+        }
+      }
       const text = await navigator.clipboard.readText();
       if (text) {
         textContent = text;
@@ -539,13 +601,119 @@ export const Word = () => {
   };
 
 
-  const insertImage = () => {
-    const url = prompt("Digite o link da URL da imagem:", "https://");
-    if (url) {
-      if (editorRef.current) editorRef.current.focus();
-      document.execCommand("insertImage", false, url);
-      handleEditorInteraction();
+  const insertImageFromFile = () => {
+    if (imageFileInputRef.current) {
+      imageFileInputRef.current.value = "";
+      imageFileInputRef.current.click();
     }
+  };
+
+  const handleImageFileSelect = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file || !file.type.startsWith("image/")) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      if (editorRef.current) editorRef.current.focus();
+      const imgHtml = `<img src="${ev.target.result}" style="max-width:100%;height:auto;display:inline-block;vertical-align:middle;" />`;
+      document.execCommand("insertHTML", false, imgHtml);
+      handleEditorInteraction();
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleImageClick = (e) => {
+    const img = e.target;
+    if (img.tagName === "IMG" && editorRef.current && editorRef.current.contains(img)) {
+      e.stopPropagation();
+      selectImage(img);
+    }
+  };
+
+  const selectImage = (img) => {
+    deselectImage();
+    img.classList.add("word-img-selected");
+    const rect = img.getBoundingClientRect();
+    setSelectedImage({
+      src: img.src,
+      width: img.offsetWidth,
+      height: img.offsetHeight,
+      top: rect.top,
+      left: rect.left,
+    });
+  };
+
+  const deselectImage = () => {
+    if (editorRef.current) {
+      editorRef.current.querySelectorAll(".word-img-selected").forEach((el) => {
+        el.classList.remove("word-img-selected");
+      });
+      editorRef.current.querySelectorAll(".word-img-resize-handle").forEach((el) => {
+        el.remove();
+      });
+    }
+    setSelectedImage(null);
+  };
+
+  const startResize = (e, corner) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const img = e.target.parentElement.querySelector("img");
+    if (!img) return;
+
+    setIsResizing(true);
+    resizeRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startW: img.offsetWidth,
+      startH: img.offsetHeight,
+      img,
+      corner,
+      aspectRatio: img.offsetWidth / img.offsetHeight,
+    };
+
+    const onMove = (ev) => {
+      const r = resizeRef.current;
+      const dx = ev.clientX - r.startX;
+      const dy = ev.clientY - r.startY;
+      let newW, newH;
+
+      if (corner === "se") {
+        newW = Math.max(30, r.startW + dx);
+        newH = newW / r.aspectRatio;
+      } else if (corner === "sw") {
+        newW = Math.max(30, r.startW - dx);
+        newH = newW / r.aspectRatio;
+      } else if (corner === "ne") {
+        newW = Math.max(30, r.startW + dx);
+        newH = newW / r.aspectRatio;
+      } else if (corner === "nw") {
+        newW = Math.max(30, r.startW - dx);
+        newH = newW / r.aspectRatio;
+      } else {
+        return;
+      }
+
+      r.img.style.width = newW + "px";
+      r.img.style.height = newH + "px";
+
+      const rect = r.img.getBoundingClientRect();
+      setSelectedImage((prev) =>
+        prev
+          ? { ...prev, width: Math.round(newW), height: Math.round(newH), top: rect.top, left: rect.left }
+          : prev
+      );
+    };
+
+    const onUp = () => {
+      setIsResizing(false);
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      handleEditorInteraction();
+    };
+
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
   };
 
   const handleContextMenu = (e) => {
@@ -1220,7 +1388,7 @@ export const Word = () => {
             <div className="flex flex-col justify-between items-center pr-2 border-r border-gray-300 px-2">
               <div
                 className="flex flex-col justify-center items-center hover:bg-gray-200 cursor-pointer rounded p-2 h-full w-full"
-                onClick={insertImage}
+                onClick={insertImageFromFile}
                 title="Inserir Imagem"
               >
                 <Icon fafa="faImage" width={20} color="#555" />
@@ -1598,6 +1766,13 @@ export const Word = () => {
 
               <div className="menu-item divider"></div>
 
+              <div className="menu-item" onClick={insertImageFromFile}>
+                <span className="item-label">
+                  <Icon fafa="faImage" width={12} color="#555" /> Inserir
+                  Imagem...
+                </span>
+              </div>
+
               <div className="menu-item" onClick={translateSelection}>
                 <span className="item-label">
                   <Icon fafa="faLanguage" width={12} color="#555" /> Traduzir
@@ -1677,8 +1852,20 @@ export const Word = () => {
             onKeyUp={handleEditorInteraction}
             onFocus={updateActiveStyles}
             onInput={handleEditorInteraction}
-            onClick={handleEditorClick}
+            onClick={(e) => {
+              handleEditorClick(e);
+              handleImageClick(e);
+              if (
+                e.target === editorRef.current ||
+                (e.target.tagName !== "IMG" && !e.target.classList?.contains("word-img-resize-handle"))
+              ) {
+                deselectImage();
+              }
+            }}
             onMouseMove={handleEditorMouseMove}
+            onPaste={(e) => {
+              handlePaste("normal", e.nativeEvent || e);
+            }}
           ></div>
         </div>
       </div>
@@ -1754,6 +1941,38 @@ export const Word = () => {
           </div>
         </div>
       </div>
+
+      <input
+        ref={imageFileInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: "none" }}
+        onChange={handleImageFileSelect}
+      />
+
+      {selectedImage && !isResizing && (
+        <div className="word-img-resize-overlay">
+          <div
+            className="word-img-resize-handle nw"
+            onMouseDown={(e) => startResize(e, "nw")}
+          />
+          <div
+            className="word-img-resize-handle ne"
+            onMouseDown={(e) => startResize(e, "ne")}
+          />
+          <div
+            className="word-img-resize-handle sw"
+            onMouseDown={(e) => startResize(e, "sw")}
+          />
+          <div
+            className="word-img-resize-handle se"
+            onMouseDown={(e) => startResize(e, "se")}
+          />
+          <div className="word-img-size-label">
+            {selectedImage.width} × {selectedImage.height}
+          </div>
+        </div>
+      )}
     </AppWindow>
   );
 };
