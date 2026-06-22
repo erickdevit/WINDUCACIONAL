@@ -97,7 +97,7 @@ const getRhythmColor = (ratio) => {
   return "#f97316";
 };
 
-export const TypingApp = () => {
+export const TypingApp = ({ standalone = false }) => {
   const wnapp = useSelector((state) => state.apps.typing || {});
   const user = useSelector((state) => state.setting.person);
   const isProfessor = user.role === "professor";
@@ -776,21 +776,8 @@ export const TypingApp = () => {
     launchLesson(currentLesson);
   };
 
-  if (!wnapp || typeof wnapp.hide === "undefined") return null;
-
-  return (
-    <AppWindow
-      wnapp={wnapp}
-      app="TYPINGAPP"
-      icon={wnapp.icon}
-      name="Digitação"
-      className="typingApp flex flex-col font-sans"
-      toolbarProps={{}}
-      rootProps={{}}
-      windowScreenClassName="flex flex-col bg-white dark:bg-[#121212] transition-colors h-full"
-      restWindowClassName="flex-grow overflow-y-auto relative typingLessonsScroll"
-      screenTop={
-        <div className="flex items-center justify-between px-8 py-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#18181b] z-10">
+  const appScreenTop = (
+    <div className="flex items-center justify-between px-8 py-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#18181b] z-10">
           <div className="flex space-x-2">
             <button
               className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
@@ -922,8 +909,9 @@ export const TypingApp = () => {
             </div>
           </div>
         </div>
-      }
-    >
+  );
+
+  const innerContent = (
       <div onClick={handleFocus}>
         {view === "menu" && (
           <div className="max-w-6xl mx-auto p-10 animate-fade-in pb-20">
@@ -1931,6 +1919,47 @@ export const TypingApp = () => {
           </div>
         )}
       </div>
+  );
+
+  if (standalone) {
+    return (
+      <div className="typingApp flex flex-col font-sans h-full w-full bg-white dark:bg-[#121212] transition-colors">
+        {appScreenTop}
+        <div className="flex-grow overflow-y-auto relative typingLessonsScroll">
+          {innerContent}
+        </div>
+      </div>
+    );
+  }
+
+  if (!wnapp || typeof wnapp.hide === "undefined") return null;
+
+  return (
+    <AppWindow
+      wnapp={wnapp}
+      app="TYPINGAPP"
+      icon={wnapp.icon}
+      name="Digitação"
+      className="typingApp flex flex-col font-sans"
+      toolbarProps={{}}
+      rootProps={{}}
+      windowScreenClassName="flex flex-col bg-white dark:bg-[#121212] transition-colors h-full"
+      restWindowClassName="flex-grow overflow-y-auto relative typingLessonsScroll"
+      screenTop={appScreenTop}
+    >
+      {innerContent}
     </AppWindow>
+  );
+};
+
+export const TypingStandalonePage = () => {
+  useEffect(() => {
+    document.title = "Digitação - WINDUCACIONAL";
+  }, []);
+
+  return (
+    <main className="typingStandalonePage h-screen w-screen overflow-hidden">
+      <TypingApp standalone={true} />
+    </main>
   );
 };

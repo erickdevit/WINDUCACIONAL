@@ -28,6 +28,7 @@ import * as Drafts from "./containers/applications/draft";
 import { FileDialog } from "./containers/applications/apps/FileDialog";
 import { AttendanceStandalonePage } from "./containers/applications/apps/attendance/attendance";
 import { ExamStandalonePage } from "./containers/applications/apps/exam/exam";
+import { TypingStandalonePage } from "./containers/applications/apps/typing/typing";
 import { api } from "./lib/api";
 import { startAppVersionWatcher } from "./lib/appUpdate";
 import { getGlobalShortcutAction } from "./lib/keyboardShortcuts";
@@ -61,10 +62,11 @@ function ErrorFallback({ error, resetErrorBoundary }) {
 function App() {
   const directPath = window.location.pathname.replace(/\/+$/, "");
   const isAttendanceStandaloneRoute = directPath === "/frequencia";
+  const isTypingStandaloneRoute = directPath === "/digitar";
   const isExamStandaloneRoute =
     directPath === "/avaliacoes" || directPath === "/provas";
   const isStandaloneRoute =
-    isAttendanceStandaloneRoute || isExamStandaloneRoute;
+    isAttendanceStandaloneRoute || isExamStandaloneRoute || isTypingStandaloneRoute;
   const apps = useSelector((state) => state.apps);
   const wall = useSelector((state) => state.wallpaper);
   const files = useSelector((state) => state.files);
@@ -514,6 +516,14 @@ function App() {
     return (
       <ErrorBoundary FallbackComponent={ErrorFallback}>
         <ExamStandalonePage />
+      </ErrorBoundary>
+    );
+  }
+
+  if (isTypingStandaloneRoute) {
+    return (
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <TypingStandalonePage />
       </ErrorBoundary>
     );
   }

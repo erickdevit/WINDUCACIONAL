@@ -1,0 +1,15 @@
+{
+  "name": "winducacional-typing-desktop",
+  "version": "1.0.0",
+  "description": "App Windows para o Simulador de Digitação WINDUCACIONAL",
+  "main": "index.js",
+  "scripts": {
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^1.5.3"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.5.11"
+  }
+}
