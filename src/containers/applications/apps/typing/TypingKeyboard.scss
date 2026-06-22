@@ -8,6 +8,32 @@
   box-sizing: border-box;
 }
 
+.typingHandsContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+  max-width: 1000px;
+}
+
+.typingHandWrapper {
+  width: 15%;
+  min-width: 100px;
+  max-width: 150px;
+  flex-shrink: 0;
+  opacity: 0.9;
+  
+  &.leftHand {
+    display: flex;
+    justify-content: flex-end;
+  }
+  &.rightHand {
+    display: flex;
+    justify-content: flex-start;
+  }
+}
+
 .typingKeyboard {
   width: 100%;
   max-width: 70%;

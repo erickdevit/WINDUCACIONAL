@@ -1,4 +1,6 @@
 import React, { useMemo } from "react";
+import HandLeft from "./components/HandLeft";
+import HandRight from "./components/HandRight";
 import "./TypingKeyboard.scss";
 
 const COLORS = {
@@ -87,6 +89,13 @@ const KEYS_DATA = [
     { id: "rctrl", label: "Ctrl", sub: null, finger: "right-pinky", w: 1.25, base: null, shifted: null },
   ],
 ];
+
+const KEY_ID_TO_FINGER = {};
+KEYS_DATA.forEach((row) => {
+  row.forEach((key) => {
+    KEY_ID_TO_FINGER[key.id] = key.finger;
+  });
+});
 
 const CHAR_TO_KEY = {};
 const SHIFT_CHARS = new Set();
@@ -184,29 +193,48 @@ const TypingKeyboard = ({ text, userInput, pendingDeadKey, finished }) => {
     return ids;
   }, [highlighted]);
 
+  const activeFingersMap = useMemo(() => {
+    const map = {};
+    highlightSet.forEach(keyId => {
+      const finger = KEY_ID_TO_FINGER[keyId];
+      if (finger) {
+        map[finger] = COLORS[finger] || "#6B7280";
+      }
+    });
+    return map;
+  }, [highlightSet]);
+
   if (!text) return null;
 
   return (
     <div className="typingKeyboardWrapper">
-      <div className="typingKeyboard">
-        {KEYS_DATA.map((row, ri) => (
-          <div className="typingKbRow" key={ri}>
-            {row.map((key) => {
-              const color = COLORS[key.finger] || "#6B7280";
-              const isActive = highlightSet.has(key.id);
-              return (
-                <div
-                  key={key.id}
-                  className={`typingKbKey ${isActive ? "isActive" : ""} ${key.id === "space" ? "isSpace" : ""}`}
-                  style={{ flex: key.w, "--key-color": color }}
-                >
-                  <span className="typingKbLabel">{key.label}</span>
-                  {key.sub != null && <span className="typingKbSub">{key.sub}</span>}
-                </div>
-              );
-            })}
-          </div>
-        ))}
+      <div className="typingHandsContainer">
+        <div className="typingHandWrapper leftHand">
+          <HandLeft activeFingers={activeFingersMap} />
+        </div>
+        <div className="typingKeyboard">
+          {KEYS_DATA.map((row, ri) => (
+            <div className="typingKbRow" key={ri}>
+              {row.map((key) => {
+                const color = COLORS[key.finger] || "#6B7280";
+                const isActive = highlightSet.has(key.id);
+                return (
+                  <div
+                    key={key.id}
+                    className={`typingKbKey ${isActive ? "isActive" : ""} ${key.id === "space" ? "isSpace" : ""}`}
+                    style={{ flex: key.w, "--key-color": color }}
+                  >
+                    <span className="typingKbLabel">{key.label}</span>
+                    {key.sub != null && <span className="typingKbSub">{key.sub}</span>}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+        <div className="typingHandWrapper rightHand">
+          <HandRight activeFingers={activeFingersMap} />
+        </div>
       </div>
     </div>
   );
