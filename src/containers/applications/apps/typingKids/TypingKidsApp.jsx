@@ -252,7 +252,7 @@ export const TypingKidsApp = () => {
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
                   Cursos de Digitação Kids
                 </h1>
-                <p className="text-gray-500 text-sm mt-2 font-medium">
+                <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 font-medium">
                   Cada acerto move o personagem pelas plataformas. Erros reduzem
                   vidas e podem derrubar o aluno no obstáculo.
                 </p>
@@ -288,7 +288,7 @@ export const TypingKidsApp = () => {
                         ? "🔒"
                         : "🍄"}
                     </div>
-                    <div className="text-sm text-gray-500 font-bold uppercase tracking-widest mb-1">
+                    <div className="text-sm text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest mb-1">
                       Mundo {i + 1}
                     </div>
                     <div className="text-xl font-black text-gray-800 dark:text-gray-100">
@@ -367,7 +367,7 @@ export const TypingKidsApp = () => {
                         <tr>
                           <td
                             colSpan="5"
-                            className="p-12 text-center text-gray-500 font-bold text-lg"
+                            className="p-12 text-center text-gray-500 dark:text-gray-400 font-bold text-lg"
                           >
                             Nenhum herói registrou pontos ainda.
                           </td>
@@ -400,7 +400,7 @@ export const TypingKidsApp = () => {
                                     🥉
                                   </span>
                                 ) : (
-                                  <span className="font-black text-gray-400 text-xl">
+                                  <span className="font-black text-gray-400 dark:text-gray-500 text-xl">
                                     {i + 1}
                                   </span>
                                 )}
@@ -440,7 +440,7 @@ export const TypingKidsApp = () => {
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
                 Configurações Kids
               </h1>
-              <p className="text-gray-500 text-sm mt-2 font-medium">
+              <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 font-medium">
                 Ajustes disponíveis somente para professor.
               </p>
             </div>
@@ -536,13 +536,13 @@ export const TypingKidsApp = () => {
                         }
                         className="w-20 rounded-l-lg bg-transparent px-3 py-2 text-center font-mono font-black text-gray-900 dark:text-white"
                       />
-                      <span className="pr-3 font-black text-gray-500">%</span>
+                      <span className="pr-3 font-black text-gray-500 dark:text-gray-400">%</span>
                     </div>
                   </div>
                 </div>
               </div>
               <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-t border-gray-100 pt-5 dark:border-gray-800">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
                   {engine.settingsLoading
                     ? "Carregando configuração salva..."
                     : `Meta ativa: ${engine.passMinWpm} PPM, ${engine.passMinAccuracy}% de precisão e ${engine.maxErrors} vidas.`}

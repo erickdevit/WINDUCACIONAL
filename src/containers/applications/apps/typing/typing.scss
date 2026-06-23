@@ -201,7 +201,7 @@
 }
 .typingLessonsScroll {
   scrollbar-width: thin;
-  scrollbar-color: #ffcc02 rgb(15 23 42 / 12%);
+  scrollbar-color: #ffcc02 rgb(200 200 200 / 40%);
 }
 .typingLessonsScroll::-webkit-scrollbar {
   width: 11px;
@@ -210,11 +210,18 @@
 .typingLessonsScroll::-webkit-scrollbar-track {
   background: linear-gradient(
     180deg,
-    rgb(255 255 255 / 8%),
-    rgb(15 23 42 / 12%)
+    rgb(240 240 240 / 80%),
+    rgb(220 220 220 / 50%)
   );
   border-radius: 999px;
   margin: 8px 0;
+}
+body[data-theme="dark"] .typingLessonsScroll::-webkit-scrollbar-track {
+  background: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 8%),
+    rgb(15 23 42 / 12%)
+  );
 }
 .typingLessonsScroll::-webkit-scrollbar-thumb {
   min-height: 36px;
@@ -1877,6 +1884,10 @@ body[data-theme="dark"] .typingSpaceMissionCard span,
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+
+[data-theme="dark"] .typingLessonResultStatLabel {
+  color: #94a3b8;
 }
 
 .typingLessonResultStatValue {

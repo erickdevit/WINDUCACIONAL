@@ -920,7 +920,7 @@ export const TypingApp = ({ standalone = false }) => {
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
                   Cursos de Digitação
                 </h1>
-                <p className="text-gray-500 text-sm mt-2 font-medium">
+                <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 font-medium">
                   Meta para aprovação: Mínimo de{" "}
                   <span className="font-bold text-gray-700 dark:text-gray-300">
                     {passMinWpm} PPM
@@ -973,7 +973,7 @@ export const TypingApp = ({ standalone = false }) => {
                               <Icon
                                 fafa="lock"
                                 width={10}
-                                className="ml-2 text-gray-400"
+                                className="ml-2 text-gray-400 dark:text-gray-500"
                               />
                             )}
                           </span>
@@ -1088,7 +1088,7 @@ export const TypingApp = ({ standalone = false }) => {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                   </button>
                   <div>
-                    <div className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">
+                    <div className="text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest text-[10px]">
                       Lição em andamento
                     </div>
                     <div className="text-gray-900 dark:text-white font-bold text-lg flex items-center gap-3">
@@ -1104,22 +1104,22 @@ export const TypingApp = ({ standalone = false }) => {
                   <div className="flex gap-4 md:gap-6 items-center">
                     <div className="flex flex-col items-center">
                       <span className="text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400 font-mono leading-none">{formatTime(elapsedMs)}</span>
-                      <span className="text-[9px] md:text-[10px] uppercase font-bold text-gray-400 mt-1">Tempo</span>
+                      <span className="text-[9px] md:text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mt-1">Tempo</span>
                     </div>
                     <div className="w-px h-6 bg-gray-200 dark:bg-gray-800"></div>
                     <div className="flex flex-col items-center">
                       <span className={`text-lg md:text-xl font-bold font-mono leading-none ${displayWpm >= passMinWpm ? "text-orange-600 dark:text-orange-400" : "text-red-500 dark:text-red-400"}`}>{displayWpm}</span>
-                      <span className="text-[9px] md:text-[10px] uppercase font-bold text-gray-400 mt-1">PPM</span>
+                      <span className="text-[9px] md:text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mt-1">PPM</span>
                     </div>
                     <div className="w-px h-6 bg-gray-200 dark:bg-gray-800"></div>
                     <div className="flex flex-col items-center">
                       <span className={`text-lg md:text-xl font-bold font-mono leading-none ${accuracy >= passMinAccuracy ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}>{accuracy}%</span>
-                      <span className="text-[9px] md:text-[10px] uppercase font-bold text-gray-400 mt-1">Precisão</span>
+                      <span className="text-[9px] md:text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mt-1">Precisão</span>
                     </div>
                     <div className="w-px h-6 bg-gray-200 dark:bg-gray-800 hidden sm:block"></div>
                     <div className="flex flex-col items-center hidden sm:flex">
                       <span className="text-lg md:text-xl font-bold text-purple-600 dark:text-purple-400 font-mono leading-none">{userInput.length}<span className="text-sm opacity-50">/{currentLesson.text.length}</span></span>
-                      <span className="text-[9px] md:text-[10px] uppercase font-bold text-gray-400 mt-1">Progresso</span>
+                      <span className="text-[9px] md:text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mt-1">Progresso</span>
                     </div>
                   </div>
                 </div>
@@ -1274,7 +1274,7 @@ export const TypingApp = ({ standalone = false }) => {
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
                 Configurações de Digitação
               </h1>
-              <p className="text-gray-500 text-sm mt-2 font-medium">
+              <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 font-medium">
                 Ajustes disponíveis somente para professor.
               </p>
             </div>
@@ -1359,13 +1359,13 @@ export const TypingApp = ({ standalone = false }) => {
                         }
                         className="w-20 rounded-l-lg bg-transparent px-3 py-2 text-center font-mono font-black text-gray-900 dark:text-white"
                       />
-                      <span className="pr-3 font-black text-gray-500">%</span>
+                      <span className="pr-3 font-black text-gray-500 dark:text-gray-400">%</span>
                     </div>
                   </div>
                 </div>
               </div>
               <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-t border-gray-100 pt-5 dark:border-gray-800">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
                   {typingSettings.loading
                     ? "Carregando configuração salva..."
                     : `Meta ativa das lições: ${passMinWpm} PPM e ${passMinAccuracy}% de precisão.`}
@@ -1474,7 +1474,7 @@ export const TypingApp = ({ standalone = false }) => {
                         }
                         className="w-20 rounded-l-lg bg-transparent px-3 py-2 text-center font-mono font-black text-gray-900 dark:text-white"
                       />
-                      <span className="pr-3 font-black text-gray-500">%</span>
+                      <span className="pr-3 font-black text-gray-500 dark:text-gray-400">%</span>
                     </div>
                   </div>
                 </div>
@@ -1553,7 +1553,7 @@ export const TypingApp = ({ standalone = false }) => {
                         }
                         className="w-20 rounded-l-lg bg-transparent px-3 py-2 text-center font-mono font-black text-gray-900 dark:text-white"
                       />
-                      <span className="pr-3 font-black text-gray-500">%</span>
+                      <span className="pr-3 font-black text-gray-500 dark:text-gray-400">%</span>
                     </div>
                   </div>
                 </div>
@@ -1595,13 +1595,13 @@ export const TypingApp = ({ standalone = false }) => {
                         }
                         className="w-20 rounded-l-lg bg-transparent px-3 py-2 text-center font-mono font-black text-gray-900 dark:text-white"
                       />
-                      <span className="pr-3 font-black text-gray-500">%</span>
+                      <span className="pr-3 font-black text-gray-500 dark:text-gray-400">%</span>
                     </div>
                   </div>
                 </div>
               </div>
               <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-t border-gray-100 pt-5 dark:border-gray-800">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
                   {typingGameSettings.loading
                     ? "Carregando configuração salva do game..."
                     : `Meta ativa do game: ${gamePassMinWpm} PPM, ${gamePassMinAccuracy}% de precisão, ${maxGameLives} vidas, ${gameSpeed}% de velocidade e ${gameSpeedBoost}% de aceleração.`}
@@ -1768,7 +1768,7 @@ export const TypingApp = ({ standalone = false }) => {
                           <tr>
                             <td
                               colSpan="6"
-                              className="p-12 text-center text-gray-500 font-medium"
+                              className="p-12 text-center text-gray-500 dark:text-gray-400 font-medium"
                             >
                               Nenhum recorde registrado.
                             </td>
@@ -1791,7 +1791,7 @@ export const TypingApp = ({ standalone = false }) => {
                                   ) : i === 2 ? (
                                     <span className="text-xl">🥉</span>
                                   ) : (
-                                    <span className="font-bold text-gray-400">
+                                    <span className="font-bold text-gray-400 dark:text-gray-500">
                                       {i + 1}
                                     </span>
                                   )}
@@ -1813,7 +1813,7 @@ export const TypingApp = ({ standalone = false }) => {
                                 <td className="px-6 py-4 text-right font-mono font-bold text-gray-900 dark:text-gray-100">
                                   {item.best_wpm || 0}
                                 </td>
-                                <td className="px-6 py-4 text-right font-mono text-gray-500">
+                                <td className="px-6 py-4 text-right font-mono text-gray-500 dark:text-gray-400">
                                   {Math.floor(item.best_accuracy || 0)}%
                                 </td>
                               </tr>
@@ -1827,7 +1827,7 @@ export const TypingApp = ({ standalone = false }) => {
                   <div className="p-0">
                     {isStaff && turmas.length > 0 && (
                       <div className="px-6 py-3 bg-gray-50 dark:bg-[#18181b] border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                        <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                           Visualizar Turma:
                         </span>
                         <select
@@ -1860,7 +1860,7 @@ export const TypingApp = ({ standalone = false }) => {
                             <tr>
                               <td
                                 colSpan="6"
-                                className="p-12 text-center text-gray-500 font-medium"
+                                className="p-12 text-center text-gray-500 dark:text-gray-400 font-medium"
                               >
                                 Você não está vinculado a uma turma.
                               </td>
@@ -1869,7 +1869,7 @@ export const TypingApp = ({ standalone = false }) => {
                             <tr>
                               <td
                                 colSpan="6"
-                                className="p-12 text-center text-gray-500 font-medium"
+                                className="p-12 text-center text-gray-500 dark:text-gray-400 font-medium"
                               >
                                 Sua turma ainda não tem recordes. Seja o
                                 primeiro!
@@ -1889,7 +1889,7 @@ export const TypingApp = ({ standalone = false }) => {
                                     {i === 0 ? (
                                       <span className="text-xl">👑</span>
                                     ) : (
-                                      <span className="font-bold text-gray-400">
+                                      <span className="font-bold text-gray-400 dark:text-gray-500">
                                         {i + 1}
                                       </span>
                                     )}
@@ -1911,7 +1911,7 @@ export const TypingApp = ({ standalone = false }) => {
                                   <td className="px-6 py-4 text-right font-mono font-bold text-gray-900 dark:text-gray-100">
                                     {item.best_wpm || 0}
                                   </td>
-                                  <td className="px-6 py-4 text-right font-mono text-gray-500">
+                                  <td className="px-6 py-4 text-right font-mono text-gray-500 dark:text-gray-400">
                                     {Math.floor(item.best_accuracy || 0)}%
                                   </td>
                                 </tr>

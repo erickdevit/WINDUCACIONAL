@@ -1027,7 +1027,7 @@ export const TypingSpaceGame = ({
                         ) : index === 2 ? (
                           <span className="text-xl">🥉</span>
                         ) : (
-                          <span className="font-bold text-gray-400">
+                          <span className="font-bold text-gray-400 dark:text-gray-500">
                             {index + 1}
                           </span>
                         )}

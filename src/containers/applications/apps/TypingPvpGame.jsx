@@ -991,7 +991,7 @@ export const TypingPvpGame = ({
           </header>
           <div className="divide-y divide-transparent">
             {pvpScores.length === 0 ? (
-              <div className="p-12 text-center text-gray-500 font-medium">
+              <div className="p-12 text-center text-gray-500 dark:text-gray-400 font-medium">
                 Nenhum duelo registrado para esta turma.
               </div>
             ) : (
@@ -1023,7 +1023,7 @@ export const TypingPvpGame = ({
                         <span className="font-black text-2xl text-green-600 dark:text-green-400">
                           {match.winner_score || 0}
                         </span>
-                        <span className="text-gray-400 font-bold text-sm">
+                        <span className="text-gray-400 dark:text-gray-500 font-bold text-sm">
                           X
                         </span>
                         <span className="font-black text-2xl text-red-500 dark:text-red-400">
@@ -1114,7 +1114,7 @@ export const TypingPvpGame = ({
                 <tr>
                   <td
                     colSpan="3"
-                    className="p-12 text-center text-gray-500 font-medium"
+                    className="p-12 text-center text-gray-500 dark:text-gray-400 font-medium"
                   >
                     Nenhum colega online no momento.
                   </td>
@@ -1128,7 +1128,7 @@ export const TypingPvpGame = ({
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-700">
-                          <span className="font-bold text-gray-400 text-xs">
+                          <span className="font-bold text-gray-400 dark:text-gray-500 text-xs">
                             {p.username.charAt(0).toUpperCase()}
                           </span>
                         </div>
@@ -1214,7 +1214,7 @@ export const TypingPvpGame = ({
                 </p>
                 <button
                   onClick={() => setIsChallenging(false)}
-                  className="text-gray-400 hover:text-red-500 font-bold text-sm transition-colors"
+                  className="text-gray-400 dark:text-gray-500 hover:text-red-500 font-bold text-sm transition-colors"
                 >
                   Cancelar desafio
                 </button>
@@ -1230,10 +1230,10 @@ export const TypingPvpGame = ({
                 <div
                   className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 ${
                     pvpNotification.type === "rejected"
-                      ? "bg-orange-100 text-orange-600"
+                      ? "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400"
                       : pvpNotification.type === "disconnected"
-                      ? "bg-red-100 text-red-600"
-                      : "bg-gray-100 text-gray-600"
+                      ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
                   }`}
                 >
                   <Icon
@@ -1452,7 +1452,7 @@ export const TypingPvpGame = ({
                   {matchWinner === user.id ? "VITÓRIA!" : "DERROTA!"}
                 </h2>
 
-                <p className="text-gray-400 font-medium mb-6">
+                <p className="text-gray-400 dark:text-gray-300 font-medium mb-6">
                   {matchWinner === user.id
                     ? "Você superou seu oponente na batalha."
                     : "Seu oponente foi mais rápido dessa vez."}
@@ -1460,7 +1460,7 @@ export const TypingPvpGame = ({
 
                 <div className="flex justify-center gap-6 mb-8 text-sm">
                   <div className="flex flex-col items-center">
-                    <span className="text-gray-400 font-bold uppercase mb-1">
+                    <span className="text-gray-400 dark:text-gray-300 font-bold uppercase mb-1">
                       Seus Pontos
                     </span>
                     <span
@@ -1475,7 +1475,7 @@ export const TypingPvpGame = ({
                   </div>
                   <div className="w-px bg-gray-700/50"></div>
                   <div className="flex flex-col items-center">
-                    <span className="text-gray-400 font-bold uppercase mb-1">
+                    <span className="text-gray-400 dark:text-gray-300 font-bold uppercase mb-1">
                       Oponente
                     </span>
                     <span
