@@ -119,6 +119,7 @@ A suíte inicial usa Vitest. A estratégia alvo está em `docs/testing-strategy.
 ## Dívidas Técnicas Conhecidas
 
 - `src/reducers/apps.js` abre URLs externas com `window.open`; precisa de allowlist e proteção equivalente a `noopener noreferrer`.
+- Criar um repositório privado próprio para a aplicação desktop (Tauri) do aplicativo de Digitação, que foi removida do rastreamento principal deste repositório para ser distribuída apenas como instalador compilado.
 - Dados persistidos em `localStorage` são usados como estado confiável em vários pontos; validar antes de migrar ou sincronizar com backend.
 - `public/dycalendar.js` manipula HTML diretamente; manter isolado ou substituir por componente seguro quando mexer no calendário.
 - A cobertura automatizada ainda é inicial e precisa evoluir para testes de componentes, integração e e2e.

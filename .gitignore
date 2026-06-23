@@ -31,3 +31,7 @@ yarn-error.log*
 # dir
 ReferenciasDeDesign
 Sprits
+
+# desktop app
+typing-desktop/
+

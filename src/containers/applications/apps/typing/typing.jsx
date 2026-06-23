@@ -776,7 +776,7 @@ export const TypingApp = ({ standalone = false }) => {
     launchLesson(currentLesson);
   };
 
-  const appScreenTop = (
+  const appScreenTop = view === "lesson" ? null : (
     <div className="flex items-center justify-between px-8 py-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#18181b] z-10">
           <div className="flex space-x-2">
             <button
@@ -1079,15 +1079,24 @@ export const TypingApp = ({ standalone = false }) => {
 
             <div className="w-full max-w-6xl mx-auto border-b border-gray-100 dark:border-gray-800 pb-4">
               <div className="flex justify-between items-center">
-                <div className="text-left w-[250px]">
-                  <div className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">
-                    Lição em andamento
-                  </div>
-                  <div className="text-gray-900 dark:text-white font-bold text-lg flex items-center gap-3">
-                    {currentLesson.title}
-                    <span className="text-xs font-black text-[#ffcc02] bg-amber-100/20 border border-amber-500/30 px-2 py-0.5 rounded whitespace-nowrap">
-                      Var {currentLesson.variantIndex + 1}/{currentLesson.variantCount}
-                    </span>
+                <div className="text-left w-[250px] flex gap-4 items-center">
+                  <button
+                    onClick={() => setView("menu")}
+                    className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
+                    title="Voltar ao Menu"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                  </button>
+                  <div>
+                    <div className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">
+                      Lição em andamento
+                    </div>
+                    <div className="text-gray-900 dark:text-white font-bold text-lg flex items-center gap-3">
+                      {currentLesson.title}
+                      <span className="text-xs font-black text-[#ffcc02] bg-amber-100/20 border border-amber-500/30 px-2 py-0.5 rounded whitespace-nowrap">
+                        Var {currentLesson.variantIndex + 1}/{currentLesson.variantCount}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
