@@ -112,6 +112,7 @@ const createFallingWordPvp = (
 
 export const TypingPvpGame = ({
   user,
+  studentType = "normal",
   gameTab,
   rankingTab = "global",
   isProfessor = false,

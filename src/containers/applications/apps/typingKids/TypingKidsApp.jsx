@@ -8,6 +8,9 @@ import { GameCanvas } from "./GameCanvas";
 import { api } from "../../../../lib/api";
 import { TypingRankingScrollArea } from "../TypingRankingScrollArea";
 import { areTypingCharactersEquivalent } from "../typingInput";
+import { useTypingGameSettings } from "../typingSettings";
+import { TypingSpaceGame } from "../TypingSpaceGame";
+import { TypingPvpGame } from "../TypingPvpGame";
 import "./typingKids.scss";
 
 export const TypingKidsApp = () => {
@@ -24,9 +27,21 @@ export const TypingKidsApp = () => {
   const [selectedResetTurmaId, setSelectedResetTurmaId] = useState("");
   const [resetRankingStatus, setResetRankingStatus] = useState(null);
   const [resettingRanking, setResettingRanking] = useState(false);
+  const [selectedGameResetTurmaId, setSelectedGameResetTurmaId] = useState("");
+  const [resetGameRankingStatus, setResetGameRankingStatus] = useState(null);
+  const [resettingGameRanking, setResettingGameRanking] = useState(false);
   const inputRef = useRef(null);
   const isProfessor = user?.role === "professor";
   const isStaff = user?.role !== "aluno";
+  const typingGameSettings = useTypingGameSettings({
+    studentType: "kids",
+    isProfessor: isStaff,
+  });
+  const gamePassMinWpm = typingGameSettings.settings.passMinWpm;
+  const gamePassMinAccuracy = typingGameSettings.settings.passMinAccuracy;
+  const maxGameLives = typingGameSettings.settings.maxLives;
+  const gameSpeed = typingGameSettings.settings.gameSpeed;
+  const gameSpeedBoost = typingGameSettings.settings.gameSpeedBoost;
 
   useEffect(() => {
     if (view === "lesson" && inputRef.current) {
@@ -35,7 +50,10 @@ export const TypingKidsApp = () => {
     if (view === "ranking") {
       fetchRanking();
     }
-    if (isStaff && (view === "ranking" || view === "config")) {
+    if (
+      isStaff &&
+      (view === "ranking" || view === "config" || view.startsWith("games"))
+    ) {
       fetchTurmas();
     }
   }, [view, engine.currentLesson, rankingTab, selectedTurmaId]);
@@ -55,6 +73,9 @@ export const TypingKidsApp = () => {
       }
       if (!selectedResetTurmaId && data.turmas?.length > 0) {
         setSelectedResetTurmaId(data.turmas[0].id);
+      }
+      if (!selectedGameResetTurmaId && data.turmas?.length > 0) {
+        setSelectedGameResetTurmaId(data.turmas[0].id);
       }
     } catch (error) {
       console.error("Failed to fetch turmas:", error);
@@ -134,6 +155,52 @@ export const TypingKidsApp = () => {
     }
   };
 
+  const handleResetGameTurmaRanking = async (event) => {
+    event.preventDefault();
+    const selectedTurma = turmas.find(
+      (turma) => turma.id === selectedGameResetTurmaId
+    );
+    if (!selectedTurma) {
+      setResetGameRankingStatus({
+        type: "error",
+        text: "Selecione uma turma para zerar o ranking do game.",
+      });
+      return;
+    }
+
+    if (
+      !confirm(
+        `Zerar o ranking do game da turma ${selectedTurma.nome} (${selectedTurma.code})? Essa ação remove as pontuações do game registradas dessa turma.`
+      )
+    ) {
+      return;
+    }
+
+    setResettingGameRanking(true);
+    setResetGameRankingStatus(null);
+    try {
+      const result = await api.resetTypingGameTurmaRanking(
+        selectedTurma.code,
+        "kids"
+      );
+      setResetGameRankingStatus({
+        type: "success",
+        text: `Ranking do game da turma ${
+          result.turma?.nome || selectedTurma.nome
+        } zerado. ${result.deletedScores || 0} registros removidos.`,
+      });
+    } catch (error) {
+      setResetGameRankingStatus({
+        type: "error",
+        text:
+          error.message ||
+          "Não foi possível zerar o ranking do game da turma.",
+      });
+    } finally {
+      setResettingGameRanking(false);
+    }
+  };
+
   const isLessonLocked = (index) =>
     !isStaff &&
     index > 0 &&
@@ -189,6 +256,60 @@ export const TypingKidsApp = () => {
             >
               Ranking
             </button>
+            <button
+              className={`px-4 py-2 text-sm font-bold rounded transition-colors ${
+                view.startsWith("games")
+                  ? "bg-[#ffcc02] text-black"
+                  : "bg-gray-900 text-white hover:bg-gray-800"
+              }`}
+              onClick={() => setView("games-solo")}
+            >
+              Games
+            </button>
+            {view.startsWith("games") && (
+              <div className="flex items-center space-x-2 ml-1 pl-3 border-l border-gray-600">
+                <button
+                  className={`px-3 py-1.5 text-xs font-bold rounded-md tracking-wider transition-colors ${
+                    view === "games-solo"
+                      ? "bg-[#ffcc02] text-black"
+                      : "bg-gray-800 text-white hover:bg-gray-700"
+                  }`}
+                  onClick={() => setView("games-solo")}
+                >
+                  Solo
+                </button>
+                <button
+                  className={`px-3 py-1.5 text-xs font-bold rounded-md tracking-wider transition-colors ${
+                    view === "games-pvp"
+                      ? "bg-[#ffcc02] text-black"
+                      : "bg-gray-800 text-white hover:bg-gray-700"
+                  }`}
+                  onClick={() => setView("games-pvp")}
+                >
+                  Duelos
+                </button>
+                <button
+                  className={`px-3 py-1.5 text-xs font-bold rounded-md tracking-wider transition-colors ${
+                    view === "games-pvp-scores"
+                      ? "bg-[#ffcc02] text-black"
+                      : "bg-gray-800 text-white hover:bg-gray-700"
+                  }`}
+                  onClick={() => setView("games-pvp-scores")}
+                >
+                  Placar de Duelos
+                </button>
+                <button
+                  className={`px-3 py-1.5 text-xs font-bold rounded-md tracking-wider transition-colors ${
+                    view === "games-scores"
+                      ? "bg-[#ffcc02] text-black"
+                      : "bg-gray-800 text-white hover:bg-gray-700"
+                  }`}
+                  onClick={() => setView("games-scores")}
+                >
+                  Ranking do Game
+                </button>
+              </div>
+            )}
             {isProfessor && (
               <button
                 className={`px-3 py-2 text-sm font-bold rounded transition-colors flex items-center justify-center ${
@@ -623,7 +744,333 @@ export const TypingKidsApp = () => {
                 </div>
               )}
             </form>
+
+            <div className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm mb-4 mt-4">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                Configurações do game
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-5">
+                Metas e vidas usadas somente no game Defesa Orbital.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                    PPM mínimo
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Velocidade mínima para entrar no ranking do game.
+                  </p>
+                  <div className="mt-4 flex items-center gap-4">
+                    <input
+                      type="range"
+                      min="10"
+                      max="120"
+                      value={typingGameSettings.draftSettings.passMinWpm}
+                      onChange={(event) =>
+                        typingGameSettings.updateDraftSettings(
+                          "passMinWpm",
+                          event.target.value
+                        )
+                      }
+                      className="w-full"
+                    />
+                    <input
+                      type="number"
+                      min="10"
+                      max="120"
+                      value={typingGameSettings.draftSettings.passMinWpm}
+                      onChange={(event) =>
+                        typingGameSettings.updateDraftSettings(
+                          "passMinWpm",
+                          event.target.value
+                        )
+                      }
+                      className="w-20 rounded-lg border border-gray-300 bg-white px-3 py-2 text-center font-mono font-black text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                    Precisão mínima
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Percentual mínimo para entrar no ranking do game.
+                  </p>
+                  <div className="mt-4 flex items-center gap-4">
+                    <input
+                      type="range"
+                      min="50"
+                      max="100"
+                      value={typingGameSettings.draftSettings.passMinAccuracy}
+                      onChange={(event) =>
+                        typingGameSettings.updateDraftSettings(
+                          "passMinAccuracy",
+                          event.target.value
+                        )
+                      }
+                      className="w-full"
+                    />
+                    <div className="flex items-center rounded-lg border border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-900">
+                      <input
+                        type="number"
+                        min="50"
+                        max="100"
+                        value={typingGameSettings.draftSettings.passMinAccuracy}
+                        onChange={(event) =>
+                          typingGameSettings.updateDraftSettings(
+                            "passMinAccuracy",
+                            event.target.value
+                          )
+                        }
+                        className="w-20 rounded-l-lg bg-transparent px-3 py-2 text-center font-mono font-black text-gray-900 dark:text-white"
+                      />
+                      <span className="pr-3 font-black text-gray-500 dark:text-gray-400">%</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                    Vidas
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Quantidade de erros permitidos no game.
+                  </p>
+                  <div className="mt-4 flex items-center gap-4">
+                    <input
+                      type="range"
+                      min="3"
+                      max="10"
+                      value={typingGameSettings.draftSettings.maxLives}
+                      onChange={(event) =>
+                        typingGameSettings.updateDraftSettings(
+                          "maxLives",
+                          event.target.value
+                        )
+                      }
+                      className="w-full"
+                    />
+                    <input
+                      type="number"
+                      min="3"
+                      max="10"
+                      value={typingGameSettings.draftSettings.maxLives}
+                      onChange={(event) =>
+                        typingGameSettings.updateDraftSettings(
+                          "maxLives",
+                          event.target.value
+                        )
+                      }
+                      className="w-20 rounded-lg border border-gray-300 bg-white px-3 py-2 text-center font-mono font-black text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-base font-black text-gray-900 dark:text-white">
+                    Velocidade das palavras
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Percentual da velocidade inicial de descida no game.
+                  </p>
+                  <div className="mt-4 flex items-center gap-4">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="1"
+                      value={typingGameSettings.draftSettings.gameSpeed}
+                      onChange={(event) =>
+                        typingGameSettings.updateDraftSettings(
+                          "gameSpeed",
+                          event.target.value
+                        )
+                      }
+                      className="w-full"
+                    />
+                    <div className="flex items-center rounded-lg border border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-900">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value={typingGameSettings.draftSettings.gameSpeed}
+                        onChange={(event) =>
+                          typingGameSettings.updateDraftSettings(
+                            "gameSpeed",
+                            event.target.value
+                          )
+                        }
+                        className="w-20 rounded-l-lg bg-transparent px-3 py-2 text-center font-mono font-black text-gray-900 dark:text-white"
+                      />
+                      <span className="pr-3 font-black text-gray-500 dark:text-gray-400">%</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-base font-black text-gray-900 dark:text-white">
+                    Aceleração
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Percentual a mais por palavra destruída no game.
+                  </p>
+                  <div className="mt-4 flex items-center gap-4">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="1"
+                      value={typingGameSettings.draftSettings.gameSpeedBoost}
+                      onChange={(event) =>
+                        typingGameSettings.updateDraftSettings(
+                          "gameSpeedBoost",
+                          event.target.value
+                        )
+                      }
+                      className="w-full"
+                    />
+                    <div className="flex items-center rounded-lg border border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-900">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value={typingGameSettings.draftSettings.gameSpeedBoost}
+                        onChange={(event) =>
+                          typingGameSettings.updateDraftSettings(
+                            "gameSpeedBoost",
+                            event.target.value
+                          )
+                        }
+                        className="w-20 rounded-l-lg bg-transparent px-3 py-2 text-center font-mono font-black text-gray-900 dark:text-white"
+                      />
+                      <span className="pr-3 font-black text-gray-500 dark:text-gray-400">%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-t border-gray-100 pt-5 dark:border-gray-800">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
+                  {typingGameSettings.loading
+                    ? "Carregando configuração salva do game..."
+                    : `Meta ativa do game: ${gamePassMinWpm} PPM, ${gamePassMinAccuracy}% de precisão, ${maxGameLives} vidas, ${gameSpeed}% de velocidade e ${gameSpeedBoost}% de aceleração.`}
+                </p>
+                <button
+                  type="button"
+                  disabled={
+                    typingGameSettings.saving || !typingGameSettings.dirty
+                  }
+                  onClick={typingGameSettings.saveDraftSettings}
+                  className="px-5 py-3 rounded-lg bg-[#ffcc02] text-black font-black hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {typingGameSettings.saving
+                    ? "Salvando..."
+                    : "Salvar configurações do game"}
+                </button>
+              </div>
+              {typingGameSettings.status && (
+                <div
+                  className={`mt-4 rounded-lg px-4 py-3 text-sm font-bold ${
+                    typingGameSettings.status.type === "success"
+                      ? "bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800"
+                      : "bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800"
+                  }`}
+                >
+                  {typingGameSettings.status.text}
+                </div>
+              )}
+            </div>
+
+            <form
+              className="mt-4 bg-white dark:bg-[#18181b] border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm"
+              onSubmit={handleResetGameTurmaRanking}
+            >
+              <div className="flex flex-col md:flex-row md:items-end gap-4">
+                <div className="flex-1">
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                    Zerar ranking de turma do game
+                  </h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Selecione uma turma Kids para remover apenas as pontuações
+                    do game vinculadas a ela.
+                  </p>
+                  <select
+                    value={selectedGameResetTurmaId}
+                    onChange={(event) => {
+                      setSelectedGameResetTurmaId(event.target.value);
+                      setResetGameRankingStatus(null);
+                    }}
+                    className="mt-4 w-full max-w-sm rounded-xl border-2 border-amber-200 bg-white px-4 py-3 text-sm font-black text-gray-900 outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                  >
+                    {turmas.length === 0 ? (
+                      <option value="">Nenhuma turma Kids cadastrada</option>
+                    ) : (
+                      turmas.map((turma) => (
+                        <option key={turma.id} value={turma.id}>
+                          {turma.nome} ({turma.code})
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </div>
+                <button
+                  type="submit"
+                  disabled={resettingGameRanking || !selectedGameResetTurmaId}
+                  className="px-5 py-3 rounded-lg bg-red-600 text-white font-black hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {resettingGameRanking ? "Zerando..." : "Zerar ranking do game"}
+                </button>
+              </div>
+              {resetGameRankingStatus && (
+                <div
+                  className={`mt-4 rounded-lg px-4 py-3 text-sm font-bold ${
+                    resetGameRankingStatus.type === "success"
+                      ? "bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800"
+                      : "bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800"
+                  }`}
+                >
+                  {resetGameRankingStatus.text}
+                </div>
+              )}
+            </form>
           </div>
+        )}
+
+        {/* GAMES VIEWS */}
+        {view.startsWith("games") &&
+          view !== "games-pvp" &&
+          view !== "games-pvp-scores" && (
+            <TypingSpaceGame
+              user={user}
+              studentType="kids"
+              maxLives={maxGameLives}
+              passMinWpm={gamePassMinWpm}
+              passMinAccuracy={gamePassMinAccuracy}
+              gameSpeed={gameSpeed}
+              gameSpeedBoost={gameSpeedBoost}
+              isProfessor={isStaff}
+              turmaId={user?.turmaId || user?.turma_id}
+              turmas={turmas}
+              gameTab={view}
+              rankingTab={rankingTab}
+            />
+          )}
+
+        {(view === "games-pvp" || view === "games-pvp-scores") && (
+          <TypingPvpGame
+            user={user}
+            studentType="kids"
+            gameTab={view}
+            rankingTab={rankingTab}
+            isProfessor={isStaff}
+            turmas={turmas}
+            selectedTurmaId={selectedTurmaId}
+            onSelectedTurmaChange={setSelectedTurmaId}
+            gameSpeed={gameSpeed}
+            gameSpeedBoost={gameSpeedBoost}
+          />
         )}
 
         {/* LESSON VIEW */}

@@ -1025,6 +1025,7 @@ export const TypingApp = ({ standalone = false }) => {
           view !== "games-pvp-scores" && (
             <TypingSpaceGame
               user={user}
+              studentType="normal"
               maxLives={maxGameLives}
               passMinWpm={gamePassMinWpm}
               passMinAccuracy={gamePassMinAccuracy}
@@ -1041,6 +1042,7 @@ export const TypingApp = ({ standalone = false }) => {
         {(view === "games-pvp" || view === "games-pvp-scores") && (
           <TypingPvpGame
             user={user}
+            studentType="normal"
             gameTab={view}
             rankingTab={rankingTab}
             isProfessor={isStaff}

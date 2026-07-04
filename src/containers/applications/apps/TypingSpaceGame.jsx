@@ -149,6 +149,7 @@ const getLetterPosition = (word, letterIndex, fieldRect) => {
 
 export const TypingSpaceGame = ({
   user,
+  studentType = "normal",
   maxLives = 7,
   passMinWpm = 40,
   passMinAccuracy = 95,
@@ -245,13 +246,13 @@ export const TypingSpaceGame = ({
   const fetchScores = async () => {
     setLoadingScores(true);
     try {
-      const globalData = await api.getTypingGameGlobalRanking("normal");
+      const globalData = await api.getTypingGameGlobalRanking(studentType);
       let turmaData;
       if (rankingTab === "turma") {
         if (isProfessor && selectedTurmaId) {
           turmaData = await api.getTypingGameTurmaRankingById(
             selectedTurmaId,
-            "normal"
+            studentType
           );
         } else {
           turmaData = await api.getTypingGameTurmaRanking();
