@@ -25,6 +25,8 @@ export * from "./apps/Gestor";
 export * from "./apps/attendance";
 export * from "./apps/booklets";
 export * from "./apps/exam";
+export * from "./apps/lessons";
+export * from "./apps/ouroModerno";
 export * from "./apps/word";
 
 export const ScreenPreview = () => {

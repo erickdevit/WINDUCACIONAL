@@ -20,7 +20,7 @@ describe("Catálogo de apps", () => {
     vi.resetModules();
   });
 
-  it("deve registrar o ITB Ouro Moderno como app interno em iframe com ícone local", async () => {
+  it("deve registrar o ITB Ouro Moderno como app interno com URL dinâmica", async () => {
     vi.stubGlobal("localStorage", createStorage());
 
     const { allApps } = await import("../src/utils");
@@ -30,12 +30,34 @@ describe("Catálogo de apps", () => {
       name: "ITB Ouro Moderno",
       icon: "itbOuroModerno",
       action: "ITBOUROMODERNO",
-      pwa: true,
-      data: {
-        type: "IFrame",
-        url: "https://itbcurso.shyr.it/",
-      },
+      type: "app",
     });
+    expect(app.pwa).toBeUndefined();
+  });
+
+  it("deve registrar o app Lições na área de trabalho", async () => {
+    vi.stubGlobal("localStorage", createStorage());
+
+    const { allApps, desktopApps } = await import("../src/utils");
+    const app = allApps.find((item) => item.name === "Lições");
+
+    expect(app).toMatchObject({
+      name: "Lições",
+      icon: "lessons",
+      action: "LESSONSAPP",
+      type: "app",
+    });
+    expect(desktopApps.map((item) => item.name)).toContain("Lições");
+  });
+
+  it("deve usar o ícone SVG local de lições", () => {
+    const iconSource = fs.readFileSync(
+      new URL("../src/utils/general.jsx", import.meta.url),
+      "utf8"
+    );
+
+    expect(iconSource).toContain('props.src === "lessons"');
+    expect(iconSource).toContain("img/icon/lessons.svg");
   });
 
   it("deve registrar o app Atalhos na área de trabalho", async () => {
@@ -149,6 +171,7 @@ describe("Catálogo de apps", () => {
       "Frequência",
       "Apostilas",
       "Avaliação",
+      "Lições",
       "Word",
       "Gerador de Imagens",
     ]);
@@ -174,6 +197,10 @@ describe("Catálogo de apps", () => {
     );
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
       "desktop-seed-booklets-v1",
+      "true"
+    );
+    expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      "desktop-seed-lessons-v1",
       "true"
     );
     expect(localStorageMock.setItem).toHaveBeenCalledWith(

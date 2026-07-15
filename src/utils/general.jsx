@@ -42,6 +42,8 @@ export const Icon = (props) => {
     src = `img/icon/booklets.svg`;
   } else if (props.src === "imagegen") {
     src = `img/icon/imagegen.svg`;
+  } else if (props.src === "lessons") {
+    src = `img/icon/lessons.svg`;
   }
 
   const iconScale = ["typing", "typingKids"].includes(props.src) ? 1.3 : 1;

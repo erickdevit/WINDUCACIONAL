@@ -24,6 +24,7 @@ describe("Backend - composicao modular", () => {
       "booklets.cjs",
       "attendance.cjs",
       "exams.cjs",
+      "lessons.cjs",
       "typing.cjs",
       "chat.cjs",
       "notifications.cjs",

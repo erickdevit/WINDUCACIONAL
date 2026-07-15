@@ -105,4 +105,21 @@ describe("API client - endpoints existentes", () => {
     expect(apiCode).toContain("/api/attendance/me");
     expect(apiCode).toContain("/api/attendance/summary");
   });
+
+  it("deve expor a configuração do Ouro Moderno", () => {
+    expect(apiCode).toContain("getOuroModernoConfig");
+    expect(apiCode).toContain("saveOuroModernoConfig");
+    expect(apiCode).toContain("/api/gestor/ouro-moderno");
+  });
+
+  it("deve expor atividades, grupos e progresso de lições", () => {
+    expect(apiCode).toContain("getLessons");
+    expect(apiCode).toContain("createLesson");
+    expect(apiCode).toContain("updateLesson");
+    expect(apiCode).toContain("deleteLesson");
+    expect(apiCode).toContain("saveLessonProgress");
+    expect(apiCode).toContain("getLessonGroups");
+    expect(apiCode).toContain("/api/lessons");
+    expect(apiCode).toContain("/progress");
+  });
 });

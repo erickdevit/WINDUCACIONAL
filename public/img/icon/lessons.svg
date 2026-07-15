@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Lições">
+  <defs>
+    <linearGradient id="lessons-bg" x1="8" y1="5" x2="56" y2="59" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4B8B73"/>
+      <stop offset="1" stop-color="#23513F"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#lessons-bg)"/>
+  <path d="M15 17.5C15 15.57 16.57 14 18.5 14H30V48H19.5A4.5 4.5 0 0 1 15 43.5v-26Z" fill="#F7FBF9"/>
+  <path d="M49 17.5A3.5 3.5 0 0 0 45.5 14H34V48h10.5a4.5 4.5 0 0 0 4.5-4.5v-26Z" fill="#E8F4EF"/>
+  <path d="M30 18H20M30 24H20M30 30H20" stroke="#8FB8A8" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="m38 25 3 3 6-7" fill="none" stroke="#2F6B54" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M38 35h8M38 41h6" stroke="#8FB8A8" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

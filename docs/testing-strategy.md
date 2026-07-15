@@ -53,6 +53,10 @@ Criar uma suíte objetiva, rápida e útil para proteger a evolução do simulad
 - Aluno só abre avaliações atribuídas, responde múltipla escolha, executa a prática em container simulado e recebe nota calculada pelo backend.
 - Backend de avaliação ignora pontuação enviada pelo cliente e calcula acertos com base nas respostas, regras persistidas e snapshot prático.
 - Professor libera ou bloqueia módulos de apostilas para todos, concede módulos específicos para alunos selecionados por turma, aluno enxerga somente módulos liberados para seu caso e PDFs são abertos por rotas autenticadas sem expor caminho local.
+- Professor configura no Gestor uma URL HTTP ou HTTPS para o ITB Ouro Moderno, alunos passam a usar o endereço persistido e usuários sem permissão não conseguem alterá-lo.
+- Professor cria, edita e exclui atividades solo por turma; alunos visualizam somente as atividades da própria turma e podem marcar apenas o próprio progresso.
+- Professor cria grupos com alunos da mesma turma e vincula atividades em grupo; cada aluno visualiza somente tarefas dos grupos dos quais participa, enquanto o professor acompanha todos os grupos e atividades da turma.
+- Backend rejeita grupo com aluno de outra turma, atividade em grupo sem grupo válido, URL do Ouro Moderno com protocolo inseguro e tentativa de aluno de administrar atividades ou grupos.
 - Quando a build muda, sessões são invalidadas, caches são limpos e o cliente recarrega automaticamente para a nova versão.
 - Cenário educacional inicia, salva progresso e retoma.
 - Ações do usuário geram eventos consistentes no backend.

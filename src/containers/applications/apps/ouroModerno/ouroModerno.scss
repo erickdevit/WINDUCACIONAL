@@ -1,0 +1,70 @@
+.ouroModernoApp {
+  background: #f5f7fa;
+
+  .ouroModernoBar {
+    min-height: 38px;
+    padding: 7px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid #d9dde5;
+    background: #ffffff;
+    color: #4b5563;
+    font-size: 12px;
+
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    a {
+      flex: 0 0 auto;
+      color: #075ea8;
+      font-weight: 600;
+      text-decoration: none;
+    }
+  }
+
+  .ouroModernoContent {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    > p {
+      color: #5f6b7a;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #ffffff;
+    }
+  }
+
+  .ouroModernoState {
+    width: min(440px, calc(100% - 32px));
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 22px;
+    border: 1px solid #d9dde5;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #374151;
+    box-shadow: 0 8px 30px rgba(31, 41, 55, 0.08);
+
+    button {
+      padding: 8px 12px;
+      border-radius: 7px;
+      background: #075ea8;
+      color: #ffffff;
+      font-weight: 600;
+    }
+  }
+}

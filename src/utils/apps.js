@@ -232,6 +232,12 @@ const apps = [
     type: "app",
   },
   {
+    name: "Lições",
+    icon: "lessons",
+    type: "app",
+    action: "LESSONSAPP",
+  },
+  {
     name: "Maps",
     icon: "maps",
     type: "app",
@@ -270,11 +276,6 @@ const apps = [
     icon: "itbOuroModerno",
     type: "app",
     action: "ITBOUROMODERNO",
-    pwa: true,
-    data: {
-      type: "IFrame",
-      url: "https://itbcurso.shyr.it/",
-    },
   },
   {
     name: "Chat da Turma",

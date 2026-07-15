@@ -299,6 +299,52 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+  getOuroModernoConfig: () => request("/api/gestor/ouro-moderno"),
+  saveOuroModernoConfig: (url) =>
+    request("/api/gestor/ouro-moderno", {
+      method: "PUT",
+      body: JSON.stringify({ url }),
+    }),
+  // --- Lições ---
+  getLessons: (turmaId) => {
+    const params = turmaId ? `?turmaId=${encodeURIComponent(turmaId)}` : "";
+    return request(`/api/lessons${params}`);
+  },
+  createLesson: (payload) =>
+    request("/api/lessons", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updateLesson: (id, payload) =>
+    request(`/api/lessons/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+  deleteLesson: (id) =>
+    request(`/api/lessons/${id}`, {
+      method: "DELETE",
+    }),
+  saveLessonProgress: (id, completed) =>
+    request(`/api/lessons/${id}/progress`, {
+      method: "PUT",
+      body: JSON.stringify({ completed }),
+    }),
+  getLessonGroups: (turmaId) =>
+    request(`/api/lessons/groups?turmaId=${encodeURIComponent(turmaId)}`),
+  createLessonGroup: (payload) =>
+    request("/api/lessons/groups", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updateLessonGroup: (id, payload) =>
+    request(`/api/lessons/groups/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+  deleteLessonGroup: (id) =>
+    request(`/api/lessons/groups/${id}`, {
+      method: "DELETE",
+    }),
   // --- Frequência ---
   getMyAttendance: () => request("/api/attendance/me"),
   getAttendanceSummary: ({ startDate, endDate, turmaId } = {}) => {

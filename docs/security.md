@@ -52,6 +52,8 @@ O comando `eval` legado do terminal foi removido durante a primeira implementaç
 - Configurações e rankings do game de digitação devem ser separados das lições, reutilizando autorização por sessão e filtro de turma/tipo no backend.
 - O PVP de digitação deve manter convites, salas e histórico restritos à turma autorizada. A finalização atual persiste pontuações enviadas pelo cliente, portanto o cálculo autoritativo de vencedor e pontuação no servidor continua como dívida de segurança antes de uso competitivo real.
 - O app Avaliação deve corrigir notas no backend. O cliente pode enviar respostas e snapshot do container prático, mas não pode enviar `isCorrect`, pontuação concedida, resposta correta ou regras de validação como autoridade. Alunos só podem abrir e enviar provas publicadas e atribuídas ao próprio usuário.
+- A URL do ITB Ouro Moderno deve ser validada e persistida no backend. Somente professores podem alterá-la; URLs devem usar HTTP ou HTTPS, não podem conter credenciais embutidas e nunca devem ser executadas como código. A abertura em nova aba deve usar `noopener noreferrer`.
+- Lições e grupos devem ser autorizados por turma no backend. Alunos só podem listar atividades solo da própria turma ou atividades vinculadas a um grupo do qual participem, e só podem alterar o próprio progresso. IDs de turma, grupo, atividade e aluno enviados pelo frontend não são fonte de autorização.
 - Mudança de versão da build invalida sessões no banco e força limpeza de caches no cliente; esse fluxo não deve expor tokens nem depender de dados sensíveis em `localStorage`.
 
 ## Requisitos Para PostgreSQL

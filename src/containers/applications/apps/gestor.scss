@@ -1,62 +1,412 @@
 .gestorApp {
-  background-color: #f3f4f6;
+  background: #f3f4f6;
+  color: #1f2937;
 
   main {
     height: 100%;
-    overflow-y: auto;
+    overflow: auto;
   }
 
-  h1 {
-    color: #111827;
+  button,
+  input,
+  select {
+    font: inherit;
   }
 
-  .secondaryBtn {
-    background-color: white;
-    border: 1px solid #d1d5db;
-    color: #374151;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s;
+  .gestorHeader {
+    padding: 24px 24px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
 
-    &:hover {
-      background-color: #f9fafb;
-      border-color: #9ca3af;
+    h1 {
+      margin: 0;
+      color: #111827;
+      font-size: 24px;
+      font-weight: 650;
     }
+
+    p {
+      margin: 4px 0 0;
+      color: #6b7280;
+      font-size: 14px;
+    }
+  }
+
+  .gestorHeaderActions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+  }
+
+  .gestorActionButtons,
+  .secondaryBtn,
+  .dangerBtn,
+  .primaryBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .secondaryBtn,
+  .dangerBtn,
+  .primaryBtn {
+    min-height: 34px;
+    padding: 7px 12px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 0.18s, border-color 0.18s, opacity 0.18s;
 
     &:disabled {
       opacity: 0.5;
       cursor: not-allowed;
+    }
+  }
+
+  .secondaryBtn {
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    color: #374151;
+
+    &:hover:not(:disabled) {
+      background: #f9fafb;
+      border-color: #9ca3af;
     }
   }
 
   .dangerBtn {
-    background-color: #ef4444;
-    color: white;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s;
+    border: 1px solid #dc2626;
+    background: #ef4444;
+    color: #ffffff;
 
-    &:hover {
-      background-color: #dc2626;
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+    &:hover:not(:disabled) {
+      background: #dc2626;
     }
   }
 
-  section {
-    transition: transform 0.2s, box-shadow 0.2s;
+  .primaryBtn {
+    justify-content: center;
+    border: 1px solid #075ea8;
+    background: #075ea8;
+    color: #ffffff;
+
+    &:hover:not(:disabled) {
+      background: #064f8d;
+    }
+  }
+
+  .gestorTurmaFilter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
+    background: #ffffff;
+
+    label {
+      color: #6b7280;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    select {
+      min-width: 150px;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: #1f2937;
+      font-size: 13px;
+      font-weight: 600;
+    }
+  }
+
+  .gestorOptionsBar {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 0 24px;
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid #d8dce3;
+    background: rgba(243, 244, 246, 0.96);
+    backdrop-filter: blur(8px);
+
+    button {
+      position: relative;
+      padding: 11px 14px;
+      border: 0;
+      background: transparent;
+      color: #6b7280;
+      font-size: 13px;
+      font-weight: 600;
+
+      &::after {
+        content: "";
+        position: absolute;
+        right: 12px;
+        bottom: -1px;
+        left: 12px;
+        height: 3px;
+        border-radius: 3px 3px 0 0;
+        background: transparent;
+      }
+
+      &.active {
+        color: #075ea8;
+
+        &::after {
+          background: #075ea8;
+        }
+      }
+    }
+  }
+
+  .gestorBody {
+    min-width: 560px;
+    padding: 20px 24px 28px;
+  }
+
+  .gestorMessage {
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    border-left: 4px solid #1683d8;
+    border-radius: 5px;
+    background: #e8f3fc;
+    color: #07558f;
+    font-size: 13px;
+  }
+
+  .integrationPanel {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    padding: 22px;
+    border: 1px solid #d8dce3;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 5px 16px rgba(31, 41, 55, 0.06);
+  }
+
+  .integrationIcon {
+    width: 66px;
+    height: 66px;
+    flex: 0 0 66px;
+    display: grid;
+    place-items: center;
+    border-radius: 13px;
+    background: #f0f5fa;
+  }
+
+  .integrationContent {
+    min-width: 0;
+    flex: 1;
+
+    h2 {
+      margin: 0;
+      color: #111827;
+      font-size: 18px;
+      font-weight: 650;
+    }
+
+    > p {
+      max-width: 720px;
+      margin: 5px 0 18px;
+      color: #6b7280;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: #374151;
+      font-size: 12px;
+      font-weight: 650;
+    }
+  }
+
+  .integrationFormRow {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+
+    input {
+      min-width: 220px;
+      flex: 1;
+      padding: 9px 11px;
+      border: 1px solid #bcc3ce;
+      border-radius: 7px;
+      outline: 0;
+      color: #1f2937;
+
+      &:focus {
+        border-color: #1683d8;
+        box-shadow: 0 0 0 3px rgba(22, 131, 216, 0.14);
+      }
+    }
+  }
+
+  .gestorEmptyState {
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    color: #9ca3af;
+  }
+
+  .sessionGroups {
+    display: grid;
+    gap: 18px;
+  }
+
+  .sessionCard {
+    overflow: hidden;
+    border: 1px solid #d8dce3;
+    border-radius: 10px;
+    background: #ffffff;
+    box-shadow: 0 3px 12px rgba(31, 41, 55, 0.05);
+  }
+
+  .sessionCardHeader {
+    padding: 11px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+
+    h2,
+    button {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    h2 {
+      margin: 0;
+      color: #1f2937;
+      font-size: 14px;
+      font-weight: 650;
+
+      span {
+        padding: 2px 7px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        color: #4b5563;
+        font-size: 11px;
+        font-weight: 500;
+      }
+    }
+
+    button {
+      border: 0;
+      background: transparent;
+      color: #c82626;
+      font-size: 12px;
+      font-weight: 650;
+    }
+  }
+
+  .sessionRow {
+    padding: 11px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    border-bottom: 1px solid #f0f1f3;
+
+    &:last-child {
+      border-bottom: 0;
+    }
 
     &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      background: #fafbfc;
+    }
+  }
+
+  .sessionIdentity {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    strong,
+    span {
+      display: block;
+    }
+
+    strong {
+      overflow: hidden;
+      color: #1f2937;
+      font-size: 13px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    span {
+      margin-top: 2px;
+      color: #9ca3af;
+      font-size: 11px;
+    }
+  }
+
+  .sessionAvatar {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #dbeafe;
+    color: #1661a8;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .sessionLogoutButton {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: #9ca3af;
+
+    &:hover:not(:disabled) {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .gestorHeader {
+      flex-direction: column;
+    }
+
+    .gestorHeaderActions {
+      width: 100%;
+      align-items: stretch;
+    }
+
+    .gestorActionButtons,
+    .gestorTurmaFilter,
+    .integrationFormRow {
+      flex-wrap: wrap;
+    }
+
+    .gestorTurmaFilter select,
+    .integrationFormRow input {
+      flex: 1;
     }
   }
 }

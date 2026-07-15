@@ -92,6 +92,8 @@ docker compose -f compose.dev.yml up -d
 - O acesso de alunos a apostilas é controlado no backend pelas tabelas `booklet_module_access` e `booklet_student_module_access`; professores podem ver todos os módulos, liberar módulos para todos ou conceder módulos específicos a alunos selecionados por turma.
 - O app Gerador de Imagens usa o proxy autenticado `server/routes/imagegen.cjs`; o token da API externa fica apenas em `IMAGEGEN_API_TOKEN` no servidor, e imagens baixadas pelo usuário devem ser salvas no disco virtual via `FileDialog`/Redux para acionar a persistência existente.
 - O app Fotos é o visualizador interno de imagens do sistema; arquivos `png`, `jpg`, `jpeg`, `webp` e `gif` abertos pelo Explorer devem usar a ação `PHOTOS` e receber ícone próprio no Explorer.
+- O app ITB Ouro Moderno obtém sua URL do backend pela chave global `ouro_moderno_url` de `app_metadata`; somente professores podem alterá-la pela área de Integrações do Gestor, e o servidor deve aceitar apenas URLs HTTP ou HTTPS sem credenciais embutidas.
+- O app Lições mantém atividades separadas por turma. Professores controlam grupos, membros e atividades solo ou em grupo; alunos veem somente atividades solo da própria turma e atividades dos grupos dos quais participam, podendo alterar apenas o próprio progresso. Lições não calculam nota e não devem reutilizar o domínio de Avaliação.
 - Games dentro do app de Digitação Normal devem ficar separados das lições tradicionais. O modo PVP só deve ser liberado como partida real depois de existir backend com convite, sincronização em tempo real, validação de mesma turma, cálculo de vencedor no servidor e ranking persistido separado.
 
 ## Regras De Segurança

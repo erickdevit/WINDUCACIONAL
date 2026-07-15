@@ -46,7 +46,7 @@ As janelas devem permanecer sempre dentro da área útil do desktop, limitada pe
 
 - `vite.config.js`: build Vite e configuração PWA.
 - `server/index.cjs`: raiz de composição do backend. Concentra configuração, pool PostgreSQL, helpers compartilhados, middleware de autenticação, estado em memória (clientes SSE, usuários online) e a função `start()`. Monta `routeContext` com as dependências compartilhadas e injeta os módulos de rota. Exporta `{ app, start }` e só executa `start()` quando rodado diretamente (`require.main === module`), permitindo carregá-lo em testes sem subir o servidor.
-- `server/routes/*.cjs`: rotas agrupadas por domínio (`auth`, `users`, `turmas`, `booklets`, `attendance`, `fs`, `exams`, `typing`, `notifications`, `chat`, `gestor`, `edgeProxy`, `imagegen`). Cada módulo exporta uma função injetora `inject<Dominio>Routes(ctx)` que recebe o `routeContext`, seguindo o mesmo padrão de `server/typingPvp.cjs`.
+- `server/routes/*.cjs`: rotas agrupadas por domínio (`auth`, `users`, `turmas`, `booklets`, `attendance`, `fs`, `exams`, `lessons`, `typing`, `notifications`, `chat`, `gestor`, `edgeProxy`, `imagegen`). Cada módulo exporta uma função injetora `inject<Dominio>Routes(ctx)` que recebe o `routeContext`, seguindo o mesmo padrão de `server/typingPvp.cjs`.
 - `server/db/migrations/`: migrations versionadas do PostgreSQL (`0001_baseline.sql` consolida o schema inicial).
 - `server/db/migrate.cjs`: runner de migrations executado no boot.
 - `Dockerfile`: empacotamento da aplicação.
@@ -82,6 +82,10 @@ O app Apostilas armazena os PDFs em `src/containers/applications/apps/booklets/l
 O app Gerador de Imagens consome `/api/imagegen/config` e `/api/imagegen/generate`. O backend atua como proxy autenticado para o provedor externo configurado por `IMAGEGEN_API_TOKEN` e `IMAGEGEN_API_URL`, mantendo o token fora do frontend. A imagem gerada retorna ao cliente como data URL PNG e, ao baixar, é gravada no disco virtual pelo `FileDialog` existente, usando a mesma árvore Redux persistida por `/api/fs/tree`.
 
 O app Fotos é o visualizador interno para imagens armazenadas no disco virtual. O Explorer abre arquivos `png`, `jpg`, `jpeg`, `webp` e `gif` pela ação `PHOTOS`, passando o ID do item como payload; o app lê o conteúdo em `fileItem.data` e renderiza a imagem sem acessar arquivos reais do host.
+
+O endereço usado pelo app ITB Ouro Moderno é uma configuração global persistida em `app_metadata`, sob a chave `ouro_moderno_url`. Qualquer usuário autenticado pode consultar o endereço para abrir o app interno, mas somente professores podem alterá-lo pela área de Integrações do Gestor. O backend aceita apenas URLs HTTP ou HTTPS sem credenciais embutidas e mantém o endereço atual como valor padrão enquanto não houver configuração gravada.
+
+O app Lições usa `lesson_groups`, `lesson_group_members`, `lessons`, `lesson_group_assignments` e `lesson_student_progress`. Professores administram grupos e atividades de qualquer turma. Atividades solo são disponibilizadas a todos os alunos da turma; atividades em grupo são visíveis somente aos membros dos grupos vinculados pelo professor. O progresso é individual e permite ao aluno marcar ou desmarcar a própria atividade como concluída, sem nota, correção ou efeito sobre o app Avaliação. Toda seleção de turma, grupo e aluno é validada novamente no backend.
 
 ## Arquitetura Alvo
 

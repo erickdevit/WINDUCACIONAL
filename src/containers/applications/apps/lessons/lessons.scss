@@ -1,0 +1,797 @@
+.lessonsApp {
+  background: #f4f6f8;
+  color: #243044;
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  .lessonsWorkspace {
+    height: 100%;
+    overflow: auto;
+  }
+
+  .lessonsMain {
+    position: relative;
+    min-width: 600px;
+    min-height: 100%;
+    padding: 28px clamp(22px, 4vw, 48px) 42px;
+  }
+
+  .lessonsHeader {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+
+    h1 {
+      margin: 2px 0 4px;
+      color: #142033;
+      font-size: 30px;
+      font-weight: 720;
+      letter-spacing: -0.025em;
+    }
+
+    p {
+      margin: 0;
+      color: #687386;
+      font-size: 14px;
+    }
+  }
+
+  .lessonEyebrow {
+    color: #31705a;
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .lessonsHeaderActions {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+
+      span {
+        color: #687386;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+    }
+
+    select {
+      min-width: 190px;
+      min-height: 38px;
+      padding: 7px 34px 7px 10px;
+      border: 1px solid #c8ced7;
+      border-radius: 8px;
+      outline: 0;
+      background: #ffffff;
+      color: #243044;
+      font-size: 13px;
+      font-weight: 620;
+    }
+  }
+
+  .lessonPrimaryButton,
+  .lessonSecondaryButton,
+  .lessonTextButton {
+    border: 0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 680;
+
+    &:disabled {
+      opacity: 0.48;
+      cursor: not-allowed;
+    }
+  }
+
+  .lessonPrimaryButton,
+  .lessonSecondaryButton {
+    min-height: 38px;
+    padding: 8px 15px;
+  }
+
+  .lessonPrimaryButton {
+    background: #28634f;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(40, 99, 79, 0.18);
+
+    &:hover:not(:disabled) {
+      background: #1f5442;
+    }
+  }
+
+  .lessonSecondaryButton {
+    border: 1px solid #c8ced7;
+    background: #ffffff;
+    color: #4f5a6c;
+  }
+
+  .lessonTextButton {
+    padding: 7px 9px;
+    background: transparent;
+    color: #657083;
+  }
+
+  .lessonsAlert {
+    margin-top: 20px;
+    padding: 11px 13px;
+    border: 1px solid #edb8b8;
+    border-radius: 8px;
+    background: #fff1f1;
+    color: #a52c2c;
+    font-size: 13px;
+  }
+
+  .lessonsTabs {
+    margin-top: 26px;
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid #d7dce4;
+
+    button {
+      position: relative;
+      padding: 10px 13px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      border: 0;
+      background: transparent;
+      color: #737e8e;
+      font-size: 13px;
+      font-weight: 650;
+
+      span {
+        min-width: 21px;
+        padding: 2px 6px;
+        border-radius: 999px;
+        background: #e2e6eb;
+        color: #647082;
+        font-size: 10px;
+      }
+
+      &.active {
+        color: #28634f;
+
+        &::after {
+          content: "";
+          position: absolute;
+          right: 10px;
+          bottom: -1px;
+          left: 10px;
+          height: 3px;
+          border-radius: 3px 3px 0 0;
+          background: #28634f;
+        }
+      }
+    }
+  }
+
+  .lessonCardList {
+    margin-top: 19px;
+    display: grid;
+    gap: 11px;
+  }
+
+  .lessonCard {
+    min-width: 0;
+    padding: 17px 18px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: flex-start;
+    gap: 14px;
+    border: 1px solid #d9dde4;
+    border-radius: 11px;
+    background: #ffffff;
+    box-shadow: 0 3px 10px rgba(27, 39, 57, 0.045);
+    transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+
+    &:hover {
+      border-color: #bdc6d1;
+      box-shadow: 0 6px 18px rgba(27, 39, 57, 0.075);
+      transform: translateY(-1px);
+    }
+
+    &.completed {
+      background: #f9fbfa;
+
+      h2,
+      p {
+        color: #89928f;
+      }
+
+      h2 {
+        text-decoration: line-through;
+      }
+    }
+  }
+
+  .lessonCardStatus {
+    padding-top: 3px;
+  }
+
+  .lessonCheckVisual,
+  .lessonCompleteButton {
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border: 2px solid #aeb7c2;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .lessonCheckVisual {
+    border-color: #8ca89d;
+    background: #eef5f2;
+  }
+
+  .lessonCompleteButton {
+    margin-top: 3px;
+    padding: 0;
+
+    &[aria-pressed="true"] {
+      border-color: #28634f;
+      background: #28634f;
+    }
+
+    &:hover:not(:disabled) {
+      border-color: #28634f;
+    }
+  }
+
+  .lessonCardContent {
+    min-width: 0;
+
+    h2 {
+      margin: 6px 0 4px;
+      color: #1d293b;
+      font-size: 16px;
+      font-weight: 680;
+      overflow-wrap: anywhere;
+    }
+
+    > p {
+      margin: 0;
+      color: #697486;
+      font-size: 13px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  .lessonCardTopline {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .lessonTypeBadge {
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #e7f0ec;
+    color: #28634f;
+    font-size: 10px;
+    font-weight: 760;
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
+
+    &.group {
+      background: #eeeafb;
+      color: #6250a5;
+    }
+  }
+
+  .lessonDueDate {
+    color: #8993a2;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .lessonGroupTags,
+  .groupMemberList {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    span {
+      padding: 4px 8px;
+      border: 1px solid #ded9f4;
+      border-radius: 6px;
+      background: #f7f5fc;
+      color: #6250a5;
+      font-size: 10px;
+      font-weight: 650;
+    }
+  }
+
+  .lessonProgressSummary {
+    margin-top: 13px;
+    display: grid;
+    grid-template-columns: auto minmax(80px, 170px);
+    align-items: center;
+    gap: 10px;
+
+    > span {
+      color: #7a8493;
+      font-size: 11px;
+      font-weight: 620;
+    }
+
+    > div {
+      height: 5px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e7eaee;
+
+      i {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: #4b8b73;
+      }
+    }
+  }
+
+  .lessonCardActions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    button {
+      padding: 6px 8px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: #627084;
+      font-size: 11px;
+      font-weight: 680;
+
+      &:hover {
+        background: #eef1f4;
+      }
+
+      &.danger {
+        color: #b23838;
+
+        &:hover {
+          background: #fff0f0;
+        }
+      }
+    }
+  }
+
+  .lessonsEmptyState {
+    min-height: 210px;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border: 1px dashed #cbd1d9;
+    border-radius: 11px;
+    color: #818b99;
+    text-align: center;
+
+    strong {
+      color: #586476;
+      font-size: 14px;
+    }
+
+    span {
+      font-size: 12px;
+    }
+
+    &.wide {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .lessonEditorPanel {
+    width: min(830px, 100%);
+    margin: 20px auto 0;
+    padding: 22px;
+    border: 1px solid #d5dae2;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 8px 24px rgba(27, 39, 57, 0.07);
+
+    form > label,
+    .lessonFormGrid > label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    form > label + label {
+      margin-top: 15px;
+    }
+
+    label > span,
+    legend {
+      color: #566274;
+      font-size: 12px;
+      font-weight: 680;
+    }
+
+    input[type="text"],
+    input[type="search"],
+    input:not([type]),
+    input[type="datetime-local"],
+    textarea {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid #c5ccd6;
+      border-radius: 8px;
+      outline: 0;
+      background: #ffffff;
+      color: #263247;
+      font-size: 13px;
+
+      &:focus {
+        border-color: #4b8b73;
+        box-shadow: 0 0 0 3px rgba(75, 139, 115, 0.13);
+      }
+    }
+
+    textarea {
+      resize: vertical;
+    }
+  }
+
+  .lessonPanelHeading {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+
+    h2 {
+      margin: 3px 0 0;
+      color: #1b2739;
+      font-size: 20px;
+      font-weight: 700;
+    }
+  }
+
+  .lessonFormGrid {
+    margin-top: 17px;
+    display: grid;
+    grid-template-columns: minmax(280px, 1.4fr) minmax(210px, 1fr);
+    align-items: flex-start;
+    gap: 18px;
+
+    fieldset {
+      display: grid;
+      gap: 7px;
+    }
+
+    legend {
+      margin-bottom: 7px;
+    }
+  }
+
+  .lessonChoice {
+    padding: 9px 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    border: 1px solid #d6dbe2;
+    border-radius: 8px;
+
+    input {
+      margin-top: 3px;
+      accent-color: #28634f;
+    }
+
+    strong,
+    small {
+      display: block;
+    }
+
+    strong {
+      color: #344156;
+      font-size: 12px;
+    }
+
+    small {
+      margin-top: 2px;
+      color: #7e8897;
+      font-size: 10px;
+      font-weight: 500;
+    }
+  }
+
+  .lessonGroupPicker {
+    margin-top: 18px;
+    padding: 14px;
+    border: 1px solid #d8d4eb;
+    border-radius: 9px;
+    background: #faf9fe;
+
+    > p {
+      margin: 5px 0 0;
+      color: #756d91;
+      font-size: 12px;
+    }
+
+    > div {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 7px;
+
+      label {
+        padding: 8px 9px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid #dfdbee;
+        border-radius: 7px;
+        background: #ffffff;
+
+        input {
+          accent-color: #6250a5;
+        }
+
+        span,
+        small {
+          display: block;
+        }
+
+        small {
+          margin-top: 1px;
+          color: #8b849f;
+          font-size: 9px;
+        }
+      }
+    }
+  }
+
+  .lessonFormActions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .groupCardGrid {
+    margin-top: 19px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+    gap: 12px;
+  }
+
+  .groupCard {
+    padding: 17px;
+    border: 1px solid #d9dde4;
+    border-radius: 11px;
+    background: #ffffff;
+    box-shadow: 0 3px 10px rgba(27, 39, 57, 0.045);
+  }
+
+  .groupCardHeading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+
+    > div:first-child {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h2 {
+      margin: 0;
+      color: #253247;
+      font-size: 14px;
+      font-weight: 690;
+    }
+
+    p {
+      margin: 2px 0 0;
+      color: #8993a2;
+      font-size: 10px;
+    }
+  }
+
+  .groupAvatar,
+  .studentInitial {
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #ebe7f8;
+    color: #6250a5;
+    font-weight: 750;
+  }
+
+  .groupAvatar {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    font-size: 12px;
+  }
+
+  .groupMemberList {
+    padding-top: 10px;
+    border-top: 1px solid #edf0f3;
+
+    span {
+      border-color: #e1e4e9;
+      background: #f7f8f9;
+      color: #677284;
+    }
+
+    em {
+      color: #939ba7;
+      font-size: 11px;
+    }
+  }
+
+  .groupEditorPanel {
+    width: min(760px, 100%);
+  }
+
+  .groupStudentHeader {
+    margin-top: 18px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px;
+
+    strong,
+    span {
+      display: block;
+    }
+
+    strong {
+      color: #4a5668;
+      font-size: 12px;
+    }
+
+    span {
+      margin-top: 2px;
+      color: #8a93a1;
+      font-size: 10px;
+    }
+
+    input {
+      max-width: 260px;
+    }
+  }
+
+  .groupStudentList {
+    max-height: 300px;
+    margin-top: 10px;
+    overflow: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 7px;
+
+    > label {
+      padding: 8px 9px;
+      display: grid;
+      grid-template-columns: auto auto minmax(0, 1fr);
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #e0e4e9;
+      border-radius: 8px;
+
+      > input {
+        accent-color: #28634f;
+      }
+
+      strong,
+      small {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      strong {
+        color: #455166;
+        font-size: 11px;
+      }
+
+      small {
+        color: #8a93a1;
+        font-size: 9px;
+      }
+    }
+  }
+
+  .studentInitial {
+    width: 28px;
+    height: 28px;
+    font-size: 10px;
+  }
+
+  .lessonMutedText {
+    padding: 20px;
+    color: #8a93a1;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  .studentLessonFilters {
+    margin-top: 24px;
+    display: inline-flex;
+    gap: 3px;
+    padding: 3px;
+    border: 1px solid #d6dbe2;
+    border-radius: 9px;
+    background: #e9edf1;
+
+    button {
+      padding: 7px 11px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: #6b7687;
+      font-size: 11px;
+      font-weight: 680;
+
+      &.active {
+        background: #ffffff;
+        color: #28634f;
+        box-shadow: 0 2px 6px rgba(27, 39, 57, 0.08);
+      }
+    }
+  }
+
+  .lessonsLoading {
+    position: sticky;
+    bottom: 14px;
+    width: max-content;
+    margin: 18px auto 0;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: rgba(24, 36, 52, 0.88);
+    color: #ffffff;
+    font-size: 11px;
+    box-shadow: 0 5px 18px rgba(24, 36, 52, 0.16);
+  }
+
+  @media (max-width: 780px) {
+    .lessonsHeader {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .lessonsHeaderActions {
+      width: 100%;
+    }
+
+    .lessonsHeaderActions label {
+      flex: 1;
+    }
+
+    .lessonsHeaderActions select {
+      width: 100%;
+    }
+
+    .lessonFormGrid {
+      grid-template-columns: 1fr;
+    }
+  }
+}
