@@ -59,6 +59,7 @@ Criar uma suíte objetiva, rápida e útil para proteger a evolução do simulad
 - Professor cria grupos com alunos da mesma turma e vincula atividades em grupo; cada aluno visualiza somente tarefas dos grupos dos quais participa, enquanto o professor acompanha todos os grupos e atividades da turma.
 - Backend rejeita grupo com aluno de outra turma, atividade em grupo sem grupo válido, URL do Ouro Moderno com protocolo inseguro e tentativa de aluno de administrar atividades ou grupos.
 - Montagem de PC aceita uma configuração completa e compatível, rejeita incompatibilidades de socket, memória, gabinete, vídeo, fonte, conectores, refrigeração e sistema operacional, e informa reduções de velocidade quando aplicáveis.
+- Montagem de PC oferece ilustração acessível para todas as categorias, alterna entre vistas 2D e 3D sem alterar a seleção e mantém catálogo, telemetria e galeria como regiões visuais separadas.
 - Toda tentativa de ligar um PC é recalculada no backend e persistida como sucesso ou explosão; listagem, detalhe e exclusão da galeria são filtrados pelo usuário autenticado.
 - Quando a build muda, sessões são invalidadas, caches são limpos e o cliente recarrega automaticamente para a nova versão.
 - Cenário educacional inicia, salva progresso e retoma.

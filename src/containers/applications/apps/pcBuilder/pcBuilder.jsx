@@ -133,11 +133,13 @@ export const PcBuilder = () => {
         <header className="pcBuilderTopbar">
           <div className="pcBuilderBrand">
             <span className="pcBuilderBrandMark" aria-hidden="true">
-              PC
+              <i />
+              <i />
+              <i />
             </span>
             <span>
-              <strong>Montagem de PC</strong>
-              <small>Laboratório de hardware</small>
+              <strong>PC LAB</strong>
+              <small>Construa. Teste. Ligue.</small>
             </span>
           </div>
           <nav aria-label="Navegação do app Montagem de PC">
@@ -146,20 +148,42 @@ export const PcBuilder = () => {
               className={activeView === "builder" ? "active" : ""}
               onClick={() => setActiveView("builder")}
             >
-              Montagem
+              <span aria-hidden="true">◇</span>
+              <span>
+                <strong>Montagem</strong>
+                <small>Bancada interativa</small>
+              </span>
             </button>
             <button
               type="button"
               className={activeView === "gallery" ? "active" : ""}
               onClick={() => setActiveView("gallery")}
             >
-              Galeria
-              {builds.length > 0 && <span>{builds.length}</span>}
+              <span aria-hidden="true">▦</span>
+              <span>
+                <strong>Galeria</strong>
+                <small>Seus projetos</small>
+              </span>
+              {builds.length > 0 && <i>{builds.length}</i>}
             </button>
           </nav>
-          <div className="pcBuilderUser">
-            <small>Montador</small>
-            <strong>{user?.name || "Aluno"}</strong>
+          <div className="pcBuilderTopStatus">
+            <span className="pcBuilderSync">
+              <i aria-hidden="true" />
+              <span>
+                <small>PROJETO AO VIVO</small>
+                <strong>{Object.keys(selection).length}/10 peças</strong>
+              </span>
+            </span>
+            <div className="pcBuilderUser">
+              <span aria-hidden="true">
+                {(user?.name || "A").charAt(0).toUpperCase()}
+              </span>
+              <span>
+                <small>Montador</small>
+                <strong>{user?.name || "Aluno"}</strong>
+              </span>
+            </div>
           </div>
         </header>
 

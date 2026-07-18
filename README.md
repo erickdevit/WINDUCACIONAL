@@ -12,7 +12,7 @@ O objetivo do produto é oferecer uma plataforma de simulação com cenários ed
 - Diretório persistente para discos virtuais por usuário.
 - Stack Docker pronta para aplicação e banco.
 - Experiência visual inspirada em ambiente desktop, com aplicativos simulados em `src/containers/applications/apps`.
-- Simulador Montagem de PC com catálogo explicativo, validação técnica autoritativa e galeria persistente por usuário.
+- Simulador Montagem de PC com catálogo ilustrado, bancada alternável entre 2D e 3D, validação técnica autoritativa e galeria visual persistente por usuário.
 - Suíte inicial de testes automatizados com Vitest.
 
 ## Direção Do Produto
