@@ -66,7 +66,9 @@ function App() {
   const isExamStandaloneRoute =
     directPath === "/avaliacoes" || directPath === "/provas";
   const isStandaloneRoute =
-    isAttendanceStandaloneRoute || isExamStandaloneRoute || isTypingStandaloneRoute;
+    isAttendanceStandaloneRoute ||
+    isExamStandaloneRoute ||
+    isTypingStandaloneRoute;
   const apps = useSelector((state) => state.apps);
   const wall = useSelector((state) => state.wallpaper);
   const files = useSelector((state) => state.files);
@@ -537,10 +539,14 @@ function App() {
           <Background />
           <div className="desktop" data-menu="desk">
             <DesktopApp />
-            {Object.keys(Applications).map((key, idx) => {
-              var WinApp = Applications[key];
-              return <WinApp key={idx} />;
-            })}
+            {Object.entries(Applications)
+              .filter(
+                ([name, component]) =>
+                  /^[A-Z]/.test(name) && typeof component === "function"
+              )
+              .map(([name, WinApp]) => (
+                <WinApp key={name} />
+              ))}
             {Object.keys(apps)
               .filter((x) => x != "hz")
               .map((key) => apps[key])

@@ -5,7 +5,7 @@ import { VitePWA } from "vite-plugin-pwa";
 const config = ({ mode }) => {
   return defineConfig({
     plugins: [
-      react(),
+      react({ fastRefresh: mode !== "test" }),
       VitePWA({
         registerType: "autoUpdate",
         includeAssets: ["favicon.ico", "favicon.png", "img/**/*", "font/**/*"],
