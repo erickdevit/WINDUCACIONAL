@@ -345,6 +345,18 @@ export const api = {
     request(`/api/lessons/groups/${id}`, {
       method: "DELETE",
     }),
+  // --- Montagem de PC ---
+  getPcBuilds: () => request("/api/pc-builder/builds"),
+  getPcBuild: (id) => request(`/api/pc-builder/builds/${id}`),
+  savePcBuild: (payload) =>
+    request("/api/pc-builder/builds", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  deletePcBuild: (id) =>
+    request(`/api/pc-builder/builds/${id}`, {
+      method: "DELETE",
+    }),
   // --- Frequência ---
   getMyAttendance: () => request("/api/attendance/me"),
   getAttendanceSummary: ({ startDate, endDate, turmaId } = {}) => {

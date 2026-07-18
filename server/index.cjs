@@ -1417,7 +1417,10 @@ const sendUserNotification = (userId, notification) => {
 };
 
 const getOnlinePvpUsers = (viewer, overrideTurmaId) => {
-  const turmaId = overrideTurmaId && viewer.role === "professor" ? String(overrideTurmaId) : String(viewer.turma_id);
+  const turmaId =
+    overrideTurmaId && viewer.role === "professor"
+      ? String(overrideTurmaId)
+      : String(viewer.turma_id);
   if (!turmaId || turmaId === "undefined" || turmaId === "null") return [];
   return Array.from(onlineUsers.values())
     .filter(
@@ -1701,6 +1704,7 @@ require("./routes/turmas.cjs")(routeContext);
 require("./routes/typing.cjs")(routeContext);
 require("./routes/exams.cjs")(routeContext);
 require("./routes/lessons.cjs")(routeContext);
+require("./routes/pcBuilder.cjs")(routeContext);
 require("./routes/notifications.cjs")(routeContext);
 require("./routes/chat.cjs")(routeContext);
 require("./routes/imagegen.cjs")(routeContext);

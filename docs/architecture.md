@@ -46,7 +46,8 @@ As janelas devem permanecer sempre dentro da área útil do desktop, limitada pe
 
 - `vite.config.js`: build Vite e configuração PWA.
 - `server/index.cjs`: raiz de composição do backend. Concentra configuração, pool PostgreSQL, helpers compartilhados, middleware de autenticação, estado em memória (clientes SSE, usuários online) e a função `start()`. Monta `routeContext` com as dependências compartilhadas e injeta os módulos de rota. Exporta `{ app, start }` e só executa `start()` quando rodado diretamente (`require.main === module`), permitindo carregá-lo em testes sem subir o servidor.
-- `server/routes/*.cjs`: rotas agrupadas por domínio (`auth`, `users`, `turmas`, `booklets`, `attendance`, `fs`, `exams`, `lessons`, `typing`, `notifications`, `chat`, `gestor`, `edgeProxy`, `imagegen`). Cada módulo exporta uma função injetora `inject<Dominio>Routes(ctx)` que recebe o `routeContext`, seguindo o mesmo padrão de `server/typingPvp.cjs`.
+- `server/routes/*.cjs`: rotas agrupadas por domínio (`auth`, `users`, `turmas`, `booklets`, `attendance`, `fs`, `exams`, `lessons`, `pcBuilder`, `typing`, `notifications`, `chat`, `gestor`, `edgeProxy`, `imagegen`). Cada módulo exporta uma função injetora `inject<Dominio>Routes(ctx)` que recebe o `routeContext`, seguindo o mesmo padrão de `server/typingPvp.cjs`.
+- `server/domain/pcBuilderCatalog.mjs` e `server/domain/pcBuilderRules.mjs`: catálogo de peças e regras puras compartilhadas entre frontend e backend do Montagem de PC. O cliente usa as regras para retorno imediato, enquanto o servidor recalcula o resultado antes de persistir.
 - `server/db/migrations/`: migrations versionadas do PostgreSQL (`0001_baseline.sql` consolida o schema inicial).
 - `server/db/migrate.cjs`: runner de migrations executado no boot.
 - `Dockerfile`: empacotamento da aplicação.
@@ -86,6 +87,8 @@ O app Fotos é o visualizador interno para imagens armazenadas no disco virtual.
 O endereço usado pelo app ITB Ouro Moderno é uma configuração global persistida em `app_metadata`, sob a chave `ouro_moderno_url`. Qualquer usuário autenticado pode consultar o endereço para abrir o app interno, mas somente professores podem alterá-lo pela área de Integrações do Gestor. O backend aceita apenas URLs HTTP ou HTTPS sem credenciais embutidas e mantém o endereço atual como valor padrão enquanto não houver configuração gravada.
 
 O app Lições usa `lesson_groups`, `lesson_group_members`, `lessons`, `lesson_group_assignments` e `lesson_student_progress`. Professores administram grupos e atividades de qualquer turma. Atividades solo são disponibilizadas a todos os alunos da turma; atividades em grupo são visíveis somente aos membros dos grupos vinculados pelo professor. O progresso é individual e permite ao aluno marcar ou desmarcar a própria atividade como concluída, sem nota, correção ou efeito sobre o app Avaliação. Toda seleção de turma, grupo e aluno é validada novamente no backend.
+
+O app Montagem de PC organiza a experiência em duas views internas, Montagem e Galeria, acessadas por uma top bar. A seleção de cada categoria abre um modal explicativo com função, conexão e especificações das peças. Ao ligar, `validatePcBuild` verifica presença dos componentes, socket, formato físico, memória, interfaces e portas, conectores, potência e folga da fonte, refrigeração, vídeo e requisitos do sistema operacional. O backend repete a validação, grava cada tentativa em `pc_builds` com o resultado `success` ou `explosion` e usa sempre o `user_id` da sessão. A galeria lista somente as montagens do usuário autenticado e separa visualização detalhada e exclusão em modais próprios.
 
 ## Arquitetura Alvo
 

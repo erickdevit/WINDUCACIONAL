@@ -75,6 +75,7 @@ var { taskbar, desktop, pinned, recent } = {
     "Atalhos",
     "Avaliação",
     "Lições",
+    "Montagem de PC",
   ]),
   pinned: readStoredList("pinned", [
     "Navegador",
@@ -155,6 +156,13 @@ desktop = seedStoredApps(
   "desktop",
   "desktop-seed-lessons-v1",
   ["Lições"],
+  desktop
+);
+
+desktop = seedStoredApps(
+  "desktop",
+  "desktop-seed-pc-builder-v1",
+  ["Montagem de PC"],
   desktop
 );
 

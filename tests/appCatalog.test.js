@@ -50,6 +50,22 @@ describe("Catálogo de apps", () => {
     expect(desktopApps.map((item) => item.name)).toContain("Lições");
   });
 
+  it("deve registrar Montagem de PC para todos os alunos", async () => {
+    vi.stubGlobal("localStorage", createStorage());
+
+    const { allApps, desktopApps } = await import("../src/utils");
+    const app = allApps.find((item) => item.name === "Montagem de PC");
+
+    expect(app).toMatchObject({
+      name: "Montagem de PC",
+      icon: "pcBuilder",
+      action: "PCBUILDERAPP",
+      type: "app",
+    });
+    expect(app.studentAccess).toBeUndefined();
+    expect(desktopApps.map((item) => item.name)).toContain("Montagem de PC");
+  });
+
   it("deve usar o ícone SVG local de lições", () => {
     const iconSource = fs.readFileSync(
       new URL("../src/utils/general.jsx", import.meta.url),
@@ -58,6 +74,16 @@ describe("Catálogo de apps", () => {
 
     expect(iconSource).toContain('props.src === "lessons"');
     expect(iconSource).toContain("img/icon/lessons.svg");
+  });
+
+  it("deve reutilizar o ícone local de computador para Montagem de PC", () => {
+    const iconSource = fs.readFileSync(
+      new URL("../src/utils/general.jsx", import.meta.url),
+      "utf8"
+    );
+
+    expect(iconSource).toContain('props.src === "pcBuilder"');
+    expect(iconSource).toContain("img/icon/win/thispc.png");
   });
 
   it("deve registrar o app Atalhos na área de trabalho", async () => {
@@ -172,6 +198,7 @@ describe("Catálogo de apps", () => {
       "Apostilas",
       "Avaliação",
       "Lições",
+      "Montagem de PC",
       "Word",
       "Gerador de Imagens",
     ]);
@@ -201,6 +228,10 @@ describe("Catálogo de apps", () => {
     );
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
       "desktop-seed-lessons-v1",
+      "true"
+    );
+    expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      "desktop-seed-pc-builder-v1",
       "true"
     );
     expect(localStorageMock.setItem).toHaveBeenCalledWith(

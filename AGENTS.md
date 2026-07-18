@@ -94,6 +94,7 @@ docker compose -f compose.dev.yml up -d
 - O app Fotos é o visualizador interno de imagens do sistema; arquivos `png`, `jpg`, `jpeg`, `webp` e `gif` abertos pelo Explorer devem usar a ação `PHOTOS` e receber ícone próprio no Explorer.
 - O app ITB Ouro Moderno obtém sua URL do backend pela chave global `ouro_moderno_url` de `app_metadata`; somente professores podem alterá-la pela área de Integrações do Gestor, e o servidor deve aceitar apenas URLs HTTP ou HTTPS sem credenciais embutidas.
 - O app Lições mantém atividades separadas por turma. Professores controlam grupos, membros e atividades solo ou em grupo; alunos veem somente atividades solo da própria turma e atividades dos grupos dos quais participam, podendo alterar apenas o próprio progresso. Lições não calculam nota e não devem reutilizar o domínio de Avaliação.
+- O app Montagem de PC usa o catálogo e as regras compartilhadas em `server/domain/pcBuilder*.mjs`. Toda tentativa de ligar o computador deve ser validada novamente pelo backend, e o histórico em `pc_builds` deve permanecer isolado pelo usuário autenticado. Alterações de compatibilidade precisam manter frontend, API e testes de domínio sincronizados.
 - Games dentro do app de Digitação Normal devem ficar separados das lições tradicionais. O modo PVP só deve ser liberado como partida real depois de existir backend com convite, sincronização em tempo real, validação de mesma turma, cálculo de vencedor no servidor e ranking persistido separado.
 
 ## Regras De Segurança
