@@ -56,6 +56,7 @@ O comando `eval` legado do terminal foi removido durante a primeira implementaç
 - Lições e grupos devem ser autorizados por turma no backend. Alunos só podem listar atividades solo da própria turma ou atividades vinculadas a um grupo do qual participem, e só podem alterar o próprio progresso. IDs de turma, grupo, atividade e aluno enviados pelo frontend não são fonte de autorização.
 - Montagens de PC devem ser recalculadas no backend a partir de IDs reconhecidos pelo catálogo; o resultado, a potência e os diagnósticos enviados pelo cliente não são fonte de verdade. Consultas e exclusões de `pc_builds` devem usar simultaneamente o ID público e o `user_id` da sessão para impedir acesso à galeria de outro usuário.
 - Mudança de versão da build invalida sessões no banco e força limpeza de caches no cliente; esse fluxo não deve expor tokens nem depender de dados sensíveis em `localStorage`.
+- O app Desenho da Turma aceita somente traços vetoriais normalizados: pontos entre 0 e 1, quantidade, espessura e cor limitadas. O servidor deriva o desenho individual do usuário autenticado ou o quadro coletivo da atividade e nunca aceita ID de aluno do cliente como autorização. Em atividades individuais, eventos SSE e consultas de aluno retornam somente o próprio desenho; apenas professores recebem o mosaico da turma. No modo caos, o evento é compartilhado exclusivamente com participantes da mesma turma.
 
 ## Requisitos Para PostgreSQL
 

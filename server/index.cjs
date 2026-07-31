@@ -1704,6 +1704,7 @@ require("./routes/turmas.cjs")(routeContext);
 require("./routes/typing.cjs")(routeContext);
 require("./routes/exams.cjs")(routeContext);
 require("./routes/lessons.cjs")(routeContext);
+require("./routes/drawing.cjs")(routeContext);
 require("./routes/pcBuilder.cjs")(routeContext);
 require("./routes/notifications.cjs")(routeContext);
 require("./routes/chat.cjs")(routeContext);

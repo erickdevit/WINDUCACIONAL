@@ -66,6 +66,21 @@ describe("Catálogo de apps", () => {
     expect(desktopApps.map((item) => item.name)).toContain("Montagem de PC");
   });
 
+  it("deve registrar Desenho da Turma na área de trabalho", async () => {
+    vi.stubGlobal("localStorage", createStorage());
+
+    const { allApps, desktopApps } = await import("../src/utils");
+    const app = allApps.find((item) => item.name === "Desenho da Turma");
+
+    expect(app).toMatchObject({
+      name: "Desenho da Turma",
+      icon: "drawing",
+      action: "DRAWINGAPP",
+      type: "app",
+    });
+    expect(desktopApps.map((item) => item.name)).toContain("Desenho da Turma");
+  });
+
   it("deve usar o ícone SVG local de lições", () => {
     const iconSource = fs.readFileSync(
       new URL("../src/utils/general.jsx", import.meta.url),
@@ -198,6 +213,7 @@ describe("Catálogo de apps", () => {
       "Apostilas",
       "Avaliação",
       "Lições",
+      "Desenho da Turma",
       "Montagem de PC",
       "Word",
       "Gerador de Imagens",
@@ -228,6 +244,10 @@ describe("Catálogo de apps", () => {
     );
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
       "desktop-seed-lessons-v1",
+      "true"
+    );
+    expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      "desktop-seed-drawing-v1",
       "true"
     );
     expect(localStorageMock.setItem).toHaveBeenCalledWith(

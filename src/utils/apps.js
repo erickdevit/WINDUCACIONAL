@@ -238,6 +238,12 @@ const apps = [
     action: "LESSONSAPP",
   },
   {
+    name: "Desenho da Turma",
+    icon: "drawing",
+    type: "app",
+    action: "DRAWINGAPP",
+  },
+  {
     name: "Montagem de PC",
     icon: "pcBuilder",
     type: "app",

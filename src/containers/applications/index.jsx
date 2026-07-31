@@ -26,6 +26,7 @@ export * from "./apps/attendance";
 export * from "./apps/booklets";
 export * from "./apps/exam";
 export * from "./apps/lessons";
+export * from "./apps/drawing";
 export * from "./apps/pcBuilder";
 export * from "./apps/ouroModerno";
 export * from "./apps/word";

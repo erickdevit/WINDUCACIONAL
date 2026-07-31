@@ -345,6 +345,58 @@ export const api = {
     request(`/api/lessons/groups/${id}`, {
       method: "DELETE",
     }),
+  // --- Desenho da turma ---
+  getDrawingActive: () => request("/api/drawing/active"),
+  getDrawingActivities: ({ turmaId, status, mode } = {}) => {
+    const params = new URLSearchParams();
+    if (turmaId) params.set("turmaId", turmaId);
+    if (status) params.set("status", status);
+    if (mode) params.set("mode", mode);
+    const suffix = params.toString() ? `?${params.toString()}` : "";
+    return request(`/api/drawing/activities${suffix}`);
+  },
+  createDrawingActivity: (payload) =>
+    request("/api/drawing/activities", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  getDrawingActivity: (id) => request(`/api/drawing/activities/${id}`),
+  saveDrawingStrokes: (id, payload) =>
+    request(`/api/drawing/activities/${id}/strokes`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  closeDrawingActivity: (id) =>
+    request(`/api/drawing/activities/${id}/close`, {
+      method: "POST",
+      body: JSON.stringify({}),
+    }),
+  chooseDrawingWinner: (id, winnerId) =>
+    request(`/api/drawing/activities/${id}/winner`, {
+      method: "POST",
+      body: JSON.stringify({ winnerId }),
+    }),
+  subscribeDrawing: (id, { onEvent, onError } = {}) => {
+    if (typeof EventSource === "undefined") return { close: () => {} };
+    const source = new EventSource(`/api/drawing/activities/${id}/events`, {
+      withCredentials: true,
+    });
+    const handleEvent = (event) => {
+      try {
+        onEvent?.(JSON.parse(event.data || "{}"));
+      } catch (err) {
+        onError?.(err);
+      }
+    };
+    source.addEventListener("drawing", handleEvent);
+    source.onerror = (err) => onError?.(err);
+    return {
+      close: () => {
+        source.removeEventListener("drawing", handleEvent);
+        source.close();
+      },
+    };
+  },
   // --- Montagem de PC ---
   getPcBuilds: () => request("/api/pc-builder/builds"),
   getPcBuild: (id) => request(`/api/pc-builder/builds/${id}`),
