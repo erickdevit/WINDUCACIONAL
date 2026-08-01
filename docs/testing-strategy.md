@@ -85,6 +85,7 @@ Criar uma suíte objetiva, rápida e útil para proteger a evolução do simulad
 - Endpoints backend novos devem ter teste de sucesso, erro de validação e autorização quando aplicável.
 - Fluxos em tempo real devem ter teste cobrindo contrato do endpoint de evento ou do cliente que consome o evento, além da atualização do estado visível no frontend.
 - Desenho da Turma: professor cria atividade somente para turma ativa; aluno só acessa atividade da própria turma e recebe por SSE apenas o próprio desenho individual; traços fora dos limites são rejeitados; modo individual mantém um desenho por aluno e mosaico completo exclusivo do professor; modo caos acrescenta traços atomicamente no quadro compartilhado da turma; SSE atualiza mosaico e quadro selecionado; vencedor deve ser aluno ativo da turma com desenho persistido; histórico preserva vencedor, tema, turma e desenho vencedor.
+- Apps ocultos não devem manter assinaturas SSE específicas abertas; a criação de turma deve continuar disponível durante o carregamento da listagem, e um UUID completo retornado pela API de turmas deve ser aceito ao criar uma atividade de desenho.
 
 ## Critério De Aceite Futuro
 

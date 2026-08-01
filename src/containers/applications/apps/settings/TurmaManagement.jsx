@@ -20,25 +20,24 @@ export const TurmaManagement = ({ currentUser, onBack }) => {
   const [editForm, setEditForm] = useState(null);
   const [selectedId, setSelectedId] = useState("");
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(false);
+  const [saving, setSaving] = useState(false);
   const isProfessor = currentUser.role === "professor";
   const isStaff = currentUser.role !== "aluno";
 
   const loadData = async () => {
     if (!isStaff) return;
-    setLoading(true);
+    setLoadingData(true);
     try {
-      const [turmasRes, usersRes] = await Promise.all([
-        api.getTurmas(),
-        api.getUsers(),
-      ]);
+      const turmasRes = await api.getTurmas();
       setTurmas(turmasRes.turmas || []);
+      const usersRes = await api.getUsers();
       setUsers(usersRes.users || []);
       setMessage("");
     } catch (error) {
       setMessage(error.message);
     } finally {
-      setLoading(false);
+      setLoadingData(false);
     }
   };
 
@@ -141,7 +140,7 @@ export const TurmaManagement = ({ currentUser, onBack }) => {
 
   const submitCreate = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setSaving(true);
     setMessage("");
     try {
       await api.createTurma(createForm);
@@ -152,14 +151,14 @@ export const TurmaManagement = ({ currentUser, onBack }) => {
     } catch (error) {
       setMessage(error.message);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   const submitEdit = async (e) => {
     e.preventDefault();
     if (!selectedId) return;
-    setLoading(true);
+    setSaving(true);
     setMessage("");
     try {
       await api.updateTurma(selectedId, editForm);
@@ -169,7 +168,7 @@ export const TurmaManagement = ({ currentUser, onBack }) => {
     } catch (error) {
       setMessage(error.message);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -182,7 +181,7 @@ export const TurmaManagement = ({ currentUser, onBack }) => {
       )
     )
       return;
-    setLoading(true);
+    setSaving(true);
     try {
       await api.deleteTurma(turmaId);
       if (selectedId === turmaId) {
@@ -193,7 +192,7 @@ export const TurmaManagement = ({ currentUser, onBack }) => {
     } catch (error) {
       setMessage(error.message);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -267,7 +266,9 @@ export const TurmaManagement = ({ currentUser, onBack }) => {
         style={{ marginTop: "14px" }}
       >
         <div className="turmaList">
-          {turmas.length === 0 ? (
+          {loadingData && turmas.length === 0 ? (
+            <p>Carregando turmas...</p>
+          ) : turmas.length === 0 ? (
             <p>Nenhuma turma cadastrada. Clique no botão acima para criar.</p>
           ) : (
             turmas.map((turma) => (
@@ -327,7 +328,7 @@ export const TurmaManagement = ({ currentUser, onBack }) => {
                 type="submit"
                 form="create-turma-form"
                 className="primaryDialogBtn"
-                disabled={loading}
+                disabled={saving}
               >
                 Salvar turma
               </button>
@@ -424,7 +425,7 @@ export const TurmaManagement = ({ currentUser, onBack }) => {
                   type="submit"
                   form="edit-turma-form"
                   className="primaryDialogBtn"
-                  disabled={loading}
+                  disabled={saving}
                 >
                   Salvar alterações
                 </button>

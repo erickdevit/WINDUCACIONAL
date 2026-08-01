@@ -160,6 +160,7 @@ const writeCachedSettings = (settings, cachePrefix) => {
 const useSyncedTypingSettings = ({
   studentType,
   isProfessor = false,
+  enabled = true,
   cachePrefix,
   normalizeSettings,
   loadSettings,
@@ -207,6 +208,11 @@ const useSyncedTypingSettings = ({
   }, [normalizedType]);
 
   useEffect(() => {
+    if (!enabled) {
+      setLoading(false);
+      return undefined;
+    }
+
     let active = true;
 
     const fetchSettings = async () => {
@@ -231,10 +237,10 @@ const useSyncedTypingSettings = ({
     return () => {
       active = false;
     };
-  }, [normalizedType, isProfessor, loadSettings]);
+  }, [enabled, normalizedType, isProfessor, loadSettings]);
 
   useEffect(() => {
-    if (typeof subscribeSettings !== "function") return undefined;
+    if (!enabled || typeof subscribeSettings !== "function") return undefined;
 
     const subscription = subscribeSettings(normalizedType, {
       onSettings: (nextSettings) => {
@@ -246,7 +252,7 @@ const useSyncedTypingSettings = ({
     return () => {
       subscription?.close?.();
     };
-  }, [normalizedType, subscribeSettings]);
+  }, [enabled, normalizedType, subscribeSettings]);
 
   const updateDraftSettings = (field, value) => {
     setDraftSettings((current) =>
@@ -296,10 +302,15 @@ const useSyncedTypingSettings = ({
   };
 };
 
-export const useTypingSettings = ({ studentType, isProfessor = false }) =>
+export const useTypingSettings = ({
+  studentType,
+  isProfessor = false,
+  enabled = true,
+}) =>
   useSyncedTypingSettings({
     studentType,
     isProfessor,
+    enabled,
     cachePrefix: "typingSettings",
     normalizeSettings: normalizeTypingSettings,
     loadSettings: api.getTypingSettings,
@@ -311,10 +322,15 @@ export const useTypingSettings = ({ studentType, isProfessor = false }) =>
     saveErrorText: "Não foi possível salvar as configurações.",
   });
 
-export const useTypingGameSettings = ({ studentType, isProfessor = false }) =>
+export const useTypingGameSettings = ({
+  studentType,
+  isProfessor = false,
+  enabled = true,
+}) =>
   useSyncedTypingSettings({
     studentType,
     isProfessor,
+    enabled,
     cachePrefix: "typingGameSettings",
     normalizeSettings: normalizeTypingGameSettings,
     loadSettings: api.getTypingGameSettings,

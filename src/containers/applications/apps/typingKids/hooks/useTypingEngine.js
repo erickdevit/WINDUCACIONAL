@@ -74,7 +74,7 @@ export const calculateMomentum = ({
   );
 };
 
-export const useTypingEngine = (user) => {
+export const useTypingEngine = (user, enabled = true) => {
   const [currentLesson, setCurrentLesson] = useState(null);
   const [userInput, setUserInput] = useState("");
   const [startTime, setStartTime] = useState(null);
@@ -95,6 +95,7 @@ export const useTypingEngine = (user) => {
   const typingSettings = useTypingSettings({
     studentType: "kids",
     isProfessor: user?.role === "professor",
+    enabled,
   });
   const maxErrors = typingSettings.settings.maxErrors;
   const passMinWpm = typingSettings.settings.passMinWpm;

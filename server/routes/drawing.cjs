@@ -1,7 +1,7 @@
 const crypto = require("node:crypto");
 
 const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}$/i;
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const HEX_COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
 const MAX_STROKES = 500;
 const MAX_POINTS_PER_STROKE = 500;
@@ -584,3 +584,5 @@ module.exports = function injectDrawingRoutes(ctx) {
     }
   );
 };
+
+module.exports.UUID_PATTERN = UUID_PATTERN;

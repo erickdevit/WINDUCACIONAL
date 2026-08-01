@@ -16,7 +16,8 @@ import "./typingKids.scss";
 export const TypingKidsApp = () => {
   const wnapp = useSelector((state) => state.apps.typingKids || {});
   const user = useSelector((state) => state.setting.person);
-  const engine = useTypingEngine(user);
+  const appVisible = wnapp.hide === false;
+  const engine = useTypingEngine(user, appVisible);
 
   const [view, setView] = useState("menu");
   const [rankingTab, setRankingTab] = useState("global");
@@ -36,6 +37,7 @@ export const TypingKidsApp = () => {
   const typingGameSettings = useTypingGameSettings({
     studentType: "kids",
     isProfessor: isStaff,
+    enabled: appVisible,
   });
   const gamePassMinWpm = typingGameSettings.settings.passMinWpm;
   const gamePassMinAccuracy = typingGameSettings.settings.passMinAccuracy;

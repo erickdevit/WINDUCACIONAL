@@ -137,10 +137,12 @@ export const TypingApp = ({ standalone = false }) => {
   const typingSettings = useTypingSettings({
     studentType: "normal",
     isProfessor: isStaff,
+    enabled: standalone || wnapp.hide === false,
   });
   const typingGameSettings = useTypingGameSettings({
     studentType: "normal",
     isProfessor: isStaff,
+    enabled: standalone || wnapp.hide === false,
   });
   const passMinWpm = typingSettings.settings.passMinWpm;
   const passMinAccuracy = typingSettings.settings.passMinAccuracy;

@@ -210,4 +210,29 @@ describe("Configurações de digitação", () => {
     expect(result.current.settings.gameSpeed).toBe(80);
     expect(result.current.settings.gameSpeedBoost).toBe(12);
   });
+
+  it("não abre requisições nem SSE enquanto o app está oculto", async () => {
+    const { rerender } = renderHook(
+      ({ enabled }) =>
+        useTypingSettings({
+          studentType: "normal",
+          isProfessor: false,
+          enabled,
+        }),
+      { initialProps: { enabled: false } }
+    );
+    await act(async () => {});
+
+    expect(api.getTypingSettings).not.toHaveBeenCalled();
+    expect(api.subscribeTypingSettings).not.toHaveBeenCalled();
+
+    rerender({ enabled: true });
+    await act(async () => {});
+
+    expect(api.getTypingSettings).toHaveBeenCalledTimes(1);
+    expect(api.subscribeTypingSettings).toHaveBeenCalledTimes(1);
+
+    rerender({ enabled: false });
+    expect(typingSettingsMock.close).toHaveBeenCalledTimes(1);
+  });
 });

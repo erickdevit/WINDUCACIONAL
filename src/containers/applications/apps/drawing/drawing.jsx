@@ -568,7 +568,9 @@ export const DrawingApp = () => {
   }, [isProfessor, loadStudent, wnapp?.hide]);
 
   useEffect(() => {
-    if (!activity?.id || activity.status !== "active") return undefined;
+    if (wnapp?.hide || !activity?.id || activity.status !== "active") {
+      return undefined;
+    }
     const subscription = api.subscribeDrawing(activity.id, {
       onEvent: (event) => {
         if (event.type === "strokes") {
@@ -606,7 +608,7 @@ export const DrawingApp = () => {
       onError: () => {},
     });
     return () => subscription.close();
-  }, [activity?.id, activity?.mode, activity?.status, isProfessor]);
+  }, [activity?.id, activity?.mode, activity?.status, isProfessor, wnapp?.hide]);
 
   const handleCreate = async (payload) => {
     setBusy(true);

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const drawingRoutes = require("../server/routes/drawing.cjs");
 
 const read = (relativePath) =>
   fs.readFileSync(new URL(relativePath, import.meta.url), "utf8");
@@ -46,6 +50,14 @@ describe("Desenho da Turma - persistência", () => {
 });
 
 describe("Desenho da Turma - isolamento e tempo real", () => {
+  it("aceita UUID completo de uma turma real", () => {
+    expect(
+      drawingRoutes.UUID_PATTERN.test("aa42bc8a-30d0-4131-8ba1-6023a3fb5578")
+    ).toBe(true);
+    expect(drawingRoutes.UUID_PATTERN.test("aa42bc8a-30d0-4131-8ba1"))
+      .toBe(false);
+  });
+
   it("limita alunos à própria turma e ao próprio desenho individual", () => {
     expect(route).toContain(
       'user.role !== "aluno" || user.turma_id !== activity.turma_id'
@@ -85,6 +97,12 @@ describe("Desenho da Turma - experiência", () => {
     expect(client).toContain("createDrawingActivity");
     expect(client).toContain("saveDrawingStrokes");
     expect(client).toContain("subscribeDrawing");
+  });
+
+  it("fecha a assinatura em tempo real quando a janela é ocultada", () => {
+    expect(app).toContain(
+      'if (wnapp?.hide || !activity?.id || activity.status !== "active")'
+    );
   });
 
   it("oferece painel, criação, histórico, mosaico e escolha de vencedor", () => {
