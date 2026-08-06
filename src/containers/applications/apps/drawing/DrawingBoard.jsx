@@ -11,6 +11,115 @@ export const DRAWING_COLORS = [
   "#dc2626",
 ];
 
+export const BRUSH_TYPES = [
+  { id: "brush", label: "Padrão" },
+  { id: "pencil", label: "Lápis" },
+  { id: "highlighter", label: "Marca-texto" },
+  { id: "crayon", label: "Giz de cera" },
+  { id: "spray", label: "Aerógrafo" },
+];
+
+export const BASIC_SHAPES = [
+  { id: "line", label: "Linha" },
+  { id: "rect", label: "Retângulo" },
+  { id: "circle", label: "Círculo" },
+  { id: "triangle", label: "Triângulo" },
+  { id: "star", label: "Estrela" },
+  { id: "arrow", label: "Seta" },
+  { id: "heart", label: "Coração" },
+];
+
+const drawShapePath = (ctx, shape, x0, y0, x1, y1) => {
+  ctx.beginPath();
+  if (shape === "line") {
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+    ctx.stroke();
+  } else if (shape === "rect") {
+    ctx.strokeRect(Math.min(x0, x1), Math.min(y0, y1), Math.abs(x1 - x0), Math.abs(y1 - y0));
+  } else if (shape === "circle") {
+    const cx = (x0 + x1) / 2;
+    const cy = (y0 + y1) / 2;
+    const rx = Math.abs(x1 - x0) / 2;
+    const ry = Math.abs(y1 - y0) / 2;
+    ctx.ellipse(cx, cy, Math.max(1, rx), Math.max(1, ry), 0, 0, 2 * Math.PI);
+    ctx.stroke();
+  } else if (shape === "triangle") {
+    const topX = (x0 + x1) / 2;
+    const topY = Math.min(y0, y1);
+    const leftX = Math.min(x0, x1);
+    const rightX = Math.max(x0, x1);
+    const botY = Math.max(y0, y1);
+    ctx.moveTo(topX, topY);
+    ctx.lineTo(rightX, botY);
+    ctx.lineTo(leftX, botY);
+    ctx.closePath();
+    ctx.stroke();
+  } else if (shape === "star") {
+    const cx = (x0 + x1) / 2;
+    const cy = (y0 + y1) / 2;
+    const rOuter = Math.min(Math.abs(x1 - x0), Math.abs(y1 - y0)) / 2;
+    const rInner = rOuter * 0.45;
+    for (let i = 0; i < 10; i++) {
+      const r = i % 2 === 0 ? rOuter : rInner;
+      const angle = -Math.PI / 2 + (i * Math.PI) / 5;
+      const sx = cx + Math.cos(angle) * r;
+      const sy = cy + Math.sin(angle) * r;
+      if (i === 0) ctx.moveTo(sx, sy);
+      else ctx.lineTo(sx, sy);
+    }
+    ctx.closePath();
+    ctx.stroke();
+  } else if (shape === "arrow") {
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+    ctx.stroke();
+    const angle = Math.atan2(y1 - y0, x1 - x0);
+    const headLen = 14;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(
+      x1 - headLen * Math.cos(angle - Math.PI / 6),
+      y1 - headLen * Math.sin(angle - Math.PI / 6)
+    );
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(
+      x1 - headLen * Math.cos(angle + Math.PI / 6),
+      y1 - headLen * Math.sin(angle + Math.PI / 6)
+    );
+    ctx.stroke();
+  } else if (shape === "heart") {
+    const minX = Math.min(x0, x1);
+    const maxX = Math.max(x0, x1);
+    const minY = Math.min(y0, y1);
+    const maxY = Math.max(y0, y1);
+    const width = maxX - minX;
+    const height = maxY - minY;
+    ctx.moveTo(minX + width / 2, minY + height / 4);
+    ctx.bezierCurveTo(
+      minX + width / 2, minY,
+      minX, minY,
+      minX, minY + height / 2
+    );
+    ctx.bezierCurveTo(
+      minX, minY + (height * 3) / 4,
+      minX + width / 2, maxY,
+      minX + width / 2, maxY
+    );
+    ctx.bezierCurveTo(
+      minX + width / 2, maxY,
+      maxX, minY + (height * 3) / 4,
+      maxX, minY + height / 2
+    );
+    ctx.bezierCurveTo(
+      maxX, minY,
+      minX + width / 2, minY,
+      minX + width / 2, minY + height / 4
+    );
+    ctx.stroke();
+  }
+};
+
 export const drawStrokes = (canvas, strokes = [], backgroundColor = "#ffffff") => {
   if (!canvas) return;
   const bounds = canvas.getBoundingClientRect();
@@ -23,21 +132,138 @@ export const drawStrokes = (canvas, strokes = [], backgroundColor = "#ffffff") =
   context.setTransform(scale, 0, 0, scale, 0, 0);
   context.fillStyle = backgroundColor;
   context.fillRect(0, 0, bounds.width, bounds.height);
-  context.lineCap = "round";
-  context.lineJoin = "round";
+
+  const w = bounds.width;
+  const h = bounds.height;
 
   strokes.forEach((stroke) => {
-    if (!Array.isArray(stroke.points) || stroke.points.length < 2) return;
-    context.strokeStyle = stroke.color;
-    context.lineWidth = stroke.width;
-    context.beginPath();
-    stroke.points.forEach((point, index) => {
-      const x = point.x * bounds.width;
-      const y = point.y * bounds.height;
-      if (index === 0) context.moveTo(x, y);
-      else context.lineTo(x, y);
-    });
-    context.stroke();
+    if (!Array.isArray(stroke.points) || stroke.points.length < 1) return;
+    const tool = stroke.tool || "brush";
+    const color = stroke.color || "#172033";
+    const baseWidth = stroke.width || 5;
+
+    context.save();
+
+    if (tool === "eraser") {
+      context.strokeStyle = backgroundColor;
+      context.fillStyle = backgroundColor;
+      context.lineWidth = Math.max(baseWidth * 2.5, 16);
+      context.lineCap = "round";
+      context.lineJoin = "round";
+      context.beginPath();
+      stroke.points.forEach((pt, i) => {
+        const x = pt.x * w;
+        const y = pt.y * h;
+        if (i === 0) context.moveTo(x, y);
+        else context.lineTo(x, y);
+      });
+      context.stroke();
+      context.restore();
+      return;
+    }
+
+    if (tool === "text" || stroke.text) {
+      const p0 = stroke.points[0];
+      const x = p0.x * w;
+      const y = p0.y * h;
+      const fontSize = stroke.fontSize || Math.max(14, baseWidth * 3.5);
+      context.fillStyle = color;
+      context.font = `bold ${fontSize}px 'Segoe UI', system-ui, sans-serif`;
+      context.textBaseline = "top";
+      context.fillText(stroke.text || "", x, y);
+      context.restore();
+      return;
+    }
+
+    if (tool === "shape" && stroke.shape) {
+      const p0 = stroke.points[0];
+      const p1 = stroke.points[stroke.points.length - 1] || p0;
+      const x0 = p0.x * w;
+      const y0 = p0.y * h;
+      const x1 = p1.x * w;
+      const y1 = p1.y * h;
+
+      context.strokeStyle = color;
+      context.lineWidth = baseWidth;
+      context.fillStyle = color;
+      drawShapePath(context, stroke.shape, x0, y0, x1, y1);
+      context.restore();
+      return;
+    }
+
+    context.strokeStyle = color;
+    context.fillStyle = color;
+
+    if (tool === "pencil") {
+      context.lineWidth = Math.max(1, baseWidth * 0.7);
+      context.lineCap = "butt";
+      context.lineJoin = "miter";
+      context.beginPath();
+      stroke.points.forEach((pt, i) => {
+        const x = pt.x * w;
+        const y = pt.y * h;
+        if (i === 0) context.moveTo(x, y);
+        else context.lineTo(x, y);
+      });
+      context.stroke();
+    } else if (tool === "highlighter") {
+      context.globalAlpha = 0.45;
+      context.lineWidth = baseWidth * 2.5;
+      context.lineCap = "square";
+      context.lineJoin = "miter";
+      context.beginPath();
+      stroke.points.forEach((pt, i) => {
+        const x = pt.x * w;
+        const y = pt.y * h;
+        if (i === 0) context.moveTo(x, y);
+        else context.lineTo(x, y);
+      });
+      context.stroke();
+    } else if (tool === "crayon") {
+      context.globalAlpha = 0.85;
+      context.lineWidth = baseWidth * 1.3;
+      context.lineCap = "round";
+      context.beginPath();
+      stroke.points.forEach((pt, i) => {
+        const x = pt.x * w;
+        const y = pt.y * h;
+        if (i === 0) context.moveTo(x, y);
+        else context.lineTo(x, y);
+      });
+      context.stroke();
+      stroke.points.forEach((pt) => {
+        const x = pt.x * w;
+        const y = pt.y * h;
+        context.fillRect(x - baseWidth * 0.3, y - baseWidth * 0.3, baseWidth * 0.6, baseWidth * 0.6);
+      });
+    } else if (tool === "spray") {
+      const radius = Math.max(8, baseWidth * 2.2);
+      stroke.points.forEach((pt) => {
+        const x = pt.x * w;
+        const y = pt.y * h;
+        for (let j = 0; j < 8; j++) {
+          const angle = Math.random() * Math.PI * 2;
+          const dist = Math.random() * radius;
+          const dotX = x + Math.cos(angle) * dist;
+          const dotY = y + Math.sin(angle) * dist;
+          context.fillRect(dotX, dotY, Math.max(1, baseWidth * 0.2), Math.max(1, baseWidth * 0.2));
+        }
+      });
+    } else {
+      context.lineWidth = baseWidth;
+      context.lineCap = "round";
+      context.lineJoin = "round";
+      context.beginPath();
+      stroke.points.forEach((pt, i) => {
+        const x = pt.x * w;
+        const y = pt.y * h;
+        if (i === 0) context.moveTo(x, y);
+        else context.lineTo(x, y);
+      });
+      context.stroke();
+    }
+
+    context.restore();
   });
 };
 
@@ -78,7 +304,12 @@ export const DrawingBoard = ({
   const activeStrokeRef = useRef(null);
   const [color, setColor] = useState(DRAWING_COLORS[0]);
   const [width, setWidth] = useState(5);
-  const [tool, setTool] = useState("brush");
+  const [modeTool, setModeTool] = useState("brush"); // "brush" | "shape" | "text" | "eraser"
+  const [brushType, setBrushType] = useState("brush"); // "brush" | "pencil" | "highlighter" | "crayon" | "spray"
+  const [activeShape, setActiveShape] = useState("line");
+  const [textInput, setTextInput] = useState("");
+  const [showTextModal, setShowTextModal] = useState(false);
+  const [pendingTextPos, setPendingTextPos] = useState(null);
 
   const repaint = useCallback(
     (previewStroke) => {
@@ -114,16 +345,42 @@ export const DrawingBoard = ({
     if (readonly || busy) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
+
+    const point = readPoint(event);
+
+    if (modeTool === "text") {
+      setPendingTextPos(point);
+      setShowTextModal(true);
+      return;
+    }
+
+    if (modeTool === "shape") {
+      activeStrokeRef.current = {
+        tool: "shape",
+        shape: activeShape,
+        color,
+        width,
+        points: [point, { ...point }],
+      };
+      return;
+    }
+
     activeStrokeRef.current = {
-      color: tool === "eraser" ? backgroundColor : color,
-      width: tool === "eraser" ? Math.max(width * 2.4, 12) : width,
-      points: [readPoint(event)],
+      tool: modeTool === "eraser" ? "eraser" : brushType,
+      color: modeTool === "eraser" ? backgroundColor : color,
+      width: modeTool === "eraser" ? Math.max(width * 2.4, 14) : width,
+      points: [point],
     };
   };
 
   const handlePointerMove = (event) => {
     if (!activeStrokeRef.current) return;
-    activeStrokeRef.current.points.push(readPoint(event));
+    const point = readPoint(event);
+    if (modeTool === "shape") {
+      activeStrokeRef.current.points[1] = point;
+    } else {
+      activeStrokeRef.current.points.push(point);
+    }
     repaint(activeStrokeRef.current);
   };
 
@@ -134,6 +391,29 @@ export const DrawingBoard = ({
       stroke.points.push({ ...stroke.points[0] });
     }
     activeStrokeRef.current = null;
+    const nextStrokes = [...strokes, stroke];
+    repaint(stroke);
+    onCommit?.({ action: "append", stroke, nextStrokes });
+  };
+
+  const handleAddTextSubmit = (e) => {
+    e?.preventDefault();
+    if (!textInput.trim()) {
+      setShowTextModal(false);
+      return;
+    }
+    const pos = pendingTextPos || { x: 0.1, y: 0.1 };
+    const stroke = {
+      tool: "text",
+      text: textInput.trim(),
+      color,
+      width,
+      fontSize: Math.max(16, width * 3.5),
+      points: [pos, pos],
+    };
+    setTextInput("");
+    setShowTextModal(false);
+    setPendingTextPos(null);
     const nextStrokes = [...strokes, stroke];
     repaint(stroke);
     onCommit?.({ action: "append", stroke, nextStrokes });
@@ -156,34 +436,83 @@ export const DrawingBoard = ({
           <div className="drawingToolGroup" aria-label="Tipo de ferramenta">
             <button
               type="button"
-              className={tool === "brush" ? "active" : ""}
-              aria-pressed={tool === "brush"}
-              onClick={() => setTool("brush")}
+              className={modeTool === "brush" ? "active" : ""}
+              aria-pressed={modeTool === "brush"}
+              onClick={() => setModeTool("brush")}
             >
               Pincel
             </button>
             <button
               type="button"
-              className={tool === "eraser" ? "active" : ""}
-              aria-pressed={tool === "eraser"}
-              onClick={() => setTool("eraser")}
+              className={modeTool === "shape" ? "active" : ""}
+              aria-pressed={modeTool === "shape"}
+              onClick={() => setModeTool("shape")}
+            >
+              Formas
+            </button>
+            <button
+              type="button"
+              className={modeTool === "text" ? "active" : ""}
+              aria-pressed={modeTool === "text"}
+              onClick={() => {
+                setModeTool("text");
+                setShowTextModal(true);
+              }}
+            >
+              Texto
+            </button>
+            <button
+              type="button"
+              className={modeTool === "eraser" ? "active" : ""}
+              aria-pressed={modeTool === "eraser"}
+              onClick={() => setModeTool("eraser")}
             >
               Borracha
             </button>
           </div>
+
+          {modeTool === "brush" && (
+            <div className="drawingSubToolGroup" aria-label="Estilo do pincel">
+              {BRUSH_TYPES.map((item) => (
+                <button
+                  type="button"
+                  key={item.id}
+                  className={brushType === item.id ? "active" : ""}
+                  onClick={() => setBrushType(item.id)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {modeTool === "shape" && (
+            <div className="drawingSubToolGroup" aria-label="Forma básica">
+              {BASIC_SHAPES.map((item) => (
+                <button
+                  type="button"
+                  key={item.id}
+                  className={activeShape === item.id ? "active" : ""}
+                  onClick={() => setActiveShape(item.id)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="drawingColorPalette" aria-label="Cores">
             {DRAWING_COLORS.map((item) => (
               <button
                 type="button"
                 key={item}
-                className={color === item && tool === "brush" ? "active" : ""}
+                className={color === item && modeTool !== "eraser" ? "active" : ""}
                 aria-label={`Usar a cor ${item}`}
-                aria-pressed={color === item && tool === "brush"}
+                aria-pressed={color === item && modeTool !== "eraser"}
                 style={{ "--drawing-swatch": item }}
                 onClick={() => {
                   setColor(item);
-                  setTool("brush");
+                  if (modeTool === "eraser") setModeTool("brush");
                 }}
               />
             ))}
@@ -195,7 +524,7 @@ export const DrawingBoard = ({
                 value={color}
                 onChange={(event) => {
                   setColor(event.target.value);
-                  setTool("brush");
+                  if (modeTool === "eraser") setModeTool("brush");
                 }}
               />
             </label>
@@ -206,7 +535,7 @@ export const DrawingBoard = ({
             <input
               type="range"
               min="1"
-              max="18"
+              max="24"
               value={width}
               onChange={(event) => setWidth(Number(event.target.value))}
             />
@@ -244,6 +573,36 @@ export const DrawingBoard = ({
           onPointerCancel={finishStroke}
           aria-label={readonly ? "Visualização do desenho" : "Quadro de desenho"}
         />
+
+        {showTextModal && !readonly && (
+          <div className="drawingTextOverlay">
+            <form className="drawingTextForm" onSubmit={handleAddTextSubmit}>
+              <strong>Adicionar texto ao quadro</strong>
+              <p>Clique no quadro onde deseja posicionar o texto ou digite abaixo:</p>
+              <input
+                type="text"
+                autoFocus
+                placeholder="Escreva seu texto aqui..."
+                value={textInput}
+                onChange={(e) => setTextInput(e.target.value)}
+                maxLength={100}
+              />
+              <div className="drawingTextActions">
+                <button
+                  type="button"
+                  className="drawingSecondaryButton"
+                  onClick={() => setShowTextModal(false)}
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className="drawingPrimaryButton">
+                  Inserir texto
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
         {readonly && !strokes.length && (
           <div className="drawingCanvasPlaceholder">
             <span />

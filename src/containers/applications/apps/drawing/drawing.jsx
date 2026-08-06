@@ -254,14 +254,21 @@ const PreviewView = ({ preview, onEdit }) => {
 
 const ProfessorLiveView = ({
   activity,
+  activities = [],
   drawings,
   selectedStudentId,
   onSelectStudent,
+  onSelectActivity,
   onClose,
   onChooseWinner,
   onCreate,
   busy,
 }) => {
+  const activeActivities = useMemo(
+    () => activities.filter((item) => item.status === "active"),
+    [activities]
+  );
+
   if (!activity) {
     return (
       <EmptyState
@@ -280,6 +287,26 @@ const ProfessorLiveView = ({
 
   return (
     <div className="drawingLiveLayout">
+      {activeActivities.length > 1 && (
+        <div className="drawingMultiTurmasSelector" aria-label="Atividades ao vivo por turma">
+          <span>Desafios ao vivo ({activeActivities.length}):</span>
+          <div className="drawingMultiTurmasChips">
+            {activeActivities.map((item) => (
+              <button
+                type="button"
+                key={item.id}
+                className={`drawingTurmaChip ${item.id === activity.id ? "active" : ""}`}
+                onClick={() => onSelectActivity(item.id)}
+              >
+                <i className="drawingLiveDotIndicator" />
+                <strong>{item.turmaName}</strong>
+                <small>{item.topic}</small>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {activity.mode === "individual" && (
         <aside className="drawingRosterPanel drawingPanel">
           <div className="drawingRosterHeading">
@@ -421,6 +448,8 @@ const HistoryView = ({ activities, turmas, onOpen, onRepeat }) => {
 };
 
 const StudentView = ({ activity, drawing, busy, onCommit }) => {
+  const [showInstructionsModal, setShowInstructionsModal] = useState(false);
+
   if (!activity) {
     return (
       <div className="drawingStudentWaiting">
@@ -433,27 +462,47 @@ const StudentView = ({ activity, drawing, busy, onCommit }) => {
   }
 
   const isClosed = activity.status !== "active";
-  return (
-    <div className="drawingStudentView">
-      <section className="drawingStudentHero">
-        <div className="drawingStudentHeroMeta">
-          <span className={isClosed ? "closed" : "live"}><i /> {isClosed ? "Atividade encerrada" : "Atividade ao vivo"}</span>
-          <ModeBadge mode={activity.mode} />
-          <span>{activity.turmaName}</span>
-        </div>
-        <span className="drawingEyebrow">Seu desafio é</span>
-        <h1>{activity.topic}</h1>
-        {activity.instructions && <p>{activity.instructions}</p>}
-      </section>
 
-      <section className="drawingStudentBoardPanel drawingPanel">
-        <div className="drawingStudentBoardHeading">
-          <div>
-            <span className="drawingEyebrow">Área de criação</span>
-            <h2>{activity.mode === "chaos" ? "Quadro da turma" : "Seu desenho"}</h2>
-          </div>
-          {activity.mode === "chaos" && <p>Os traços de toda a turma aparecem juntos em tempo real.</p>}
+  return (
+    <div className="drawingStudentViewFull">
+      <header className="drawingStudentFloatingHeader">
+        <div className="drawingStudentHeaderInfo">
+          <span className={`drawingLiveDot ${isClosed ? "closed" : "active"}`}>
+            <i /> {isClosed ? "Encerrada" : "Ao vivo"}
+          </span>
+          <ModeBadge mode={activity.mode} />
+          <span className="drawingTurmaTag">{activity.turmaName}</span>
+          <strong className="drawingTopicTitle">{activity.topic}</strong>
         </div>
+
+        {activity.instructions && (
+          <button
+            type="button"
+            className="drawingInstructionsToggleBtn"
+            onClick={() => setShowInstructionsModal((prev) => !prev)}
+          >
+            <span>Orientações</span>
+          </button>
+        )}
+      </header>
+
+      {showInstructionsModal && activity.instructions && (
+        <div className="drawingFloatingInstructionsModal">
+          <div>
+            <strong>Orientações do Professor</strong>
+            <p>{activity.instructions}</p>
+            <button
+              type="button"
+              className="drawingSecondaryButton"
+              onClick={() => setShowInstructionsModal(false)}
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="drawingStudentCanvasContainer">
         <DrawingBoard
           strokes={drawing?.strokes || []}
           backgroundColor={activity.backgroundColor}
@@ -462,7 +511,7 @@ const StudentView = ({ activity, drawing, busy, onCommit }) => {
           busy={busy}
           onCommit={onCommit}
         />
-      </section>
+      </div>
     </div>
   );
 };
@@ -475,6 +524,7 @@ export const DrawingApp = () => {
   const [turmas, setTurmas] = useState([]);
   const [activities, setActivities] = useState([]);
   const [activity, setActivity] = useState(null);
+  const [selectedActivityId, setSelectedActivityId] = useState(null);
   const [drawing, setDrawing] = useState(null);
   const [drawings, setDrawings] = useState([]);
   const [selectedStudentId, setSelectedStudentId] = useState("");
@@ -500,11 +550,13 @@ export const DrawingApp = () => {
   }, [view]);
 
   const inspectActivity = useCallback(async (id) => {
+    if (!id) return;
     setLoading(true);
     setError("");
     try {
       const result = await api.getDrawingActivity(id);
       setActivity(result.activity);
+      setSelectedActivityId(id);
       setDrawings(result.drawings || []);
       setSelectedStudentId((current) =>
         result.drawings?.some((item) => item.userId === current)
@@ -534,13 +586,22 @@ export const DrawingApp = () => {
         turmaId: current.turmaId || turmasResult.turmas?.[0]?.id || "",
       }));
       setActivities(nextActivities);
-      const active = nextActivities.find((item) => item.status === "active");
-      if (active) await inspectActivity(active.id);
-      else setActivity((current) => current?.status === "closed" ? current : null);
+
+      const activeList = nextActivities.filter((item) => item.status === "active");
+      const targetId =
+        selectedActivityId && nextActivities.some((item) => item.id === selectedActivityId)
+          ? selectedActivityId
+          : activeList[0]?.id || nextActivities[0]?.id;
+
+      if (targetId) {
+        await inspectActivity(targetId);
+      } else {
+        setActivity(null);
+      }
     } catch (requestError) {
       setError(requestError.message);
     }
-  }, [inspectActivity]);
+  }, [inspectActivity, selectedActivityId]);
 
   const loadStudent = useCallback(async () => {
     try {
@@ -745,15 +806,17 @@ export const DrawingApp = () => {
 
         {error && <div className="drawingAlert" role="alert"><strong>Não foi possível concluir a ação.</strong><span>{error}</span><button onClick={() => setError("")} aria-label="Fechar aviso">×</button></div>}
 
-        <div ref={contentRef} className="drawingContent win11Scroll" aria-busy={loading}>
+        <div ref={contentRef} className={`drawingContent win11Scroll ${!isProfessor ? "drawingStudentContent" : ""}`} aria-busy={loading}>
           {isProfessor ? (
             <>
               {view === "live" && (
                 <ProfessorLiveView
                   activity={activity}
+                  activities={activities}
                   drawings={drawings}
                   selectedStudentId={selectedStudentId}
                   onSelectStudent={setSelectedStudentId}
+                  onSelectActivity={inspectActivity}
                   onClose={handleClose}
                   onChooseWinner={handleChooseWinner}
                   onCreate={() => setView("create")}

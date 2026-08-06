@@ -49,7 +49,7 @@ const normalizeStroke = (stroke) => {
   }
 
   const width = Number(stroke.width);
-  if (!Number.isFinite(width) || width < 1 || width > 24) {
+  if (!Number.isFinite(width) || width < 1 || width > 80) {
     throw httpError(400, "A espessura do traço é inválida.");
   }
 
@@ -72,10 +72,21 @@ const normalizeStroke = (stroke) => {
     };
   });
 
+  const tool = String(stroke.tool || "brush").slice(0, 20);
+  const shape = stroke.shape ? String(stroke.shape).slice(0, 20) : undefined;
+  const text = stroke.text ? String(stroke.text).slice(0, 120) : undefined;
+  const fontSize = Number.isFinite(Number(stroke.fontSize))
+    ? Math.min(Math.max(Number(stroke.fontSize), 10), 100)
+    : undefined;
+
   return {
     color: normalizeColor(stroke.color, "#172033"),
     width: Math.round(width * 10) / 10,
     points,
+    tool,
+    ...(shape ? { shape } : {}),
+    ...(text !== undefined ? { text } : {}),
+    ...(fontSize !== undefined ? { fontSize } : {}),
   };
 };
 
@@ -118,7 +129,7 @@ const serializeDrawing = (row, activity) => ({
 });
 
 const shouldReceiveDrawingEvent = (client, activity, ownerId) => {
-  if (client.user.role === "professor") return true;
+  if (client.user.role === "professor") return client.user.id === activity.teacher_id;
   if (client.user.turma_id !== activity.turma_id) return false;
   if (activity.mode === "chaos") return true;
   return client.user.id === ownerId;
@@ -173,7 +184,12 @@ module.exports = function injectDrawingRoutes(ctx) {
   };
 
   const assertCanAccess = (user, activity) => {
-    if (user.role === "professor") return;
+    if (user.role === "professor") {
+      if (activity.teacher_id !== user.id) {
+        throw httpError(403, "Acesso negado para esta atividade.");
+      }
+      return;
+    }
     if (user.role !== "aluno" || user.turma_id !== activity.turma_id) {
       throw httpError(403, "Acesso negado para esta atividade.");
     }
@@ -257,8 +273,8 @@ module.exports = function injectDrawingRoutes(ctx) {
     requireProfessor,
     async (req, res, next) => {
       try {
-        const params = [];
-        const filters = [];
+        const params = [req.user.id];
+        const filters = ["a.teacher_id = $1"];
         if (req.query.turmaId) {
           params.push(normalizeUuid(req.query.turmaId, "A turma"));
           filters.push(`a.turma_id = $${params.length}`);
@@ -271,9 +287,7 @@ module.exports = function injectDrawingRoutes(ctx) {
           params.push(req.query.mode);
           filters.push(`a.mode = $${params.length}`);
         }
-        const whereClause = filters.length
-          ? `WHERE ${filters.join(" AND ")}`
-          : "";
+        const whereClause = `WHERE ${filters.join(" AND ")}`;
         const result = await pool.query(
           `SELECT a.*, t.nome AS turma_nome,
                   winner.display_name AS winner_name,

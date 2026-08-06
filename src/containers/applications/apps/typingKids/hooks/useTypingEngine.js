@@ -128,7 +128,9 @@ export const useTypingEngine = (user, enabled = true) => {
     let interval;
     if (startTime && !finished) {
       interval = setInterval(() => {
-        setElapsedMs(Date.now() - startTime);
+        if (typeof window !== "undefined") {
+          setElapsedMs(Date.now() - startTime);
+        }
       }, 30);
     }
     return () => clearInterval(interval);
