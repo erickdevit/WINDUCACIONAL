@@ -136,4 +136,11 @@ describe("Desenho da Turma - experiência", () => {
     expect(app).toContain("if (!activity)");
     expect(app).toContain("Carregando atividade");
   });
+
+  it("posiciona o botão Todos os Desafios na barra superior e exibe o indicador pulsante Ao vivo", () => {
+    expect(app).toContain("drawingTopBarBackBtn");
+    expect(app).toContain("← Todos os Desafios");
+    expect(app).toContain('title="Ao vivo" aria-label="Ao vivo"');
+    expect(styles).toContain("drawingLivePulse");
+  });
 });

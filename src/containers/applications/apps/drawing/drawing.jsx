@@ -505,6 +505,8 @@ const ProfessorLiveView = ({
   activities = [],
   drawings,
   selectedStudentId,
+  viewingDashboard = true,
+  onSetViewingDashboard,
   onSelectStudent,
   onSelectActivity,
   onClose,
@@ -513,7 +515,6 @@ const ProfessorLiveView = ({
   busy,
 }) => {
   const [showPresentation, setShowPresentation] = useState(false);
-  const [viewingDashboard, setViewingDashboard] = useState(true);
   const activeActivities = useMemo(
     () => activities.filter((item) => item.status === "active"),
     [activities]
@@ -547,7 +548,7 @@ const ProfessorLiveView = ({
           {activeActivities.map((item) => (
             <article className="drawingActiveChallengeCard" key={item.id}>
               <div className="drawingActiveCardHeader">
-                <span className="drawingLiveDot active"><i /> Ao vivo</span>
+                <span className="drawingLiveDot active" title="Ao vivo" aria-label="Ao vivo"><i /></span>
                 <span className="drawingTurmaTag">{item.turmaName}</span>
                 <ModeBadge mode={item.mode} />
               </div>
@@ -566,7 +567,7 @@ const ProfessorLiveView = ({
                   className="drawingPrimaryButton"
                   onClick={() => {
                     onSelectActivity(item.id);
-                    setViewingDashboard(false);
+                    onSetViewingDashboard?.(false);
                   }}
                 >
                   Monitorar Atividade
@@ -631,17 +632,8 @@ const ProfessorLiveView = ({
       <main className="drawingTeacherStageShell drawingPanel">
         <header className="drawingTeacherFloatingHeader">
           <div className="drawingTeacherMetaPills">
-            {activeActivities.length > 1 && (
-              <button
-                type="button"
-                className="drawingSeparatePillBtn"
-                onClick={() => setViewingDashboard(true)}
-              >
-                ← Todos os Desafios ({activeActivities.length})
-              </button>
-            )}
-            <span className={`drawingLiveDot ${activity.status}`}>
-              <i /> {activity.status === "active" ? "Ao vivo" : "Encerrada"}
+            <span className={`drawingLiveDot ${activity.status}`} title={activity.status === "active" ? "Ao vivo" : "Encerrada"} aria-label={activity.status === "active" ? "Ao vivo" : "Encerrada"}>
+              <i />
             </span>
             <span className="drawingTurmaTag">{activity.turmaName}</span>
             <ModeBadge mode={activity.mode} />
@@ -1069,6 +1061,7 @@ export const DrawingApp = () => {
   const user = useSelector((state) => state.setting.person) || {};
   const isProfessor = user?.role === "professor";
   const [view, setView] = useState("live");
+  const [viewingDashboard, setViewingDashboard] = useState(true);
   const [turmas, setTurmas] = useState([]);
   const [activities, setActivities] = useState([]);
   const [activity, setActivity] = useState(null);
@@ -1209,8 +1202,8 @@ export const DrawingApp = () => {
           };
           if (isProfessor) {
             setDrawings((current) => {
-              if (activity.mode === "chaos") return [nextDrawing];
-              return current.map((item) =>
+              if (activity?.mode === "chaos") return [nextDrawing];
+              return (current || []).map((item) =>
                 item.userId === event.userId ? nextDrawing : item
               );
             });
@@ -1256,6 +1249,7 @@ export const DrawingApp = () => {
         instructions: "",
       }));
       setView("live");
+      setViewingDashboard(false);
       await loadProfessor();
       await inspectActivity(result.activity.id);
     } catch (requestError) {
@@ -1366,14 +1360,29 @@ export const DrawingApp = () => {
               </div>
             </div>
             <nav className="drawingMainNav" aria-label="Seções do aplicativo">
-              <button className={view === "live" ? "active" : ""} onClick={() => setView("live")}><i className="live" />Painel{activeCount > 0 && <b>{activeCount}</b>}</button>
+              <button className={view === "live" ? "active" : ""} onClick={() => { setView("live"); setViewingDashboard(true); }}><i className="live" />Painel{activeCount > 0 && <b>{activeCount}</b>}</button>
               <button className={view === "create" ? "active" : ""} onClick={() => setView("create")}>Nova atividade</button>
               <button className={view === "preview" ? "active" : ""} onClick={() => setView("preview")}>Prévia</button>
               <button className={view === "history" ? "active" : ""} onClick={() => setView("history")}>Histórico<b>{historyCount}</b></button>
             </nav>
-            <div className="drawingHeaderUser">
-              <span>{(user?.displayName || user?.username || "U").charAt(0).toUpperCase()}</span>
-              <div><strong>{user?.displayName || user?.username || "Usuário"}</strong><small>Professor</small></div>
+            <div className="drawingHeaderActions">
+              {activeCount > 0 && (
+                <button
+                  type="button"
+                  className={`drawingTopBarBackBtn ${!viewingDashboard ? "highlight" : ""}`}
+                  onClick={() => {
+                    setView("live");
+                    setViewingDashboard(true);
+                  }}
+                  title="Ver todos os desafios da turma"
+                >
+                  ← Todos os Desafios ({activeCount})
+                </button>
+              )}
+              <div className="drawingHeaderUser">
+                <span>{(user?.displayName || user?.username || "U").charAt(0).toUpperCase()}</span>
+                <div><strong>{user?.displayName || user?.username || "Usuário"}</strong><small>Professor</small></div>
+              </div>
             </div>
           </header>
         )}
@@ -1389,8 +1398,13 @@ export const DrawingApp = () => {
                   activities={activities}
                   drawings={drawings}
                   selectedStudentId={selectedStudentId}
+                  viewingDashboard={viewingDashboard}
+                  onSetViewingDashboard={setViewingDashboard}
                   onSelectStudent={setSelectedStudentId}
-                  onSelectActivity={inspectActivity}
+                  onSelectActivity={(id) => {
+                    inspectActivity(id);
+                    setViewingDashboard(false);
+                  }}
                   onClose={handleClose}
                   onChooseWinner={handleChooseWinner}
                   onCreate={() => setView("create")}

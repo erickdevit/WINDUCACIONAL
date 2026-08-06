@@ -15,7 +15,7 @@
 .drawingApp .windowScreen,.drawingApp .restWindow{min-height:0;height:100%;overflow:hidden}
 .drawingWorkspace { min-height: 0; height: 100%; display: flex; flex-direction: column; overflow:hidden; background: radial-gradient(circle at 90% 0, rgba(109,40,217,.06), transparent 27%), #f5f6fa; }
 
-.drawingAppHeader { min-height: 66px; flex: 0 0 66px; padding: 0 22px; display: grid; grid-template-columns: minmax(210px, 1fr) auto minmax(180px, 1fr); align-items: center; gap: 18px; border-bottom: 1px solid #e4e6ec; background: rgba(255,255,255,.94); backdrop-filter: blur(14px); }
+.drawingAppHeader { min-height: 66px; flex: 0 0 66px; padding: 0 22px; display: flex; align-items: center; justify-content: space-between; gap: 18px; border-bottom: 1px solid #e4e6ec; background: rgba(255,255,255,.94); backdrop-filter: blur(14px); }
 .drawingBrand, .drawingHeaderUser { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .drawingBrandMark { width: 37px; height: 37px; flex: 0 0 37px; display: grid; place-items: center; border-radius: 11px; background: linear-gradient(145deg,#7c3aed,#5b21b6); box-shadow: 0 7px 18px rgba(91,33,182,.23); transform: rotate(-3deg); }
 .drawingBrandMark::before { content:""; width: 17px; height: 5px; border-radius: 5px; background:#fff; transform: rotate(-39deg) translate(1px,-1px); }
@@ -25,8 +25,24 @@
 .drawingMainNav { align-self:stretch; display:flex; align-items:center; gap:3px; }
 .drawingMainNav button { position:relative; height:100%; padding:0 14px; display:flex; align-items:center; gap:7px; border:0; background:transparent; color:#747c8c; font-size:12px; font-weight:720; }
 .drawingMainNav button:hover { color:#4c1d95; }.drawingMainNav button.active { color:#5b21b6; }.drawingMainNav button.active::after { content:""; position:absolute; right:11px; bottom:0; left:11px; height:3px; border-radius:3px 3px 0 0; background:#6d28d9; }
-.drawingMainNav b { min-width:18px; padding:2px 5px; border-radius:999px; background:#eee9fb; color:#6d28d9; font-size:9px; text-align:center; }.drawingMainNav i.live,.drawingLiveDot i { width:7px; height:7px; border-radius:50%; background:#16a36a; box-shadow:0 0 0 3px rgba(22,163,106,.12); }
+.drawingMainNav b { min-width:18px; padding:2px 5px; border-radius:999px; background:#eee9fb; color:#6d28d9; font-size:9px; text-align:center; }
+.drawingMainNav i.live { width:7px; height:7px; border-radius:50%; background:#16a36a; box-shadow:0 0 0 3px rgba(22,163,106,.12); }
+.drawingHeaderActions { display: flex; align-items: center; gap: 12px; }
+.drawingTopBarBackBtn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; border: 1px solid #7c3aed; border-radius: 9px; background: linear-gradient(135deg,#7c3aed,#5b21b6); color: #ffffff; font-size: 11px; font-weight: 750; box-shadow: 0 4px 12px rgba(91,33,182,.18); transition: all .18s ease; }
+.drawingTopBarBackBtn:hover { transform: translateY(-1px); filter: brightness(1.08); box-shadow: 0 6px 16px rgba(91,33,182,.25); }
+.drawingTopBarBackBtn.highlight { border-color: #6d28d9; background: linear-gradient(135deg,#6d28d9,#4c1d95); }
 .drawingHeaderUser { justify-self:end; }.drawingHeaderUser>span { width:31px; height:31px; flex:0 0 31px; display:grid; place-items:center; border-radius:50%; background:#ede9fe; color:#5b21b6; font-size:11px; font-weight:800; }.drawingHeaderUser strong { max-width:140px; font-size:11px; }.drawingHeaderUser small { margin-top:1px; color:#949aa8; font-size:9px; }
+
+.drawingLiveDot { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: rgba(22, 163, 106, 0.14); transition: all .2s ease; }
+.drawingLiveDot i { width: 8px; height: 8px; border-radius: 50%; background: #16a36a; box-shadow: 0 0 0 3px rgba(22, 163, 106, 0.25); animation: drawingLivePulse 2s infinite ease-in-out; }
+.drawingLiveDot.closed { background: rgba(148, 163, 184, 0.14); }
+.drawingLiveDot.closed i { background: #94a3b8; box-shadow: none; animation: none; }
+
+@keyframes drawingLivePulse {
+  0% { transform: scale(0.92); box-shadow: 0 0 0 0 rgba(22, 163, 106, 0.5); }
+  70% { transform: scale(1.08); box-shadow: 0 0 0 6px rgba(22, 163, 106, 0); }
+  100% { transform: scale(0.92); box-shadow: 0 0 0 0 rgba(22, 163, 106, 0); }
+}
 
 .drawingContent { position:relative; min-width:0; min-height:0; flex:1 1 0; overflow:auto; overscroll-behavior:contain; scrollbar-gutter:stable both-edges; padding:22px 22px 34px; }
 .drawingContent::-webkit-scrollbar,.drawingStudentTiles::-webkit-scrollbar{width:10px;height:10px}.drawingContent::-webkit-scrollbar-track,.drawingStudentTiles::-webkit-scrollbar-track{background:#eceef3}.drawingContent::-webkit-scrollbar-thumb,.drawingStudentTiles::-webkit-scrollbar-thumb{border:2px solid #eceef3;border-radius:999px;background:#b9afca}.drawingContent::-webkit-scrollbar-thumb:hover,.drawingStudentTiles::-webkit-scrollbar-thumb:hover{background:#8f7cae}
