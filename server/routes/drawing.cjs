@@ -381,6 +381,12 @@ module.exports = function injectDrawingRoutes(ctx) {
         if (!turma.rowCount) {
           throw httpError(404, "Turma não encontrada ou inativa.");
         }
+        const oldActRes = await client.query(
+          `SELECT id, teacher_id, turma_id, topic, mode, background_color FROM drawing_activities
+           WHERE turma_id = $1 AND status = 'active'`,
+          [turmaId]
+        );
+        const oldActivities = oldActRes.rows;
         await client.query(
           `UPDATE drawing_activities
            SET status = 'closed', closed_at = NOW()
@@ -404,6 +410,9 @@ module.exports = function injectDrawingRoutes(ctx) {
           ]
         );
         await client.query("COMMIT");
+        oldActivities.forEach((oldAct) => {
+          emitDrawingEvent(oldAct, "closed", { activityId: oldAct.id });
+        });
         const activity = {
           ...result.rows[0],
           turma_nome: turma.rows[0].nome,

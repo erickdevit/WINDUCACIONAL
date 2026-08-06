@@ -115,6 +115,67 @@ const StudentTile = ({ drawing, active, backgroundColor, onClick }) => (
   </button>
 );
 
+const ResultModal = ({ result, onSaveVirtualDisk, onDownloadPng, onClose }) => {
+  if (!result) return null;
+  const isWinner = result.type === "winner";
+
+  return (
+    <div className="drawingResultOverlay" role="dialog" aria-label="Resultado do Desafio">
+      <div className={`drawingResultModal ${isWinner ? "winner" : "encouragement"}`}>
+        <header className="drawingResultHeader">
+          <div className="drawingResultBadge">
+            {isWinner ? "🏆 Campeão da Rodada" : "✨ Mandou Muito Bem!"}
+          </div>
+          <h2>
+            {isWinner
+              ? "Parabéns! Seu Desenho Venceu!"
+              : "Não foi desta vez, mas seu desenho ficou incrível!"}
+          </h2>
+          <p>
+            {isWinner
+              ? "O professor escolheu sua criação como a grande vencedora do desafio! O desenho foi salvo na galeria e no seu histórico."
+              : `O vencedor escolhido pelo professor nesta rodada foi ${result.winnerName || "um colega da turma"}. Continue criando!`}
+          </p>
+        </header>
+
+        {result.drawing?.strokes?.length > 0 && (
+          <div className="drawingResultPreviewStage" style={{ backgroundColor: result.drawing.backgroundColor || "#ffffff" }}>
+            <DrawingPreview
+              strokes={result.drawing.strokes}
+              backgroundColor={result.drawing.backgroundColor || "#ffffff"}
+              label="Sua criação"
+            />
+          </div>
+        )}
+
+        <footer className="drawingResultActions">
+          {result.drawing && (
+            <>
+              <button
+                type="button"
+                className="drawingSecondaryButton"
+                onClick={() => onSaveVirtualDisk(result.drawing, result.activityTopic)}
+              >
+                💾 Salvar no Computador
+              </button>
+              <button
+                type="button"
+                className="drawingSecondaryButton"
+                onClick={() => onDownloadPng(result.drawing, result.activityTopic)}
+              >
+                ⬇ Baixar PNG
+              </button>
+            </>
+          )}
+          <button type="button" className="drawingPrimaryButton" onClick={onClose}>
+            Continuar
+          </button>
+        </footer>
+      </div>
+    </div>
+  );
+};
+
 const PresentationModal = ({ drawings = [], activity, onClose }) => {
   const [index, setIndex] = useState(0);
   const [autoplay, setAutoplay] = useState(false);
@@ -725,7 +786,7 @@ const HistoryView = ({ activities, turmas, onOpen, onRepeat }) => {
   );
 };
 
-const StudentView = ({ activity, drawing, busy, onCommit }) => {
+const StudentView = ({ activity, drawing, busy, onCommit, resultModal, onDismissResultModal }) => {
   const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState("board");
   const [myDrawings, setMyDrawings] = useState([]);
@@ -749,13 +810,13 @@ const StudentView = ({ activity, drawing, busy, onCommit }) => {
     }
   }, [activeTab, loadMyDrawings]);
 
-  const handleSaveVirtualDisk = (item) => {
+  const handleSaveVirtualDisk = (item, topic) => {
     const canvas = document.createElement("canvas");
     canvas.width = 800;
     canvas.height = 600;
     drawStrokes(canvas, item.strokes, item.backgroundColor || "#ffffff");
     const dataUrl = canvas.toDataURL("image/png");
-    const topicSlug = (item.topic || "desenho").replace(/\s+/g, "_").toLowerCase();
+    const topicSlug = (topic || item.topic || "desenho").replace(/\s+/g, "_").toLowerCase();
     const fileName = `desenho_${topicSlug}.png`;
 
     dispatch({
@@ -771,13 +832,13 @@ const StudentView = ({ activity, drawing, busy, onCommit }) => {
     });
   };
 
-  const handleDownloadPng = (item) => {
+  const handleDownloadPng = (item, topic) => {
     const canvas = document.createElement("canvas");
     canvas.width = 800;
     canvas.height = 600;
     drawStrokes(canvas, item.strokes, item.backgroundColor || "#ffffff");
     const dataUrl = canvas.toDataURL("image/png");
-    const topicSlug = (item.topic || "desenho").replace(/\s+/g, "_").toLowerCase();
+    const topicSlug = (topic || item.topic || "desenho").replace(/\s+/g, "_").toLowerCase();
 
     const link = document.createElement("a");
     link.href = dataUrl;
@@ -789,6 +850,13 @@ const StudentView = ({ activity, drawing, busy, onCommit }) => {
 
   return (
     <div className="drawingStudentViewFull">
+      <ResultModal
+        result={resultModal}
+        onSaveVirtualDisk={handleSaveVirtualDisk}
+        onDownloadPng={handleDownloadPng}
+        onClose={onDismissResultModal}
+      />
+
       <header className="drawingStudentFloatingHeader">
         <div className="drawingStudentHeaderInfo">
           {activity?.topic ? (
@@ -847,7 +915,7 @@ const StudentView = ({ activity, drawing, busy, onCommit }) => {
 
       {activeTab === "board" ? (
         <div className="drawingStudentCanvasContainer">
-          {activity ? (
+          {activity && activity.status === "active" ? (
             <DrawingBoard
               strokes={drawing?.strokes || []}
               backgroundColor={activity.backgroundColor}
@@ -888,10 +956,10 @@ const StudentView = ({ activity, drawing, busy, onCommit }) => {
                     <time>{formatDate(item.updatedAt)}</time>
                   </div>
                   <footer className="drawingStudentCardActions">
-                    <button type="button" className="drawingSecondaryButton" onClick={() => handleSaveVirtualDisk(item)}>
+                    <button type="button" className="drawingSecondaryButton" onClick={() => handleSaveVirtualDisk(item, item.topic)}>
                       💾 Salvar no Computador
                     </button>
-                    <button type="button" className="drawingPrimaryButton" onClick={() => handleDownloadPng(item)}>
+                    <button type="button" className="drawingPrimaryButton" onClick={() => handleDownloadPng(item, item.topic)}>
                       ⬇ Baixar PNG
                     </button>
                   </footer>
@@ -922,6 +990,7 @@ export const DrawingApp = () => {
   const [drawing, setDrawing] = useState(null);
   const [drawings, setDrawings] = useState([]);
   const [selectedStudentId, setSelectedStudentId] = useState("");
+  const [resultModal, setResultModal] = useState(null);
   const [draft, setDraft] = useState({
     turmaId: "",
     topic: "",
@@ -932,12 +1001,18 @@ export const DrawingApp = () => {
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
   const activityRef = useRef(null);
+  const drawingRef = useRef(null);
   const contentRef = useRef(null);
 
   useEffect(() => {
     activityRef.current = activity;
   }, [activity]);
+
+  useEffect(() => {
+    drawingRef.current = drawing;
+  }, [drawing]);
 
   useEffect(() => {
     if (contentRef.current) contentRef.current.scrollTop = 0;
@@ -1000,8 +1075,17 @@ export const DrawingApp = () => {
   const loadStudent = useCallback(async () => {
     try {
       const result = await api.getDrawingActive();
-      setActivity(result.activity);
-      setDrawing(result.drawing);
+      setActivity((prev) => {
+        if (result.activity?.id !== prev?.id) {
+          setDrawing(result.drawing);
+        }
+        return result.activity;
+      });
+      if (!result.activity) {
+        setDrawing(null);
+      } else if (result.drawing) {
+        setDrawing(result.drawing);
+      }
       setError("");
     } catch (requestError) {
       setError(requestError.message);
@@ -1017,8 +1101,8 @@ export const DrawingApp = () => {
   useEffect(() => {
     if (isProfessor || wnapp?.hide) return undefined;
     const timer = setInterval(() => {
-      if (activityRef.current?.status !== "active") loadStudent();
-    }, 4000);
+      loadStudent();
+    }, 2500);
     return () => clearInterval(timer);
   }, [isProfessor, loadStudent, wnapp?.hide]);
 
@@ -1050,8 +1134,18 @@ export const DrawingApp = () => {
         }
         if (event.type === "closed") {
           setActivity((current) => current && { ...current, status: "closed" });
+          setTimeout(() => {
+            loadStudent();
+          }, 800);
         }
         if (event.type === "winner") {
+          const isWinner = event.winnerId === user.id;
+          setResultModal({
+            type: isWinner ? "winner" : "encouragement",
+            winnerName: event.winnerName,
+            drawing: drawingRef.current,
+            activityTopic: activityRef.current?.topic || "desenho",
+          });
           setActivity((current) => current && {
             ...current,
             status: "closed",
@@ -1063,7 +1157,7 @@ export const DrawingApp = () => {
       onError: () => {},
     });
     return () => subscription.close();
-  }, [activity?.id, activity?.mode, activity?.status, isProfessor, wnapp?.hide]);
+  }, [activity?.id, activity?.mode, activity?.status, isProfessor, user.id, loadStudent, wnapp?.hide]);
 
   const handleCreate = async (payload) => {
     setBusy(true);
@@ -1257,6 +1351,11 @@ export const DrawingApp = () => {
               drawing={drawing}
               busy={busy}
               onCommit={handleStudentCommit}
+              resultModal={resultModal}
+              onDismissResultModal={() => {
+                setResultModal(null);
+                loadStudent();
+              }}
             />
           )}
           {loading && <div className="drawingLoading"><i /> Atualizando dados…</div>}
