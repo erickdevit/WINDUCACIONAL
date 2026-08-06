@@ -1129,27 +1129,27 @@ export const DrawingApp = () => {
       restWindowClassName="flex-grow flex flex-col"
     >
       <div className="drawingWorkspace">
-        <header className="drawingAppHeader">
-          <div className="drawingBrand">
-            <span className="drawingBrandMark" aria-hidden="true"><i /></span>
-            <div>
-              <strong>Desenho da Turma</strong>
-              <small>{isProfessor ? "Estúdio do professor" : "Atividade criativa"}</small>
+        {isProfessor && (
+          <header className="drawingAppHeader">
+            <div className="drawingBrand">
+              <span className="drawingBrandMark" aria-hidden="true"><i /></span>
+              <div>
+                <strong>Desenho da Turma</strong>
+                <small>Estúdio do professor</small>
+              </div>
             </div>
-          </div>
-          {isProfessor && (
             <nav className="drawingMainNav" aria-label="Seções do aplicativo">
               <button className={view === "live" ? "active" : ""} onClick={() => setView("live")}><i className="live" />Painel{activeCount > 0 && <b>{activeCount}</b>}</button>
               <button className={view === "create" ? "active" : ""} onClick={() => setView("create")}>Nova atividade</button>
               <button className={view === "preview" ? "active" : ""} onClick={() => setView("preview")}>Prévia</button>
               <button className={view === "history" ? "active" : ""} onClick={() => setView("history")}>Histórico<b>{historyCount}</b></button>
             </nav>
-          )}
-          <div className="drawingHeaderUser">
-            <span>{(user.displayName || user.username || "U").charAt(0).toUpperCase()}</span>
-            <div><strong>{user.displayName || user.username}</strong><small>{isProfessor ? "Professor" : "Aluno"}</small></div>
-          </div>
-        </header>
+            <div className="drawingHeaderUser">
+              <span>{(user.displayName || user.username || "U").charAt(0).toUpperCase()}</span>
+              <div><strong>{user.displayName || user.username}</strong><small>Professor</small></div>
+            </div>
+          </header>
+        )}
 
         {error && <div className="drawingAlert" role="alert"><strong>Não foi possível concluir a ação.</strong><span>{error}</span><button onClick={() => setError("")} aria-label="Fechar aviso">×</button></div>}
 

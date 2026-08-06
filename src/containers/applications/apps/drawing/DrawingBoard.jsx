@@ -11,12 +11,85 @@ export const DRAWING_COLORS = [
   "#dc2626",
 ];
 
+export const COLOR_PALETTES = [
+  {
+    id: "classic",
+    name: "Clássica",
+    colors: [
+      "#172033",
+      "#6d28d9",
+      "#2563eb",
+      "#0891b2",
+      "#059669",
+      "#eab308",
+      "#ea580c",
+      "#dc2626",
+    ],
+  },
+  {
+    id: "nature",
+    name: "Natureza",
+    colors: [
+      "#1b4332",
+      "#2d6a4f",
+      "#40916c",
+      "#52b788",
+      "#74c69d",
+      "#b7e4c7",
+      "#d8f3dc",
+      "#854d0e",
+    ],
+  },
+  {
+    id: "neon",
+    name: "Neon Gamer",
+    colors: [
+      "#00ffcc",
+      "#0099ff",
+      "#7928ca",
+      "#ff0080",
+      "#ff0000",
+      "#ff9900",
+      "#ffff00",
+      "#00ff00",
+    ],
+  },
+  {
+    id: "pastel",
+    name: "Tons Pastel",
+    colors: [
+      "#ffb7b2",
+      "#ffdac1",
+      "#e2f0cb",
+      "#b5ead7",
+      "#c7ceea",
+      "#e0bbff",
+      "#f3c4fb",
+      "#4a5568",
+    ],
+  },
+  {
+    id: "mono",
+    name: "Monocromática",
+    colors: [
+      "#0f172a",
+      "#334155",
+      "#475569",
+      "#64748b",
+      "#94a3b8",
+      "#cbd5e1",
+      "#e2e8f0",
+      "#0284c7",
+    ],
+  },
+];
+
 export const BRUSH_TYPES = [
-  { id: "brush", label: "Padrão" },
-  { id: "pencil", label: "Lápis" },
-  { id: "highlighter", label: "Marca-texto" },
-  { id: "crayon", label: "Giz de cera" },
-  { id: "spray", label: "Aerógrafo" },
+  { id: "brush", label: "Padrão", title: "Pincel Padrão" },
+  { id: "pencil", label: "Lápis", title: "Lápis Grafite" },
+  { id: "highlighter", label: "Marca-texto", title: "Marca-texto" },
+  { id: "crayon", label: "Giz de cera", title: "Giz de Cera" },
+  { id: "spray", label: "Aerógrafo", title: "Aerógrafo / Spray" },
 ];
 
 export const BASIC_SHAPES = [
@@ -28,6 +101,81 @@ export const BASIC_SHAPES = [
   { id: "arrow", label: "Seta" },
   { id: "heart", label: "Coração" },
 ];
+
+const IconBrush = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 11.5L16.5 13C15 14.5 12 18 9 18C7.5 18 6 17.5 5 16.5C4 15.5 3.5 14 3.5 12.5C3.5 9.5 7 6.5 8.5 5L10 3.5L18 11.5Z" />
+    <path d="M14 7.5L16.5 10" />
+  </svg>
+);
+
+const IconPencil = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+  </svg>
+);
+
+const IconHighlighter = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 11l-6 6v4h4l6-6m-4-4l6-6 4 4-6 6m-4-4l4 4" />
+  </svg>
+);
+
+const IconCrayon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2l-7 7v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9l-7-7z" />
+    <path d="M5 9h14" />
+    <path d="M9 22V9" />
+  </svg>
+);
+
+const IconSpray = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 10v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10" />
+    <path d="M9 7h6v3H9z" />
+    <path d="M12 4V7" />
+    <circle cx="18" cy="4" r="1.5" fill="currentColor" />
+    <circle cx="20" cy="7" r="1.5" fill="currentColor" />
+    <circle cx="16" cy="2" r="1.5" fill="currentColor" />
+  </svg>
+);
+
+const IconShapes = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="8" height="8" rx="1" />
+    <circle cx="17.5" cy="7.5" r="4" />
+    <polygon points="12,21 6,12 18,12" />
+  </svg>
+);
+
+const IconText = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="4 7 4 4 20 4 20 7" />
+    <line x1="12" y1="4" x2="12" y2="20" />
+    <line x1="9" y1="20" x2="15" y2="20" />
+  </svg>
+);
+
+const IconEraser = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 20H7L3 16C2 15 2 13 3 12L13 2C14 1 16 1 17 2L21 6C22 7 22 9 21 10L11 20" />
+    <path d="M18 12L11 5" />
+  </svg>
+);
+
+const IconUndo = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 7v6h6" />
+    <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+  </svg>
+);
+
+const IconTrash = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+  </svg>
+);
 
 const drawShapePath = (ctx, shape, x0, y0, x1, y1) => {
   ctx.beginPath();
@@ -267,79 +415,6 @@ export const drawStrokes = (canvas, strokes = [], backgroundColor = "#ffffff") =
   });
 };
 
-export const COLOR_PALETTES = [
-  {
-    id: "classic",
-    name: "Clássica",
-    colors: [
-      "#172033",
-      "#6d28d9",
-      "#2563eb",
-      "#0891b2",
-      "#059669",
-      "#eab308",
-      "#ea580c",
-      "#dc2626",
-    ],
-  },
-  {
-    id: "nature",
-    name: "Natureza",
-    colors: [
-      "#1b4332",
-      "#2d6a4f",
-      "#40916c",
-      "#52b788",
-      "#74c69d",
-      "#b7e4c7",
-      "#d8f3dc",
-      "#854d0e",
-    ],
-  },
-  {
-    id: "neon",
-    name: "Neon Gamer",
-    colors: [
-      "#00ffcc",
-      "#0099ff",
-      "#7928ca",
-      "#ff0080",
-      "#ff0000",
-      "#ff9900",
-      "#ffff00",
-      "#00ff00",
-    ],
-  },
-  {
-    id: "pastel",
-    name: "Tons Pastel",
-    colors: [
-      "#ffb7b2",
-      "#ffdac1",
-      "#e2f0cb",
-      "#b5ead7",
-      "#c7ceea",
-      "#e0bbff",
-      "#f3c4fb",
-      "#4a5568",
-    ],
-  },
-  {
-    id: "mono",
-    name: "Monocromática",
-    colors: [
-      "#0f172a",
-      "#334155",
-      "#475569",
-      "#64748b",
-      "#94a3b8",
-      "#cbd5e1",
-      "#e2e8f0",
-      "#0284c7",
-    ],
-  },
-];
-
 export const DrawingPreview = ({
   strokes = [],
   backgroundColor = "#ffffff",
@@ -386,6 +461,7 @@ export const DrawingBoard = ({
   const [textInput, setTextInput] = useState("");
   const [showTextModal, setShowTextModal] = useState(false);
   const [pendingTextPos, setPendingTextPos] = useState(null);
+  const [flyoutOpen, setFlyoutOpen] = useState(null); // "brush" | "shape" | null
 
   const repaint = useCallback(
     (previewStroke) => {
@@ -421,6 +497,7 @@ export const DrawingBoard = ({
     if (readonly || busy) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
+    setFlyoutOpen(null);
 
     const point = readPoint(event);
 
@@ -508,79 +585,129 @@ export const DrawingBoard = ({
   return (
     <div className="drawingCanvasShell" data-readonly={readonly}>
       {!readonly && (
-        <div className="drawingToolbar" aria-label="Ferramentas de desenho">
-          <div className="drawingToolGroup" aria-label="Tipo de ferramenta">
+        <div className="drawingFloatingDock" aria-label="Ferramentas de desenho">
+          <div className="drawingDockGroup">
+            <div className="drawingDockItemWithFlyout">
+              <button
+                type="button"
+                className={`drawingDockBtn ${modeTool === "brush" ? "active" : ""}`}
+                title="Pincel"
+                aria-label="Pincel"
+                aria-pressed={modeTool === "brush"}
+                onClick={() => {
+                  if (modeTool === "brush") {
+                    setFlyoutOpen((prev) => (prev === "brush" ? null : "brush"));
+                  } else {
+                    setModeTool("brush");
+                    setFlyoutOpen(null);
+                  }
+                }}
+              >
+                <IconBrush />
+              </button>
+
+              {flyoutOpen === "brush" && (
+                <div className="drawingDockFlyout">
+                  {BRUSH_TYPES.map((item) => (
+                    <button
+                      type="button"
+                      key={item.id}
+                      className={`drawingFlyoutItem ${brushType === item.id ? "active" : ""}`}
+                      title={item.title || item.label}
+                      onClick={() => {
+                        setBrushType(item.id);
+                        setModeTool("brush");
+                        setFlyoutOpen(null);
+                      }}
+                    >
+                      {item.id === "brush" && <IconBrush />}
+                      {item.id === "pencil" && <IconPencil />}
+                      {item.id === "highlighter" && <IconHighlighter />}
+                      {item.id === "crayon" && <IconCrayon />}
+                      {item.id === "spray" && <IconSpray />}
+                      <span>{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="drawingDockItemWithFlyout">
+              <button
+                type="button"
+                className={`drawingDockBtn ${modeTool === "shape" ? "active" : ""}`}
+                title="Formas básicas"
+                aria-label="Formas básicas"
+                aria-pressed={modeTool === "shape"}
+                onClick={() => {
+                  if (modeTool === "shape") {
+                    setFlyoutOpen((prev) => (prev === "shape" ? null : "shape"));
+                  } else {
+                    setModeTool("shape");
+                    setFlyoutOpen(null);
+                  }
+                }}
+              >
+                <IconShapes />
+              </button>
+
+              {flyoutOpen === "shape" && (
+                <div className="drawingDockFlyout">
+                  {BASIC_SHAPES.map((item) => (
+                    <button
+                      type="button"
+                      key={item.id}
+                      className={`drawingFlyoutItem ${activeShape === item.id ? "active" : ""}`}
+                      onClick={() => {
+                        setActiveShape(item.id);
+                        setModeTool("shape");
+                        setFlyoutOpen(null);
+                      }}
+                    >
+                      <span>{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <button
               type="button"
-              className={modeTool === "brush" ? "active" : ""}
-              aria-pressed={modeTool === "brush"}
-              onClick={() => setModeTool("brush")}
-            >
-              Pincel
-            </button>
-            <button
-              type="button"
-              className={modeTool === "shape" ? "active" : ""}
-              aria-pressed={modeTool === "shape"}
-              onClick={() => setModeTool("shape")}
-            >
-              Formas
-            </button>
-            <button
-              type="button"
-              className={modeTool === "text" ? "active" : ""}
+              className={`drawingDockBtn ${modeTool === "text" ? "active" : ""}`}
+              title="Adicionar Texto"
+              aria-label="Adicionar Texto"
               aria-pressed={modeTool === "text"}
               onClick={() => {
                 setModeTool("text");
                 setShowTextModal(true);
+                setFlyoutOpen(null);
               }}
             >
-              Texto
+              <IconText />
             </button>
+
             <button
               type="button"
-              className={modeTool === "eraser" ? "active" : ""}
+              className={`drawingDockBtn ${modeTool === "eraser" ? "active" : ""}`}
+              title="Borracha"
+              aria-label="Borracha"
               aria-pressed={modeTool === "eraser"}
-              onClick={() => setModeTool("eraser")}
+              onClick={() => {
+                setModeTool("eraser");
+                setFlyoutOpen(null);
+              }}
             >
-              Borracha
+              <IconEraser />
             </button>
           </div>
 
-          {modeTool === "brush" && (
-            <div className="drawingSubToolGroup" aria-label="Estilo do pincel">
-              {BRUSH_TYPES.map((item) => (
-                <button
-                  type="button"
-                  key={item.id}
-                  className={brushType === item.id ? "active" : ""}
-                  onClick={() => setBrushType(item.id)}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          )}
+          <div className="drawingDockDivider" />
 
-          {modeTool === "shape" && (
-            <div className="drawingSubToolGroup" aria-label="Forma básica">
-              {BASIC_SHAPES.map((item) => (
-                <button
-                  type="button"
-                  key={item.id}
-                  className={activeShape === item.id ? "active" : ""}
-                  onClick={() => setActiveShape(item.id)}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          )}
-
-          <div className="drawingPaletteContainer">
+          <div className="drawingDockPaletteGroup">
             <select
-              className="drawingPaletteSelect"
+              className="drawingPaletteSelectCompact"
               value={activePalette}
+              title="Paleta Temática"
               onChange={(e) => {
                 const nextId = e.target.value;
                 setActivePalette(nextId);
@@ -590,7 +717,7 @@ export const DrawingBoard = ({
                   if (modeTool === "eraser") setModeTool("brush");
                 }
               }}
-              aria-label="Escolher paleta temática"
+              aria-label="Paleta Temática"
             >
               {COLOR_PALETTES.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -599,14 +726,14 @@ export const DrawingBoard = ({
               ))}
             </select>
 
-            <div className="drawingColorPalette" aria-label="Cores">
+            <div className="drawingColorSwatchesColumn">
               {activeSwatches.map((item) => (
                 <button
                   type="button"
                   key={item}
-                  className={color === item && modeTool !== "eraser" ? "active" : ""}
+                  className={`drawingSwatchBtn ${color === item && modeTool !== "eraser" ? "active" : ""}`}
                   aria-label={`Usar a cor ${item}`}
-                  aria-pressed={color === item && modeTool !== "eraser"}
+                  title={item}
                   style={{ "--drawing-swatch": item }}
                   onClick={() => {
                     setColor(item);
@@ -614,50 +741,62 @@ export const DrawingBoard = ({
                   }}
                 />
               ))}
-              <label className="drawingCustomColor" title="Escolher outra cor">
-              <span>+</span>
-              <input
-                type="color"
-                aria-label="Escolher outra cor"
-                value={color}
-                onChange={(event) => {
-                  setColor(event.target.value);
-                  if (modeTool === "eraser") setModeTool("brush");
-                }}
-              />
-            </label>
+              <label className="drawingCustomColorBtn" title="Escolher outra cor">
+                <span>+</span>
+                <input
+                  type="color"
+                  aria-label="Escolher outra cor"
+                  value={color}
+                  onChange={(event) => {
+                    setColor(event.target.value);
+                    if (modeTool === "eraser") setModeTool("brush");
+                  }}
+                />
+              </label>
+            </div>
           </div>
-        </div>
 
-          <label className="drawingWidthControl">
-            <span>Espessura</span>
+          <div className="drawingDockDivider" />
+
+          <div className="drawingWidthControlDock" title="Espessura">
+            <span className="drawingWidthDotPreview" style={{ width: Math.max(4, width * 0.8), height: Math.max(4, width * 0.8) }} />
             <input
               type="range"
               min="1"
               max="24"
               value={width}
+              title="Espessura"
               onChange={(event) => setWidth(Number(event.target.value))}
             />
-          </label>
+            <small>Espessura</small>
+          </div>
 
           {!collaborative && (
-            <div className="drawingHistoryActions">
-              <button
-                type="button"
-                disabled={!strokes.length || busy}
-                onClick={handleUndo}
-              >
-                Desfazer
-              </button>
-              <button
-                type="button"
-                className="danger"
-                disabled={!strokes.length || busy}
-                onClick={handleClear}
-              >
-                Limpar
-              </button>
-            </div>
+            <>
+              <div className="drawingDockDivider" />
+              <div className="drawingDockActions">
+                <button
+                  type="button"
+                  className="drawingDockBtn"
+                  title="Desfazer"
+                  aria-label="Desfazer"
+                  disabled={!strokes.length || busy}
+                  onClick={handleUndo}
+                >
+                  <IconUndo />
+                </button>
+                <button
+                  type="button"
+                  className="drawingDockBtn danger"
+                  title="Limpar Quadro"
+                  aria-label="Limpar"
+                  disabled={!strokes.length || busy}
+                  onClick={handleClear}
+                >
+                  <IconTrash />
+                </button>
+              </div>
+            </>
           )}
         </div>
       )}
@@ -712,7 +851,7 @@ export const DrawingBoard = ({
       </div>
 
       {!readonly && (
-        <div className="drawingCanvasFooter">
+        <div className="drawingCanvasFooterFloating">
           <span className={`drawingSaveIndicator ${busy ? "saving" : ""}`}>
             <i /> {busy ? "Sincronizando…" : "Desenho sincronizado"}
           </span>
