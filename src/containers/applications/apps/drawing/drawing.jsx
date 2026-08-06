@@ -1164,7 +1164,7 @@ export const DrawingApp = () => {
       });
       if (!result.activity) {
         setDrawing(result.drawing || null);
-      } else if (result.drawing) {
+      } else if (result.drawing && !busy) {
         setDrawing(result.drawing);
       }
 
@@ -1182,10 +1182,10 @@ export const DrawingApp = () => {
         }
       }
       setError("");
-    } catch (requestError) {
-      setError(requestError.message);
+    } catch {
+      // Do not pollute user error state during background polling
     }
-  }, [user?.id]);
+  }, [busy, user?.id]);
 
   useEffect(() => {
     if (wnapp?.hide) return;
@@ -1223,7 +1223,7 @@ export const DrawingApp = () => {
                 item.userId === event.userId ? nextDrawing : item
               );
             });
-          } else {
+          } else if (activity?.mode === "chaos" || String(event.userId) === String(user?.id)) {
             setDrawing(nextDrawing);
           }
         }
@@ -1239,7 +1239,7 @@ export const DrawingApp = () => {
             activityId: activity.id,
             type: isWinner ? "winner" : "encouragement",
             winnerName: event.winnerName,
-            drawing: drawingRef.current || drawing,
+            drawing: drawingRef.current,
             activityTopic: activityRef.current?.topic || "desenho",
           });
           setActivity((current) => current && {
@@ -1253,7 +1253,7 @@ export const DrawingApp = () => {
       onError: () => {},
     });
     return () => subscription.close();
-  }, [activity?.id, activity?.mode, activity?.status, drawing, isProfessor, user?.id, loadStudent, wnapp?.hide]);
+  }, [activity?.id, activity?.mode, activity?.status, isProfessor, user?.id, loadStudent, wnapp?.hide]);
 
   const handleCreate = async (payload) => {
     setBusy(true);

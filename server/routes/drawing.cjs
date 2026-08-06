@@ -131,7 +131,7 @@ const serializeDrawing = (row, activity) => ({
 const shouldReceiveDrawingEvent = (client, activity, ownerId) => {
   if (client.user.role === "professor") return client.user.id === activity.teacher_id;
   if (client.user.turma_id !== activity.turma_id) return false;
-  if (activity.mode === "chaos") return true;
+  if (activity.mode === "chaos" || ownerId === null) return true;
   return client.user.id === ownerId;
 };
 
