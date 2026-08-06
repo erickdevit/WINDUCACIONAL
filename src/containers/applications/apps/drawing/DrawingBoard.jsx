@@ -267,6 +267,79 @@ export const drawStrokes = (canvas, strokes = [], backgroundColor = "#ffffff") =
   });
 };
 
+export const COLOR_PALETTES = [
+  {
+    id: "classic",
+    name: "Clássica",
+    colors: [
+      "#172033",
+      "#6d28d9",
+      "#2563eb",
+      "#0891b2",
+      "#059669",
+      "#eab308",
+      "#ea580c",
+      "#dc2626",
+    ],
+  },
+  {
+    id: "nature",
+    name: "Natureza",
+    colors: [
+      "#1b4332",
+      "#2d6a4f",
+      "#40916c",
+      "#52b788",
+      "#74c69d",
+      "#b7e4c7",
+      "#d8f3dc",
+      "#854d0e",
+    ],
+  },
+  {
+    id: "neon",
+    name: "Neon Gamer",
+    colors: [
+      "#00ffcc",
+      "#0099ff",
+      "#7928ca",
+      "#ff0080",
+      "#ff0000",
+      "#ff9900",
+      "#ffff00",
+      "#00ff00",
+    ],
+  },
+  {
+    id: "pastel",
+    name: "Tons Pastel",
+    colors: [
+      "#ffb7b2",
+      "#ffdac1",
+      "#e2f0cb",
+      "#b5ead7",
+      "#c7ceea",
+      "#e0bbff",
+      "#f3c4fb",
+      "#4a5568",
+    ],
+  },
+  {
+    id: "mono",
+    name: "Monocromática",
+    colors: [
+      "#0f172a",
+      "#334155",
+      "#475569",
+      "#64748b",
+      "#94a3b8",
+      "#cbd5e1",
+      "#e2e8f0",
+      "#0284c7",
+    ],
+  },
+];
+
 export const DrawingPreview = ({
   strokes = [],
   backgroundColor = "#ffffff",
@@ -302,10 +375,13 @@ export const DrawingBoard = ({
 }) => {
   const canvasRef = useRef(null);
   const activeStrokeRef = useRef(null);
-  const [color, setColor] = useState(DRAWING_COLORS[0]);
+  const [activePalette, setActivePalette] = useState("classic");
+  const activeSwatches =
+    COLOR_PALETTES.find((p) => p.id === activePalette)?.colors || DRAWING_COLORS;
+  const [color, setColor] = useState(activeSwatches[0]);
   const [width, setWidth] = useState(5);
-  const [modeTool, setModeTool] = useState("brush"); // "brush" | "shape" | "text" | "eraser"
-  const [brushType, setBrushType] = useState("brush"); // "brush" | "pencil" | "highlighter" | "crayon" | "spray"
+  const [modeTool, setModeTool] = useState("brush");
+  const [brushType, setBrushType] = useState("brush");
   const [activeShape, setActiveShape] = useState("line");
   const [textInput, setTextInput] = useState("");
   const [showTextModal, setShowTextModal] = useState(false);
@@ -501,22 +577,44 @@ export const DrawingBoard = ({
             </div>
           )}
 
-          <div className="drawingColorPalette" aria-label="Cores">
-            {DRAWING_COLORS.map((item) => (
-              <button
-                type="button"
-                key={item}
-                className={color === item && modeTool !== "eraser" ? "active" : ""}
-                aria-label={`Usar a cor ${item}`}
-                aria-pressed={color === item && modeTool !== "eraser"}
-                style={{ "--drawing-swatch": item }}
-                onClick={() => {
-                  setColor(item);
+          <div className="drawingPaletteContainer">
+            <select
+              className="drawingPaletteSelect"
+              value={activePalette}
+              onChange={(e) => {
+                const nextId = e.target.value;
+                setActivePalette(nextId);
+                const pal = COLOR_PALETTES.find((p) => p.id === nextId);
+                if (pal?.colors?.[0]) {
+                  setColor(pal.colors[0]);
                   if (modeTool === "eraser") setModeTool("brush");
-                }}
-              />
-            ))}
-            <label className="drawingCustomColor" title="Escolher outra cor">
+                }
+              }}
+              aria-label="Escolher paleta temática"
+            >
+              {COLOR_PALETTES.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+
+            <div className="drawingColorPalette" aria-label="Cores">
+              {activeSwatches.map((item) => (
+                <button
+                  type="button"
+                  key={item}
+                  className={color === item && modeTool !== "eraser" ? "active" : ""}
+                  aria-label={`Usar a cor ${item}`}
+                  aria-pressed={color === item && modeTool !== "eraser"}
+                  style={{ "--drawing-swatch": item }}
+                  onClick={() => {
+                    setColor(item);
+                    if (modeTool === "eraser") setModeTool("brush");
+                  }}
+                />
+              ))}
+              <label className="drawingCustomColor" title="Escolher outra cor">
               <span>+</span>
               <input
                 type="color"
@@ -529,6 +627,7 @@ export const DrawingBoard = ({
               />
             </label>
           </div>
+        </div>
 
           <label className="drawingWidthControl">
             <span>Espessura</span>

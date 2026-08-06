@@ -267,6 +267,40 @@ module.exports = function injectDrawingRoutes(ctx) {
     }
   });
 
+  app.get("/api/drawing/my-drawings", requireAuth, async (req, res, next) => {
+    try {
+      if (req.user.role !== "aluno") {
+        return res.json({ drawings: [] });
+      }
+      const result = await pool.query(
+        `SELECT s.strokes, s.updated_at, a.id AS activity_id, a.topic, a.mode, a.background_color,
+                t.nome AS turma_nome, a.closed_at, a.winner_id
+         FROM drawing_strokes s
+         JOIN drawing_activities a ON a.id = s.activity_id
+         JOIN turmas t ON t.id = a.turma_id
+         WHERE s.user_id = $1
+         ORDER BY s.updated_at DESC
+         LIMIT 50`,
+        [req.user.id]
+      );
+      return res.json({
+        drawings: result.rows.map((row) => ({
+          activityId: row.activity_id,
+          topic: row.topic,
+          mode: row.mode,
+          backgroundColor: row.background_color || "#ffffff",
+          turmaName: row.turma_nome,
+          strokes: Array.isArray(row.strokes) ? row.strokes : [],
+          strokeCount: Array.isArray(row.strokes) ? row.strokes.length : 0,
+          updatedAt: row.updated_at,
+          isWinner: row.winner_id === req.user.id,
+        })),
+      });
+    } catch (requestError) {
+      return next(requestError);
+    }
+  });
+
   app.get(
     "/api/drawing/activities",
     requireAuth,

@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { AppWindow } from "../../../../components/shared/AppWindow";
 import { api } from "../../../../lib/api";
-import { DrawingBoard, DrawingPreview } from "./DrawingBoard";
+import { drawStrokes, DrawingBoard, DrawingPreview } from "./DrawingBoard";
 import "./drawing.scss";
 
 const BACKGROUND_COLORS = ["#ffffff", "#fffaf0", "#f1f7ff", "#f3fbf7"];
@@ -79,6 +79,115 @@ const StudentTile = ({ drawing, active, backgroundColor, onClick }) => (
     </span>
   </button>
 );
+
+const PresentationModal = ({ drawings = [], activity, onClose }) => {
+  const [index, setIndex] = useState(0);
+  const [autoplay, setAutoplay] = useState(false);
+
+  const activeDrawings = useMemo(
+    () => drawings.filter((d) => d.started || (d.strokes && d.strokes.length > 0)),
+    [drawings]
+  );
+  const currentDrawing = activeDrawings[index] || activeDrawings[0];
+
+  const handleNext = useCallback(() => {
+    if (!activeDrawings.length) return;
+    setIndex((prev) => (prev + 1) % activeDrawings.length);
+  }, [activeDrawings.length]);
+
+  const handlePrev = useCallback(() => {
+    if (!activeDrawings.length) return;
+    setIndex((prev) => (prev - 1 + activeDrawings.length) % activeDrawings.length);
+  }, [activeDrawings.length]);
+
+  useEffect(() => {
+    if (!autoplay) return undefined;
+    const timer = setInterval(() => {
+      handleNext();
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [autoplay, handleNext]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "ArrowRight") handleNext();
+      if (e.key === "ArrowLeft") handlePrev();
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleNext, handlePrev, onClose]);
+
+  if (!activeDrawings.length) return null;
+
+  return (
+    <div className="drawingPresentationOverlay" role="dialog" aria-label="Modo Apresentação">
+      <header className="drawingPresentationHeader">
+        <div className="drawingPresentationMeta">
+          <span className="drawingPresentationTag">{activity?.turmaName || "Turma"}</span>
+          <strong>{activity?.topic || "Desafio de Desenho"}</strong>
+          <span className="drawingPresentationIndex">
+            {index + 1} de {activeDrawings.length}
+          </span>
+        </div>
+
+        <div className="drawingPresentationActions">
+          <button
+            type="button"
+            className={`drawingPresentationAutoplayBtn ${autoplay ? "active" : ""}`}
+            onClick={() => setAutoplay((prev) => !prev)}
+          >
+            <i className="autoplayIcon" />
+            {autoplay ? "Pausar Projeção" : "Apresentação Automática"}
+          </button>
+          <button
+            type="button"
+            className="drawingPresentationCloseBtn"
+            onClick={onClose}
+            aria-label="Fechar apresentação"
+          >
+            ✕ Fechar
+          </button>
+        </div>
+      </header>
+
+      <main className="drawingPresentationStage">
+        <button
+          type="button"
+          className="drawingNavArrow prev"
+          onClick={handlePrev}
+          aria-label="Desenho anterior"
+        >
+          ‹
+        </button>
+
+        <div
+          className="drawingPresentationBoard"
+          style={{ backgroundColor: activity?.backgroundColor || "#ffffff" }}
+        >
+          <DrawingBoard
+            strokes={currentDrawing?.strokes || []}
+            backgroundColor={activity?.backgroundColor || "#ffffff"}
+            readonly
+          />
+          <div className="drawingPresentationAuthor">
+            <strong>{currentDrawing?.displayName || "Aluno"}</strong>
+            <small>{currentDrawing?.strokeCount || 0} traços realizados</small>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="drawingNavArrow next"
+          onClick={handleNext}
+          aria-label="Próximo desenho"
+        >
+          ›
+        </button>
+      </main>
+    </div>
+  );
+};
 
 const CreateActivity = ({ turmas, draft, busy, onDraftChange, onCreate, onPreview }) => {
   const handleSubmit = (event) => {
@@ -264,6 +373,7 @@ const ProfessorLiveView = ({
   onCreate,
   busy,
 }) => {
+  const [showPresentation, setShowPresentation] = useState(false);
   const activeActivities = useMemo(
     () => activities.filter((item) => item.status === "active"),
     [activities]
@@ -287,6 +397,14 @@ const ProfessorLiveView = ({
 
   return (
     <div className="drawingLiveLayout">
+      {showPresentation && (
+        <PresentationModal
+          drawings={drawings}
+          activity={activity}
+          onClose={() => setShowPresentation(false)}
+        />
+      )}
+
       {activeActivities.length > 1 && (
         <div className="drawingMultiTurmasSelector" aria-label="Atividades ao vivo por turma">
           <span>Desafios ao vivo ({activeActivities.length}):</span>
@@ -343,6 +461,15 @@ const ProfessorLiveView = ({
             {activity.instructions && <p>{activity.instructions}</p>}
           </div>
           <div className="drawingLiveActions">
+            {activity.mode === "individual" && startedCount > 0 && (
+              <button
+                type="button"
+                className="drawingPrimaryButton"
+                onClick={() => setShowPresentation(true)}
+              >
+                🖥 Projetar Trabalhos
+              </button>
+            )}
             {activity.status === "active" && <button className="drawingSecondaryButton" onClick={onClose} disabled={busy}>Encerrar rodada</button>}
           </div>
         </section>
@@ -549,45 +676,113 @@ const HistoryView = ({ activities, turmas, onOpen, onRepeat }) => {
 };
 
 const StudentView = ({ activity, drawing, busy, onCommit }) => {
+  const dispatch = useDispatch();
+  const [activeTab, setActiveTab] = useState("board");
+  const [myDrawings, setMyDrawings] = useState([]);
+  const [loadingMyDrawings, setLoadingMyDrawings] = useState(false);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
 
-  if (!activity) {
-    return (
-      <div className="drawingStudentWaiting">
-        <EmptyState
-          title="Aguardando um desafio"
-          description="Quando o professor iniciar uma atividade para a sua turma, o tema e o quadro aparecerão automaticamente aqui."
-        />
-      </div>
-    );
-  }
+  const loadMyDrawings = useCallback(async () => {
+    setLoadingMyDrawings(true);
+    try {
+      const res = await api.getMyDrawings();
+      setMyDrawings(res.drawings || []);
+    } catch (e) {
+    } finally {
+      setLoadingMyDrawings(false);
+    }
+  }, []);
 
-  const isClosed = activity.status !== "active";
+  useEffect(() => {
+    if (activeTab === "myDrawings") {
+      loadMyDrawings();
+    }
+  }, [activeTab, loadMyDrawings]);
+
+  const handleSaveVirtualDisk = (item) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 800;
+    canvas.height = 600;
+    drawStrokes(canvas, item.strokes, item.backgroundColor || "#ffffff");
+    const dataUrl = canvas.toDataURL("image/png");
+    const topicSlug = (item.topic || "desenho").replace(/\s+/g, "_").toLowerCase();
+    const fileName = `desenho_${topicSlug}.png`;
+
+    dispatch({
+      type: "FILEDIALOG_OPEN",
+      payload: {
+        mode: "save",
+        fileName,
+        caller: "drawing",
+        startDir: "%pictures%",
+        content: dataUrl,
+        ext: "png",
+      },
+    });
+  };
+
+  const handleDownloadPng = (item) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 800;
+    canvas.height = 600;
+    drawStrokes(canvas, item.strokes, item.backgroundColor || "#ffffff");
+    const dataUrl = canvas.toDataURL("image/png");
+    const topicSlug = (item.topic || "desenho").replace(/\s+/g, "_").toLowerCase();
+
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = `desenho_${topicSlug}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="drawingStudentViewFull">
       <header className="drawingStudentFloatingHeader">
         <div className="drawingStudentHeaderInfo">
-          <span className={`drawingLiveDot ${isClosed ? "closed" : "active"}`}>
-            <i /> {isClosed ? "Encerrada" : "Ao vivo"}
-          </span>
-          <ModeBadge mode={activity.mode} />
-          <span className="drawingTurmaTag">{activity.turmaName}</span>
-          <strong className="drawingTopicTitle">{activity.topic}</strong>
+          {activity ? (
+            <>
+              <span className={`drawingLiveDot ${activity.status !== "active" ? "closed" : "active"}`}>
+                <i /> {activity.status !== "active" ? "Encerrada" : "Ao vivo"}
+              </span>
+              <ModeBadge mode={activity.mode} />
+              <span className="drawingTurmaTag">{activity.turmaName}</span>
+              <strong className="drawingTopicTitle">{activity.topic}</strong>
+            </>
+          ) : (
+            <span className="drawingTurmaTag">Sua Turma</span>
+          )}
         </div>
 
-        {activity.instructions && (
+        <div className="drawingStudentHeaderTabs">
           <button
             type="button"
-            className="drawingInstructionsToggleBtn"
-            onClick={() => setShowInstructionsModal((prev) => !prev)}
+            className={`drawingStudentTabBtn ${activeTab === "board" ? "active" : ""}`}
+            onClick={() => setActiveTab("board")}
           >
-            <span>Orientações</span>
+            Lousa Atual
           </button>
-        )}
+          <button
+            type="button"
+            className={`drawingStudentTabBtn ${activeTab === "myDrawings" ? "active" : ""}`}
+            onClick={() => setActiveTab("myDrawings")}
+          >
+            Meus Desenhos
+          </button>
+          {activity?.instructions && activeTab === "board" && (
+            <button
+              type="button"
+              className="drawingInstructionsToggleBtn"
+              onClick={() => setShowInstructionsModal((prev) => !prev)}
+            >
+              <span>Orientações</span>
+            </button>
+          )}
+        </div>
       </header>
 
-      {showInstructionsModal && activity.instructions && (
+      {showInstructionsModal && activity?.instructions && activeTab === "board" && (
         <div className="drawingFloatingInstructionsModal">
           <div>
             <strong>Orientações do Professor</strong>
@@ -603,16 +798,67 @@ const StudentView = ({ activity, drawing, busy, onCommit }) => {
         </div>
       )}
 
-      <div className="drawingStudentCanvasContainer">
-        <DrawingBoard
-          strokes={drawing?.strokes || []}
-          backgroundColor={activity.backgroundColor}
-          collaborative={activity.mode === "chaos"}
-          readonly={isClosed}
-          busy={busy}
-          onCommit={onCommit}
-        />
-      </div>
+      {activeTab === "board" ? (
+        <div className="drawingStudentCanvasContainer">
+          {activity ? (
+            <DrawingBoard
+              strokes={drawing?.strokes || []}
+              backgroundColor={activity.backgroundColor}
+              collaborative={activity.mode === "chaos"}
+              readonly={activity.status !== "active"}
+              busy={busy}
+              onCommit={onCommit}
+            />
+          ) : (
+            <div className="drawingStudentWaiting">
+              <EmptyState
+                title="Aguardando um desafio"
+                description="Quando o professor iniciar uma atividade para a sua turma, o tema e o quadro aparecerão automaticamente aqui."
+              />
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="drawingStudentMyDrawingsPanel win11Scroll">
+          <div className="drawingStudentMyDrawingsHeader">
+            <h2>Galeria de Produções Pessoais</h2>
+            <p>Escolha qual desenho deseja salvar no seu disco virtual (`C:\Users\...`) ou baixar no seu dispositivo.</p>
+          </div>
+
+          {loadingMyDrawings ? (
+            <div className="drawingLoadingInPlace"><i /> Carregando seus desenhos…</div>
+          ) : myDrawings.length ? (
+            <div className="drawingStudentMyDrawingsGrid">
+              {myDrawings.map((item, idx) => (
+                <article key={idx} className="drawingStudentDrawingCard">
+                  <div className="drawingStudentCardPreview" style={{ backgroundColor: item.backgroundColor }}>
+                    <DrawingPreview strokes={item.strokes} backgroundColor={item.backgroundColor} label={item.topic} />
+                    {item.isWinner && <span className="drawingWinnerRibbon"><i /> Desenho Vencedor</span>}
+                  </div>
+                  <div className="drawingStudentCardBody">
+                    <h3>{item.topic}</h3>
+                    <p>{item.turmaName} · {item.strokeCount} traços</p>
+                    <time>{formatDate(item.updatedAt)}</time>
+                  </div>
+                  <footer className="drawingStudentCardActions">
+                    <button type="button" className="drawingSecondaryButton" onClick={() => handleSaveVirtualDisk(item)}>
+                      💾 Salvar no Computador
+                    </button>
+                    <button type="button" className="drawingPrimaryButton" onClick={() => handleDownloadPng(item)}>
+                      ⬇ Baixar PNG
+                    </button>
+                  </footer>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              title="Você ainda não tem desenhos salvos"
+              description="Participe dos desafios propostos pelo professor para formar sua galeria pessoal de criações."
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 };

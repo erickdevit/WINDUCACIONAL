@@ -347,6 +347,7 @@ export const api = {
     }),
   // --- Desenho da turma ---
   getDrawingActive: () => request("/api/drawing/active"),
+  getMyDrawings: () => request("/api/drawing/my-drawings"),
   getDrawingActivities: ({ turmaId, status, mode } = {}) => {
     const params = new URLSearchParams();
     if (turmaId) params.set("turmaId", turmaId);
