@@ -653,15 +653,34 @@ export const DrawingBoard = ({
     onCommit?.({ action: "append", stroke, nextStrokes });
   };
 
-  const handleUndo = () => {
+  const handleUndo = useCallback(() => {
     if (!safeStrokes.length || collaborative) return;
     onCommit?.({ action: "replace", strokes: safeStrokes.slice(0, -1) });
-  };
+  }, [collaborative, onCommit, safeStrokes]);
 
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     if (!safeStrokes.length || collaborative) return;
     onCommit?.({ action: "clear", strokes: [] });
-  };
+  }, [collaborative, onCommit, safeStrokes]);
+
+  useEffect(() => {
+    if (readonly) return undefined;
+    const handleKeyDown = (e) => {
+      const targetTag = e.target?.tagName?.toUpperCase();
+      if (targetTag === "INPUT" || targetTag === "TEXTAREA" || targetTag === "SELECT") {
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        handleUndo();
+      }
+      if (e.key === "Escape") {
+        setFlyoutOpen(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleUndo, readonly]);
 
   return (
     <div className="drawingCanvasShell" data-readonly={readonly}>

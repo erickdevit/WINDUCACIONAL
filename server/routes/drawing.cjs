@@ -479,12 +479,24 @@ module.exports = function injectDrawingRoutes(ctx) {
       try {
         const activity = await getActivity(req.params.id);
         assertCanAccess(req.user, activity);
-        if (req.user.role !== "aluno" || activity.status !== "active") {
+        if (activity.status !== "active") {
           throw httpError(403, "Esta atividade não aceita novos traços.");
         }
+        if (req.user.role === "professor") {
+          if (req.body.action !== "clear") {
+            throw httpError(403, "Professores só podem limpar o quadro.");
+          }
+        } else if (req.user.role !== "aluno") {
+          throw httpError(403, "Acesso negado para esta atividade.");
+        }
+
+        const targetStudentId =
+          req.user.role === "professor" && req.body.targetUserId
+            ? normalizeUuid(req.body.targetUserId, "O aluno alvo")
+            : req.user.id;
 
         const ownerId =
-          activity.mode === "chaos" ? activity.teacher_id : req.user.id;
+          activity.mode === "chaos" ? activity.teacher_id : targetStudentId;
         const action = String(req.body.action || "replace");
         let strokes;
 
@@ -531,7 +543,7 @@ module.exports = function injectDrawingRoutes(ctx) {
           "strokes",
           {
             activityId: activity.id,
-            userId: activity.mode === "chaos" ? null : req.user.id,
+            userId: activity.mode === "chaos" ? null : ownerId,
             displayName:
               activity.mode === "chaos"
                 ? "Quadro coletivo"
@@ -539,7 +551,7 @@ module.exports = function injectDrawingRoutes(ctx) {
             strokes,
             updatedAt: new Date().toISOString(),
           },
-          req.user.id
+          activity.mode === "chaos" ? null : ownerId
         );
         return res.json({ strokes });
       } catch (requestError) {

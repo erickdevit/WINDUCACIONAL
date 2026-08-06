@@ -644,6 +644,18 @@ const ProfessorLiveView = ({
           </div>
 
           <div className="drawingTeacherActionPills">
+            {activity.mode === "chaos" && activity.status === "active" && onClearChaos && (
+              <button
+                type="button"
+                className="drawingIconPillBtn"
+                title="Limpar quadro coletivo"
+                aria-label="Limpar quadro coletivo"
+                disabled={busy}
+                onClick={onClearChaos}
+              >
+                🗑
+              </button>
+            )}
             {activity.mode === "individual" && startedCount > 0 && (
               <button
                 type="button"
@@ -701,6 +713,7 @@ const ProfessorLiveView = ({
 const HistoryView = ({ activities, turmas, onOpen, onRepeat }) => {
   const [selectedTurmaTab, setSelectedTurmaTab] = useState("");
   const [modeFilter, setModeFilter] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const closedActivities = useMemo(
     () => activities.filter((item) => item.status === "closed"),
@@ -708,12 +721,14 @@ const HistoryView = ({ activities, turmas, onOpen, onRepeat }) => {
   );
 
   const filteredHistory = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
     return closedActivities.filter(
       (item) =>
         (!selectedTurmaTab || item.turmaId === selectedTurmaTab) &&
-        (!modeFilter || item.mode === modeFilter)
+        (!modeFilter || item.mode === modeFilter) &&
+        (!term || (item.topic || "").toLowerCase().includes(term))
     );
-  }, [closedActivities, selectedTurmaTab, modeFilter]);
+  }, [closedActivities, selectedTurmaTab, modeFilter, searchTerm]);
 
   const winnerCount = filteredHistory.filter((item) => item.winnerId).length;
   const participantTotal = filteredHistory.reduce((sum, item) => sum + item.drawingCount, 0);
@@ -762,6 +777,13 @@ const HistoryView = ({ activities, turmas, onOpen, onRepeat }) => {
             <p>Revisite desafios anteriores organizados por turma, abra os desenhos ou repita uma proposta.</p>
           </div>
           <div className="drawingHistoryFilters">
+            <input
+              type="search"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Buscar por tema…"
+              aria-label="Buscar tema no histórico"
+            />
             <select
               value={selectedTurmaTab}
               onChange={(event) => setSelectedTurmaTab(event.target.value)}
@@ -1276,6 +1298,19 @@ export const DrawingApp = () => {
     }
   };
 
+  const handleClearChaos = async () => {
+    if (!activity || !window.confirm("Limpar todo o quadro coletivo para a turma?")) return;
+    setBusy(true);
+    try {
+      await api.saveDrawingStrokes(activity.id, { action: "clear", strokes: [] });
+      await inspectActivity(activity.id);
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const handleClose = async () => {
     if (!activity || !window.confirm("Encerrar esta atividade para toda a turma?")) return;
     setBusy(true);
@@ -1423,6 +1458,7 @@ export const DrawingApp = () => {
                     setViewingDashboard(false);
                   }}
                   onClose={handleClose}
+                  onClearChaos={handleClearChaos}
                   onChooseWinner={handleChooseWinner}
                   onCreate={() => setView("create")}
                   busy={busy}
