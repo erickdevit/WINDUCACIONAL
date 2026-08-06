@@ -176,7 +176,7 @@ const ResultModal = ({ result, onSaveVirtualDisk, onDownloadPng, onClose }) => {
   );
 };
 
-const PresentationModal = ({ drawings = [], activity, onClose }) => {
+const PresentationModal = ({ drawings = [], activity, onClose, onChooseWinner, busy }) => {
   const [index, setIndex] = useState(0);
   const [autoplay, setAutoplay] = useState(false);
 
@@ -274,6 +274,20 @@ const PresentationModal = ({ drawings = [], activity, onClose }) => {
             <strong>{currentDrawing?.displayName || "Aluno"}</strong>
             <small>{currentDrawing?.strokeCount || 0} traços realizados</small>
           </div>
+
+          {activity?.mode === "individual" && !activity?.winnerId && currentDrawing?.started && onChooseWinner && (
+            <button
+              type="button"
+              className="drawingTeacherWinnerPill"
+              disabled={busy}
+              onClick={() => {
+                onChooseWinner(currentDrawing);
+                onClose();
+              }}
+            >
+              👑 Escolher {currentDrawing.displayName}
+            </button>
+          )}
         </div>
 
         <button
@@ -447,8 +461,11 @@ const PreviewView = ({ preview, onEdit }) => {
 
       <div className="drawingPreviewDevice">
         <div className="drawingPreviewDeviceBar">
-          <i /><i /><i />
-          <span>Visão do aluno · {preview.turmaName || "Turma selecionada"}</span>
+          <span className="drawingTurmaTag">{preview.turmaName || "Turma selecionada"}</span>
+          <ModeBadge mode={preview.mode || "individual"} />
+          <div className="drawingTopicPill" title={preview.topic || "Tema"}>
+            <strong>{preview.topic || "Desafio de Desenho"}</strong>
+          </div>
         </div>
         <StudentView
           activity={{ ...preview, status: "active" }}
