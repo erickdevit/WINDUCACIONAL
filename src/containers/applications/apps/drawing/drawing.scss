@@ -49,8 +49,118 @@
 
 .drawingPreviewView{max-width:1080px;min-width:680px;margin:0 auto}.drawingPreviewViewHeader{padding:3px 2px 16px;display:flex;align-items:flex-end;justify-content:space-between;gap:18px}.drawingPreviewViewHeader h2{margin:4px 0 4px;font-size:20px}.drawingPreviewViewHeader p{margin:0;color:#7d8493;font-size:10px}.drawingPreviewDevice{padding:11px;border:1px solid #ded9e8;border-radius:18px;background:#291642;box-shadow:0 14px 35px rgba(35,20,57,.18)}.drawingPreviewDeviceBar{height:34px;padding:0 9px;display:flex;align-items:center;gap:6px;color:#cfc3df;font-size:8px}.drawingPreviewDeviceBar i{width:7px;height:7px;border-radius:50%;background:#f87171}.drawingPreviewDeviceBar i:nth-child(2){background:#fbbf24}.drawingPreviewDeviceBar i:nth-child(3){background:#34d399}.drawingPreviewDeviceBar span{margin-left:5px}.drawingPreviewDevice>.drawingStudentView{padding:14px;border-radius:12px;background:#f5f6fa}.drawingPreviewDevice .drawingCanvasStage{height:330px}
 
-.drawingLiveLayout{max-width:1440px;margin:0 auto;display:grid;grid-template-columns:270px minmax(0,1fr);gap:16px;align-items:start}.drawingLiveLayout:not(:has(.drawingRosterPanel)){grid-template-columns:1fr;max-width:1120px}.drawingRosterPanel{position:sticky;top:0;padding:16px;max-height:calc(100vh - 170px);display:flex;flex-direction:column}.drawingRosterHeading{display:flex;align-items:flex-end;justify-content:space-between}.drawingRosterHeading h2{margin:3px 0 0;font-size:16px}.drawingRosterHeading>strong{color:#6d28d9;font-size:12px}.drawingRosterProgress{height:4px;margin:11px 0 13px;overflow:hidden;border-radius:5px;background:#eceef2}.drawingRosterProgress i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#8b5cf6,#6d28d9)}.drawingStudentTiles{min-height:0;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:2px}.drawingStudentTile{min-width:0;padding:7px;border:1px solid #e2e5eb;border-radius:10px;background:#fafbfc;text-align:left;transition:.16s}.drawingStudentTile:hover{border-color:#c6bbdf;transform:translateY(-1px)}.drawingStudentTile.active{border-color:#7c3aed;background:#faf7ff;box-shadow:0 0 0 2px rgba(124,58,237,.12)}.drawingStudentPreview{position:relative;height:70px;display:grid;place-items:center;overflow:hidden;border:1px solid #e6e8ed;border-radius:7px}.drawingStudentPreview canvas{width:100%;height:100%;display:block}.drawingStudentPreview>span{width:32px;height:32px;display:grid;place-items:center;border-radius:50%;background:#ede9fe;color:#6d28d9;font-size:12px;font-weight:800}.drawingStudentStatus{position:absolute;right:5px;bottom:5px;width:7px;height:7px;border:2px solid #fff;border-radius:50%;background:#c4c9d2}.drawingStudentTile[data-started=true] .drawingStudentStatus{background:#10b981}.drawingStudentTile>span{display:block;margin-top:6px}.drawingStudentTile strong,.drawingStudentTile small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.drawingStudentTile strong{font-size:9px}.drawingStudentTile small{margin-top:2px;color:#9298a5;font-size:8px}
-.drawingLiveMain{min-width:0;display:grid;gap:12px}.drawingLiveHero{padding:17px 19px;display:flex;justify-content:space-between;align-items:center;gap:18px}.drawingLiveHero h2{margin:8px 0 3px;font-size:21px;letter-spacing:-.03em}.drawingLiveHero p{max-width:720px;margin:0;color:#7b8391;font-size:10px;line-height:1.5}.drawingLiveMeta{display:flex;align-items:center;gap:8px;color:#858c9a;font-size:9px;font-weight:650}.drawingLiveDot{display:flex;align-items:center;gap:6px;color:#087a4d;font-weight:800;text-transform:uppercase;letter-spacing:.06em}.drawingModeBadge{display:inline-flex;align-items:center;width:max-content;padding:4px 7px;border-radius:999px;background:#eef2ff;color:#4338ca;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}.drawingModeBadge.chaos{background:#fff4df;color:#b45309}.drawingMonitorPanel{padding:17px}.drawingMonitorHeading{display:flex;justify-content:space-between;align-items:center;gap:15px}.drawingMonitorHeading h3{margin:3px 0 0;font-size:15px}.drawingUpdatedBadge{display:flex;align-items:center;gap:6px;color:#718077;font-size:9px}.drawingUpdatedBadge i{width:6px;height:6px;border-radius:50%;background:#10b981}
+/* --- Teacher Live Dashboard Layout --- */
+.drawingLiveLayout{max-width:1440px;margin:0 auto;display:grid;grid-template-columns:270px minmax(0,1fr);gap:16px;align-items:stretch;height:100%}.drawingLiveLayout:not(:has(.drawingRosterPanel)){grid-template-columns:1fr;max-width:1120px}
+.drawingRosterPanel{position:sticky;top:0;padding:16px;height:100%;max-height:calc(100vh - 170px);display:flex;flex-direction:column}
+.drawingRosterHeading{display:flex;align-items:flex-end;justify-content:space-between}.drawingRosterHeading h2{margin:3px 0 0;font-size:16px}.drawingRosterHeading>strong{color:#6d28d9;font-size:12px}
+.drawingRosterProgress{height:4px;margin:11px 0 13px;overflow:hidden;border-radius:5px;background:#eceef2}.drawingRosterProgress i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#8b5cf6,#6d28d9)}
+.drawingStudentTiles{min-height:0;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:2px}
+.drawingStudentTile{min-width:0;padding:7px;border:1px solid #e2e5eb;border-radius:10px;background:#fafbfc;text-align:left;transition:.16s}.drawingStudentTile:hover{border-color:#c6bbdf;transform:translateY(-1px)}.drawingStudentTile.active{border-color:#7c3aed;background:#faf7ff;box-shadow:0 0 0 2px rgba(124,58,237,.12)}
+.drawingStudentPreview{position:relative;height:70px;display:grid;place-items:center;overflow:hidden;border:1px solid #e6e8ed;border-radius:7px}.drawingStudentPreview canvas{width:100%;height:100%;display:block}.drawingStudentPreview>span{width:32px;height:32px;display:grid;place-items:center;border-radius:50%;background:#ede9fe;color:#6d28d9;font-size:12px;font-weight:800}
+.drawingStudentStatus{position:absolute;right:5px;bottom:5px;width:7px;height:7px;border:2px solid #fff;border-radius:50%;background:#c4c9d2}.drawingStudentTile[data-started=true] .drawingStudentStatus{background:#10b981}
+.drawingStudentTile>span{display:block;margin-top:6px}.drawingStudentTile strong,.drawingStudentTile small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.drawingStudentTile strong{font-size:9px}.drawingStudentTile small{margin-top:2px;color:#9298a5;font-size:8px}
+
+/* --- Teacher Canvas Stage Shell --- */
+.drawingTeacherStageShell {
+  position: relative;
+  min-height: 520px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  box-shadow: 0 4px 20px rgba(15,23,42,0.06);
+}
+
+.drawingTeacherFloatingHeader {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  pointer-events: none;
+}
+.drawingTeacherFloatingHeader > * { pointer-events: auto; }
+.drawingTeacherMetaPills { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.drawingTeacherActionPills { display: flex; align-items: center; gap: 8px; }
+
+.drawingIconPillBtn {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  color: #475569;
+  display: grid;
+  place-items: center;
+  transition: all .16s ease;
+  box-shadow: 0 4px 14px rgba(15,23,42,0.06);
+}
+.drawingIconPillBtn:hover:not(:disabled) {
+  border-color: #8b5cf6;
+  color: #6d28d9;
+  transform: scale(1.05);
+}
+.drawingIconPillBtn.danger {
+  color: #ef4444;
+  border-color: rgba(252, 165, 165, 0.8);
+}
+.drawingIconPillBtn.danger:hover:not(:disabled) {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.drawingTeacherCanvasStage {
+  position: relative;
+  flex: 1 1 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+.drawingTeacherCanvasStage .drawingCanvasShell { margin-top: 0; border: none; height: 100%; }
+.drawingTeacherCanvasStage .drawingCanvasStage { flex: 1 1 0; height: 100% !important; }
+
+.drawingTeacherStudentBadge {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  z-index: 30;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+}
+.drawingTeacherStudentBadge strong { display: block; font-size: 12px; color: #1e293b; }
+.drawingTeacherStudentBadge small { display: block; margin-top: 2px; font-size: 9px; color: #64748b; }
+
+.drawingTeacherWinnerPill {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 30;
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1px solid #f59e0b;
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  box-shadow: 0 6px 20px rgba(217, 119, 6, 0.3);
+  transition: transform .16s ease, filter .16s ease;
+}
+.drawingTeacherWinnerPill:hover:not(:disabled) {
+  transform: scale(1.05);
+  filter: brightness(1.06);
+}
 
 /* --- Student Floating Header (Pills Separadas) --- */
 .drawingStudentFloatingHeader {
@@ -127,198 +237,22 @@
 .drawingFloatingInstructionsModal strong { display: block; font-size: 12px; color: #6d28d9; margin-bottom: 6px; }
 .drawingFloatingInstructionsModal p { margin: 0 0 12px; font-size: 11px; color: #475569; line-height: 1.5; }
 
-/* --- Drawing Canvas & Floating Tool Column --- */
-.drawingCanvasShell { position: relative; width: 100%; height: 100%; flex: 1 1 0; overflow: hidden; border-radius: 0; background: #ffffff; display: flex; flex-direction: column; }
-.drawingCanvasStage { position: relative; width: 100%; height: 100%; flex: 1 1 0; min-height: 0; overflow: hidden; background: #ffffff; }
-.drawingCanvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
-.drawingCanvasShell[data-readonly=true] .drawingCanvas { cursor: default; }
-
-.drawingFloatingDock {
-  position: absolute;
-  top: 72px;
-  left: 16px;
-  z-index: 40;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(226, 232, 240, 0.85);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
-  pointer-events: auto;
-}
-
-.drawingDockGroup, .drawingDockActions { display: flex; flex-direction: column; gap: 6px; align-items: center; }
-.drawingDockItemWithFlyout { position: relative; }
-
-.drawingDockBtn {
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  background: transparent;
-  color: #475569;
-  display: grid;
-  place-items: center;
-  transition: all .16s ease;
-}
-.drawingDockBtn:hover:not(:disabled) { background: #f1f5f9; color: #0f172a; transform: scale(1.05); }
-.drawingDockBtn.active { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; box-shadow: 0 2px 8px rgba(109,40,217,0.15); }
-.drawingDockBtn.danger:hover:not(:disabled) { background: #fef2f2; color: #ef4444; border-color: #fca5a5; }
-
-.drawingDockFlyout {
-  position: absolute;
-  left: 50px;
-  top: 0;
-  min-width: 150px;
-  padding: 6px;
-  border-radius: 14px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  z-index: 50;
-  animation: drawingFadeIn .18s ease-out;
-}
-.drawingShapesFlyout { min-width: 130px; }
-.drawingFlyoutItem {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: #334155;
-  font-size: 11px;
-  font-weight: 700;
-  text-align: left;
-  transition: all .14s ease;
-}
-.drawingFlyoutItem:hover { background: #f1f5f9; color: #6d28d9; }
-.drawingFlyoutItem.active { background: #ede9fe; color: #5b21b6; }
-
-.drawingDockDivider { width: 24px; height: 1px; background: #e2e8f0; margin: 2px 0; }
-
-.drawingWidthControlDock {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 0;
-}
-.drawingWidthDotPreview {
-  border-radius: 50%;
-  background: #6d28d9;
-  transition: width .14s, height .14s;
-}
-.drawingWidthControlDock input[type=range] {
-  width: 32px;
-  accent-color: #6d28d9;
-  cursor: pointer;
-}
-.drawingWidthControlDock small { font-size: 8px; font-weight: 800; color: #94a3b8; letter-spacing: -.02em; }
-
-/* --- Bottom Horizontal Color Bar & Palette Selector --- */
-.drawingBottomColorBar {
-  position: absolute;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 40;
-  padding: 6px 16px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(226, 232, 240, 0.85);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  pointer-events: auto;
-}
-
-.drawingPalettePillSelector {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: #f1f5f9;
-  color: #6d28d9;
-}
-.drawingPaletteSelectInline {
-  border: 0;
-  background: transparent;
-  font-size: 10px;
-  font-weight: 800;
-  color: #334155;
-  outline: none;
-  cursor: pointer;
-}
-
-.drawingColorSwatchesRow { display: flex; align-items: center; gap: 6px; }
-.drawingSwatchCircle {
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  border: 2px solid #ffffff;
-  border-radius: 50%;
-  background: var(--drawing-swatch);
-  box-shadow: 0 0 0 1px #cbd5e1;
-  cursor: pointer;
-  transition: transform .14s ease, box-shadow .14s ease;
-}
-.drawingSwatchCircle:hover { transform: scale(1.18); }
-.drawingSwatchCircle.active { transform: scale(1.3); box-shadow: 0 0 0 2px #6d28d9; }
-.drawingCustomColorCircle {
-  position: relative;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 1px dashed #94a3b8;
-  display: grid;
-  place-items: center;
-  color: #64748b;
-  font-size: 11px;
-  cursor: pointer;
-}
-.drawingCustomColorCircle input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-
-.drawingCanvasFooterFloating {
-  position: absolute;
-  right: 16px;
-  bottom: 16px;
-  z-index: 30;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
-  font-size: 10px;
-  font-weight: 700;
-  color: #475569;
-}
-
-.drawingSaveIndicator { display: flex; align-items: center; gap: 6px; }
-.drawingSaveIndicator i { width: 6px; height: 6px; border-radius: 50%; background: #10b981; }
-.drawingSaveIndicator.saving i { background: #f59e0b; animation: drawingPulse 1s infinite; }
-
-.drawingWinnerBar { margin-top: 12px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 15px; border: 1px solid #eee5bd; border-radius: 11px; background: #fffcf0; }
-.drawingWinnerBar strong, .drawingWinnerBar span { display: block; }
-.drawingWinnerBar strong { font-size: 10px; }
-.drawingWinnerBar span { margin-top: 2px; color: #95896d; font-size: 8px; }
-.drawingWinnerButton { border: 1px solid #d89a19; background: linear-gradient(135deg,#fbbf24,#d97706); color: #fff; box-shadow: 0 5px 14px rgba(217,119,6,.17); }
+/* --- Presentation Modal Aesthetics --- */
+.drawingPresentationOverlay { position: fixed; inset: 0; z-index: 9999; background: #0b0f19; color: #fff; display: flex; flex-direction: column; animation: drawingFadeIn .25s ease-out; }
+.drawingPresentationHeader { height: 64px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(15,23,42,0.85); backdrop-filter: blur(20px); }
+.drawingPresentationMeta { display: flex; align-items: center; gap: 10px; }
+.drawingPresentationPillTag { padding: 5px 12px; border-radius: 999px; background: rgba(124,58,237,0.3); border: 1px solid rgba(167,139,250,0.4); color: #ddd6fe; font-size: 11px; font-weight: 800; }
+.drawingPresentationIndex { padding: 4px 12px; border-radius: 999px; background: rgba(255,255,255,0.1); color: #94a3b8; font-size: 11px; font-weight: 700; }
+.drawingPresentationActions { display: flex; align-items: center; gap: 10px; }
+.drawingPresentationStage { flex: 1 1 0; position: relative; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.drawingNavArrow { width: 52px; height: 52px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; font-size: 28px; display: grid; place-items: center; cursor: pointer; transition: all .18s; z-index: 10; margin: 0 20px; }
+.drawingNavArrow:hover { background: rgba(124,58,237,0.85); border-color: #8b5cf6; transform: scale(1.1); }
+.drawingPresentationBoard { position: relative; width: 100%; max-width: 960px; height: 100%; max-height: 640px; border-radius: 20px; overflow: hidden; box-shadow: 0 28px 70px rgba(0,0,0,0.65); border: 1px solid rgba(255,255,255,0.12); display: flex; flex-direction: column; }
+.drawingPresentationBoard .drawingCanvasShell { margin-top: 0; border: none; height: 100%; display: flex; flex-direction: column; }
+.drawingPresentationBoard .drawingCanvasStage { flex: 1 1 0; height: 100% !important; }
+.drawingPresentationAuthor { position: absolute; bottom: 18px; left: 18px; padding: 10px 18px; border-radius: 14px; background: rgba(15,23,42,0.85); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.15); color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+.drawingPresentationAuthor strong { display: block; font-size: 13px; font-weight: 800; color: #f8fafc; }
+.drawingPresentationAuthor small { display: block; margin-top: 2px; font-size: 10px; color: #cbd5e1; }
 
 .drawingHistoryView { max-width: 1240px; margin: 0 auto; }
 .drawingHistorySummary { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 14px; }
@@ -398,28 +332,6 @@
 .drawingStudentCardBody time { display: block; margin-top: 6px; font-size: 9px; color: #94a3b8; }
 .drawingStudentCardActions { padding: 10px 14px; border-top: 1px solid #f1f5f9; background: #fafbfc; display: flex; gap: 8px; justify-content: flex-end; }
 .drawingStudentCardActions button { font-size: 10px; padding: 6px 10px; }
-
-.drawingPresentationOverlay { position: fixed; inset: 0; z-index: 9999; background: #0b0f19; color: #fff; display: flex; flex-direction: column; animation: drawingFadeIn .25s ease-out; }
-.drawingPresentationHeader { height: 60px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(15,23,42,0.8); backdrop-filter: blur(16px); }
-.drawingPresentationMeta { display: flex; align-items: center; gap: 12px; }
-.drawingPresentationTag { padding: 4px 10px; border-radius: 20px; background: rgba(124,58,237,0.3); border: 1px solid rgba(167,139,250,0.4); color: #ddd6fe; font-size: 10px; font-weight: 800; }
-.drawingPresentationMeta strong { font-size: 15px; letter-spacing: -.01em; color: #f8fafc; }
-.drawingPresentationIndex { padding: 3px 9px; border-radius: 999px; background: rgba(255,255,255,0.1); color: #94a3b8; font-size: 10px; font-weight: 700; }
-.drawingPresentationActions { display: flex; align-items: center; gap: 10px; }
-.drawingPresentationAutoplayBtn { padding: 7px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: #e2e8f0; font-size: 11px; font-weight: 700; transition: all .16s; }
-.drawingPresentationAutoplayBtn.active { background: #7c3aed; border-color: #8b5cf6; color: #fff; box-shadow: 0 0 16px rgba(124,58,237,0.4); }
-.drawingPresentationCloseBtn { padding: 7px 14px; border-radius: 999px; border: 1px solid rgba(239,68,68,0.4); background: rgba(239,68,68,0.15); color: #fca5a5; font-size: 11px; font-weight: 700; transition: all .16s; }
-.drawingPresentationCloseBtn:hover { background: #ef4444; color: #fff; }
-.drawingPresentationStage { flex: 1 1 0; position: relative; display: flex; align-items: center; justify-content: center; padding: 24px; }
-.drawingNavArrow { width: 50px; height: 50px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: #fff; font-size: 28px; display: grid; place-items: center; cursor: pointer; transition: all .18s; z-index: 10; margin: 0 16px; }
-.drawingNavArrow:hover { background: rgba(124,58,237,0.8); border-color: #8b5cf6; transform: scale(1.08); }
-.drawingPresentationBoard { position: relative; width: 100%; max-width: 900px; height: 100%; max-height: 620px; border-radius: 18px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; }
-.drawingPresentationBoard .drawingCanvasShell { margin-top: 0; border: none; height: 100%; display: flex; flex-direction: column; }
-.drawingPresentationBoard .drawingCanvasStage { flex: 1 1 0; height: 100% !important; }
-.drawingPresentationAuthor { position: absolute; bottom: 16px; left: 16px; padding: 10px 16px; border-radius: 12px; background: rgba(15,23,42,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
-.drawingPresentationAuthor strong { display: block; font-size: 13px; font-weight: 800; color: #f8fafc; }
-.drawingPresentationAuthor small { display: block; margin-top: 2px; font-size: 10px; color: #cbd5e1; }
-.drawingLoadingInPlace { padding: 40px; text-align: center; color: #64748b; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
 @media(max-width:980px){.drawingAppHeader{grid-template-columns:1fr auto}.drawingMainNav{grid-row:2;grid-column:1/-1;height:46px;justify-content:center;border-top:1px solid #eef0f3}.drawingAppHeader{min-height:112px;flex-basis:112px}.drawingHeaderUser{grid-column:2}.drawingLiveLayout{grid-template-columns:220px minmax(0,1fr)}.drawingStudentTiles{grid-template-columns:1fr}.drawingHistoryActions{margin-left:auto}}
 @media(max-width:760px){.drawingApp{min-width:0;min-height:0}.drawingContent{padding:12px 12px 28px}.drawingCreateLayout,.drawingPreviewView{min-width:0}.drawingAppHeader{padding:0 13px}.drawingHeaderUser>div{display:none}.drawingMainNav{overflow-x:auto;justify-content:flex-start;scrollbar-width:thin}.drawingMainNav button{padding:0 9px;font-size:10px;white-space:nowrap}.drawingFormGrid,.drawingModePicker,.drawingLiveLayout,.drawingHistorySummary{grid-template-columns:1fr}.drawingRosterPanel{position:static;max-height:none}.drawingStudentTiles{grid-template-columns:repeat(2,1fr);max-height:260px}.drawingLiveHero,.drawingHistoryHeader,.drawingCreateActions,.drawingWinnerBar,.drawingStudentBoardHeading,.drawingPreviewViewHeader{align-items:flex-start;flex-direction:column}.drawingCreateActions>div{width:100%;justify-content:flex-end}.drawingHistoryFilters{width:100%}.drawingHistoryFilters select{flex:1;min-width:0}.drawingCanvasStage{height:360px}.drawingStudentHero{padding:21px}.drawingHeaderUser{display:none}.drawingAppHeader{grid-template-columns:1fr}.drawingBrand{justify-self:center}.drawingMainNav{grid-row:2;grid-column:1}}

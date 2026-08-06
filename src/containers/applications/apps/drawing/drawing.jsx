@@ -21,6 +21,41 @@ const ModeBadge = ({ mode }) => (
   </span>
 );
 
+const IconProjector = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="3" width="20" height="14" rx="2" />
+    <line x1="8" y1="21" x2="16" y2="21" />
+    <line x1="12" y1="17" x2="12" y2="21" />
+  </svg>
+);
+
+const IconPowerOff = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+    <line x1="12" y1="2" x2="12" y2="12" />
+  </svg>
+);
+
+const IconPlay = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+    <polygon points="5 3 19 12 5 21 5 3" />
+  </svg>
+);
+
+const IconPause = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+    <rect x="6" y="4" width="4" height="16" />
+    <rect x="14" y="4" width="4" height="16" />
+  </svg>
+);
+
+const IconClose = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
 const EmptyState = ({ title, description, action }) => (
   <div className="drawingEmptyState">
     <span className="drawingEmptyArtwork" aria-hidden="true">
@@ -124,8 +159,10 @@ const PresentationModal = ({ drawings = [], activity, onClose }) => {
     <div className="drawingPresentationOverlay" role="dialog" aria-label="Modo Apresentação">
       <header className="drawingPresentationHeader">
         <div className="drawingPresentationMeta">
-          <span className="drawingPresentationTag">{activity?.turmaName || "Turma"}</span>
-          <strong>{activity?.topic || "Desafio de Desenho"}</strong>
+          <span className="drawingPresentationPillTag">{activity?.turmaName || "Turma"}</span>
+          <div className="drawingTopicPill" title={activity?.topic}>
+            <strong>{activity?.topic || "Desafio de Desenho"}</strong>
+          </div>
           <span className="drawingPresentationIndex">
             {index + 1} de {activeDrawings.length}
           </span>
@@ -134,19 +171,21 @@ const PresentationModal = ({ drawings = [], activity, onClose }) => {
         <div className="drawingPresentationActions">
           <button
             type="button"
-            className={`drawingPresentationAutoplayBtn ${autoplay ? "active" : ""}`}
+            className={`drawingIconPillBtn ${autoplay ? "active" : ""}`}
+            title={autoplay ? "Pausar Projeção" : "Apresentação Automática"}
+            aria-label="Apresentação Automática"
             onClick={() => setAutoplay((prev) => !prev)}
           >
-            <i className="autoplayIcon" />
-            {autoplay ? "Pausar Projeção" : "Apresentação Automática"}
+            {autoplay ? <IconPause /> : <IconPlay />}
           </button>
           <button
             type="button"
-            className="drawingPresentationCloseBtn"
-            onClick={onClose}
+            className="drawingIconPillBtn danger"
+            title="Fechar apresentação"
             aria-label="Fechar apresentação"
+            onClick={onClose}
           >
-            ✕ Fechar
+            <IconClose />
           </button>
         </div>
       </header>
@@ -434,7 +473,9 @@ const ProfessorLiveView = ({
             </div>
             <strong>{startedCount}/{drawings.length}</strong>
           </div>
-          <div className="drawingRosterProgress"><i style={{ width: `${drawings.length ? (startedCount / drawings.length) * 100 : 0}%` }} /></div>
+          <div className="drawingRosterProgress">
+            <i style={{ width: `${drawings.length ? (startedCount / drawings.length) * 100 : 0}%` }} />
+          </div>
           <div className="drawingStudentTiles win11Scroll">
             {drawings.map((drawing) => (
               <StudentTile
@@ -449,60 +490,69 @@ const ProfessorLiveView = ({
         </aside>
       )}
 
-      <main className="drawingLiveMain">
-        <section className="drawingLiveHero drawingPanel">
-          <div>
-            <div className="drawingLiveMeta">
-              <span className={`drawingLiveDot ${activity.status}`}><i /> {activity.status === "active" ? "Ao vivo" : "Encerrada"}</span>
-              <ModeBadge mode={activity.mode} />
-              <span>{activity.turmaName}</span>
+      <main className="drawingTeacherStageShell drawingPanel">
+        <header className="drawingTeacherFloatingHeader">
+          <div className="drawingTeacherMetaPills">
+            <span className={`drawingLiveDot ${activity.status}`}>
+              <i /> {activity.status === "active" ? "Ao vivo" : "Encerrada"}
+            </span>
+            <span className="drawingTurmaTag">{activity.turmaName}</span>
+            <ModeBadge mode={activity.mode} />
+            <div className="drawingTopicPill" title={activity.topic}>
+              <strong>{activity.topic}</strong>
             </div>
-            <h2>{activity.topic}</h2>
-            {activity.instructions && <p>{activity.instructions}</p>}
           </div>
-          <div className="drawingLiveActions">
+
+          <div className="drawingTeacherActionPills">
             {activity.mode === "individual" && startedCount > 0 && (
               <button
                 type="button"
-                className="drawingPrimaryButton"
+                className="drawingIconPillBtn"
+                title="Projetar Trabalhos"
+                aria-label="Projetar Trabalhos"
                 onClick={() => setShowPresentation(true)}
               >
-                🖥 Projetar Trabalhos
+                <IconProjector />
               </button>
             )}
-            {activity.status === "active" && <button className="drawingSecondaryButton" onClick={onClose} disabled={busy}>Encerrar rodada</button>}
+            {activity.status === "active" && (
+              <button
+                type="button"
+                className="drawingIconPillBtn danger"
+                title="Encerrar rodada"
+                aria-label="Encerrar rodada"
+                disabled={busy}
+                onClick={onClose}
+              >
+                <IconPowerOff />
+              </button>
+            )}
           </div>
-        </section>
+        </header>
 
-        <section className="drawingMonitorPanel drawingPanel">
-          <div className="drawingMonitorHeading">
-            <div>
-              <span className="drawingEyebrow">Monitoramento em tempo real</span>
-              <h3>{activity.mode === "chaos" ? "Quadro coletivo" : selectedDrawing?.displayName || "Selecione um aluno"}</h3>
-            </div>
-            {selectedDrawing?.started && <span className="drawingUpdatedBadge"><i /> Atualizado agora</span>}
-          </div>
+        <div className="drawingTeacherCanvasStage">
           <DrawingBoard
             strokes={selectedDrawing?.strokes || []}
             backgroundColor={activity.backgroundColor}
             readonly
           />
-          {activity.mode === "individual" && !activity.winnerId && (
-            <div className="drawingWinnerBar">
-              <div>
-                <strong>Pronto para decidir?</strong>
-                <span>O vencedor ficará salvo no histórico da turma.</span>
-              </div>
-              <button
-                className="drawingWinnerButton"
-                disabled={!selectedDrawing?.started || busy}
-                onClick={() => onChooseWinner(selectedDrawing)}
-              >
-                Escolher {selectedDrawing?.displayName || "vencedor"}
-              </button>
-            </div>
+
+          <div className="drawingTeacherStudentBadge">
+            <strong>{activity.mode === "chaos" ? "Quadro Coletivo" : selectedDrawing?.displayName || "Aluno"}</strong>
+            {selectedDrawing?.started && <small>{selectedDrawing.strokeCount} traços</small>}
+          </div>
+
+          {activity.mode === "individual" && !activity.winnerId && selectedDrawing?.started && (
+            <button
+              type="button"
+              className="drawingTeacherWinnerPill"
+              disabled={busy}
+              onClick={() => onChooseWinner(selectedDrawing)}
+            >
+              👑 Escolher {selectedDrawing.displayName}
+            </button>
           )}
-        </section>
+        </div>
       </main>
     </div>
   );
