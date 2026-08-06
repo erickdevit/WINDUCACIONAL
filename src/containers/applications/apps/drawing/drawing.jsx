@@ -217,59 +217,69 @@ const PresentationModal = ({ drawings = [], activity, onClose, onChooseWinner, b
   if (!activeDrawings.length) return null;
 
   return (
-    <div className="drawingPresentationOverlay" role="dialog" aria-label="Modo Apresentação">
-      <header className="drawingPresentationHeader">
-        <div className="drawingPresentationMeta">
-          <span className="drawingPresentationPillTag">{activity?.turmaName || "Turma"}</span>
-          <div className="drawingTopicPill" title={activity?.topic}>
-            <strong>{activity?.topic || "Desafio de Desenho"}</strong>
+    <div className="drawingPresentationOverlayFull" role="dialog" aria-label="Modo Apresentação">
+      <div
+        className="drawingPresentationWhiteboardCanvas"
+        style={{ backgroundColor: activity?.backgroundColor || "#ffffff" }}
+      >
+        <header className="drawingPresentationFloatingTop">
+          <div className="drawingPresentationMetaPills">
+            <span className="drawingTurmaTag">{activity?.turmaName || "Turma"}</span>
+            <div className="drawingTopicPill" title={activity?.topic}>
+              <strong>{activity?.topic || "Desafio de Desenho"}</strong>
+            </div>
+            <span className="drawingPresentationIndex">
+              {index + 1} de {activeDrawings.length}
+            </span>
           </div>
-          <span className="drawingPresentationIndex">
-            {index + 1} de {activeDrawings.length}
-          </span>
-        </div>
 
-        <div className="drawingPresentationActions">
-          <button
-            type="button"
-            className={`drawingIconPillBtn ${autoplay ? "active" : ""}`}
-            title={autoplay ? "Pausar Projeção" : "Apresentação Automática"}
-            aria-label="Apresentação Automática"
-            onClick={() => setAutoplay((prev) => !prev)}
-          >
-            {autoplay ? <IconPause /> : <IconPlay />}
-          </button>
-          <button
-            type="button"
-            className="drawingIconPillBtn danger"
-            title="Fechar apresentação"
-            aria-label="Fechar apresentação"
-            onClick={onClose}
-          >
-            <IconClose />
-          </button>
-        </div>
-      </header>
+          <div className="drawingPresentationActionPills">
+            <button
+              type="button"
+              className={`drawingIconPillBtn ${autoplay ? "active" : ""}`}
+              title={autoplay ? "Pausar Projeção" : "Apresentação Automática"}
+              aria-label="Apresentação Automática"
+              onClick={() => setAutoplay((prev) => !prev)}
+            >
+              {autoplay ? <IconPause /> : <IconPlay />}
+            </button>
+            <button
+              type="button"
+              className="drawingIconPillBtn danger"
+              title="Fechar apresentação"
+              aria-label="Fechar apresentação"
+              onClick={onClose}
+            >
+              <IconClose />
+            </button>
+          </div>
+        </header>
 
-      <main className="drawingPresentationStage">
         <button
           type="button"
-          className="drawingNavArrow prev"
+          className="drawingNavArrowFloating prev"
           onClick={handlePrev}
           aria-label="Desenho anterior"
         >
           ‹
         </button>
 
-        <div
-          className="drawingPresentationBoard"
-          style={{ backgroundColor: activity?.backgroundColor || "#ffffff" }}
+        <DrawingBoard
+          strokes={currentDrawing?.strokes || []}
+          backgroundColor={activity?.backgroundColor || "#ffffff"}
+          readonly
+        />
+
+        <button
+          type="button"
+          className="drawingNavArrowFloating next"
+          onClick={handleNext}
+          aria-label="Próximo desenho"
         >
-          <DrawingBoard
-            strokes={currentDrawing?.strokes || []}
-            backgroundColor={activity?.backgroundColor || "#ffffff"}
-            readonly
-          />
+          ›
+        </button>
+
+        <footer className="drawingPresentationFloatingBottom">
           <div className="drawingPresentationAuthor">
             <strong>{currentDrawing?.displayName || "Aluno"}</strong>
             <small>{currentDrawing?.strokeCount || 0} traços realizados</small>
@@ -288,17 +298,8 @@ const PresentationModal = ({ drawings = [], activity, onClose, onChooseWinner, b
               👑 Escolher {currentDrawing.displayName}
             </button>
           )}
-        </div>
-
-        <button
-          type="button"
-          className="drawingNavArrow next"
-          onClick={handleNext}
-          aria-label="Próximo desenho"
-        >
-          ›
-        </button>
-      </main>
+        </footer>
+      </div>
     </div>
   );
 };
@@ -491,18 +492,69 @@ const ProfessorLiveView = ({
   busy,
 }) => {
   const [showPresentation, setShowPresentation] = useState(false);
+  const [viewingDashboard, setViewingDashboard] = useState(false);
   const activeActivities = useMemo(
     () => activities.filter((item) => item.status === "active"),
     [activities]
   );
 
-  if (!activity) {
+  const showGrid = activeActivities.length > 1 && (viewingDashboard || !activity);
+
+  if (!activity && !activeActivities.length) {
     return (
       <EmptyState
         title="Nenhuma atividade está ao vivo"
         description="Inicie uma rodada para acompanhar a turma e receber os desenhos em tempo real."
         action={<button className="drawingPrimaryButton" onClick={onCreate}>Criar atividade</button>}
       />
+    );
+  }
+
+  if (showGrid) {
+    return (
+      <div className="drawingActiveChallengesDashboard">
+        <header className="drawingSectionHeading">
+          <div>
+            <span className="drawingEyebrow">Visão geral do professor</span>
+            <h2>Desafios da Turma Ao Vivo ({activeActivities.length})</h2>
+            <p>Selecione uma lição em andamento para abrir a lousa de monitoramento em tempo real e acompanhar os alunos.</p>
+          </div>
+          <button className="drawingPrimaryButton" onClick={onCreate}>Criar nova atividade</button>
+        </header>
+
+        <div className="drawingActiveChallengeGrid">
+          {activeActivities.map((item) => (
+            <article className="drawingActiveChallengeCard" key={item.id}>
+              <div className="drawingActiveCardHeader">
+                <span className="drawingLiveDot active"><i /> Ao vivo</span>
+                <span className="drawingTurmaTag">{item.turmaName}</span>
+                <ModeBadge mode={item.mode} />
+              </div>
+              <div className="drawingActiveCardBody">
+                <h3>{item.topic}</h3>
+                {item.instructions ? (
+                  <p>{item.instructions}</p>
+                ) : (
+                  <p>{item.mode === "chaos" ? "Construção coletiva no mesmo quadro em tempo real." : "Desenhos individuais em mosaico."}</p>
+                )}
+              </div>
+              <footer className="drawingActiveCardFooter">
+                <span>{item.drawingCount || item.participantCount || 0} alunos participando</span>
+                <button
+                  type="button"
+                  className="drawingPrimaryButton"
+                  onClick={() => {
+                    onSelectActivity(item.id);
+                    setViewingDashboard(false);
+                  }}
+                >
+                  Monitorar Atividade
+                </button>
+              </footer>
+            </article>
+          ))}
+        </div>
+      </div>
     );
   }
 
@@ -519,27 +571,9 @@ const ProfessorLiveView = ({
           drawings={drawings}
           activity={activity}
           onClose={() => setShowPresentation(false)}
+          onChooseWinner={onChooseWinner}
+          busy={busy}
         />
-      )}
-
-      {activeActivities.length > 1 && (
-        <div className="drawingMultiTurmasSelector" aria-label="Atividades ao vivo por turma">
-          <span>Desafios ao vivo ({activeActivities.length}):</span>
-          <div className="drawingMultiTurmasChips">
-            {activeActivities.map((item) => (
-              <button
-                type="button"
-                key={item.id}
-                className={`drawingTurmaChip ${item.id === activity.id ? "active" : ""}`}
-                onClick={() => onSelectActivity(item.id)}
-              >
-                <i className="drawingLiveDotIndicator" />
-                <strong>{item.turmaName}</strong>
-                <small>{item.topic}</small>
-              </button>
-            ))}
-          </div>
-        </div>
       )}
 
       {activity.mode === "individual" && (
@@ -571,6 +605,15 @@ const ProfessorLiveView = ({
       <main className="drawingTeacherStageShell drawingPanel">
         <header className="drawingTeacherFloatingHeader">
           <div className="drawingTeacherMetaPills">
+            {activeActivities.length > 1 && (
+              <button
+                type="button"
+                className="drawingSeparatePillBtn"
+                onClick={() => setViewingDashboard(true)}
+              >
+                ← Todos os Desafios ({activeActivities.length})
+              </button>
+            )}
             <span className={`drawingLiveDot ${activity.status}`}>
               <i /> {activity.status === "active" ? "Ao vivo" : "Encerrada"}
             </span>
