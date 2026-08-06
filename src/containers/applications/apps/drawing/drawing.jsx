@@ -304,7 +304,17 @@ const PresentationModal = ({ drawings = [], activity, onClose, onChooseWinner, b
   );
 };
 
-const CreateActivity = ({ turmas, draft, busy, onDraftChange, onCreate, onPreview }) => {
+const CreateActivity = ({ turmas, activities = [], draft, busy, onDraftChange, onCreate, onPreview }) => {
+  useEffect(() => {
+    if (turmas.length && (!draft.turmaId || !turmas.some((t) => t.id === draft.turmaId))) {
+      const activeTurmaIds = new Set(activities.filter((a) => a.status === "active").map((a) => a.turmaId));
+      const availableTurma = turmas.find((t) => !activeTurmaIds.has(t.id)) || turmas[0];
+      if (availableTurma) {
+        onDraftChange({ turmaId: availableTurma.id });
+      }
+    }
+  }, [activities, draft.turmaId, onDraftChange, turmas]);
+
   const handleSubmit = (event) => {
     event.preventDefault();
     onCreate(draft);
@@ -500,7 +510,7 @@ const ProfessorLiveView = ({
   busy,
 }) => {
   const [showPresentation, setShowPresentation] = useState(false);
-  const [viewingDashboard, setViewingDashboard] = useState(false);
+  const [viewingDashboard, setViewingDashboard] = useState(true);
   const activeActivities = useMemo(
     () => activities.filter((item) => item.status === "active"),
     [activities]
@@ -1382,6 +1392,7 @@ export const DrawingApp = () => {
               {view === "create" && (
                 <CreateActivity
                   turmas={turmas}
+                  activities={activities}
                   draft={draft}
                   busy={busy}
                   onDraftChange={(change) => setDraft((current) => ({ ...current, ...change }))}
