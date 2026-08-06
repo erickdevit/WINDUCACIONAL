@@ -69,51 +69,54 @@ const EmptyState = ({ title, description, action }) => (
   </div>
 );
 
-const ActivityThumbnail = ({ activity }) => (
+const ActivityThumbnail = ({ activity = {} }) => (
   <div
     className="drawingHistoryThumbnail"
-    style={{ backgroundColor: activity.backgroundColor }}
+    style={{ backgroundColor: activity.backgroundColor || "#ffffff" }}
   >
     {activity.winnerStrokes?.length ? (
       <DrawingPreview
         strokes={activity.winnerStrokes}
-        backgroundColor={activity.backgroundColor}
-        label={`Desenho vencedor de ${activity.winnerName}`}
+        backgroundColor={activity.backgroundColor || "#ffffff"}
+        label={`Desenho vencedor de ${activity.winnerName || "Aluno"}`}
       />
     ) : (
       <div className="drawingHistoryPlaceholder">
         <span>{activity.mode === "chaos" ? "COLETIVO" : "ATIVIDADE"}</span>
-        <strong>{activity.topic.charAt(0).toUpperCase()}</strong>
+        <strong>{(activity.topic || "D").charAt(0).toUpperCase()}</strong>
       </div>
     )}
   </div>
 );
 
-const StudentTile = ({ drawing, active, backgroundColor, onClick }) => (
-  <button
-    type="button"
-    className={`drawingStudentTile ${active ? "active" : ""}`}
-    data-started={drawing.started}
-    onClick={onClick}
-  >
-    <div className="drawingStudentPreview" style={{ backgroundColor }}>
-      {drawing.started ? (
-        <DrawingPreview
-          strokes={drawing.strokes}
-          backgroundColor={backgroundColor}
-          label={`Prévia de ${drawing.displayName}`}
-        />
-      ) : (
-        <span>{drawing.displayName.charAt(0).toUpperCase()}</span>
-      )}
-      <i className="drawingStudentStatus" />
-    </div>
-    <span>
-      <strong>{drawing.displayName}</strong>
-      <small>{drawing.started ? `${drawing.strokeCount} traços` : "Aguardando"}</small>
-    </span>
-  </button>
-);
+const StudentTile = ({ drawing = {}, active, backgroundColor, onClick }) => {
+  const name = drawing.displayName || drawing.username || "Aluno";
+  return (
+    <button
+      type="button"
+      className={`drawingStudentTile ${active ? "active" : ""}`}
+      data-started={Boolean(drawing.started)}
+      onClick={onClick}
+    >
+      <div className="drawingStudentPreview" style={{ backgroundColor }}>
+        {drawing.started && Array.isArray(drawing.strokes) ? (
+          <DrawingPreview
+            strokes={drawing.strokes}
+            backgroundColor={backgroundColor}
+            label={`Prévia de ${name}`}
+          />
+        ) : (
+          <span>{name.charAt(0).toUpperCase()}</span>
+        )}
+        <i className="drawingStudentStatus" />
+      </div>
+      <span>
+        <strong>{name}</strong>
+        <small>{drawing.started ? `${drawing.strokeCount || 0} traços` : "Aguardando"}</small>
+      </span>
+    </button>
+  );
+};
 
 const ResultModal = ({ result, onSaveVirtualDisk, onDownloadPng, onClose }) => {
   if (!result) return null;
@@ -688,7 +691,7 @@ const ProfessorLiveView = ({
               disabled={busy}
               onClick={() => onChooseWinner(selectedDrawing)}
             >
-              👑 Escolher {selectedDrawing.displayName}
+              👑 Escolher {selectedDrawing?.displayName || "Aluno"}
             </button>
           )}
         </div>
