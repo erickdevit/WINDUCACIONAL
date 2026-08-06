@@ -361,18 +361,22 @@ const drawShapePath = (ctx, shape, x0, y0, x1, y1) => {
 export const drawStrokes = (canvas, strokes = [], backgroundColor = "#ffffff") => {
   if (!canvas) return;
   const bounds = canvas.getBoundingClientRect();
-  if (!bounds.width || !bounds.height) return;
-  const scale = window.devicePixelRatio || 1;
-  canvas.width = Math.max(1, Math.round(bounds.width * scale));
-  canvas.height = Math.max(1, Math.round(bounds.height * scale));
+  const width = bounds.width || canvas.width || 800;
+  const height = bounds.height || canvas.height || 600;
+  const scale = (bounds.width && bounds.height) ? (window.devicePixelRatio || 1) : 1;
+
+  if (bounds.width && bounds.height) {
+    canvas.width = Math.max(1, Math.round(width * scale));
+    canvas.height = Math.max(1, Math.round(height * scale));
+  }
 
   const context = canvas.getContext("2d");
   context.setTransform(scale, 0, 0, scale, 0, 0);
   context.fillStyle = backgroundColor;
-  context.fillRect(0, 0, bounds.width, bounds.height);
+  context.fillRect(0, 0, width, height);
 
-  const w = bounds.width;
-  const h = bounds.height;
+  const w = width;
+  const h = height;
 
   strokes.forEach((stroke) => {
     if (!Array.isArray(stroke.points) || stroke.points.length < 1) return;
