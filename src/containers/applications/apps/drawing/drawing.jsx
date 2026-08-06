@@ -180,6 +180,53 @@ const ResultModal = ({ result, fallbackDrawing, onSaveVirtualDisk, onDownloadPng
   );
 };
 
+const ConfirmWinnerModal = ({ selectedDrawing, activityTopic, onConfirm, onCancel, busy }) => {
+  if (!selectedDrawing) return null;
+  const name = selectedDrawing.displayName || selectedDrawing.username || "Aluno";
+  const questionText = `Escolher ${selectedDrawing.displayName} como vencedor?`;
+
+  return (
+    <div className="drawingConfirmOverlay" role="dialog" aria-label="Confirmar Vencedor">
+      <div className="drawingConfirmModal">
+        <header className="drawingConfirmHeader">
+          <span className="drawingConfirmCrown">👑</span>
+          <h3>Declarar Campeão da Rodada</h3>
+          <p>{questionText}</p>
+        </header>
+
+        {selectedDrawing.strokes?.length > 0 && (
+          <div className="drawingConfirmPreviewStage" style={{ backgroundColor: "#ffffff" }}>
+            <DrawingPreview
+              strokes={selectedDrawing.strokes}
+              backgroundColor="#ffffff"
+              label={`Desenho de ${name}`}
+            />
+          </div>
+        )}
+
+        <footer className="drawingConfirmActions">
+          <button
+            type="button"
+            className="drawingSecondaryButton"
+            onClick={onCancel}
+            disabled={busy}
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            className="drawingPrimaryButton winner"
+            onClick={() => onConfirm(selectedDrawing)}
+            disabled={busy}
+          >
+            {busy ? "Confirmando…" : "👑 Confirmar Vencedor"}
+          </button>
+        </footer>
+      </div>
+    </div>
+  );
+};
+
 const PresentationModal = ({ drawings = [], activity, onClose, onChooseWinner, busy }) => {
   const [index, setIndex] = useState(0);
   const [autoplay, setAutoplay] = useState(false);
@@ -1094,6 +1141,7 @@ export const DrawingApp = () => {
   const [drawings, setDrawings] = useState([]);
   const [selectedStudentId, setSelectedStudentId] = useState("");
   const [resultModal, setResultModal] = useState(null);
+  const [winnerCandidate, setWinnerCandidate] = useState(null);
   const [draft, setDraft] = useState({
     turmaId: "",
     topic: "",
@@ -1324,12 +1372,17 @@ export const DrawingApp = () => {
     }
   };
 
-  const handleChooseWinner = async (selectedDrawing) => {
+  const handleChooseWinner = (selectedDrawing) => {
     if (!activity || !selectedDrawing?.userId) return;
-    if (!window.confirm(`Escolher ${selectedDrawing.displayName} como vencedor?`)) return;
+    setWinnerCandidate(selectedDrawing);
+  };
+
+  const handleConfirmWinner = async (candidate) => {
+    if (!activity || !candidate?.userId) return;
     setBusy(true);
     try {
-      await api.chooseDrawingWinner(activity.id, selectedDrawing.userId);
+      await api.chooseDrawingWinner(activity.id, candidate.userId);
+      setWinnerCandidate(null);
       await loadProfessor();
       setView("history");
     } catch (requestError) {
@@ -1402,6 +1455,15 @@ export const DrawingApp = () => {
       restWindowClassName="flex-grow flex flex-col"
     >
       <div className="drawingWorkspace">
+        {winnerCandidate && (
+          <ConfirmWinnerModal
+            selectedDrawing={winnerCandidate}
+            activityTopic={activity?.topic}
+            onConfirm={handleConfirmWinner}
+            onCancel={() => setWinnerCandidate(null)}
+            busy={busy}
+          />
+        )}
         {isProfessor && (
           <header className="drawingAppHeader">
             <div className="drawingBrand">

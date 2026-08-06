@@ -929,3 +929,97 @@
   gap: 10px;
   flex-wrap: wrap;
 }
+
+/* --- Floating Confirm Winner Modal (Professor) --- */
+.drawingConfirmOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(10px);
+  animation: drawingFadeIn .2s ease-out forwards;
+}
+
+.drawingConfirmModal {
+  width: 100%;
+  max-width: 440px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(109, 40, 217, 0.08);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  text-align: center;
+  animation: drawingModalPop .24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.drawingConfirmHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.drawingConfirmCrown {
+  font-size: 38px;
+  line-height: 1;
+  filter: drop-shadow(0 4px 10px rgba(245, 158, 11, 0.4));
+  margin-bottom: 2px;
+}
+
+.drawingConfirmHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 850;
+  color: #0f172a;
+}
+
+.drawingConfirmHeader p {
+  margin: 0;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.drawingConfirmPreviewStage {
+  height: 200px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: inset 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
+.drawingConfirmPreviewStage canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.drawingConfirmActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.drawingPrimaryButton.winner {
+  border-color: #d97706;
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(217, 119, 6, 0.3);
+}
+
+.drawingPrimaryButton.winner:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
