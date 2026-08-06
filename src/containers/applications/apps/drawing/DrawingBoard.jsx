@@ -592,7 +592,9 @@ export const DrawingBoard = ({
   }, [repaint]);
 
   const readPoint = (event) => {
+    if (!canvasRef.current) return { x: 0, y: 0 };
     const bounds = canvasRef.current.getBoundingClientRect();
+    if (!bounds.width || !bounds.height) return { x: 0, y: 0 };
     return {
       x: Math.max(0, Math.min(1, (event.clientX - bounds.left) / bounds.width)),
       y: Math.max(0, Math.min(1, (event.clientY - bounds.top) / bounds.height)),

@@ -1058,8 +1058,8 @@ const StudentView = ({ activity, drawing, busy, onCommit, resultModal, onDismiss
 
 export const DrawingApp = () => {
   const wnapp = useSelector((state) => state.apps.drawing);
-  const user = useSelector((state) => state.setting.person);
-  const isProfessor = user.role === "professor";
+  const user = useSelector((state) => state.setting.person) || {};
+  const isProfessor = user?.role === "professor";
   const [view, setView] = useState("live");
   const [turmas, setTurmas] = useState([]);
   const [activities, setActivities] = useState([]);
@@ -1217,7 +1217,7 @@ export const DrawingApp = () => {
           }, 800);
         }
         if (event.type === "winner") {
-          const isWinner = event.winnerId === user.id;
+          const isWinner = event.winnerId === user?.id;
           setResultModal({
             type: isWinner ? "winner" : "encouragement",
             winnerName: event.winnerName,
@@ -1235,7 +1235,7 @@ export const DrawingApp = () => {
       onError: () => {},
     });
     return () => subscription.close();
-  }, [activity?.id, activity?.mode, activity?.status, isProfessor, user.id, loadStudent, wnapp?.hide]);
+  }, [activity?.id, activity?.mode, activity?.status, isProfessor, user?.id, loadStudent, wnapp?.hide]);
 
   const handleCreate = async (payload) => {
     setBusy(true);
@@ -1364,8 +1364,8 @@ export const DrawingApp = () => {
               <button className={view === "history" ? "active" : ""} onClick={() => setView("history")}>Histórico<b>{historyCount}</b></button>
             </nav>
             <div className="drawingHeaderUser">
-              <span>{(user.displayName || user.username || "U").charAt(0).toUpperCase()}</span>
-              <div><strong>{user.displayName || user.username}</strong><small>Professor</small></div>
+              <span>{(user?.displayName || user?.username || "U").charAt(0).toUpperCase()}</span>
+              <div><strong>{user?.displayName || user?.username || "Usuário"}</strong><small>Professor</small></div>
             </div>
           </header>
         )}
