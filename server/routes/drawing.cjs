@@ -254,6 +254,31 @@ module.exports = function injectDrawingRoutes(ctx) {
         [req.user.turma_id]
       );
       if (!result.rowCount) {
+        const closedResult = await pool.query(
+          `SELECT a.*, t.nome AS turma_nome, w.display_name AS winner_name
+           FROM drawing_activities a
+           JOIN turmas t ON t.id = a.turma_id
+           LEFT JOIN users w ON w.id = a.winner_id
+           WHERE a.turma_id = $1 AND a.status = 'closed' AND a.winner_id IS NOT NULL
+           ORDER BY a.closed_at DESC
+           LIMIT 1`,
+          [req.user.turma_id]
+        );
+        if (closedResult.rowCount) {
+          const lastClosed = closedResult.rows[0];
+          const drawings = await readDrawings(lastClosed, req.user);
+          return res.json({
+            activity: null,
+            drawing: drawings[0] || null,
+            lastResult: {
+              activityId: lastClosed.id,
+              topic: lastClosed.topic,
+              winnerId: lastClosed.winner_id,
+              winnerName: lastClosed.winner_name || "um colega",
+              closedAt: lastClosed.closed_at,
+            },
+          });
+        }
         return res.json({ activity: null, drawing: null });
       }
       const activity = result.rows[0];

@@ -143,4 +143,11 @@ describe("Desenho da Turma - experiência", () => {
     expect(app).toContain('title="Ao vivo" aria-label="Ao vivo"');
     expect(styles).toContain("drawingLivePulse");
   });
+
+  it("exibe telas distintas para campeão e para os demais participantes com fallback de desenho", () => {
+    expect(app).toContain("Campeão da Rodada!");
+    expect(app).toContain("Sinto Muito - Não foi desta vez");
+    expect(app).toContain("fallbackDrawing");
+    expect(route).toContain("lastResult");
+  });
 });

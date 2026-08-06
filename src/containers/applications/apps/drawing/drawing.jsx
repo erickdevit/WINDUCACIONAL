@@ -118,53 +118,54 @@ const StudentTile = ({ drawing = {}, active, backgroundColor, onClick }) => {
   );
 };
 
-const ResultModal = ({ result, onSaveVirtualDisk, onDownloadPng, onClose }) => {
+const ResultModal = ({ result, fallbackDrawing, onSaveVirtualDisk, onDownloadPng, onClose }) => {
   if (!result) return null;
   const isWinner = result.type === "winner";
+  const displayDrawing = result.drawing || fallbackDrawing;
 
   return (
     <div className="drawingResultOverlay" role="dialog" aria-label="Resultado do Desafio">
       <div className={`drawingResultModal ${isWinner ? "winner" : "encouragement"}`}>
         <header className="drawingResultHeader">
           <div className="drawingResultBadge">
-            {isWinner ? "🏆 Campeão da Rodada" : "✨ Mandou Muito Bem!"}
+            {isWinner ? "🏆 Campeão da Rodada!" : "💙 Sinto Muito - Não foi desta vez"}
           </div>
           <h2>
             {isWinner
               ? "Parabéns! Seu Desenho Venceu!"
-              : "Não foi desta vez, mas seu desenho ficou incrível!"}
+              : "Sinto muito, não foi desta vez!"}
           </h2>
           <p>
             {isWinner
-              ? "O professor escolheu sua criação como a grande vencedora do desafio! O desenho foi salvo na galeria e no seu histórico."
-              : `O vencedor escolhido pelo professor nesta rodada foi ${result.winnerName || "um colega da turma"}. Continue criando!`}
+              ? "O professor escolheu sua criação como a grande vencedora do desafio! O desenho foi salvo na galeria de vencedores e no seu histórico."
+              : `O professor escolheu a criação de ${result.winnerName || "um colega da turma"} como a vencedora desta rodada. Não desanime! Seu desenho ficou ótimo e você continua evoluindo.`}
           </p>
         </header>
 
-        {result.drawing?.strokes?.length > 0 && (
-          <div className="drawingResultPreviewStage" style={{ backgroundColor: result.drawing.backgroundColor || "#ffffff" }}>
+        {displayDrawing?.strokes?.length > 0 && (
+          <div className="drawingResultPreviewStage" style={{ backgroundColor: displayDrawing.backgroundColor || "#ffffff" }}>
             <DrawingPreview
-              strokes={result.drawing.strokes}
-              backgroundColor={result.drawing.backgroundColor || "#ffffff"}
+              strokes={displayDrawing.strokes}
+              backgroundColor={displayDrawing.backgroundColor || "#ffffff"}
               label="Sua criação"
             />
           </div>
         )}
 
         <footer className="drawingResultActions">
-          {result.drawing && (
+          {displayDrawing?.strokes?.length > 0 && (
             <>
               <button
                 type="button"
                 className="drawingSecondaryButton"
-                onClick={() => onSaveVirtualDisk(result.drawing, result.activityTopic)}
+                onClick={() => onSaveVirtualDisk(displayDrawing, result.activityTopic)}
               >
                 💾 Salvar no Computador
               </button>
               <button
                 type="button"
                 className="drawingSecondaryButton"
-                onClick={() => onDownloadPng(result.drawing, result.activityTopic)}
+                onClick={() => onDownloadPng(displayDrawing, result.activityTopic)}
               >
                 ⬇ Baixar PNG
               </button>
@@ -930,6 +931,7 @@ const StudentView = ({ activity, drawing, busy, onCommit, resultModal, onDismiss
     <div className="drawingStudentViewFull">
       <ResultModal
         result={resultModal}
+        fallbackDrawing={drawing}
         onSaveVirtualDisk={handleSaveVirtualDisk}
         onDownloadPng={handleDownloadPng}
         onClose={onDismissResultModal}
@@ -1161,15 +1163,29 @@ export const DrawingApp = () => {
         return result.activity;
       });
       if (!result.activity) {
-        setDrawing(null);
+        setDrawing(result.drawing || null);
       } else if (result.drawing) {
         setDrawing(result.drawing);
+      }
+
+      if (result.lastResult) {
+        const dismissedKey = `dismissed_result_${result.lastResult.activityId}`;
+        if (!sessionStorage.getItem(dismissedKey)) {
+          const isWinner = String(result.lastResult.winnerId) === String(user?.id);
+          setResultModal({
+            activityId: result.lastResult.activityId,
+            type: isWinner ? "winner" : "encouragement",
+            winnerName: result.lastResult.winnerName,
+            drawing: result.drawing || drawingRef.current,
+            activityTopic: result.lastResult.topic || "desenho",
+          });
+        }
       }
       setError("");
     } catch (requestError) {
       setError(requestError.message);
     }
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     if (wnapp?.hide) return;
@@ -1218,11 +1234,12 @@ export const DrawingApp = () => {
           }, 800);
         }
         if (event.type === "winner") {
-          const isWinner = event.winnerId === user?.id;
+          const isWinner = String(event.winnerId) === String(user?.id);
           setResultModal({
+            activityId: activity.id,
             type: isWinner ? "winner" : "encouragement",
             winnerName: event.winnerName,
-            drawing: drawingRef.current,
+            drawing: drawingRef.current || drawing,
             activityTopic: activityRef.current?.topic || "desenho",
           });
           setActivity((current) => current && {
@@ -1236,7 +1253,7 @@ export const DrawingApp = () => {
       onError: () => {},
     });
     return () => subscription.close();
-  }, [activity?.id, activity?.mode, activity?.status, isProfessor, user?.id, loadStudent, wnapp?.hide]);
+  }, [activity?.id, activity?.mode, activity?.status, drawing, isProfessor, user?.id, loadStudent, wnapp?.hide]);
 
   const handleCreate = async (payload) => {
     setBusy(true);
@@ -1454,6 +1471,9 @@ export const DrawingApp = () => {
               onCommit={handleStudentCommit}
               resultModal={resultModal}
               onDismissResultModal={() => {
+                if (resultModal?.activityId) {
+                  sessionStorage.setItem(`dismissed_result_${resultModal.activityId}`, "true");
+                }
                 setResultModal(null);
                 loadStudent();
               }}
