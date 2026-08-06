@@ -131,4 +131,9 @@ describe("Desenho da Turma - experiência", () => {
     expect(board).toContain("Desfazer");
     expect(board).toContain("DRAWING_COLORS");
   });
+
+  it("trata atividade nula com segurança durante o carregamento inicial", () => {
+    expect(app).toContain("if (!activity)");
+    expect(app).toContain("Carregando atividade");
+  });
 });

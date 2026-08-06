@@ -378,7 +378,8 @@ export const drawStrokes = (canvas, strokes = [], backgroundColor = "#ffffff") =
   const w = width;
   const h = height;
 
-  strokes.forEach((stroke) => {
+  const safeStrokes = Array.isArray(strokes) ? strokes : [];
+  safeStrokes.forEach((stroke) => {
     if (!Array.isArray(stroke.points) || stroke.points.length < 1) return;
     const tool = stroke.tool || "brush";
     const color = stroke.color || "#172033";
@@ -557,6 +558,7 @@ export const DrawingBoard = ({
   busy = false,
   onCommit,
 }) => {
+  const safeStrokes = Array.isArray(strokes) ? strokes : [];
   const canvasRef = useRef(null);
   const activeStrokeRef = useRef(null);
   const [activePalette, setActivePalette] = useState("classic");
@@ -573,11 +575,11 @@ export const DrawingBoard = ({
     (previewStroke) => {
       drawStrokes(
         canvasRef.current,
-        previewStroke ? [...strokes, previewStroke] : strokes,
+        previewStroke ? [...safeStrokes, previewStroke] : safeStrokes,
         backgroundColor
       );
     },
-    [backgroundColor, strokes]
+    [backgroundColor, safeStrokes]
   );
 
   useEffect(() => {
@@ -646,18 +648,18 @@ export const DrawingBoard = ({
       stroke.points.push({ ...stroke.points[0] });
     }
     activeStrokeRef.current = null;
-    const nextStrokes = [...strokes, stroke];
+    const nextStrokes = [...safeStrokes, stroke];
     repaint(stroke);
     onCommit?.({ action: "append", stroke, nextStrokes });
   };
 
   const handleUndo = () => {
-    if (!strokes.length || collaborative) return;
-    onCommit?.({ action: "replace", strokes: strokes.slice(0, -1) });
+    if (!safeStrokes.length || collaborative) return;
+    onCommit?.({ action: "replace", strokes: safeStrokes.slice(0, -1) });
   };
 
   const handleClear = () => {
-    if (!strokes.length || collaborative) return;
+    if (!safeStrokes.length || collaborative) return;
     onCommit?.({ action: "clear", strokes: [] });
   };
 
@@ -791,7 +793,7 @@ export const DrawingBoard = ({
                     className="drawingDockBtn"
                     title="Desfazer"
                     aria-label="Desfazer"
-                    disabled={!strokes.length || busy}
+                    disabled={!safeStrokes.length || busy}
                     onClick={handleUndo}
                   >
                     <IconUndo />
@@ -801,7 +803,7 @@ export const DrawingBoard = ({
                     className="drawingDockBtn danger"
                     title="Limpar Quadro"
                     aria-label="Limpar"
-                    disabled={!strokes.length || busy}
+                    disabled={!safeStrokes.length || busy}
                     onClick={handleClear}
                   >
                     <IconTrash />

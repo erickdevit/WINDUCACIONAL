@@ -579,11 +579,16 @@ const ProfessorLiveView = ({
     );
   }
 
+  if (!activity) {
+    return <div className="drawingLoading"><i /> Carregando atividade…</div>;
+  }
+
+  const safeDrawings = Array.isArray(drawings) ? drawings : [];
   const selectedDrawing =
     activity.mode === "chaos"
-      ? drawings[0]
-      : drawings.find((item) => item.userId === selectedStudentId) || drawings[0];
-  const startedCount = drawings.filter((item) => item.started).length;
+      ? safeDrawings[0]
+      : safeDrawings.find((item) => item.userId === selectedStudentId) || safeDrawings[0];
+  const startedCount = safeDrawings.filter((item) => item.started).length;
 
   return (
     <div className="drawingLiveLayout">
@@ -1325,14 +1330,14 @@ export const DrawingApp = () => {
     }
   };
 
-  const activeCount = activities.filter((item) => item.status === "active").length;
-  const historyCount = activities.filter((item) => item.status === "closed").length;
+  const activeCount = (activities || []).filter((item) => item?.status === "active").length;
+  const historyCount = (activities || []).filter((item) => item?.status === "closed").length;
   const previewSource = useMemo(() => {
-    if (draft.topic.trim()) {
+    if ((draft?.topic || "").trim()) {
       return {
         ...draft,
         turmaName:
-          turmas.find((item) => item.id === draft.turmaId)?.nome || "",
+          (turmas || []).find((item) => item.id === draft?.turmaId)?.nome || "",
       };
     }
     return activity;
