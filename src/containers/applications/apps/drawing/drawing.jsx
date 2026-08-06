@@ -462,10 +462,18 @@ const PreviewView = ({ preview, onEdit }) => {
 
       <div className="drawingPreviewDevice">
         <div className="drawingPreviewDeviceBar">
-          <span className="drawingTurmaTag">{preview.turmaName || "Turma selecionada"}</span>
-          <ModeBadge mode={preview.mode || "individual"} />
-          <div className="drawingTopicPill" title={preview.topic || "Tema"}>
-            <strong>{preview.topic || "Desafio de Desenho"}</strong>
+          <div className="drawingPreviewDots">
+            <i className="red" />
+            <i className="yellow" />
+            <i className="green" />
+            <span>Visão do Aluno</span>
+          </div>
+          <div className="drawingPreviewDevicePills">
+            <span className="drawingTurmaTag">{preview.turmaName || "Turma selecionada"}</span>
+            <ModeBadge mode={preview.mode || "individual"} />
+            <div className="drawingTopicPill" title={preview.topic || "Tema"}>
+              <strong>{preview.topic || "Desafio de Desenho"}</strong>
+            </div>
           </div>
         </div>
         <StudentView
