@@ -382,23 +382,59 @@ const ProfessorLiveView = ({
 };
 
 const HistoryView = ({ activities, turmas, onOpen, onRepeat }) => {
-  const [turmaFilter, setTurmaFilter] = useState("");
+  const [selectedTurmaTab, setSelectedTurmaTab] = useState("");
   const [modeFilter, setModeFilter] = useState("");
-  const history = activities.filter(
-    (item) =>
-      item.status === "closed" &&
-      (!turmaFilter || item.turmaId === turmaFilter) &&
-      (!modeFilter || item.mode === modeFilter)
+
+  const closedActivities = useMemo(
+    () => activities.filter((item) => item.status === "closed"),
+    [activities]
   );
-  const winnerCount = history.filter((item) => item.winnerId).length;
-  const participantTotal = history.reduce((sum, item) => sum + item.drawingCount, 0);
+
+  const filteredHistory = useMemo(() => {
+    return closedActivities.filter(
+      (item) =>
+        (!selectedTurmaTab || item.turmaId === selectedTurmaTab) &&
+        (!modeFilter || item.mode === modeFilter)
+    );
+  }, [closedActivities, selectedTurmaTab, modeFilter]);
+
+  const winnerCount = filteredHistory.filter((item) => item.winnerId).length;
+  const participantTotal = filteredHistory.reduce((sum, item) => sum + item.drawingCount, 0);
+
+  const groupedByTurma = useMemo(() => {
+    const map = new Map();
+    filteredHistory.forEach((item) => {
+      const key = item.turmaId || "unknown";
+      if (!map.has(key)) {
+        map.set(key, {
+          turmaId: item.turmaId,
+          turmaName: item.turmaName || "Turma",
+          items: [],
+        });
+      }
+      map.get(key).items.push(item);
+    });
+    return Array.from(map.values());
+  }, [filteredHistory]);
 
   return (
     <div className="drawingHistoryView">
       <section className="drawingHistorySummary">
-        <article><span>Atividades concluídas</span><strong>{history.length}</strong><small>no filtro atual</small></article>
-        <article><span>Vencedores escolhidos</span><strong>{winnerCount}</strong><small>galeria individual</small></article>
-        <article><span>Desenhos recebidos</span><strong>{participantTotal}</strong><small>participações registradas</small></article>
+        <article>
+          <span>Atividades concluídas</span>
+          <strong>{filteredHistory.length}</strong>
+          <small>no filtro atual</small>
+        </article>
+        <article>
+          <span>Vencedores escolhidos</span>
+          <strong>{winnerCount}</strong>
+          <small>galeria individual</small>
+        </article>
+        <article>
+          <span>Desenhos recebidos</span>
+          <strong>{participantTotal}</strong>
+          <small>participações registradas</small>
+        </article>
       </section>
 
       <section className="drawingPanel drawingHistoryPanel">
@@ -406,14 +442,26 @@ const HistoryView = ({ activities, turmas, onOpen, onRepeat }) => {
           <div>
             <span className="drawingEyebrow">Memória das turmas</span>
             <h2>Histórico de atividades e vencedores</h2>
-            <p>Revisite desafios anteriores, abra os desenhos ou repita uma proposta.</p>
+            <p>Revisite desafios anteriores organizados por turma, abra os desenhos ou repita uma proposta.</p>
           </div>
           <div className="drawingHistoryFilters">
-            <select value={turmaFilter} onChange={(event) => setTurmaFilter(event.target.value)} aria-label="Filtrar histórico por turma">
+            <select
+              value={selectedTurmaTab}
+              onChange={(event) => setSelectedTurmaTab(event.target.value)}
+              aria-label="Filtrar histórico por turma"
+            >
               <option value="">Todas as turmas</option>
-              {turmas.map((turma) => <option key={turma.id} value={turma.id}>{turma.nome}</option>)}
+              {turmas.map((turma) => (
+                <option key={turma.id} value={turma.id}>
+                  {turma.nome}
+                </option>
+              ))}
             </select>
-            <select value={modeFilter} onChange={(event) => setModeFilter(event.target.value)} aria-label="Filtrar histórico por modo">
+            <select
+              value={modeFilter}
+              onChange={(event) => setModeFilter(event.target.value)}
+              aria-label="Filtrar histórico por modo"
+            >
               <option value="">Todos os modos</option>
               <option value="individual">Individual</option>
               <option value="chaos">Caos coletivo</option>
@@ -421,26 +469,79 @@ const HistoryView = ({ activities, turmas, onOpen, onRepeat }) => {
           </div>
         </div>
 
-        {history.length ? (
-          <div className="drawingHistoryGrid">
-            {history.map((item) => (
-              <article className="drawingHistoryCard" key={item.id}>
-                <ActivityThumbnail activity={item} />
-                <div className="drawingHistoryCardBody">
-                  <div><ModeBadge mode={item.mode} /><time>{formatDate(item.closedAt || item.createdAt)}</time></div>
-                  <h3>{item.topic}</h3>
-                  <p>{item.turmaName} · {item.drawingCount} desenho{item.drawingCount === 1 ? "" : "s"}</p>
-                  {item.winnerName ? <strong className="drawingWinnerName"><i /> Vencedor: {item.winnerName}</strong> : <span className="drawingNoWinner">{item.mode === "chaos" ? "Criação coletiva" : "Sem vencedor escolhido"}</span>}
+        <div className="drawingHistoryTurmaTabs" aria-label="Divisão por turma">
+          <button
+            type="button"
+            className={selectedTurmaTab === "" ? "active" : ""}
+            onClick={() => setSelectedTurmaTab("")}
+          >
+            Todas as turmas <b>{closedActivities.length}</b>
+          </button>
+          {turmas.map((turma) => {
+            const count = closedActivities.filter((item) => item.turmaId === turma.id).length;
+            if (count === 0) return null;
+            return (
+              <button
+                type="button"
+                key={turma.id}
+                className={selectedTurmaTab === turma.id ? "active" : ""}
+                onClick={() => setSelectedTurmaTab(turma.id)}
+              >
+                {turma.nome} <b>{count}</b>
+              </button>
+            );
+          })}
+        </div>
+
+        {groupedByTurma.length ? (
+          <div className="drawingHistoryTurmaGroups">
+            {groupedByTurma.map((group) => (
+              <div className="drawingHistoryTurmaGroupSection" key={group.turmaId}>
+                <div className="drawingHistoryGroupHeader">
+                  <span className="drawingTurmaGroupBadge">{group.turmaName}</span>
+                  <small>
+                    {group.items.length} atividade{group.items.length === 1 ? "" : "s"} encerrada{group.items.length === 1 ? "" : "s"}
+                  </small>
                 </div>
-                <footer>
-                  <button onClick={() => onOpen(item.id)}>Ver atividade</button>
-                  <button onClick={() => onRepeat(item)}>Repetir</button>
-                </footer>
-              </article>
+                <div className="drawingHistoryGrid">
+                  {group.items.map((item) => (
+                    <article className="drawingHistoryCard" key={item.id}>
+                      <ActivityThumbnail activity={item} />
+                      <div className="drawingHistoryCardBody">
+                        <div>
+                          <ModeBadge mode={item.mode} />
+                          <time>{formatDate(item.closedAt || item.createdAt)}</time>
+                        </div>
+                        <h3>{item.topic}</h3>
+                        <p>
+                          {item.turmaName} · {item.drawingCount} desenho
+                          {item.drawingCount === 1 ? "" : "s"}
+                        </p>
+                        {item.winnerName ? (
+                          <strong className="drawingWinnerName">
+                            <i /> Vencedor: {item.winnerName}
+                          </strong>
+                        ) : (
+                          <span className="drawingNoWinner">
+                            {item.mode === "chaos" ? "Criação coletiva" : "Sem vencedor escolhido"}
+                          </span>
+                        )}
+                      </div>
+                      <footer>
+                        <button onClick={() => onOpen(item.id)}>Ver atividade</button>
+                        <button onClick={() => onRepeat(item)}>Repetir</button>
+                      </footer>
+                    </article>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         ) : (
-          <EmptyState title="Nenhum resultado neste filtro" description="As atividades encerradas aparecerão aqui com seus desenhos e vencedores." />
+          <EmptyState
+            title="Nenhum resultado neste filtro"
+            description="As atividades encerradas aparecerão aqui divididas por turma com seus desenhos e vencedores."
+          />
         )}
       </section>
     </div>
