@@ -41,7 +41,7 @@
 
 .drawingCreateLayout { max-width:980px; min-width:680px; margin:0 auto; display:block; }
 .drawingCreatePanel { padding:25px; }.drawingSectionHeading { display:flex; justify-content:space-between; gap:18px; }.drawingSectionHeading h2,.drawingHistoryHeader h2{margin:4px 0 5px;font-size:20px;letter-spacing:-.025em}.drawingSectionHeading p,.drawingHistoryHeader p{margin:0;color:#7d8493;font-size:11px;line-height:1.55}.drawingStepBadge{height:max-content;padding:5px 9px;border-radius:999px;background:#f0ecfb;color:#6d28d9;font-size:9px;font-weight:750;white-space:nowrap}
-.drawingCreatePanel form{margin-top:24px}.drawingFormGrid{display:grid;grid-template-columns:1fr 1.45fr;gap:14px}.drawingCreatePanel label>span,.drawingModePicker legend,.drawingBackgroundPicker legend{display:block;margin-bottom:6px;color:#4c5567;font-size:10px;font-weight:750}.drawingCreatePanel label>span em{color:#9da3af;font-style:normal;font-weight:550}.drawingCreatePanel input[type=text],.drawingCreatePanel input:not([type]),.drawingCreatePanel select,.drawingCreatePanel textarea{width:100%;padding:10px 11px;border:1px solid #d5d9e2;border-radius:99px;outline:0;background:#fff;color:#1f2937;font-size:11px;transition:.18s}.drawingCreatePanel input:focus,.drawingCreatePanel select:focus,.drawingCreatePanel textarea:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(124,58,237,.1)}.drawingCreatePanel label>small{display:block;margin-top:5px;color:#9aa0ac;font-size:9px}.drawingInstructionsField{display:block;margin-top:15px}.drawingCreatePanel textarea{resize:vertical;line-height:1.5}
+.drawingCreatePanel form{margin-top:24px}.drawingFormGrid{display:grid;grid-template-columns:1fr 1.45fr;gap:14px}.drawingCreatePanel label>span,.drawingModePicker legend,.drawingBackgroundPicker legend{display:block;margin-bottom:6px;color:#4c5567;font-size:10px;font-weight:750}.drawingCreatePanel label>span em{color:#9da3af;font-style:normal;font-weight:550}.drawingCreatePanel input[type=text],.drawingCreatePanel input:not([type]),.drawingCreatePanel select,.drawingCreatePanel textarea{width:100%;padding:10px 11px;border:1px solid #d5d9e2;border-radius:9px;outline:0;background:#fff;color:#1f2937;font-size:11px;transition:.18s}.drawingCreatePanel input:focus,.drawingCreatePanel select:focus,.drawingCreatePanel textarea:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(124,58,237,.1)}.drawingCreatePanel label>small{display:block;margin-top:5px;color:#9aa0ac;font-size:9px}.drawingInstructionsField{display:block;margin-top:15px}.drawingCreatePanel textarea{resize:vertical;line-height:1.5}
 .drawingNoClassNotice{margin-top:18px;padding:11px 12px;display:flex;align-items:center;gap:10px;border:1px solid #f2d58d;border-radius:10px;background:#fffaf0}.drawingNoClassNotice>i{width:9px;height:9px;flex:0 0 9px;border-radius:50%;background:#e9a315}.drawingNoClassNotice strong,.drawingNoClassNotice small{display:block}.drawingNoClassNotice strong{color:#805c16;font-size:10px}.drawingNoClassNotice small{margin-top:2px;color:#9b7b3e;font-size:8px;line-height:1.45}
 .drawingModePicker,.drawingBackgroundPicker{min-width:0;margin:20px 0 0;padding:0;border:0}.drawingModePicker{display:grid;grid-template-columns:1fr 1fr;gap:10px}.drawingModePicker legend{grid-column:1/-1}.drawingModePicker>label{position:relative;min-height:100px;padding:14px;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:12px;border:1px solid #dfe2e8;border-radius:12px;background:#fafbfc;cursor:pointer;transition:.18s}.drawingModePicker>label:hover{border-color:#c5b7e8;background:#fdfcff}.drawingModePicker>label.active{border-color:#8b5cf6;background:#faf7ff;box-shadow:0 0 0 3px rgba(124,58,237,.08)}.drawingModePicker input{position:absolute;opacity:0;pointer-events:none}.drawingModePicker label>span:nth-of-type(2) strong,.drawingModePicker label>span:nth-of-type(2) small{display:block}.drawingModePicker label>span:nth-of-type(2) strong{color:#303849;font-size:11px}.drawingModePicker label>span:nth-of-type(2) small{margin-top:4px;color:#858c9a;font-size:9px;line-height:1.45}.drawingModePicker label>b{position:absolute;top:9px;right:9px;color:#8b5cf6;font-size:8px;text-transform:uppercase;letter-spacing:.08em}.drawingModeIcon{position:relative;width:46px;height:46px;display:block;border-radius:12px;background:#eee9fb}.drawingModeIcon i{position:absolute;border-radius:4px;background:#7c3aed}.drawingModeIcon.individual i{width:12px;height:16px;top:15px}.drawingModeIcon.individual i:nth-child(1){left:6px}.drawingModeIcon.individual i:nth-child(2){left:17px;top:10px;height:22px}.drawingModeIcon.individual i:nth-child(3){right:6px}.drawingModeIcon.chaos i{width:25px;height:4px;left:11px;top:14px;transform:rotate(28deg)}.drawingModeIcon.chaos i:nth-child(2){top:23px;transform:rotate(-37deg);background:#2563eb}.drawingModeIcon.chaos i:nth-child(3){top:31px;transform:rotate(14deg);background:#f59e0b}
 .drawingBackgroundPicker>div{display:flex;gap:8px}.drawingBackgroundPicker label{position:relative;width:38px;height:38px;margin:0;display:grid;place-items:center;border:1px solid #d8dce4;border-radius:9px;cursor:pointer}.drawingBackgroundPicker label.active{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.1)}.drawingBackgroundPicker input{position:absolute;opacity:0}.drawingBackgroundPicker i{width:26px;height:26px;border:1px solid #e1e4ea;border-radius:6px}
@@ -52,7 +52,82 @@
 .drawingLiveLayout{max-width:1440px;margin:0 auto;display:grid;grid-template-columns:270px minmax(0,1fr);gap:16px;align-items:start}.drawingLiveLayout:not(:has(.drawingRosterPanel)){grid-template-columns:1fr;max-width:1120px}.drawingRosterPanel{position:sticky;top:0;padding:16px;max-height:calc(100vh - 170px);display:flex;flex-direction:column}.drawingRosterHeading{display:flex;align-items:flex-end;justify-content:space-between}.drawingRosterHeading h2{margin:3px 0 0;font-size:16px}.drawingRosterHeading>strong{color:#6d28d9;font-size:12px}.drawingRosterProgress{height:4px;margin:11px 0 13px;overflow:hidden;border-radius:5px;background:#eceef2}.drawingRosterProgress i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#8b5cf6,#6d28d9)}.drawingStudentTiles{min-height:0;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:2px}.drawingStudentTile{min-width:0;padding:7px;border:1px solid #e2e5eb;border-radius:10px;background:#fafbfc;text-align:left;transition:.16s}.drawingStudentTile:hover{border-color:#c6bbdf;transform:translateY(-1px)}.drawingStudentTile.active{border-color:#7c3aed;background:#faf7ff;box-shadow:0 0 0 2px rgba(124,58,237,.12)}.drawingStudentPreview{position:relative;height:70px;display:grid;place-items:center;overflow:hidden;border:1px solid #e6e8ed;border-radius:7px}.drawingStudentPreview canvas{width:100%;height:100%;display:block}.drawingStudentPreview>span{width:32px;height:32px;display:grid;place-items:center;border-radius:50%;background:#ede9fe;color:#6d28d9;font-size:12px;font-weight:800}.drawingStudentStatus{position:absolute;right:5px;bottom:5px;width:7px;height:7px;border:2px solid #fff;border-radius:50%;background:#c4c9d2}.drawingStudentTile[data-started=true] .drawingStudentStatus{background:#10b981}.drawingStudentTile>span{display:block;margin-top:6px}.drawingStudentTile strong,.drawingStudentTile small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.drawingStudentTile strong{font-size:9px}.drawingStudentTile small{margin-top:2px;color:#9298a5;font-size:8px}
 .drawingLiveMain{min-width:0;display:grid;gap:12px}.drawingLiveHero{padding:17px 19px;display:flex;justify-content:space-between;align-items:center;gap:18px}.drawingLiveHero h2{margin:8px 0 3px;font-size:21px;letter-spacing:-.03em}.drawingLiveHero p{max-width:720px;margin:0;color:#7b8391;font-size:10px;line-height:1.5}.drawingLiveMeta{display:flex;align-items:center;gap:8px;color:#858c9a;font-size:9px;font-weight:650}.drawingLiveDot{display:flex;align-items:center;gap:6px;color:#087a4d;font-weight:800;text-transform:uppercase;letter-spacing:.06em}.drawingModeBadge{display:inline-flex;align-items:center;width:max-content;padding:4px 7px;border-radius:999px;background:#eef2ff;color:#4338ca;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}.drawingModeBadge.chaos{background:#fff4df;color:#b45309}.drawingMonitorPanel{padding:17px}.drawingMonitorHeading{display:flex;justify-content:space-between;align-items:center;gap:15px}.drawingMonitorHeading h3{margin:3px 0 0;font-size:15px}.drawingUpdatedBadge{display:flex;align-items:center;gap:6px;color:#718077;font-size:9px}.drawingUpdatedBadge i{width:6px;height:6px;border-radius:50%;background:#10b981}
 
-/* --- Drawing Canvas & Floating Dock --- */
+/* --- Student Floating Header (Pills Separadas) --- */
+.drawingStudentFloatingHeader {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  right: 16px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  pointer-events: none;
+}
+.drawingStudentFloatingHeader > * { pointer-events: auto; }
+
+.drawingTopicPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.08);
+  width: fit-content;
+  max-width: 50%;
+}
+.drawingTopicPill strong {
+  font-size: 13px;
+  font-weight: 800;
+  color: #1e293b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drawingStudentHeaderTabs { display: flex; align-items: center; gap: 8px; }
+
+.drawingSeparatePillBtn {
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  color: #475569;
+  font-size: 11px;
+  font-weight: 750;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  transition: all .16s ease;
+}
+.drawingSeparatePillBtn:hover { border-color: #8b5cf6; color: #6d28d9; transform: translateY(-1px); }
+.drawingSeparatePillBtn.active {
+  border-color: #6d28d9;
+  background: #f0ecfb;
+  color: #5b21b6;
+  box-shadow: 0 4px 18px rgba(109, 40, 217, 0.18);
+}
+.drawingSeparatePillBtn.instructions { border-color: #cbd5e1; }
+
+.drawingFloatingInstructionsModal {
+  position: absolute;
+  top: 62px;
+  right: 16px;
+  z-index: 50;
+  width: 320px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
+  animation: drawingFadeIn .2s ease-out;
+}
+.drawingFloatingInstructionsModal strong { display: block; font-size: 12px; color: #6d28d9; margin-bottom: 6px; }
+.drawingFloatingInstructionsModal p { margin: 0 0 12px; font-size: 11px; color: #475569; line-height: 1.5; }
+
+/* --- Drawing Canvas & Floating Tool Column --- */
 .drawingCanvasShell { position: relative; width: 100%; height: 100%; flex: 1 1 0; overflow: hidden; border-radius: 0; background: #ffffff; display: flex; flex-direction: column; }
 .drawingCanvasStage { position: relative; width: 100%; height: 100%; flex: 1 1 0; min-height: 0; overflow: hidden; background: #ffffff; }
 .drawingCanvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
@@ -80,8 +155,8 @@
 .drawingDockItemWithFlyout { position: relative; }
 
 .drawingDockBtn {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   border: 1px solid transparent;
   border-radius: 12px;
@@ -99,7 +174,7 @@
   position: absolute;
   left: 50px;
   top: 0;
-  min-width: 140px;
+  min-width: 150px;
   padding: 6px;
   border-radius: 14px;
   background: #ffffff;
@@ -111,11 +186,12 @@
   z-index: 50;
   animation: drawingFadeIn .18s ease-out;
 }
+.drawingShapesFlyout { min-width: 130px; }
 .drawingFlyoutItem {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 10px;
+  gap: 10px;
+  padding: 8px 12px;
   border: 0;
   border-radius: 8px;
   background: transparent;
@@ -129,48 +205,6 @@
 .drawingFlyoutItem.active { background: #ede9fe; color: #5b21b6; }
 
 .drawingDockDivider { width: 24px; height: 1px; background: #e2e8f0; margin: 2px 0; }
-
-.drawingDockPaletteGroup { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.drawingPaletteSelectCompact {
-  width: 36px;
-  padding: 2px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  background: #ffffff;
-  font-size: 9px;
-  color: #475569;
-  font-weight: 800;
-  outline: none;
-  cursor: pointer;
-  text-align: center;
-}
-.drawingColorSwatchesColumn { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; }
-.drawingSwatchBtn {
-  width: 17px;
-  height: 17px;
-  padding: 0;
-  border: 2px solid #ffffff;
-  border-radius: 50%;
-  background: var(--drawing-swatch);
-  box-shadow: 0 0 0 1px #cbd5e1;
-  cursor: pointer;
-  transition: transform .14s ease, box-shadow .14s ease;
-}
-.drawingSwatchBtn:hover { transform: scale(1.15); }
-.drawingSwatchBtn.active { transform: scale(1.25); box-shadow: 0 0 0 2px #6d28d9; }
-.drawingCustomColorBtn {
-  position: relative;
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  border: 1px dashed #94a3b8;
-  display: grid;
-  place-items: center;
-  color: #64748b;
-  font-size: 10px;
-  cursor: pointer;
-}
-.drawingCustomColorBtn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 
 .drawingWidthControlDock {
   display: flex;
@@ -190,6 +224,72 @@
   cursor: pointer;
 }
 .drawingWidthControlDock small { font-size: 8px; font-weight: 800; color: #94a3b8; letter-spacing: -.02em; }
+
+/* --- Bottom Horizontal Color Bar & Palette Selector --- */
+.drawingBottomColorBar {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  pointer-events: auto;
+}
+
+.drawingPalettePillSelector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #6d28d9;
+}
+.drawingPaletteSelectInline {
+  border: 0;
+  background: transparent;
+  font-size: 10px;
+  font-weight: 800;
+  color: #334155;
+  outline: none;
+  cursor: pointer;
+}
+
+.drawingColorSwatchesRow { display: flex; align-items: center; gap: 6px; }
+.drawingSwatchCircle {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  background: var(--drawing-swatch);
+  box-shadow: 0 0 0 1px #cbd5e1;
+  cursor: pointer;
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+.drawingSwatchCircle:hover { transform: scale(1.18); }
+.drawingSwatchCircle.active { transform: scale(1.3); box-shadow: 0 0 0 2px #6d28d9; }
+.drawingCustomColorCircle {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px dashed #94a3b8;
+  display: grid;
+  place-items: center;
+  color: #64748b;
+  font-size: 11px;
+  cursor: pointer;
+}
+.drawingCustomColorCircle input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 
 .drawingCanvasFooterFloating {
   position: absolute;
@@ -272,35 +372,14 @@
 .drawingTurmaChip.active { border-color: #6d28d9; background: #f0ecfb; color: #5b21b6; box-shadow: 0 2px 8px rgba(109,40,217,.15); }
 .drawingLiveDotIndicator { width: 7px; height: 7px; border-radius: 50%; background: #10b981; box-shadow: 0 0 0 2px rgba(16,185,129,.2); }
 
-.drawingTextOverlay { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(15, 23, 42, 0.35); backdrop-filter: blur(4px); z-index: 50; }
-.drawingTextForm { width: 340px; max-width: 90%; padding: 20px; border-radius: 14px; background: #ffffff; box-shadow: 0 16px 40px rgba(15, 23, 42, 0.22); display: flex; flex-direction: column; gap: 12px; border: 1px solid #e2e8f0; }
-.drawingTextForm strong { font-size: 14px; color: #1e293b; }
-.drawingTextForm p { margin: 0; font-size: 11px; color: #64748b; line-height: 1.4; }
-.drawingTextForm input { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; outline: none; }
-.drawingTextForm input:focus { border-color: #6d28d9; box-shadow: 0 0 0 3px rgba(109,40,217,.15); }
-.drawingTextActions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
-
 .drawingStudentContent { padding: 0 !important; overflow: hidden !important; display: flex; flex-direction: column; height: 100%; }
 .drawingStudentViewFull { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; background: #ffffff; overflow: hidden; }
-.drawingStudentFloatingHeader { position: absolute; top: 12px; left: 16px; right: 16px; z-index: 20; height: 48px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid rgba(226, 232, 240, 0.85); border-radius: 14px; background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(16px); box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06); pointer-events: auto; }
-.drawingStudentHeaderInfo { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.drawingTurmaTag { padding: 3px 8px; border-radius: 6px; background: #ede9fe; color: #5b21b6; font-size: 10px; font-weight: 750; }
-.drawingTopicTitle { font-size: 13px; font-weight: 800; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.drawingInstructionsToggleBtn { padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff; color: #475569; font-size: 11px; font-weight: 700; transition: all .16s; }
-.drawingInstructionsToggleBtn:hover { border-color: #6d28d9; color: #6d28d9; background: #f8fafc; }
-.drawingFloatingInstructionsModal { position: absolute; top: 68px; right: 16px; z-index: 30; width: 320px; padding: 16px; border: 1px solid #e2e8f0; border-radius: 14px; background: #ffffff; box-shadow: 0 12px 30px rgba(15,23,42,0.15); animation: drawingFadeIn .2s ease-out; }
-.drawingFloatingInstructionsModal strong { display: block; font-size: 12px; color: #6d28d9; margin-bottom: 6px; }
-.drawingFloatingInstructionsModal p { margin: 0 0 12px; font-size: 11px; color: #475569; line-height: 1.5; }
+
 .drawingStudentCanvasContainer { position: relative; flex: 1 1 0; min-height: 0; width: 100%; height: 100%; display: flex; flex-direction: column; }
 .drawingStudentCanvasContainer .drawingCanvasShell { margin-top: 0; border: none; border-radius: 0; height: 100%; display: flex; flex-direction: column; }
 .drawingStudentCanvasContainer .drawingCanvasStage { flex: 1 1 0; height: 100% !important; min-height: 0; }
 
 @keyframes drawingFadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
-
-.drawingStudentHeaderTabs { display: flex; align-items: center; gap: 6px; }
-.drawingStudentTabBtn { padding: 5px 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #475569; font-size: 10px; font-weight: 750; transition: all .16s; }
-.drawingStudentTabBtn:hover { border-color: #8b5cf6; color: #6d28d9; }
-.drawingStudentTabBtn.active { border-color: #6d28d9; background: #f0ecfb; color: #5b21b6; box-shadow: 0 2px 8px rgba(109,40,217,.12); }
 
 .drawingStudentMyDrawingsPanel { flex: 1 1 0; min-height: 0; padding: 76px 20px 24px; overflow-y: auto; background: #f8fafc; }
 .drawingStudentMyDrawingsHeader { margin-bottom: 20px; text-align: left; }
@@ -342,5 +421,5 @@
 .drawingPresentationAuthor small { display: block; margin-top: 2px; font-size: 10px; color: #cbd5e1; }
 .drawingLoadingInPlace { padding: 40px; text-align: center; color: #64748b; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-@media(max-width:980px){.drawingAppHeader{grid-template-columns:1fr auto}.drawingMainNav{grid-row:2;grid-column:1/-1;height:46px;justify-content:center;border-top:1px solid #eef0f3}.drawingAppHeader{min-height:112px;flex-basis:112px}.drawingHeaderUser{grid-column:2}.drawingLiveLayout{grid-template-columns:220px minmax(0,1fr)}.drawingStudentTiles{grid-template-columns:1fr}.drawingToolbar{flex-wrap:wrap}.drawingWidthControl{margin-left:0}.drawingHistoryActions{margin-left:auto}}
-@media(max-width:760px){.drawingApp{min-width:0;min-height:0}.drawingContent{padding:12px 12px 28px}.drawingCreateLayout,.drawingPreviewView{min-width:0}.drawingAppHeader{padding:0 13px}.drawingHeaderUser>div{display:none}.drawingMainNav{overflow-x:auto;justify-content:flex-start;scrollbar-width:thin}.drawingMainNav button{padding:0 9px;font-size:10px;white-space:nowrap}.drawingFormGrid,.drawingModePicker,.drawingLiveLayout,.drawingHistorySummary{grid-template-columns:1fr}.drawingRosterPanel{position:static;max-height:none}.drawingStudentTiles{grid-template-columns:repeat(2,1fr);max-height:260px}.drawingLiveHero,.drawingHistoryHeader,.drawingCreateActions,.drawingWinnerBar,.drawingStudentBoardHeading,.drawingPreviewViewHeader{align-items:flex-start;flex-direction:column}.drawingCreateActions>div{width:100%;justify-content:flex-end}.drawingHistoryFilters{width:100%}.drawingHistoryFilters select{flex:1;min-width:0}.drawingCanvasStage{height:360px}.drawingColorPalette{order:3;width:100%}.drawingStudentHero{padding:21px}.drawingHeaderUser{display:none}.drawingAppHeader{grid-template-columns:1fr}.drawingBrand{justify-self:center}.drawingMainNav{grid-row:2;grid-column:1}}
+@media(max-width:980px){.drawingAppHeader{grid-template-columns:1fr auto}.drawingMainNav{grid-row:2;grid-column:1/-1;height:46px;justify-content:center;border-top:1px solid #eef0f3}.drawingAppHeader{min-height:112px;flex-basis:112px}.drawingHeaderUser{grid-column:2}.drawingLiveLayout{grid-template-columns:220px minmax(0,1fr)}.drawingStudentTiles{grid-template-columns:1fr}.drawingHistoryActions{margin-left:auto}}
+@media(max-width:760px){.drawingApp{min-width:0;min-height:0}.drawingContent{padding:12px 12px 28px}.drawingCreateLayout,.drawingPreviewView{min-width:0}.drawingAppHeader{padding:0 13px}.drawingHeaderUser>div{display:none}.drawingMainNav{overflow-x:auto;justify-content:flex-start;scrollbar-width:thin}.drawingMainNav button{padding:0 9px;font-size:10px;white-space:nowrap}.drawingFormGrid,.drawingModePicker,.drawingLiveLayout,.drawingHistorySummary{grid-template-columns:1fr}.drawingRosterPanel{position:static;max-height:none}.drawingStudentTiles{grid-template-columns:repeat(2,1fr);max-height:260px}.drawingLiveHero,.drawingHistoryHeader,.drawingCreateActions,.drawingWinnerBar,.drawingStudentBoardHeading,.drawingPreviewViewHeader{align-items:flex-start;flex-direction:column}.drawingCreateActions>div{width:100%;justify-content:flex-end}.drawingHistoryFilters{width:100%}.drawingHistoryFilters select{flex:1;min-width:0}.drawingCanvasStage{height:360px}.drawingStudentHero{padding:21px}.drawingHeaderUser{display:none}.drawingAppHeader{grid-template-columns:1fr}.drawingBrand{justify-self:center}.drawingMainNav{grid-row:2;grid-column:1}}

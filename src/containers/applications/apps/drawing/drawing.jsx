@@ -741,31 +741,28 @@ const StudentView = ({ activity, drawing, busy, onCommit }) => {
     <div className="drawingStudentViewFull">
       <header className="drawingStudentFloatingHeader">
         <div className="drawingStudentHeaderInfo">
-          {activity ? (
-            <>
-              <span className={`drawingLiveDot ${activity.status !== "active" ? "closed" : "active"}`}>
-                <i /> {activity.status !== "active" ? "Encerrada" : "Ao vivo"}
-              </span>
-              <ModeBadge mode={activity.mode} />
-              <span className="drawingTurmaTag">{activity.turmaName}</span>
-              <strong className="drawingTopicTitle">{activity.topic}</strong>
-            </>
+          {activity?.topic ? (
+            <div className="drawingTopicPill" title={activity.topic}>
+              <strong>{activity.topic}</strong>
+            </div>
           ) : (
-            <span className="drawingTurmaTag">Sua Turma</span>
+            <div className="drawingTopicPill">
+              <strong>Desafio de Desenho</strong>
+            </div>
           )}
         </div>
 
         <div className="drawingStudentHeaderTabs">
           <button
             type="button"
-            className={`drawingStudentTabBtn ${activeTab === "board" ? "active" : ""}`}
+            className={`drawingSeparatePillBtn ${activeTab === "board" ? "active" : ""}`}
             onClick={() => setActiveTab("board")}
           >
             Lousa Atual
           </button>
           <button
             type="button"
-            className={`drawingStudentTabBtn ${activeTab === "myDrawings" ? "active" : ""}`}
+            className={`drawingSeparatePillBtn ${activeTab === "myDrawings" ? "active" : ""}`}
             onClick={() => setActiveTab("myDrawings")}
           >
             Meus Desenhos
@@ -773,7 +770,7 @@ const StudentView = ({ activity, drawing, busy, onCommit }) => {
           {activity?.instructions && activeTab === "board" && (
             <button
               type="button"
-              className="drawingInstructionsToggleBtn"
+              className="drawingSeparatePillBtn instructions"
               onClick={() => setShowInstructionsModal((prev) => !prev)}
             >
               <span>Orientações</span>

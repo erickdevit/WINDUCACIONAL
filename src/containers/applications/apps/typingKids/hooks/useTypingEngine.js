@@ -133,7 +133,9 @@ export const useTypingEngine = (user, enabled = true) => {
         }
       }, 30);
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [startTime, finished]);
 
   useEffect(() => {
