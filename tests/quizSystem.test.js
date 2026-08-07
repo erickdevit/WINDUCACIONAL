@@ -61,7 +61,7 @@ describe("WindQuiz Arena - Frontend, Construtor Dinâmico e API Client", () => {
   });
 
   it("renderiza a interface com AppWindow, construtor dinâmico de perguntas e SSE condicionado à visibilidade", () => {
-    expect(appComponentCode).toContain('appId="quiz"');
+    expect(appComponentCode).toContain("wnapp={wnapp}");
     expect(appComponentCode).toContain("EventSource");
     expect(appComponentCode).toContain("TeacherHostView");
     expect(appComponentCode).toContain("StudentPlayerView");
