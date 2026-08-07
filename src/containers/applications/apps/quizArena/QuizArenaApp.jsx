@@ -18,8 +18,9 @@ export function QuizArenaApp() {
   const [lastAnswerResult, setLastAnswerResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
-  // Formulário de criação de Quiz (para professores)
+  // Formulário dinâmico de criação de Quiz (para professores)
   const [newQuizTitle, setNewQuizTitle] = useState("");
   const [newQuizCategory, setNewQuizCategory] = useState("Informática");
   const [newQuizDesc, setNewQuizDesc] = useState("");
@@ -28,12 +29,8 @@ export function QuizArenaApp() {
       text: "",
       timeLimitSeconds: 20,
       pointsMultiplier: 1000,
-      options: [
-        { text: "", isCorrect: true },
-        { text: "", isCorrect: false },
-        { text: "", isCorrect: false },
-        { text: "", isCorrect: false },
-      ],
+      correctOptionIndex: 0,
+      options: ["", "", "", ""],
     },
   ]);
 
@@ -182,19 +179,93 @@ export function QuizArenaApp() {
     }
   };
 
+  // Funções de manipulação do construtor de quizzes
+  const handleAddQuestion = () => {
+    setNewQuestions((prev) => [
+      ...prev,
+      {
+        text: "",
+        timeLimitSeconds: 20,
+        pointsMultiplier: 1000,
+        correctOptionIndex: 0,
+        options: ["", "", "", ""],
+      },
+    ]);
+  };
+
+  const handleRemoveQuestion = (idx) => {
+    setNewQuestions((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleQuestionTextChange = (idx, text) => {
+    setNewQuestions((prev) => {
+      const copy = [...prev];
+      copy[idx] = { ...copy[idx], text };
+      return copy;
+    });
+  };
+
+  const handleQuestionTimeChange = (idx, timeLimitSeconds) => {
+    setNewQuestions((prev) => {
+      const copy = [...prev];
+      copy[idx] = { ...copy[idx], timeLimitSeconds: Number(timeLimitSeconds) };
+      return copy;
+    });
+  };
+
+  const handleOptionTextChange = (qIdx, optIdx, text) => {
+    setNewQuestions((prev) => {
+      const copy = [...prev];
+      const newOpts = [...copy[qIdx].options];
+      newOpts[optIdx] = text;
+      copy[qIdx] = { ...copy[qIdx], options: newOpts };
+      return copy;
+    });
+  };
+
+  const handleCorrectOptionChange = (qIdx, optIdx) => {
+    setNewQuestions((prev) => {
+      const copy = [...prev];
+      copy[qIdx] = { ...copy[qIdx], correctOptionIndex: optIdx };
+      return copy;
+    });
+  };
+
   // Salvar novo Quiz (Professor)
   const handleCreateQuiz = async (e) => {
     e.preventDefault();
     setErrorMsg("");
+    setSuccessMsg("");
+
+    const formattedQuestions = newQuestions.map((q) => ({
+      text: q.text,
+      timeLimitSeconds: q.timeLimitSeconds,
+      pointsMultiplier: q.pointsMultiplier,
+      options: q.options.map((optText, idx) => ({
+        text: optText,
+        isCorrect: idx === q.correctOptionIndex,
+      })),
+    }));
+
     try {
       await api.createQuiz({
         title: newQuizTitle,
         category: newQuizCategory,
         description: newQuizDesc,
-        questions: newQuestions,
+        questions: formattedQuestions,
       });
+      setSuccessMsg("Quiz salvo com sucesso!");
       setNewQuizTitle("");
       setNewQuizDesc("");
+      setNewQuestions([
+        {
+          text: "",
+          timeLimitSeconds: 20,
+          pointsMultiplier: 1000,
+          correctOptionIndex: 0,
+          options: ["", "", "", ""],
+        },
+      ]);
       setActiveTab("lobby");
       loadQuizzes();
     } catch (err) {
@@ -246,6 +317,11 @@ export function QuizArenaApp() {
           {errorMsg && (
             <div style={{ padding: "0.75rem", background: "rgba(239,68,68,0.2)", border: "1px solid #ef4444", borderRadius: "0.5rem", color: "#f87171", marginBottom: "1rem" }}>
               {errorMsg}
+            </div>
+          )}
+          {successMsg && (
+            <div style={{ padding: "0.75rem", background: "rgba(34,197,94,0.2)", border: "1px solid #22c55e", borderRadius: "0.5rem", color: "#4ade80", marginBottom: "1rem" }}>
+              {successMsg}
             </div>
           )}
 
@@ -373,31 +449,129 @@ export function QuizArenaApp() {
 
               {/* TAB CRIAR QUIZ (PROFESSOR) */}
               {activeTab === "create" && isProfessor && (
-                <form onSubmit={handleCreateQuiz} style={{ maxWidth: "700px", margin: "0 auto", width: "100%", display: "flex", flexDirection: "column", gap: "1rem" }}>
-                  <h3>Criar Novo Quiz</h3>
-                  <div>
-                    <label style={{ display: "block", marginBottom: "0.4rem", fontWeight: 700 }}>Título do Quiz</label>
-                    <input
-                      type="text"
-                      required
-                      value={newQuizTitle}
-                      onChange={(e) => setNewQuizTitle(e.target.value)}
-                      placeholder="Ex: Desafio de Lógica e Hardware"
-                      style={{ width: "100%", padding: "0.6rem", borderRadius: "0.4rem", border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.3)", color: "#fff" }}
-                    />
+                <form onSubmit={handleCreateQuiz} style={{ maxWidth: "800px", margin: "0 auto", width: "100%", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                  <h3>Criar Novo Quiz Personalizado</h3>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "1rem" }}>
+                    <div>
+                      <label style={{ display: "block", marginBottom: "0.4rem", fontWeight: 700 }}>Título do Quiz</label>
+                      <input
+                        type="text"
+                        required
+                        value={newQuizTitle}
+                        onChange={(e) => setNewQuizTitle(e.target.value)}
+                        placeholder="Ex: Desafio de Hardware & Redes"
+                        style={{ width: "100%", padding: "0.6rem", borderRadius: "0.4rem", border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.3)", color: "#fff" }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", marginBottom: "0.4rem", fontWeight: 700 }}>Categoria</label>
+                      <select
+                        value={newQuizCategory}
+                        onChange={(e) => setNewQuizCategory(e.target.value)}
+                        style={{ width: "100%", padding: "0.6rem", borderRadius: "0.4rem", border: "1px solid rgba(255,255,255,0.2)", background: "#1e293b", color: "#fff" }}
+                      >
+                        <option value="Informática">Informática</option>
+                        <option value="Hardware">Hardware</option>
+                        <option value="Sistemas">Sistemas</option>
+                        <option value="Geral">Geral</option>
+                      </select>
+                    </div>
                   </div>
+
                   <div>
                     <label style={{ display: "block", marginBottom: "0.4rem", fontWeight: 700 }}>Descrição</label>
                     <input
                       type="text"
                       value={newQuizDesc}
                       onChange={(e) => setNewQuizDesc(e.target.value)}
-                      placeholder="Breve resumo para os alunos"
+                      placeholder="Resumo didático sobre o tema da atividade"
                       style={{ width: "100%", padding: "0.6rem", borderRadius: "0.4rem", border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.3)", color: "#fff" }}
                     />
                   </div>
-                  <button type="submit" className="btnStart" style={{ padding: "0.8rem", fontSize: "1rem" }}>
-                    Salvar Quiz
+
+                  <hr style={{ borderColor: "rgba(255,255,255,0.1)", margin: "0.5rem 0" }} />
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <h4 style={{ margin: 0, fontSize: "1.1rem" }}>Perguntas ({newQuestions.length})</h4>
+                    <button
+                      type="button"
+                      onClick={handleAddQuestion}
+                      style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", padding: "0.4rem 0.8rem", borderRadius: "0.4rem", cursor: "pointer", fontWeight: 700 }}
+                    >
+                      + Adicionar Pergunta
+                    </button>
+                  </div>
+
+                  {newQuestions.map((q, qIdx) => (
+                    <div key={qIdx} style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "0.75rem", padding: "1.2rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <strong style={{ color: "#a855f7" }}>Pergunta {qIdx + 1}</strong>
+                        <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+                          <label style={{ fontSize: "0.85rem", color: "#cbd5e1" }}>
+                            Tempo:
+                            <select
+                              value={q.timeLimitSeconds}
+                              onChange={(e) => handleQuestionTimeChange(qIdx, e.target.value)}
+                              style={{ marginLeft: "0.4rem", padding: "0.2rem 0.4rem", borderRadius: "0.3rem", background: "#0f172a", color: "#fff", border: "1px solid rgba(255,255,255,0.2)" }}
+                            >
+                              <option value={10}>10 seg</option>
+                              <option value={15}>15 seg</option>
+                              <option value={20}>20 seg</option>
+                              <option value={30}>30 seg</option>
+                            </select>
+                          </label>
+                          {newQuestions.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveQuestion(qIdx)}
+                              style={{ background: "rgba(239,68,68,0.2)", color: "#f87171", border: "none", padding: "0.3rem 0.6rem", borderRadius: "0.3rem", cursor: "pointer", fontSize: "0.8rem", fontWeight: 700 }}
+                            >
+                              Remover
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      <input
+                        type="text"
+                        required
+                        value={q.text}
+                        onChange={(e) => handleQuestionTextChange(qIdx, e.target.value)}
+                        placeholder="Digite o enunciado da pergunta..."
+                        style={{ width: "100%", padding: "0.6rem", borderRadius: "0.4rem", border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.3)", color: "#fff" }}
+                      />
+
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                        {["A", "B", "C", "D"].map((letter, optIdx) => (
+                          <div key={optIdx} style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "rgba(0,0,0,0.2)", padding: "0.5rem", borderRadius: "0.4rem" }}>
+                            <input
+                              type="radio"
+                              name={`correct_${qIdx}`}
+                              checked={q.correctOptionIndex === optIdx}
+                              onChange={() => handleCorrectOptionChange(qIdx, optIdx)}
+                              title="Marcar como alternativa correta"
+                              style={{ cursor: "pointer" }}
+                            />
+                            <span style={{ fontWeight: 800, width: "20px", color: letter === "A" ? "#ef4444" : letter === "B" ? "#3b82f6" : letter === "C" ? "#eab308" : "#22c55e" }}>
+                              {letter}
+                            </span>
+                            <input
+                              type="text"
+                              required
+                              value={q.options[optIdx]}
+                              onChange={(e) => handleOptionTextChange(qIdx, optIdx, e.target.value)}
+                              placeholder={`Opção ${letter}`}
+                              style={{ flex: 1, padding: "0.4rem", borderRadius: "0.3rem", border: "1px solid rgba(255,255,255,0.15)", background: "rgba(15,23,42,0.6)", color: "#fff", fontSize: "0.9rem" }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+
+                  <button type="submit" className="btnStart" style={{ padding: "0.85rem", fontSize: "1.05rem", marginTop: "1rem" }}>
+                    Salvar e Disponibilizar Quiz
                   </button>
                 </form>
               )}
@@ -434,7 +608,7 @@ function TeacherHostView({ sessionState, onAdvance }) {
               🔍 Revelar Resposta
             </button>
           )}
-          {isReveal && (
+          {isReveal && sessionState.currentQuestionIndex < (sessionState.totalQuestions - 1) && (
             <button className="btnAction" onClick={() => onAdvance("NEXT_QUESTION")}>
               ➔ Próxima Pergunta
             </button>

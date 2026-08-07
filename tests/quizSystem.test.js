@@ -28,7 +28,7 @@ describe("WindQuiz Arena - Schema e Migration", () => {
   });
 });
 
-describe("WindQuiz Arena - Backend e Streaming SSE", () => {
+describe("WindQuiz Arena - Backend, Segurança e Streaming SSE", () => {
   it("implementa transmissão SSE de eventos e atualização de rankings por turma e global", () => {
     expect(quizRoutesCode).toContain("text/event-stream");
     expect(quizRoutesCode).toContain("QUESTION_START");
@@ -43,9 +43,15 @@ describe("WindQuiz Arena - Backend e Streaming SSE", () => {
     expect(quizRoutesCode).toContain("speedBonusFactor = 1 - timeFraction * 0.5");
     expect(quizRoutesCode).toContain("points_earned");
   });
+
+  it("aplica validação de UUID e isolamento por turma para conexões de alunos", () => {
+    expect(quizRoutesCode).toContain("normalizeUuid");
+    expect(quizRoutesCode).toContain("Você não pertence à turma desta partida");
+    expect(quizRoutesCode).toContain("isRevealMode");
+  });
 });
 
-describe("WindQuiz Arena - Frontend e API Client", () => {
+describe("WindQuiz Arena - Frontend, Construtor Dinâmico e API Client", () => {
   it("exporta métodos da API para o simulador", () => {
     expect(apiCode).toContain("getQuizQuizzes");
     expect(apiCode).toContain("createQuizSession");
@@ -54,12 +60,13 @@ describe("WindQuiz Arena - Frontend e API Client", () => {
     expect(apiCode).toContain("getQuizRankings");
   });
 
-  it("renderiza a interface com AppWindow e SSE condicionado à visibilidade da janela", () => {
+  it("renderiza a interface com AppWindow, construtor dinâmico de perguntas e SSE condicionado à visibilidade", () => {
     expect(appComponentCode).toContain('appId="quiz"');
     expect(appComponentCode).toContain("EventSource");
     expect(appComponentCode).toContain("TeacherHostView");
     expect(appComponentCode).toContain("StudentPlayerView");
     expect(appComponentCode).toContain("QuizPodiumView");
+    expect(appComponentCode).toContain("handleAddQuestion");
     expect(appComponentCode).toContain("eventSource.close()");
   });
 

@@ -1,5 +1,19 @@
 const crypto = require("node:crypto");
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const httpError = (status, message) =>
+  Object.assign(new Error(message), { status });
+
+const normalizeUuid = (value, fieldName) => {
+  const normalized = String(value || "").trim();
+  if (!UUID_PATTERN.test(normalized)) {
+    throw httpError(400, `${fieldName} deve ser um UUID válido.`);
+  }
+  return normalized;
+};
+
 module.exports = function injectQuizRoutes(ctx) {
   const { app, pool, requireAuth, sendUserNotification } = ctx;
 
@@ -210,7 +224,7 @@ module.exports = function injectQuizRoutes(ctx) {
   // Obter detalhes de um Quiz (com perguntas e opções)
   app.get("/api/quiz/quizzes/:id", requireAuth, async (req, res, next) => {
     try {
-      const { id } = req.params;
+      const id = normalizeUuid(req.params.id, "quizId");
       const quizRes = await pool.query(
         `SELECT id, title, description, category, is_template, created_at FROM quiz_quizzes WHERE id = $1`,
         [id]
@@ -303,16 +317,17 @@ module.exports = function injectQuizRoutes(ctx) {
         return res.status(403).json({ error: "Apenas professores podem iniciar uma sala de quiz." });
       }
       const { quizId, turmaId } = req.body;
-      const targetTurmaId = turmaId || req.user.turmaId;
+      const validQuizId = normalizeUuid(quizId, "quizId");
+      const targetTurmaId = turmaId ? normalizeUuid(turmaId, "turmaId") : req.user.turmaId;
 
-      if (!quizId || !targetTurmaId) {
-        return res.status(400).json({ error: "quizId e turmaId são obrigatórios." });
+      if (!targetTurmaId) {
+        return res.status(400).json({ error: "O professor deve selecionar uma turma para o quiz." });
       }
 
       // Buscar quiz e perguntas
       const quizRes = await pool.query(
         `SELECT id, title, description, category FROM quiz_quizzes WHERE id = $1`,
-        [quizId]
+        [validQuizId]
       );
       if (quizRes.rowCount === 0) {
         return res.status(404).json({ error: "Quiz não encontrado." });
@@ -321,7 +336,7 @@ module.exports = function injectQuizRoutes(ctx) {
       const questionsRes = await pool.query(
         `SELECT id, question_text, time_limit_seconds, points_multiplier, order_index
          FROM quiz_questions WHERE quiz_id = $1 ORDER BY order_index ASC`,
-        [quizId]
+        [validQuizId]
       );
       if (questionsRes.rowCount === 0) {
         return res.status(400).json({ error: "Este quiz não possui perguntas salvas." });
@@ -344,7 +359,7 @@ module.exports = function injectQuizRoutes(ctx) {
       const sessionRes = await pool.query(
         `INSERT INTO quiz_sessions (quiz_id, turma_id, host_user_id, status, current_question_index)
          VALUES ($1, $2, $3, 'LOBBY', 0) RETURNING id, status, started_at`,
-        [quizId, targetTurmaId, req.user.id]
+        [validQuizId, targetTurmaId, req.user.id]
       );
       const session = sessionRes.rows[0];
 
@@ -404,71 +419,82 @@ module.exports = function injectQuizRoutes(ctx) {
 
   // Conexão SSE para streaming da partida
   app.get("/api/quiz/sessions/:id/stream", requireAuth, (req, res) => {
-    const { id } = req.params;
-    const live = liveSessions.get(id);
+    try {
+      const id = normalizeUuid(req.params.id, "sessionId");
+      const live = liveSessions.get(id);
 
-    if (!live) {
-      return res.status(404).json({ error: "Sessão de quiz não encontrada ou encerrada." });
+      if (!live) {
+        return res.status(404).json({ error: "Sessão de quiz não encontrada ou encerrada." });
+      }
+
+      // Validação de isolamento por turma para alunos
+      if (req.user.role !== "professor" && req.user.turmaId !== live.turmaId) {
+        return res.status(403).json({ error: "Você não pertence à turma desta partida de Quiz." });
+      }
+
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+
+      // Adicionar jogador à lista de conectados
+      live.connectedPlayers.set(req.user.id, {
+        id: req.user.id,
+        username: req.user.username,
+        displayName: req.user.displayName || req.user.username,
+      });
+      live.clients.add(res);
+
+      req.on("close", () => {
+        live.clients.delete(res);
+      });
+
+      // Sanitizar pergunta para não expor resposta correta durante QUESTION_ACTIVE ou LOBBY
+      const currentQ = live.questions[live.currentQuestionIndex];
+      const isRevealMode = live.status === "REVEAL_ANSWER" || live.status === "PODIUM_FINAL";
+      const sanitizedQuestion = currentQ
+        ? {
+            id: currentQ.id,
+            questionText: currentQ.question_text,
+            timeLimitSeconds: currentQ.time_limit_seconds,
+            orderIndex: currentQ.order_index,
+            options: currentQ.options.map((opt) => ({
+              id: opt.id,
+              optionText: opt.option_text,
+              optionLetter: opt.option_letter,
+              ...(isRevealMode ? { isCorrect: opt.is_correct } : {}),
+            })),
+          }
+        : null;
+
+      const initialPayload = {
+        type: "SYNC_STATE",
+        sessionId: live.id,
+        quizTitle: live.quiz.title,
+        status: live.status,
+        currentQuestionIndex: live.currentQuestionIndex,
+        totalQuestions: live.questions.length,
+        currentQuestion: sanitizedQuestion,
+        questionStartTime: live.questionStartTime,
+        players: Array.from(live.connectedPlayers.values()),
+        leaderboard: getSessionLeaderboard(live),
+      };
+
+      res.write(`data: ${JSON.stringify(initialPayload)}\n\n`);
+
+      // Notificar os demais clientes que um novo jogador se conectou
+      broadcastSessionEvent(id, {
+        type: "PLAYERS_UPDATE",
+        players: Array.from(live.connectedPlayers.values()),
+      });
+    } catch (err) {
+      return res.status(400).json({ error: err.message });
     }
-
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-
-    // Adicionar jogador à lista de conectados
-    live.connectedPlayers.set(req.user.id, {
-      id: req.user.id,
-      username: req.user.username,
-      displayName: req.user.displayName || req.user.username,
-    });
-    live.clients.add(res);
-
-    req.on("close", () => {
-      live.clients.delete(res);
-    });
-
-    // Sanitizar pergunta para não expor resposta correta durante QUESTION_ACTIVE
-    const currentQ = live.questions[live.currentQuestionIndex];
-    const sanitizedQuestion = currentQ
-      ? {
-          id: currentQ.id,
-          questionText: currentQ.question_text,
-          timeLimitSeconds: currentQ.time_limit_seconds,
-          orderIndex: currentQ.order_index,
-          options: currentQ.options.map((opt) => ({
-            id: opt.id,
-            optionText: opt.option_text,
-            optionLetter: opt.option_letter,
-          })),
-        }
-      : null;
-
-    const initialPayload = {
-      type: "SYNC_STATE",
-      sessionId: live.id,
-      quizTitle: live.quiz.title,
-      status: live.status,
-      currentQuestionIndex: live.currentQuestionIndex,
-      totalQuestions: live.questions.length,
-      currentQuestion: sanitizedQuestion,
-      questionStartTime: live.questionStartTime,
-      players: Array.from(live.connectedPlayers.values()),
-      leaderboard: getSessionLeaderboard(live),
-    };
-
-    res.write(`data: ${JSON.stringify(initialPayload)}\n\n`);
-
-    // Notificar os demais clientes que um novo jogador se conectou
-    broadcastSessionEvent(id, {
-      type: "PLAYERS_UPDATE",
-      players: Array.from(live.connectedPlayers.values()),
-    });
   });
 
   // Avançar pergunta ou fase (Apenas Host / Professor)
   app.post("/api/quiz/sessions/:id/advance", requireAuth, async (req, res, next) => {
     try {
-      const { id } = req.params;
+      const id = normalizeUuid(req.params.id, "sessionId");
       const live = liveSessions.get(id);
 
       if (!live) {
@@ -592,17 +618,23 @@ module.exports = function injectQuizRoutes(ctx) {
   // Enviar resposta do aluno para a pergunta ativa
   app.post("/api/quiz/sessions/:id/answer", requireAuth, async (req, res, next) => {
     try {
-      const { id } = req.params;
+      const id = normalizeUuid(req.params.id, "sessionId");
       const live = liveSessions.get(id);
 
       if (!live) {
         return res.status(404).json({ error: "Sessão não encontrada." });
       }
+
+      if (req.user.role !== "professor" && req.user.turmaId !== live.turmaId) {
+        return res.status(403).json({ error: "Você não pertence à turma desta partida." });
+      }
+
       if (live.status !== "QUESTION_ACTIVE") {
         return res.status(400).json({ error: "A pergunta atual não está recebendo respostas." });
       }
 
       const { selectedOptionId } = req.body;
+      const validOptionId = selectedOptionId ? normalizeUuid(selectedOptionId, "selectedOptionId") : null;
       const currentQ = live.questions[live.currentQuestionIndex];
       const key = `${currentQ.id}:${req.user.id}`;
 
@@ -614,7 +646,7 @@ module.exports = function injectQuizRoutes(ctx) {
         ? Math.max(0, Date.now() - live.questionStartTime)
         : 0;
 
-      const selectedOpt = currentQ.options.find((opt) => opt.id === selectedOptionId);
+      const selectedOpt = currentQ.options.find((opt) => opt.id === validOptionId);
       const isCorrect = selectedOpt ? Boolean(selectedOpt.is_correct) : false;
 
       let pointsEarned = 0;
@@ -630,7 +662,7 @@ module.exports = function injectQuizRoutes(ctx) {
         username: req.user.username,
         displayName: req.user.displayName || req.user.username,
         questionId: currentQ.id,
-        selectedOptionId,
+        selectedOptionId: validOptionId,
         responseTimeMs,
         isCorrect,
         pointsEarned,
@@ -643,7 +675,7 @@ module.exports = function injectQuizRoutes(ctx) {
         `INSERT INTO quiz_responses (session_id, question_id, user_id, selected_option_id, response_time_ms, is_correct, points_earned)
          VALUES ($1, $2, $3, $4, $5, $6, $7)
          ON CONFLICT (session_id, question_id, user_id) DO NOTHING`,
-        [id, currentQ.id, req.user.id, selectedOptionId || null, responseTimeMs, isCorrect, pointsEarned]
+        [id, currentQ.id, req.user.id, validOptionId, responseTimeMs, isCorrect, pointsEarned]
       );
 
       // Notificar o Host sobre novo envio de resposta (contador ao vivo)
@@ -671,7 +703,8 @@ module.exports = function injectQuizRoutes(ctx) {
   app.get("/api/quiz/rankings", requireAuth, async (req, res, next) => {
     try {
       const { turmaId } = req.query;
-      const filterTurmaId = turmaId || req.user.turmaId;
+      const rawTurmaId = turmaId || req.user.turmaId;
+      const filterTurmaId = rawTurmaId ? normalizeUuid(rawTurmaId, "turmaId") : null;
 
       // Ranking da Turma
       let turmaRankings = [];
