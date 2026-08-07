@@ -524,4 +524,32 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+  // --- WindQuiz Arena ---
+  getQuizQuizzes: () => request("/api/quiz/quizzes"),
+  getQuizDetails: (id) => request(`/api/quiz/quizzes/${id}`),
+  createQuiz: (payload) =>
+    request("/api/quiz/quizzes", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  createQuizSession: (payload) =>
+    request("/api/quiz/sessions", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  getActiveQuizSession: () => request("/api/quiz/sessions/active"),
+  advanceQuizSession: (id, action) =>
+    request(`/api/quiz/sessions/${id}/advance`, {
+      method: "POST",
+      body: JSON.stringify({ action }),
+    }),
+  submitQuizAnswer: (id, selectedOptionId) =>
+    request(`/api/quiz/sessions/${id}/answer`, {
+      method: "POST",
+      body: JSON.stringify({ selectedOptionId }),
+    }),
+  getQuizRankings: (turmaId) => {
+    const query = turmaId ? `?turmaId=${turmaId}` : "";
+    return request(`/api/quiz/rankings${query}`);
+  },
 };

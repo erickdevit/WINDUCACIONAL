@@ -46,6 +46,8 @@ export const Icon = (props) => {
     src = `img/icon/lessons.svg`;
   } else if (props.src === "drawing") {
     src = `img/icon/drawing.svg`;
+  } else if (props.src === "quiz") {
+    src = `img/icon/quiz.svg`;
   } else if (props.src === "pcBuilder") {
     src = `img/icon/win/thispc.png`;
   }

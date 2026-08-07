@@ -326,6 +326,12 @@ const apps = [
     type: "app",
     action: "EXAMAPP",
   },
+  {
+    name: "WindQuiz Arena",
+    icon: "quiz",
+    type: "app",
+    action: "QUIZARENAAPP",
+  },
 ];
 
 for (let i = 0; i < installed.length; i++) {

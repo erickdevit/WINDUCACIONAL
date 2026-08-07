@@ -1709,6 +1709,7 @@ require("./routes/pcBuilder.cjs")(routeContext);
 require("./routes/notifications.cjs")(routeContext);
 require("./routes/chat.cjs")(routeContext);
 require("./routes/imagegen.cjs")(routeContext);
+require("./routes/quiz.cjs")(routeContext);
 
 const { injectPvpRoutes } = require("./typingPvp.cjs");
 injectPvpRoutes(

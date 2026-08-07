@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="quizGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ec4899" />
+      <stop offset="50%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="3" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#quizGrad)" filter="url(#shadow)" />
+  <path d="M32 14C23.16 14 16 20.72 16 29C16 34.5 19.1 39.3 24 41.8V49C24 50.1 24.9 51 26 51H38C39.1 51 40 50.1 40 49V41.8C44.9 39.3 48 34.5 48 29C48 20.72 40.84 14 32 14ZM32 44C30.34 44 29 42.66 29 41H35C35 42.66 33.66 44 32 44ZM32 37C27.58 37 24 33.42 24 29C24 24.58 27.58 21 32 21C36.42 21 40 24.58 40 29C40 33.42 36.42 37 32 37Z" fill="#ffffff"/>
+  <circle cx="32" cy="29" r="4" fill="#facc15" />
+</svg>

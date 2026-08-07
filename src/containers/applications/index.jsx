@@ -30,6 +30,7 @@ export * from "./apps/drawing";
 export * from "./apps/pcBuilder";
 export * from "./apps/ouroModerno";
 export * from "./apps/word";
+export * from "./apps/quizArena";
 
 export const ScreenPreview = () => {
   const tasks = useSelector((state) => state.taskbar);
