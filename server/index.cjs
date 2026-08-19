@@ -7,6 +7,7 @@ const { Pool } = require("pg");
 const { runMigrations } = require("./db/migrate.cjs");
 const {
   chooseTypingDifficultyOverride,
+  getTypingDifficultyOverrideTarget,
   normalizeTypingDifficultyMode,
   normalizeTypingDifficultyScope,
 } = require("./domain/typingDifficulty.cjs");
@@ -1545,7 +1546,8 @@ const saveTypingDifficultyOverride = async ({
       100
     ),
   };
-  const targetColumn = normalizedScope === "turma" ? "turma_id" : "student_id";
+  const target = getTypingDifficultyOverrideTarget(normalizedScope);
+  const targetColumn = target.column;
   const targetId = normalizedScope === "turma" ? turmaId : studentId;
   const result = await pool.query(
     `INSERT INTO typing_difficulty_overrides
@@ -1553,7 +1555,7 @@ const saveTypingDifficultyOverride = async ({
         pass_min_accuracy, max_errors, max_lives, game_speed,
         game_speed_boost, updated_at)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-     ON CONFLICT DO UPDATE SET
+     ON CONFLICT ${target.conflictTarget} DO UPDATE SET
        pass_min_wpm = EXCLUDED.pass_min_wpm,
        pass_min_accuracy = EXCLUDED.pass_min_accuracy,
        max_errors = EXCLUDED.max_errors,

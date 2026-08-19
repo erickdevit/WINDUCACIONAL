@@ -21,8 +21,31 @@ const normalizeTypingDifficultyScope = (scope) => {
 const chooseTypingDifficultyOverride = ({ student, turma }) =>
   student || turma || null;
 
+const getTypingDifficultyOverrideTarget = (scope) => {
+  const normalized = normalizeTypingDifficultyScope(scope);
+  if (normalized === "turma") {
+    return {
+      column: "turma_id",
+      conflictTarget: "(mode, turma_id) WHERE scope_type = 'turma'",
+    };
+  }
+  if (normalized === "student") {
+    return {
+      column: "student_id",
+      conflictTarget: "(mode, student_id) WHERE scope_type = 'student'",
+    };
+  }
+
+  const error = new Error(
+    "A configuração base não possui um alvo de dificuldade direcionada."
+  );
+  error.status = 400;
+  throw error;
+};
+
 module.exports = {
   chooseTypingDifficultyOverride,
+  getTypingDifficultyOverrideTarget,
   normalizeTypingDifficultyMode,
   normalizeTypingDifficultyScope,
 };
