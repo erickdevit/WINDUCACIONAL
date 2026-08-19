@@ -1554,7 +1554,7 @@ const saveTypingDifficultyOverride = async ({
        (id, mode, scope_type, ${targetColumn}, pass_min_wpm,
         pass_min_accuracy, max_errors, max_lives, game_speed,
         game_speed_boost, updated_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
      ON CONFLICT ${target.conflictTarget} DO UPDATE SET
        pass_min_wpm = EXCLUDED.pass_min_wpm,
        pass_min_accuracy = EXCLUDED.pass_min_accuracy,

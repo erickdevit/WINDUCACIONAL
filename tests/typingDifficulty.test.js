@@ -79,4 +79,23 @@ describe("Dificuldade direcionada de Digitação", () => {
       "clampInteger(payload.maxLives, current.maxLives, 3, 10)"
     );
   });
+
+  it("mantém a quantidade de parâmetros do direcionamento compatível com a consulta", () => {
+    const server = fs.readFileSync(
+      path.resolve(process.cwd(), "server/index.cjs"),
+      "utf8"
+    );
+    const start = server.indexOf("const saveTypingDifficultyOverride");
+    const end = server.indexOf(
+      "const deleteTypingDifficultyOverride",
+      start
+    );
+    const saveBlock = server.slice(start, end);
+
+    expect(saveBlock).toContain(
+      "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())"
+    );
+    expect(saveBlock).not.toContain("$11");
+    expect(saveBlock).toContain("normalized.gameSpeedBoost");
+  });
 });
