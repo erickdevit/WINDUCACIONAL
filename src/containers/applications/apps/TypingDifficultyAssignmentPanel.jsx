@@ -20,6 +20,115 @@ const normalizeTargetSettings = (mode, settings) =>
     ? normalizeTypingGameSettings("normal", settings)
     : normalizeTypingSettings("normal", settings);
 
+const SETTING_FIELDS = {
+  lesson: [
+    {
+      field: "passMinWpm",
+      label: "PPM mínimo",
+      description: "Velocidade mínima exigida para aprovar uma lição.",
+      min: 10,
+      max: 120,
+    },
+    {
+      field: "passMinAccuracy",
+      label: "Precisão mínima",
+      description: "Percentual mínimo de acertos exigido para aprovação.",
+      min: 50,
+      max: 100,
+      suffix: "%",
+    },
+    {
+      field: "maxErrors",
+      label: "Erros permitidos",
+      description: "Quantidade de erros permitidos durante a lição.",
+      min: 3,
+      max: 10,
+    },
+  ],
+  game: [
+    {
+      field: "passMinWpm",
+      label: "PPM mínimo",
+      description: "Velocidade mínima para entrar no ranking do game.",
+      min: 10,
+      max: 120,
+    },
+    {
+      field: "passMinAccuracy",
+      label: "Precisão mínima",
+      description: "Percentual mínimo para entrar no ranking do game.",
+      min: 50,
+      max: 100,
+      suffix: "%",
+    },
+    {
+      field: "maxLives",
+      label: "Vidas",
+      description: "Quantidade de erros permitidos no game.",
+      min: 3,
+      max: 10,
+    },
+    {
+      field: "gameSpeed",
+      label: "Velocidade das palavras",
+      description: "Percentual da velocidade inicial de descida.",
+      min: 0,
+      max: 100,
+      suffix: "%",
+    },
+    {
+      field: "gameSpeedBoost",
+      label: "Aceleração",
+      description: "Percentual adicional por palavra destruída.",
+      min: 0,
+      max: 100,
+      suffix: "%",
+    },
+  ],
+};
+
+const DifficultyRangeField = ({ config, value, onChange }) => (
+  <div>
+    <h3 className="text-base font-bold text-gray-900 dark:text-white">
+      {config.label}
+    </h3>
+    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+      {config.description}
+    </p>
+    <div className="mt-4 flex items-center gap-4">
+      <input
+        type="range"
+        min={config.min}
+        max={config.max}
+        step="1"
+        value={value}
+        onChange={(event) => onChange(config.field, event.target.value)}
+        aria-label={`${config.label}: barra`}
+        className="w-full"
+      />
+      <div className="flex items-center rounded-lg border border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-900">
+        <input
+          type="number"
+          min={config.min}
+          max={config.max}
+          step="1"
+          value={value}
+          onChange={(event) => onChange(config.field, event.target.value)}
+          aria-label={`${config.label}: valor`}
+          className={`w-20 bg-transparent px-3 py-2 text-center font-mono font-black text-gray-900 dark:text-white ${
+            config.suffix ? "rounded-l-lg" : "rounded-lg"
+          }`}
+        />
+        {config.suffix ? (
+          <span className="pr-3 font-black text-gray-500 dark:text-gray-400">
+            {config.suffix}
+          </span>
+        ) : null}
+      </div>
+    </div>
+  </div>
+);
+
 export const TypingDifficultyAssignmentPanel = ({
   studentType,
   turmas = [],
@@ -263,36 +372,15 @@ export const TypingDifficultyAssignmentPanel = ({
 
       {loading ? <p className="mt-5 text-sm text-gray-500">Carregando dificuldade efetiva...</p> : null}
       {settings ? (
-        <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <label className="text-sm font-bold text-gray-700 dark:text-gray-300">
-            PPM mínimo
-            <input type="number" min="10" max="120" value={settings.passMinWpm} onChange={(event) => update("passMinWpm", event.target.value)} className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
-          </label>
-          <label className="text-sm font-bold text-gray-700 dark:text-gray-300">
-            Precisão mínima (%)
-            <input type="number" min="50" max="100" value={settings.passMinAccuracy} onChange={(event) => update("passMinAccuracy", event.target.value)} className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
-          </label>
-          {mode === "lesson" ? (
-            <label className="text-sm font-bold text-gray-700 dark:text-gray-300">
-              Erros permitidos
-              <input type="number" min="3" max="10" value={settings.maxErrors} onChange={(event) => update("maxErrors", event.target.value)} className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
-            </label>
-          ) : (
-            <>
-              <label className="text-sm font-bold text-gray-700 dark:text-gray-300">
-                Vidas
-                <input type="number" min="3" max="10" value={settings.maxLives} onChange={(event) => update("maxLives", event.target.value)} className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
-              </label>
-              <label className="text-sm font-bold text-gray-700 dark:text-gray-300">
-                Velocidade (%)
-                <input type="number" min="0" max="100" value={settings.gameSpeed} onChange={(event) => update("gameSpeed", event.target.value)} className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
-              </label>
-              <label className="text-sm font-bold text-gray-700 dark:text-gray-300">
-                Aceleração (%)
-                <input type="number" min="0" max="100" value={settings.gameSpeedBoost} onChange={(event) => update("gameSpeedBoost", event.target.value)} className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
-              </label>
-            </>
-          )}
+        <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-6">
+          {SETTING_FIELDS[mode].map((config) => (
+            <DifficultyRangeField
+              key={config.field}
+              config={config}
+              value={settings[config.field]}
+              onChange={update}
+            />
+          ))}
         </div>
       ) : null}
 
