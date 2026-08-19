@@ -19,6 +19,7 @@ import {
 import { TypingRankingScrollArea } from "../TypingRankingScrollArea";
 import { TypingSpaceGame } from "../TypingSpaceGame";
 import { TypingPvpGame } from "../TypingPvpGame";
+import { TypingDifficultyAssignmentPanel } from "../TypingDifficultyAssignmentPanel";
 import TypingKeyboard from "./TypingKeyboard";
 
 const COMBO_REWARDS = {
@@ -137,11 +138,13 @@ export const TypingApp = ({ standalone = false }) => {
   const typingSettings = useTypingSettings({
     studentType: "normal",
     isProfessor: isStaff,
+    userId: user?.id,
     enabled: standalone || wnapp.hide === false,
   });
   const typingGameSettings = useTypingGameSettings({
     studentType: "normal",
     isProfessor: isStaff,
+    userId: user?.id,
     enabled: standalone || wnapp.hide === false,
   });
   const passMinWpm = typingSettings.settings.passMinWpm;
@@ -1047,6 +1050,9 @@ export const TypingApp = ({ standalone = false }) => {
             studentType="normal"
             gameTab={view}
             rankingTab={rankingTab}
+            maxLives={maxGameLives}
+            passMinWpm={gamePassMinWpm}
+            passMinAccuracy={gamePassMinAccuracy}
             isProfessor={isStaff}
             turmas={turmas}
             selectedTurmaId={selectedTurmaId}
@@ -1282,6 +1288,12 @@ export const TypingApp = ({ standalone = false }) => {
                 Ajustes disponíveis somente para professor.
               </p>
             </div>
+
+            <TypingDifficultyAssignmentPanel
+              studentType="normal"
+              turmas={turmas}
+              enabled={view === "config" && isProfessor}
+            />
 
             <div className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm mb-4">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white">

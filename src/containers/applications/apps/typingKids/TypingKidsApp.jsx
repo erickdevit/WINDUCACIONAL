@@ -11,6 +11,7 @@ import { areTypingCharactersEquivalent } from "../typingInput";
 import { useTypingGameSettings } from "../typingSettings";
 import { TypingSpaceGame } from "../TypingSpaceGame";
 import { TypingPvpGame } from "../TypingPvpGame";
+import { TypingDifficultyAssignmentPanel } from "../TypingDifficultyAssignmentPanel";
 import "./typingKids.scss";
 
 export const TypingKidsApp = () => {
@@ -37,6 +38,7 @@ export const TypingKidsApp = () => {
   const typingGameSettings = useTypingGameSettings({
     studentType: "kids",
     isProfessor: isStaff,
+    userId: user?.id,
     enabled: appVisible,
   });
   const gamePassMinWpm = typingGameSettings.settings.passMinWpm;
@@ -568,6 +570,12 @@ export const TypingKidsApp = () => {
               </p>
             </div>
 
+            <TypingDifficultyAssignmentPanel
+              studentType="kids"
+              turmas={turmas}
+              enabled={view === "config" && isProfessor}
+            />
+
             <div className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm mb-4">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
@@ -1066,6 +1074,9 @@ export const TypingKidsApp = () => {
             studentType="kids"
             gameTab={view}
             rankingTab={rankingTab}
+            maxLives={maxGameLives}
+            passMinWpm={gamePassMinWpm}
+            passMinAccuracy={gamePassMinAccuracy}
             isProfessor={isStaff}
             turmas={turmas}
             selectedTurmaId={selectedTurmaId}

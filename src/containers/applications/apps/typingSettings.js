@@ -51,7 +51,9 @@ export const clampTypingSetting = (value, fallback, min, max) => {
 };
 
 export const normalizeTypingStudentType = (studentType) =>
-  studentType === "kids" ? "kids" : "normal";
+  String(studentType || "normal").trim().toLowerCase() === "kids"
+    ? "kids"
+    : "normal";
 
 const normalizeGameSpeedPercent = (value, fallback) => {
   return Math.round(clampTypingSetting(value, fallback, 0, 100));
@@ -129,17 +131,20 @@ export const normalizeTypingGameSettings = (studentType, settings = {}) => {
   };
 };
 
-const getCacheKey = (studentType, cachePrefix) =>
-  `${cachePrefix}_${normalizeTypingStudentType(studentType)}`;
+const normalizeCacheScope = (scope) =>
+  String(scope || "global").replace(/[^a-z0-9_-]/gi, "_");
+
+const getCacheKey = (studentType, cachePrefix, cacheScope = "global") =>
+  `${cachePrefix}_${normalizeCacheScope(cacheScope)}_${normalizeTypingStudentType(studentType)}`;
 
 const readCachedSettings = (
   studentType,
-  { cachePrefix, normalizeSettings }
+  { cachePrefix, cacheScope, normalizeSettings }
 ) => {
   const normalizedType = normalizeTypingStudentType(studentType);
   try {
     const cached = window.localStorage.getItem(
-      getCacheKey(normalizedType, cachePrefix)
+      getCacheKey(normalizedType, cachePrefix, cacheScope)
     );
     if (!cached) return normalizeSettings(normalizedType);
     return normalizeSettings(normalizedType, JSON.parse(cached));
@@ -148,10 +153,10 @@ const readCachedSettings = (
   }
 };
 
-const writeCachedSettings = (settings, cachePrefix) => {
+const writeCachedSettings = (settings, cachePrefix, cacheScope) => {
   try {
     window.localStorage.setItem(
-      getCacheKey(settings.studentType, cachePrefix),
+      getCacheKey(settings.studentType, cachePrefix, cacheScope),
       JSON.stringify(settings)
     );
   } catch (error) {}
@@ -162,6 +167,7 @@ const useSyncedTypingSettings = ({
   isProfessor = false,
   enabled = true,
   cachePrefix,
+  cacheScope = "global",
   normalizeSettings,
   loadSettings,
   saveSettings,
@@ -172,7 +178,7 @@ const useSyncedTypingSettings = ({
 }) => {
   const normalizedType = normalizeTypingStudentType(studentType);
   const dirtyRef = useRef(false);
-  const settingsOptions = { cachePrefix, normalizeSettings };
+  const settingsOptions = { cachePrefix, cacheScope, normalizeSettings };
   const [settings, setSettings] = useState(() =>
     readCachedSettings(normalizedType, settingsOptions)
   );
@@ -192,7 +198,7 @@ const useSyncedTypingSettings = ({
   const applySettings = (nextSettings, preserveDirtyDraft = true) => {
     const normalizedSettings = normalizeSettings(normalizedType, nextSettings);
     setSettings(normalizedSettings);
-    writeCachedSettings(normalizedSettings, cachePrefix);
+    writeCachedSettings(normalizedSettings, cachePrefix, cacheScope);
     if (!preserveDirtyDraft || !dirtyRef.current) {
       setDraftSettings(normalizedSettings);
     }
@@ -205,7 +211,7 @@ const useSyncedTypingSettings = ({
     setDraftSettings(cachedSettings);
     setDirtyState(false);
     setStatus(null);
-  }, [normalizedType]);
+  }, [normalizedType, cacheScope]);
 
   useEffect(() => {
     if (!enabled) {
@@ -219,7 +225,9 @@ const useSyncedTypingSettings = ({
       if (typeof loadSettings !== "function") return;
       setLoading(true);
       try {
-        const data = await loadSettings(normalizedType);
+        const data = await loadSettings(normalizedType, {
+          effective: !isProfessor,
+        });
         if (active) applySettings(data.settings);
       } catch (error) {
         if (active && isProfessor) {
@@ -237,12 +245,13 @@ const useSyncedTypingSettings = ({
     return () => {
       active = false;
     };
-  }, [enabled, normalizedType, isProfessor, loadSettings]);
+  }, [enabled, normalizedType, isProfessor, loadSettings, cacheScope]);
 
   useEffect(() => {
     if (!enabled || typeof subscribeSettings !== "function") return undefined;
 
     const subscription = subscribeSettings(normalizedType, {
+      effective: !isProfessor,
       onSettings: (nextSettings) => {
         applySettings(nextSettings);
       },
@@ -252,7 +261,7 @@ const useSyncedTypingSettings = ({
     return () => {
       subscription?.close?.();
     };
-  }, [enabled, normalizedType, subscribeSettings]);
+  }, [enabled, normalizedType, isProfessor, subscribeSettings, cacheScope]);
 
   const updateDraftSettings = (field, value) => {
     setDraftSettings((current) =>
@@ -306,11 +315,13 @@ export const useTypingSettings = ({
   studentType,
   isProfessor = false,
   enabled = true,
+  userId = null,
 }) =>
   useSyncedTypingSettings({
     studentType,
     isProfessor,
     enabled,
+    cacheScope: isProfessor ? "global" : userId || "anonymous",
     cachePrefix: "typingSettings",
     normalizeSettings: normalizeTypingSettings,
     loadSettings: api.getTypingSettings,
@@ -326,11 +337,13 @@ export const useTypingGameSettings = ({
   studentType,
   isProfessor = false,
   enabled = true,
+  userId = null,
 }) =>
   useSyncedTypingSettings({
     studentType,
     isProfessor,
     enabled,
+    cacheScope: isProfessor ? "global" : userId || "anonymous",
     cachePrefix: "typingGameSettings",
     normalizeSettings: normalizeTypingGameSettings,
     loadSettings: api.getTypingGameSettings,

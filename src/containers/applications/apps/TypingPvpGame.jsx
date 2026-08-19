@@ -115,6 +115,9 @@ export const TypingPvpGame = ({
   studentType = "normal",
   gameTab,
   rankingTab = "global",
+  maxLives = MAX_LIVES,
+  passMinWpm = 40,
+  passMinAccuracy = 95,
   isProfessor = false,
   turmas = [],
   selectedTurmaId = "",
@@ -175,8 +178,8 @@ export const TypingPvpGame = ({
   const [myShipX, setMyShipX] = useState(PVP_LANES.P1);
   const [opponentShipX, setOpponentShipX] = useState(PVP_LANES.P2);
 
-  const [myLives, setMyLives] = useState(MAX_LIVES);
-  const [opponentLives, setOpponentLives] = useState(MAX_LIVES);
+  const [myLives, setMyLives] = useState(maxLives);
+  const [opponentLives, setOpponentLives] = useState(maxLives);
 
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
@@ -201,6 +204,11 @@ export const TypingPvpGame = ({
   const arenaRef = useRef(null);
   const sseRef = useRef(null);
   const pendingChallengeRef = useRef(null);
+  const difficultyRef = useRef({ maxLives, gameSpeed, gameSpeedBoost });
+
+  useEffect(() => {
+    difficultyRef.current = { maxLives, gameSpeed, gameSpeedBoost };
+  }, [maxLives, gameSpeed, gameSpeedBoost]);
 
   const targetWord = useMemo(() => {
     return (
@@ -460,6 +468,9 @@ export const TypingPvpGame = ({
   };
 
   const startGame = (seed, myIdx) => {
+    const activeDifficulty = difficultyRef.current;
+    const activeMaxLives = activeDifficulty.maxLives;
+    const activeGameSpeed = toPercentMultiplier(activeDifficulty.gameSpeed);
     setGameState("playing");
     setMatchWinner(null);
     finishRequestRef.current = false;
@@ -470,8 +481,8 @@ export const TypingPvpGame = ({
     setPvpNotification(null);
     setHits(0);
     setErrors(0);
-    setMyLives(MAX_LIVES);
-    setOpponentLives(MAX_LIVES);
+    setMyLives(activeMaxLives);
+    setOpponentLives(activeMaxLives);
     setOpponentHits(0);
     setOpponentErrors(0);
     setShots([]);
@@ -502,10 +513,10 @@ export const TypingPvpGame = ({
 
     const initialWords = [];
     initialWords.push(
-      createFallingWordPvp(finalWords[0], 0, 0, myIdx, seed, gameBaseSpeed)
+      createFallingWordPvp(finalWords[0], 0, 0, myIdx, seed, activeGameSpeed)
     );
     initialWords.push(
-      createFallingWordPvp(finalWords[0], 0, 1, myIdx, seed, gameBaseSpeed)
+      createFallingWordPvp(finalWords[0], 0, 1, myIdx, seed, activeGameSpeed)
     );
 
     setMyWordIndex(1);
@@ -874,8 +885,8 @@ export const TypingPvpGame = ({
     const acc = isMe ? myAccuracy : oppAccuracy;
     const lvls = isMe ? myLives : opponentLives;
 
-    const wpmRatio = Math.min(1, Math.max(0, wpm / 60));
-    const accRatio = Math.min(1, Math.max(0, acc / 100));
+    const wpmRatio = Math.min(1, Math.max(0, wpm / passMinWpm));
+    const accRatio = Math.min(1, Math.max(0, acc / passMinAccuracy));
     const wpmColor = getGameRhythmColor(wpmRatio);
     const accColor = getGameRhythmColor(accRatio);
 
@@ -952,7 +963,7 @@ export const TypingPvpGame = ({
         </div>
         <div className="typingSpaceLives">
           <div className="typingSpaceLivesDots">
-            {Array.from({ length: MAX_LIVES }, (_, index) => (
+            {Array.from({ length: maxLives }, (_, index) => (
               <span
                 key={index}
                 className={`typingSpaceLivesDot ${

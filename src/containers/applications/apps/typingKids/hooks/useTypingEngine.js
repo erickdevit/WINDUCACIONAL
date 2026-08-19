@@ -95,6 +95,7 @@ export const useTypingEngine = (user, enabled = true) => {
   const typingSettings = useTypingSettings({
     studentType: "kids",
     isProfessor: user?.role === "professor",
+    userId: user?.id,
     enabled,
   });
   const maxErrors = typingSettings.settings.maxErrors;

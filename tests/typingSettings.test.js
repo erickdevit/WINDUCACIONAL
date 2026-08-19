@@ -235,4 +235,21 @@ describe("Configurações de digitação", () => {
     rerender({ enabled: false });
     expect(typingSettingsMock.close).toHaveBeenCalledTimes(1);
   });
+
+  it("isola o cache efetivo por usuário", async () => {
+    const { result } = renderHook(() =>
+      useTypingSettings({
+        studentType: "kids",
+        userId: "student-a",
+        isProfessor: false,
+      })
+    );
+    await act(async () => {});
+
+    expect(localStorage.setItem).toHaveBeenCalledWith(
+      "typingSettings_student-a_kids",
+      expect.any(String)
+    );
+    expect(result.current.settings.studentType).toBe("kids");
+  });
 });

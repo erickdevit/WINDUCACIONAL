@@ -129,26 +129,38 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ turmaCode, studentType }),
     }),
-  getTypingSettings: (studentType) =>
-    request(`/api/typing/settings/${studentType}`),
+  getTypingSettings: (studentType, { effective = false } = {}) =>
+    request(
+      effective
+        ? "/api/typing/settings/effective"
+        : `/api/typing/settings/${studentType}`
+    ),
   saveTypingSettings: (studentType, payload) =>
     request(`/api/typing/settings/${studentType}`, {
       method: "PUT",
       body: JSON.stringify(payload),
     }),
-  getTypingGameSettings: (studentType) =>
-    request(`/api/typing/game/settings/${studentType}`),
+  getTypingGameSettings: (studentType, { effective = false } = {}) =>
+    request(
+      effective
+        ? "/api/typing/game/settings/effective"
+        : `/api/typing/game/settings/${studentType}`
+    ),
   saveTypingGameSettings: (studentType, payload) =>
     request(`/api/typing/game/settings/${studentType}`, {
       method: "PUT",
       body: JSON.stringify(payload),
     }),
-  subscribeTypingSettings: (studentType, { onSettings, onError } = {}) => {
+  subscribeTypingSettings: (
+    studentType,
+    { onSettings, onError, effective = false } = {}
+  ) => {
     if (typeof EventSource === "undefined") {
       return { close: () => {} };
     }
 
     const params = new URLSearchParams({ studentType });
+    if (effective) params.set("effective", "1");
     const source = new EventSource(
       `/api/typing/settings/events?${params.toString()}`,
       {
@@ -175,12 +187,16 @@ export const api = {
       },
     };
   },
-  subscribeTypingGameSettings: (studentType, { onSettings, onError } = {}) => {
+  subscribeTypingGameSettings: (
+    studentType,
+    { onSettings, onError, effective = false } = {}
+  ) => {
     if (typeof EventSource === "undefined") {
       return { close: () => {} };
     }
 
     const params = new URLSearchParams({ studentType });
+    if (effective) params.set("effective", "1");
     const source = new EventSource(
       `/api/typing/game/settings/events?${params.toString()}`,
       {
@@ -207,6 +223,23 @@ export const api = {
       },
     };
   },
+  getTypingDifficulty: ({ mode, scope = "type", studentType, turmaId, studentId } = {}) => {
+    const params = new URLSearchParams({ mode, scope });
+    if (studentType) params.set("studentType", studentType);
+    if (turmaId) params.set("turmaId", turmaId);
+    if (studentId) params.set("studentId", studentId);
+    return request(`/api/typing/difficulty?${params.toString()}`);
+  },
+  saveTypingDifficulty: (payload) =>
+    request("/api/typing/difficulty", {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+  clearTypingDifficulty: (payload) =>
+    request("/api/typing/difficulty", {
+      method: "DELETE",
+      body: JSON.stringify(payload),
+    }),
   subscribeNotifications: ({ onNotification, onError } = {}) => {
     if (typeof EventSource === "undefined") {
       return { close: () => {} };

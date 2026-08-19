@@ -5,6 +5,11 @@ const express = require("express");
 const { Pool } = require("pg");
 
 const { runMigrations } = require("./db/migrate.cjs");
+const {
+  chooseTypingDifficultyOverride,
+  normalizeTypingDifficultyMode,
+  normalizeTypingDifficultyScope,
+} = require("./domain/typingDifficulty.cjs");
 
 const rootDir = path.resolve(__dirname, "..");
 const buildDir = path.join(rootDir, "build");
@@ -227,6 +232,11 @@ const normalizeTypingStudentType = (studentType) => {
   return normalized;
 };
 
+const isUuid = (value) =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    String(value || "")
+  );
+
 const normalizeBookletId = (value) => {
   const normalized = String(value || "")
     .normalize("NFD")
@@ -375,6 +385,16 @@ const publicTypingGameSettings = (settings) => ({
   gameSpeed: Number(settings.game_speed),
   gameSpeedBoost: Number(settings.game_speed_boost),
   updatedAt: settings.updated_at,
+});
+
+const publicTypingDifficultyOverride = (override) => ({
+  id: override.id,
+  mode: override.mode,
+  scope: override.scope_type,
+  turmaId: override.turma_id || null,
+  studentId: override.student_id || null,
+  studentType: override.student_type || null,
+  updatedAt: override.updated_at,
 });
 
 const publicExam = (exam) => ({
@@ -1297,11 +1317,22 @@ const writeTypingSettingsEvent = (res, settings) => {
   res.write(`data: ${JSON.stringify({ settings })}\n\n`);
 };
 
-const broadcastTypingSettings = (settings) => {
+const broadcastTypingSettings = async (settings, target = {}) => {
   for (const client of typingSettingsClients) {
     if (client.studentType !== settings.studentType) continue;
+    if (target.studentId && client.userId !== target.studentId) continue;
+    if (target.turmaId && client.turmaId !== target.turmaId) continue;
     try {
-      writeTypingSettingsEvent(client.res, settings);
+      const next =
+        client.role === "aluno"
+          ? await getEffectiveTypingSettings({
+              mode: "lesson",
+              studentType: client.studentType,
+              turmaId: client.turmaId,
+              studentId: client.userId,
+            })
+          : { settings };
+      writeTypingSettingsEvent(client.res, next.settings);
     } catch (error) {
       typingSettingsClients.delete(client);
     }
@@ -1374,16 +1405,221 @@ const saveTypingGameSettings = async (studentType, payload) => {
   return publicTypingGameSettings(result.rows[0]);
 };
 
+const getTypingDifficultyOverride = async ({
+  mode,
+  turmaId = null,
+  studentId = null,
+}) => {
+  const normalizedMode = normalizeTypingDifficultyMode(mode);
+  const values = [normalizedMode];
+  const clauses = [];
+  if (turmaId) {
+    values.push(turmaId);
+    clauses.push(`turma_id = $${values.length}`);
+  }
+  if (studentId) {
+    values.push(studentId);
+    clauses.push(`student_id = $${values.length}`);
+  }
+  if (clauses.length === 0) return null;
+
+  const result = await pool.query(
+    `SELECT id, mode, scope_type, turma_id, student_id,
+            pass_min_wpm, pass_min_accuracy, max_errors, max_lives,
+            game_speed, game_speed_boost, updated_at
+     FROM typing_difficulty_overrides
+     WHERE mode = $1 AND (${clauses.join(" OR ")})`,
+    values
+  );
+  return chooseTypingDifficultyOverride({
+    student: result.rows.find((row) => row.student_id) || null,
+    turma: result.rows.find((row) => row.turma_id) || null,
+  });
+};
+
+const getEffectiveTypingSettings = async ({
+  mode,
+  studentType,
+  turmaId = null,
+  studentId = null,
+}) => {
+  const normalizedMode = normalizeTypingDifficultyMode(mode);
+  const normalizedType = normalizeTypingStudentType(studentType);
+  const base =
+    normalizedMode === "game"
+      ? await getTypingGameSettings(normalizedType)
+      : await getTypingSettings(normalizedType);
+  const override = await getTypingDifficultyOverride({
+    mode: normalizedMode,
+    turmaId,
+    studentId,
+  });
+
+  if (!override) {
+    return { settings: { ...base, source: "type" }, source: "type", override: null };
+  }
+
+  const settings =
+    normalizedMode === "game"
+      ? {
+          ...base,
+          passMinWpm: Number(override.pass_min_wpm),
+          passMinAccuracy: Number(override.pass_min_accuracy),
+          maxLives: Number(override.max_lives),
+          gameSpeed: Number(override.game_speed),
+          gameSpeedBoost: Number(override.game_speed_boost),
+          updatedAt: override.updated_at,
+          source: override.scope_type,
+        }
+      : {
+          ...base,
+          passMinWpm: Number(override.pass_min_wpm),
+          passMinAccuracy: Number(override.pass_min_accuracy),
+          maxErrors: Number(override.max_errors),
+          updatedAt: override.updated_at,
+          source: override.scope_type,
+        };
+
+  return {
+    settings,
+    source: override.scope_type,
+    override: publicTypingDifficultyOverride(override),
+  };
+};
+
+const saveTypingDifficultyOverride = async ({
+  mode,
+  scope,
+  turmaId = null,
+  studentId = null,
+  payload = {},
+}) => {
+  const normalizedMode = normalizeTypingDifficultyMode(mode);
+  const normalizedScope = normalizeTypingDifficultyScope(scope);
+  if (normalizedScope === "type") {
+    return normalizedMode === "game"
+      ? saveTypingGameSettings(payload.studentType, payload)
+      : saveTypingSettings(payload.studentType, payload);
+  }
+
+  const existing = await getTypingDifficultyOverride({
+    mode: normalizedMode,
+    turmaId: normalizedScope === "turma" ? turmaId : null,
+    studentId: normalizedScope === "student" ? studentId : null,
+  });
+  const studentType = normalizeTypingStudentType(payload.studentType);
+  const baseLesson = await getTypingSettings(studentType);
+  const baseGame = await getTypingGameSettings(studentType);
+  const current = existing
+    ? {
+        passMinWpm: Number(existing.pass_min_wpm),
+        passMinAccuracy: Number(existing.pass_min_accuracy),
+        maxErrors: Number(existing.max_errors),
+        maxLives: Number(existing.max_lives),
+        gameSpeed: Number(existing.game_speed),
+        gameSpeedBoost: Number(existing.game_speed_boost),
+      }
+    : {
+        passMinWpm: baseLesson.passMinWpm,
+        passMinAccuracy: baseLesson.passMinAccuracy,
+        maxErrors: baseLesson.maxErrors,
+        maxLives: baseGame.maxLives,
+        gameSpeed: baseGame.gameSpeed,
+        gameSpeedBoost: baseGame.gameSpeedBoost,
+      };
+  const normalized = {
+    passMinWpm: clampInteger(payload.passMinWpm, current.passMinWpm, 10, 120),
+    passMinAccuracy: clampInteger(
+      payload.passMinAccuracy,
+      current.passMinAccuracy,
+      50,
+      100
+    ),
+    maxErrors: clampInteger(payload.maxErrors, current.maxErrors, 3, 10),
+    maxLives: clampInteger(payload.maxLives, current.maxLives, 3, 10),
+    gameSpeed: clampInteger(payload.gameSpeed, current.gameSpeed, 0, 100),
+    gameSpeedBoost: clampInteger(
+      payload.gameSpeedBoost,
+      current.gameSpeedBoost,
+      0,
+      100
+    ),
+  };
+  const targetColumn = normalizedScope === "turma" ? "turma_id" : "student_id";
+  const targetId = normalizedScope === "turma" ? turmaId : studentId;
+  const result = await pool.query(
+    `INSERT INTO typing_difficulty_overrides
+       (id, mode, scope_type, ${targetColumn}, pass_min_wpm,
+        pass_min_accuracy, max_errors, max_lives, game_speed,
+        game_speed_boost, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+     ON CONFLICT DO UPDATE SET
+       pass_min_wpm = EXCLUDED.pass_min_wpm,
+       pass_min_accuracy = EXCLUDED.pass_min_accuracy,
+       max_errors = EXCLUDED.max_errors,
+       max_lives = EXCLUDED.max_lives,
+       game_speed = EXCLUDED.game_speed,
+       game_speed_boost = EXCLUDED.game_speed_boost,
+       updated_at = NOW()
+     RETURNING id, mode, scope_type, turma_id, student_id,
+               pass_min_wpm, pass_min_accuracy, max_errors, max_lives,
+               game_speed, game_speed_boost, updated_at`,
+    [
+      crypto.randomUUID(),
+      normalizedMode,
+      normalizedScope,
+      targetId,
+      normalized.passMinWpm,
+      normalized.passMinAccuracy,
+      normalized.maxErrors,
+      normalized.maxLives,
+      normalized.gameSpeed,
+      normalized.gameSpeedBoost,
+    ]
+  );
+  return publicTypingDifficultyOverride(result.rows[0]);
+};
+
+const deleteTypingDifficultyOverride = async ({
+  mode,
+  scope,
+  turmaId = null,
+  studentId = null,
+}) => {
+  const normalizedMode = normalizeTypingDifficultyMode(mode);
+  const normalizedScope = normalizeTypingDifficultyScope(scope);
+  if (normalizedScope === "type") return false;
+  const column = normalizedScope === "turma" ? "turma_id" : "student_id";
+  const targetId = normalizedScope === "turma" ? turmaId : studentId;
+  const result = await pool.query(
+    `DELETE FROM typing_difficulty_overrides
+     WHERE mode = $1 AND scope_type = $2 AND ${column} = $3`,
+    [normalizedMode, normalizedScope, targetId]
+  );
+  return result.rowCount > 0;
+};
+
 const writeTypingGameSettingsEvent = (res, settings) => {
   res.write("event: typing-game-settings\n");
   res.write(`data: ${JSON.stringify({ settings })}\n\n`);
 };
 
-const broadcastTypingGameSettings = (settings) => {
+const broadcastTypingGameSettings = async (settings, target = {}) => {
   for (const client of typingGameSettingsClients) {
     if (client.studentType !== settings.studentType) continue;
+    if (target.studentId && client.userId !== target.studentId) continue;
+    if (target.turmaId && client.turmaId !== target.turmaId) continue;
     try {
-      writeTypingGameSettingsEvent(client.res, settings);
+      const next =
+        client.role === "aluno"
+          ? await getEffectiveTypingSettings({
+              mode: "game",
+              studentType: client.studentType,
+              turmaId: client.turmaId,
+              studentId: client.userId,
+            })
+          : { settings };
+      writeTypingGameSettingsEvent(client.res, next.settings);
     } catch (error) {
       typingGameSettingsClients.delete(client);
     }
@@ -1621,6 +1857,8 @@ const routeContext = {
   getDefaultDateRange,
   getExpectedDatesForSchedule,
   getOnlinePvpUsers,
+  getEffectiveTypingSettings,
+  getTypingDifficultyOverride,
   getStudentAttendanceSchedule,
   getTurmaForStudent,
   getTypingGameSettings,
@@ -1649,6 +1887,8 @@ const routeContext = {
   normalizeScheduleTime,
   normalizeStudentType,
   normalizeTurmaCode,
+  normalizeTypingDifficultyMode,
+  normalizeTypingDifficultyScope,
   normalizeTypingStudentType,
   normalizeUsername,
   normalizeValidationRules,
@@ -1665,6 +1905,7 @@ const routeContext = {
   publicExamSubmission,
   publicTurma,
   publicTypingGameSettings,
+  publicTypingDifficultyOverride,
   publicTypingSettings,
   publicUser,
   readCookie,
@@ -1675,6 +1916,7 @@ const routeContext = {
   resolveStudentTypeForTurma,
   rootDir,
   saveTypingGameSettings,
+  saveTypingDifficultyOverride,
   saveTypingSettings,
   saveUserConfig,
   sendUserNotification,
@@ -1689,6 +1931,7 @@ const routeContext = {
   verifyPassword,
   writeTypingGameSettingsEvent,
   writeTypingSettingsEvent,
+  deleteTypingDifficultyOverride,
   writeUserHome,
   writeUserNotificationEvent,
 };

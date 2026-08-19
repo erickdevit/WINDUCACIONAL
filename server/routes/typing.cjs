@@ -8,14 +8,21 @@ module.exports = function injectTypingRoutes(ctx) {
     broadcastTypingGameSettings,
     broadcastTypingSettings,
     clampInteger,
+    deleteTypingDifficultyOverride,
+    getEffectiveTypingSettings,
     getTypingGameSettings,
     getTypingSettings,
+    isUuid,
     normalizeTurmaCode,
+    normalizeTypingDifficultyMode,
+    normalizeTypingDifficultyScope,
     normalizeTypingStudentType,
     pool,
+    publicTypingDifficultyOverride,
     requireAuth,
     requireProfessor,
     saveTypingGameSettings,
+    saveTypingDifficultyOverride,
     saveTypingSettings,
     typingGameSettingsClients,
     typingSettingsClients,
@@ -32,7 +39,15 @@ module.exports = function injectTypingRoutes(ctx) {
           req.user.role !== "aluno"
             ? normalizeTypingStudentType(req.query.studentType)
             : req.user.student_type;
-        const settings = await getTypingSettings(studentType);
+        const effective =
+          req.user.role === "aluno"
+            ? await getEffectiveTypingSettings({
+                mode: "lesson",
+                studentType,
+                turmaId: req.user.turma_id,
+                studentId: req.user.id,
+              })
+            : { settings: await getTypingSettings(studentType) };
 
         res.setHeader("Content-Type", "text/event-stream");
         res.setHeader("Cache-Control", "no-cache, no-transform");
@@ -42,10 +57,13 @@ module.exports = function injectTypingRoutes(ctx) {
 
         const client = {
           studentType,
+          userId: req.user.id,
+          turmaId: req.user.turma_id,
+          role: req.user.role,
           res,
         };
         typingSettingsClients.add(client);
-        writeTypingSettingsEvent(res, settings);
+        writeTypingSettingsEvent(res, effective.settings);
 
         const heartbeat = setInterval(() => {
           res.write(": keep-alive\n\n");
@@ -57,6 +75,24 @@ module.exports = function injectTypingRoutes(ctx) {
         });
       } catch (error) {
         next(error);
+      }
+    }
+  );
+
+  app.get(
+    "/api/typing/settings/effective",
+    requireAuth,
+    async (req, res, next) => {
+      try {
+        const result = await getEffectiveTypingSettings({
+          mode: "lesson",
+          studentType: req.user.student_type,
+          turmaId: req.user.turma_id,
+          studentId: req.user.role === "aluno" ? req.user.id : null,
+        });
+        return res.json(result);
+      } catch (error) {
+        return next(error);
       }
     }
   );
@@ -94,7 +130,7 @@ module.exports = function injectTypingRoutes(ctx) {
           req.params.studentType,
           req.body || {}
         );
-        broadcastTypingSettings(settings);
+        await broadcastTypingSettings(settings);
         return res.json({ settings });
       } catch (error) {
         return next(error);
@@ -113,7 +149,15 @@ module.exports = function injectTypingRoutes(ctx) {
           req.user.role !== "aluno"
             ? normalizeTypingStudentType(req.query.studentType)
             : req.user.student_type;
-        const settings = await getTypingGameSettings(studentType);
+        const effective =
+          req.user.role === "aluno"
+            ? await getEffectiveTypingSettings({
+                mode: "game",
+                studentType,
+                turmaId: req.user.turma_id,
+                studentId: req.user.id,
+              })
+            : { settings: await getTypingGameSettings(studentType) };
 
         res.setHeader("Content-Type", "text/event-stream");
         res.setHeader("Cache-Control", "no-cache, no-transform");
@@ -123,10 +167,13 @@ module.exports = function injectTypingRoutes(ctx) {
 
         const client = {
           studentType,
+          userId: req.user.id,
+          turmaId: req.user.turma_id,
+          role: req.user.role,
           res,
         };
         typingGameSettingsClients.add(client);
-        writeTypingGameSettingsEvent(res, settings);
+        writeTypingGameSettingsEvent(res, effective.settings);
 
         const heartbeat = setInterval(() => {
           res.write(": keep-alive\n\n");
@@ -138,6 +185,24 @@ module.exports = function injectTypingRoutes(ctx) {
         });
       } catch (error) {
         next(error);
+      }
+    }
+  );
+
+  app.get(
+    "/api/typing/game/settings/effective",
+    requireAuth,
+    async (req, res, next) => {
+      try {
+        const result = await getEffectiveTypingSettings({
+          mode: "game",
+          studentType: req.user.student_type,
+          turmaId: req.user.turma_id,
+          studentId: req.user.role === "aluno" ? req.user.id : null,
+        });
+        return res.json(result);
+      } catch (error) {
+        return next(error);
       }
     }
   );
@@ -176,13 +241,143 @@ module.exports = function injectTypingRoutes(ctx) {
           req.params.studentType,
           req.body || {}
         );
-        broadcastTypingGameSettings(settings);
+        await broadcastTypingGameSettings(settings);
         return res.json({ settings });
       } catch (error) {
         return next(error);
       }
     }
   );
+
+  const resolveDifficultyTarget = async ({ mode, query, body, allowEmpty }) => {
+    const scope = normalizeTypingDifficultyScope(
+      body?.scope || query?.scope || "type"
+    );
+    const studentId = body?.studentId || query?.studentId || null;
+    const turmaId = body?.turmaId || query?.turmaId || null;
+    if (scope === "type") {
+      return {
+        scope,
+        studentType: normalizeTypingStudentType(
+          body?.studentType || query?.studentType
+        ),
+        turmaId: null,
+        studentId: null,
+      };
+    }
+    if (!isUuid(scope === "turma" ? turmaId : studentId)) {
+      const error = new Error("Alvo de dificuldade inválido.");
+      error.status = 400;
+      throw error;
+    }
+    if (scope === "turma") {
+      const turma = await pool.query(
+        "SELECT id, student_type, active FROM turmas WHERE id = $1",
+        [turmaId]
+      );
+      if (turma.rowCount === 0 || (!allowEmpty && !turma.rows[0].active)) {
+        const error = new Error("Turma não encontrada ou inativa.");
+        error.status = 404;
+        throw error;
+      }
+      return { scope, studentType: turma.rows[0].student_type, turmaId, studentId: null };
+    }
+    const student = await pool.query(
+      `SELECT u.id, u.turma_id, COALESCE(t.student_type, u.student_type) AS student_type,
+              u.role, u.active
+       FROM users u LEFT JOIN turmas t ON t.id = u.turma_id
+       WHERE u.id = $1`,
+      [studentId]
+    );
+    if (
+      student.rowCount === 0 ||
+      student.rows[0].role !== "aluno" ||
+      !student.rows[0].turma_id ||
+      (!allowEmpty && !student.rows[0].active)
+    ) {
+      const error = new Error("Aluno não encontrado ou inativo.");
+      error.status = 404;
+      throw error;
+    }
+    if (turmaId && turmaId !== student.rows[0].turma_id) {
+      const error = new Error("Aluno não pertence à turma selecionada.");
+      error.status = 400;
+      throw error;
+    }
+    return {
+      scope,
+      studentType: student.rows[0].student_type,
+      turmaId: student.rows[0].turma_id,
+      studentId,
+    };
+  };
+
+  app.get("/api/typing/difficulty", requireAuth, requireProfessor, async (req, res, next) => {
+    try {
+      const mode = normalizeTypingDifficultyMode(req.query.mode);
+      const target = await resolveDifficultyTarget({ mode, query: req.query, allowEmpty: true });
+      const result = await getEffectiveTypingSettings({
+        mode,
+        studentType: target.studentType,
+        turmaId: target.turmaId,
+        studentId: target.studentId,
+      });
+      return res.json({ ...result, target });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  app.put("/api/typing/difficulty", requireAuth, requireProfessor, async (req, res, next) => {
+    try {
+      const mode = normalizeTypingDifficultyMode(req.body?.mode);
+      const target = await resolveDifficultyTarget({ mode, body: req.body, allowEmpty: false });
+      const override = await saveTypingDifficultyOverride({
+        mode,
+        ...target,
+        payload: { ...(req.body?.settings || {}), studentType: target.studentType },
+      });
+      const result = await getEffectiveTypingSettings({
+        mode,
+        studentType: target.studentType,
+        turmaId: target.turmaId,
+        studentId: target.studentId,
+      });
+      if (target.scope === "type") {
+        if (mode === "game") await broadcastTypingGameSettings(result.settings);
+        else await broadcastTypingSettings(result.settings);
+      } else if (mode === "game") {
+        await broadcastTypingGameSettings(result.settings, target);
+      } else {
+        await broadcastTypingSettings(result.settings, target);
+      }
+      return res.json({ ...result, override });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  app.delete("/api/typing/difficulty", requireAuth, requireProfessor, async (req, res, next) => {
+    try {
+      const mode = normalizeTypingDifficultyMode(req.body?.mode || req.query.mode);
+      const target = await resolveDifficultyTarget({ mode, body: req.body, query: req.query, allowEmpty: true });
+      if (target.scope === "type") {
+        return res.status(400).json({ error: "A configuração base não pode ser removida." });
+      }
+      await deleteTypingDifficultyOverride({ mode, ...target });
+      const result = await getEffectiveTypingSettings({
+        mode,
+        studentType: target.studentType,
+        turmaId: target.turmaId,
+        studentId: target.studentId,
+      });
+      if (mode === "game") await broadcastTypingGameSettings(result.settings, target);
+      else await broadcastTypingSettings(result.settings, target);
+      return res.json(result);
+    } catch (error) {
+      return next(error);
+    }
+  });
 
   app.post("/api/typing/score", requireAuth, async (req, res, next) => {
     try {

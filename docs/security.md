@@ -42,6 +42,7 @@ O comando `eval` legado do terminal foi removido durante a primeira implementaç
 - Registrar eventos relevantes sem gravar senhas, tokens ou dados sensíveis em logs.
 - Tratar erros sem vazar stack trace em produção.
 - Canais em tempo real, como SSE, devem reutilizar a sessão HTTP-only, validar autorização antes de abrir a conexão e não aceitar parâmetros de aluno como fonte de permissão.
+- As rotas de dificuldade de Digitação aceitam alterações somente de professor, validam o vínculo entre aluno e turma no servidor e derivam o tipo Kids/Normal da turma. O SSE de Digitação ignora `studentType` enviado por aluno para autorização e transmite a configuração efetiva apenas ao usuário autenticado, respeitando a precedência aluno > turma > tipo.
 - Notificações em tempo real devem ser enviadas somente para usuários autorizados a receber o evento. Mensagens de chat não devem ser notificadas para o próprio remetente, e convites PVP devem carregar apenas dados públicos do desafiante.
 - Geração de imagens deve passar pelo backend autenticado. O frontend nunca deve receber `IMAGEGEN_API_TOKEN`; prompts enviados por usuários devem ser tratados como entrada não confiável e erros do provedor externo não devem vazar segredos.
 - A classificação Kids/Normal deve ser derivada da turma no backend. O frontend não pode escolher livremente o tipo de aluno durante cadastro público ou edição de usuário vinculado a turma.

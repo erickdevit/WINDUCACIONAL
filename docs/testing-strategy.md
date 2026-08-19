@@ -42,6 +42,7 @@ Criar uma suíte objetiva, rápida e útil para proteger a evolução do simulad
 - Professor edita o tipo de uma turma e todos os alunos vinculados passam a usar automaticamente o novo tipo.
 - Professor zera o ranking de digitação de uma turma usando o código da turma, sem afetar pontuações de outras turmas ou tipos.
 - Professor salva metas de PPM e precisão dos apps de digitação Normal e Kids, e alunos recebem os novos valores em tempo real mesmo com uma lição aberta.
+- Professor direciona dificuldade de lições e games para turmas diferentes, direciona uma dificuldade específica para um aluno, remove o direcionamento para voltar à herança e não consegue usar aluno de outra turma; a resolução cobre precedência aluno > turma > tipo, normalização case-insensitive e contratos SSE.
 - Game solo do app de Digitação Normal usa missões separadas das lições, aceita apenas palavras, calcula vidas, PPM e precisão, recebe configurações próprias em tempo real e mantém rankings global e por turma separados das lições.
 - PVP de digitação valida pareamento por turma, sincroniza progresso em tempo real, finaliza por conclusão ou perda de vidas, exibe o placar final dos dois jogadores e grava histórico próprio do modo.
 - Backend registra presença automaticamente ao criar sessão de aluno dentro dos dias e horários configurados para a turma, mantendo um registro único por aluno/data com primeiro login, último login e contador de logins.
