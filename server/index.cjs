@@ -1295,7 +1295,7 @@ const saveTypingSettings = async (studentType, payload) => {
     50,
     100
   );
-  const maxErrors = clampInteger(payload.maxErrors, current.maxErrors, 3, 10);
+  const maxErrors = clampInteger(payload.maxErrors, current.maxErrors, 3, 100);
 
   const result = await pool.query(
     `INSERT INTO typing_settings (student_type, pass_min_wpm, pass_min_accuracy, max_errors, updated_at)
@@ -1536,7 +1536,7 @@ const saveTypingDifficultyOverride = async ({
       50,
       100
     ),
-    maxErrors: clampInteger(payload.maxErrors, current.maxErrors, 3, 10),
+    maxErrors: clampInteger(payload.maxErrors, current.maxErrors, 3, 100),
     maxLives: clampInteger(payload.maxLives, current.maxLives, 3, 10),
     gameSpeed: clampInteger(payload.gameSpeed, current.gameSpeed, 0, 100),
     gameSpeedBoost: clampInteger(

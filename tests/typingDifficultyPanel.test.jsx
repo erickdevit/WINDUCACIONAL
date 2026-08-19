@@ -100,6 +100,9 @@ describe("Painel de dificuldade direcionada", () => {
       name: "PPM mínimo: barra",
     });
     expect(screen.getAllByRole("slider")).toHaveLength(3);
+    expect(
+      screen.getByRole("slider", { name: "Erros permitidos: barra" }).max
+    ).toBe("100");
     fireEvent.change(wpmSlider, { target: { value: "72" } });
     expect(screen.getByRole("spinbutton", { name: "PPM mínimo: valor" }).value).toBe("72");
 

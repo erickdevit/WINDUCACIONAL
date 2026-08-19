@@ -56,4 +56,27 @@ describe("Dificuldade direcionada de Digitação", () => {
     expect(migration).toContain("student_id IS NULL");
     expect(migration).toContain("turma_id IS NULL");
   });
+
+  it("amplia somente os erros das lições para até 100", () => {
+    const migration = fs.readFileSync(
+      path.resolve(
+        process.cwd(),
+        "server/db/migrations/0009_typing_lesson_error_limit.sql"
+      ),
+      "utf8"
+    );
+    const server = fs.readFileSync(
+      path.resolve(process.cwd(), "server/index.cjs"),
+      "utf8"
+    );
+
+    expect(migration).toContain("max_errors BETWEEN 3 AND 100");
+    expect(migration).not.toContain("max_lives");
+    expect(server).toContain(
+      "clampInteger(payload.maxErrors, current.maxErrors, 3, 100)"
+    );
+    expect(server).toContain(
+      "clampInteger(payload.maxLives, current.maxLives, 3, 10)"
+    );
+  });
 });

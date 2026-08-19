@@ -92,7 +92,7 @@ export const normalizeTypingSettings = (studentType, settings = {}) => {
       settings.maxErrors,
       defaults.maxErrors,
       3,
-      10
+      100
     ),
     updatedAt: settings.updatedAt || defaults.updatedAt,
   };

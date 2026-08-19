@@ -42,7 +42,7 @@ const SETTING_FIELDS = {
       label: "Erros permitidos",
       description: "Quantidade de erros permitidos durante a lição.",
       min: 3,
-      max: 10,
+      max: 100,
     },
   ],
   game: [

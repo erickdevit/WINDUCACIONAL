@@ -110,13 +110,13 @@ describe("Configurações de digitação", () => {
       normalizeTypingSettings("normal", {
         passMinWpm: 999,
         passMinAccuracy: 10,
-        maxErrors: 99,
+        maxErrors: 999,
       })
     ).toMatchObject({
       studentType: "normal",
       passMinWpm: 120,
       passMinAccuracy: 50,
-      maxErrors: 10,
+      maxErrors: 100,
     });
   });
 
