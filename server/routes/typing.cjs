@@ -30,6 +30,12 @@ module.exports = function injectTypingRoutes(ctx) {
     writeTypingSettingsEvent,
   } = ctx;
 
+  if (typeof isUuid !== "function") {
+    throw new TypeError(
+      "O contexto das rotas de Digitação deve fornecer o validador isUuid."
+    );
+  }
+
   app.get(
     "/api/typing/settings/events",
     requireAuth,

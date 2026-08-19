@@ -1868,6 +1868,7 @@ const routeContext = {
   gradePracticalRules,
   hashPassword,
   hashToken,
+  isUuid,
   isRecordInsideSchedule,
   isUsernameAvailable,
   listBookletStudentAccess,
