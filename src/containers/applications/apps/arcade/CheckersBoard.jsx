@@ -214,6 +214,8 @@ export function CheckersBoard({
   const isTopTurn = currentTurn === topPlayerIndex;
   const isBottomTurn = currentTurn === bottomPlayerIndex;
 
+  const isSpectator = myPlayerIndex === -1;
+
   return (
     <div className="checkersGameContainer">
       <div className="gameStatusBar">
@@ -225,7 +227,9 @@ export function CheckersBoard({
         </div>
 
         <div className={`turnAlert ${isMyTurn ? "myTurn" : "oppTurn"}`}>
-          {isMyTurn
+          {isSpectator
+            ? `Vez de ${playerObj?.displayName || playerObj?.username || "jogador"}`
+            : isMyTurn
             ? "Sua vez de jogar!"
             : `Vez de ${playerObj?.displayName || "adversário"}`}
           {activeJumpFrom && isMyTurn && " (Salto consecutivo!)"}
@@ -236,7 +240,7 @@ export function CheckersBoard({
             Capturas: Vermelhas {capturedCount?.[0] || 0} x{" "}
             {capturedCount?.[1] || 0} Brancas
           </span>
-          {status === "PLAYING" && (
+          {status === "PLAYING" && !isSpectator && (
             <button className="resignBtn" onClick={onResign}>
               Desistir
             </button>
@@ -327,8 +331,10 @@ export function CheckersBoard({
             <span className="playerName">
               {bottomPlayer
                 ? bottomPlayer.displayName || bottomPlayer.username
+                : isSpectator
+                ? "Jogador"
                 : "Você"}
-              {myPlayerIndex >= 0 && " (Você)"}
+              {!isSpectator && myPlayerIndex >= 0 && " (Você)"}
             </span>
             <span className="playerColorLabel">
               {bottomPlayerIndex === 0 ? "Vermelhas" : "Brancas"}
@@ -341,7 +347,13 @@ export function CheckersBoard({
           <span
             className={`turnStatusTag ${isBottomTurn ? "active" : "waiting"}`}
           >
-            {isBottomTurn ? "Sua vez!" : "Aguardando"}
+            {isSpectator
+              ? isBottomTurn
+                ? "Vez de jogar"
+                : "Aguardando"
+              : isBottomTurn
+              ? "Sua vez!"
+              : "Aguardando"}
           </span>
         </div>
       </div>

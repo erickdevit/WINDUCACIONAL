@@ -36,17 +36,38 @@ module.exports = function injectArcadeRoutes(ctx) {
     return live;
   };
 
+  const parseJsonField = (field) => {
+    if (!field) return null;
+    if (typeof field === "object") return field;
+    try {
+      return JSON.parse(field);
+    } catch {
+      return null;
+    }
+  };
+
   /**
    * Sanitiza o estado de Uno para um jogador específico, escondendo as cartas de outros jogadores
    */
-  const sanitizeGameStateForUser = (gameState, gameType, userId) => {
-    if (!gameState) return null;
+  const sanitizeGameStateForUser = (rawGameState, gameType, userId) => {
+    const gameState = parseJsonField(rawGameState);
+    if (
+      !gameState ||
+      typeof gameState !== "object" ||
+      Object.keys(gameState).length === 0
+    ) {
+      return null;
+    }
     if (gameType !== "uno") return gameState;
+    if (!Array.isArray(gameState.players)) return null;
 
     // No Uno, cada jogador vê suas cartas e apenas o número de cartas dos outros
     return {
       ...gameState,
-      drawPileCount: gameState.drawPile ? gameState.drawPile.length : 0,
+      drawPileCount:
+        gameState.drawPile && Array.isArray(gameState.drawPile)
+          ? gameState.drawPile.length
+          : 0,
       drawPile: undefined, // Esconde monte de compras para evitar trapaça
       players: gameState.players.map((p) => {
         if (p.userId === userId) {
@@ -341,17 +362,18 @@ module.exports = function injectArcadeRoutes(ctx) {
         [roomId]
       );
 
+      const parsedDbState = parseJsonField(room.gameState);
       const live = getOrCreateLiveRoom(roomId);
       live.gameType = room.gameType;
       if (
         !live.gameState &&
-        room.gameState &&
-        Object.keys(room.gameState).length > 0
+        parsedDbState &&
+        Object.keys(parsedDbState).length > 0
       ) {
-        live.gameState = room.gameState;
+        live.gameState = parsedDbState;
       }
 
-      const currentGameState = live.gameState || room.gameState;
+      const currentGameState = live.gameState || parsedDbState;
       const sanitizedState = sanitizeGameStateForUser(
         currentGameState,
         room.gameType,
@@ -386,9 +408,6 @@ module.exports = function injectArcadeRoutes(ctx) {
         }
 
         const room = roomRes.rows[0];
-        if (room.status !== "WAITING") {
-          throw httpError(400, "A sala já começou ou já foi encerrada.");
-        }
 
         const userTurmaId = req.user.turma_id || req.user.turmaId;
         if (
@@ -399,29 +418,60 @@ module.exports = function injectArcadeRoutes(ctx) {
           throw httpError(403, "Você não tem acesso a esta turma.");
         }
 
-        // Verifica se já está na sala
+        // Verifica se já está na sala como jogador
         const existing = await pool.query(
           `SELECT id FROM arcade_room_players WHERE room_id = $1 AND user_id = $2`,
           [roomId, req.user.id]
         );
 
-        if (existing.rows.length === 0) {
-          const countRes = await pool.query(
-            `SELECT COUNT(*)::int AS count FROM arcade_room_players WHERE room_id = $1`,
+        if (existing.rows.length > 0) {
+          const allPlayersRes = await pool.query(
+            `SELECT p.user_id AS "userId", p.seat_index AS "seatIndex", p.is_ready AS "isReady", u.display_name AS "displayName", u.username
+           FROM arcade_room_players p
+           JOIN users u ON p.user_id = u.id
+           WHERE p.room_id = $1
+           ORDER BY p.seat_index ASC`,
             [roomId]
           );
-
-          if (countRes.rows[0].count >= room.max_players) {
-            throw httpError(400, "A sala já está lotada.");
-          }
-
-          const nextSeat = countRes.rows[0].count;
-          await pool.query(
-            `INSERT INTO arcade_room_players (room_id, user_id, seat_index, is_ready)
-           VALUES ($1, $2, $3, FALSE)`,
-            [roomId, req.user.id, nextSeat]
-          );
+          return res.json({
+            success: true,
+            players: allPlayersRes.rows,
+            isSpectator: false,
+          });
         }
+
+        // Se não é jogador da sala e a partida já começou ou foi encerrada, aceita como espectador
+        if (room.status !== "WAITING") {
+          const allPlayersRes = await pool.query(
+            `SELECT p.user_id AS "userId", p.seat_index AS "seatIndex", p.is_ready AS "isReady", u.display_name AS "displayName", u.username
+           FROM arcade_room_players p
+           JOIN users u ON p.user_id = u.id
+           WHERE p.room_id = $1
+           ORDER BY p.seat_index ASC`,
+            [roomId]
+          );
+          return res.json({
+            success: true,
+            players: allPlayersRes.rows,
+            isSpectator: true,
+          });
+        }
+
+        const countRes = await pool.query(
+          `SELECT COUNT(*)::int AS count FROM arcade_room_players WHERE room_id = $1`,
+          [roomId]
+        );
+
+        if (countRes.rows[0].count >= room.max_players) {
+          throw httpError(400, "A sala já está lotada.");
+        }
+
+        const nextSeat = countRes.rows[0].count;
+        await pool.query(
+          `INSERT INTO arcade_room_players (room_id, user_id, seat_index, is_ready)
+         VALUES ($1, $2, $3, FALSE)`,
+          [roomId, req.user.id, nextSeat]
+        );
 
         const allPlayersRes = await pool.query(
           `SELECT p.user_id AS "userId", p.seat_index AS "seatIndex", p.is_ready AS "isReady", u.display_name AS "displayName", u.username
@@ -439,7 +489,11 @@ module.exports = function injectArcadeRoutes(ctx) {
           } entrou na sala.`,
         });
 
-        res.json({ success: true, players: allPlayersRes.rows });
+        res.json({
+          success: true,
+          players: allPlayersRes.rows,
+          isSpectator: false,
+        });
       } catch (err) {
         next(err);
       }
@@ -539,10 +593,17 @@ module.exports = function injectArcadeRoutes(ctx) {
         }
 
         let initialGameState = null;
-        if (room.game_type === "checkers") {
-          initialGameState = checkers.initCheckersGame(players);
-        } else if (room.game_type === "uno") {
-          initialGameState = uno.initUnoGame(players);
+        try {
+          if (room.game_type === "checkers") {
+            initialGameState = checkers.initCheckersGame(players);
+          } else if (room.game_type === "uno") {
+            initialGameState = uno.initUnoGame(players);
+          }
+        } catch (domainErr) {
+          throw httpError(
+            400,
+            domainErr.message || "Não foi possível iniciar a partida."
+          );
         }
 
         await pool.query(
@@ -607,60 +668,79 @@ module.exports = function injectArcadeRoutes(ctx) {
 
         const live = getOrCreateLiveRoom(roomId);
         live.gameType = room.game_type;
+        if (!live.gameState && room.game_state) {
+          live.gameState = parseJsonField(room.game_state);
+        }
+
         if (!live.gameState) {
-          live.gameState = room.game_state;
+          throw httpError(400, "O estado da partida não foi encontrado.");
+        }
+
+        // Valida se o usuário é participante ativo da partida
+        const isParticipant = (live.gameState?.players || []).some(
+          (p) => p.userId === req.user.id
+        );
+        if (!isParticipant) {
+          throw httpError(
+            403,
+            "Apenas os jogadores participantes podem realizar jogadas na partida."
+          );
         }
 
         let updatedState = live.gameState;
         let notificationMsg = "";
 
-        if (room.game_type === "checkers") {
-          if (action.type === "MOVE") {
-            updatedState = checkers.applyCheckersMove(
-              updatedState,
-              action.move,
-              req.user.id
-            );
-          } else if (action.type === "RESIGN") {
-            // Desistência
-            const opponent = updatedState.players.find(
-              (p) => p.userId !== req.user.id
-            );
-            updatedState.winner = opponent?.userId;
-            updatedState.status = "FINISHED";
-            notificationMsg = `${
-              req.user.displayName || req.user.username
-            } desistiu da partida.`;
-          } else {
-            throw httpError(400, "Tipo de ação inválido para Damas.");
+        try {
+          if (room.game_type === "checkers") {
+            if (action.type === "MOVE") {
+              updatedState = checkers.applyCheckersMove(
+                updatedState,
+                action.move,
+                req.user.id
+              );
+            } else if (action.type === "RESIGN") {
+              // Desistência
+              const opponent = updatedState.players.find(
+                (p) => p.userId !== req.user.id
+              );
+              updatedState.winner = opponent?.userId;
+              updatedState.status = "FINISHED";
+              notificationMsg = `${
+                req.user.displayName || req.user.username
+              } desistiu da partida.`;
+            } else {
+              throw httpError(400, "Tipo de ação inválido para Damas.");
+            }
+          } else if (room.game_type === "uno") {
+            if (action.type === "PLAY_CARD") {
+              updatedState = uno.playUnoCard(
+                updatedState,
+                req.user.id,
+                action.cardId,
+                action.chosenColor
+              );
+            } else if (action.type === "DRAW_CARD") {
+              updatedState = uno.drawUnoCard(updatedState, req.user.id);
+            } else if (action.type === "PASS") {
+              updatedState = uno.passUnoTurn(updatedState, req.user.id);
+            } else if (action.type === "CALL_UNO") {
+              updatedState = uno.callUno(updatedState, req.user.id);
+              notificationMsg = `📢 ${
+                req.user.displayName || req.user.username
+              } gritou UNO!`;
+            } else if (action.type === "CATCH_UNO") {
+              const catchRes = uno.catchUno(
+                updatedState,
+                req.user.id,
+                action.targetUserId
+              );
+              notificationMsg = catchRes.message;
+            } else {
+              throw httpError(400, "Tipo de ação inválido para Uno.");
+            }
           }
-        } else if (room.game_type === "uno") {
-          if (action.type === "PLAY_CARD") {
-            updatedState = uno.playUnoCard(
-              updatedState,
-              req.user.id,
-              action.cardId,
-              action.chosenColor
-            );
-          } else if (action.type === "DRAW_CARD") {
-            updatedState = uno.drawUnoCard(updatedState, req.user.id);
-          } else if (action.type === "PASS") {
-            updatedState = uno.passUnoTurn(updatedState, req.user.id);
-          } else if (action.type === "CALL_UNO") {
-            updatedState = uno.callUno(updatedState, req.user.id);
-            notificationMsg = `📢 ${
-              req.user.displayName || req.user.username
-            } gritou UNO!`;
-          } else if (action.type === "CATCH_UNO") {
-            const catchRes = uno.catchUno(
-              updatedState,
-              req.user.id,
-              action.targetUserId
-            );
-            notificationMsg = catchRes.message;
-          } else {
-            throw httpError(400, "Tipo de ação inválido para Uno.");
-          }
+        } catch (domainErr) {
+          throw httpError(400, domainErr.message || "Ação inválida.");
         }
 
         live.gameState = updatedState;
@@ -906,13 +986,21 @@ module.exports = function injectArcadeRoutes(ctx) {
           userId: req.user.id,
         };
 
+        const parsedDbState = parseJsonField(room.game_state);
         const live = getOrCreateLiveRoom(roomId);
         live.gameType = room.game_type;
+        if (
+          !live.gameState &&
+          parsedDbState &&
+          Object.keys(parsedDbState).length > 0
+        ) {
+          live.gameState = parsedDbState;
+        }
         live.clients.add(clientEntry);
 
         // Envia estado inicial sincronizado
         const initialSanitized = sanitizeGameStateForUser(
-          live.gameState || room.game_state,
+          live.gameState || parsedDbState,
           room.game_type,
           req.user.id
         );

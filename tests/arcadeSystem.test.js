@@ -71,6 +71,18 @@ describe("Arcade - Backend, Rotas e Streaming SSE", () => {
     );
     expect(indexServerCode).toContain("req.user.turmaId = req.user.turma_id");
   });
+
+  it("protege contra erro interno ao sanitizar game_state vazio ou não inicializado", () => {
+    expect(arcadeRoutesCode).toContain("parseJsonField");
+    expect(arcadeRoutesCode).toContain("!Array.isArray(gameState.players)");
+  });
+
+  it("suporta modo espectador permitindo acompanhar partidas em andamento e bloqueando jogadas de não participantes", () => {
+    expect(arcadeRoutesCode).toContain("isSpectator: true");
+    expect(arcadeRoutesCode).toContain(
+      "Apenas os jogadores participantes podem realizar jogadas na partida."
+    );
+  });
 });
 
 describe("Arcade - Integração com Simulador e Área de Trabalho", () => {
@@ -140,5 +152,16 @@ describe("Arcade - Componentes Frontend e Experiência do Usuário", () => {
     expect(scssCode).toContain(".checkersBoard");
     expect(scssCode).toContain(".unoCard");
     expect(scssCode).toContain(".arcadeGameOverModal");
+  });
+
+  it("oferece suporte a modo espectador com identificação visual e barra superior para voltar ao saguão", () => {
+    expect(appComponentCode).toContain("arcadeActiveGameWrapper");
+    expect(appComponentCode).toContain("activeGameTopBar");
+    expect(appComponentCode).toContain("👁️ Modo Espectador");
+    expect(appComponentCode).toContain("Voltar ao Saguão");
+    expect(checkersComponentCode).toContain("isSpectator");
+    expect(unoComponentCode).toContain("Modo Espectador");
+    expect(scssCode).toContain(".activeGameTopBar");
+    expect(scssCode).toContain(".spectatorBadge");
   });
 });

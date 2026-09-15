@@ -192,14 +192,18 @@ export function UnoTable({
       <div className="unoPlayerHandArea">
         <div className="handActionBar">
           <span className="turnStatusText">
-            {isMyTurn
+            {!me
+              ? `👁️ Modo Espectador: Acompanhando partida (Vez de ${
+                  currentPlayer?.displayName || "..."
+                })`
+              : isMyTurn
               ? "🎮 Sua vez de jogar!"
               : `Vez de ${currentPlayer?.displayName || "..."}`}
           </span>
 
           <div className="handButtons">
             {/* Botão de Gritar UNO */}
-            {myHand.length <= 2 && (
+            {me && myHand.length <= 2 && myHand.length > 0 && (
               <button className="unoShoutBtn" onClick={onCallUno}>
                 📢 GRITAR UNO!
               </button>
@@ -216,8 +220,13 @@ export function UnoTable({
 
         {/* Fileira de Cartas do Jogador */}
         <div className="handCardsRow">
-          {myHand.map((card) => {
-            const playable = isCardPlayable(card);
+          {!me ? (
+            <div className="text-center text-xs text-slate-400 py-3 w-full">
+              👁️ Você está acompanhando a partida como espectador.
+            </div>
+          ) : (
+            myHand.map((card) => {
+              const playable = isCardPlayable(card);
             return (
               <div
                 key={card.id}
@@ -239,7 +248,8 @@ export function UnoTable({
                 </span>
               </div>
             );
-          })}
+          })
+          )}
         </div>
       </div>
 

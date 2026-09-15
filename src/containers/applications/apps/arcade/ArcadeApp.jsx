@@ -223,11 +223,13 @@ function ArcadeView({ visible }) {
     }
   };
 
-  // Entrar em uma sala
-  const handleEnterRoom = async (roomId) => {
+  // Entrar em uma sala ou acompanhar partida
+  const handleEnterRoom = async (roomId, isSpectator = false) => {
     setErrorMsg("");
     try {
-      await api.joinArcadeRoom(roomId);
+      if (!isSpectator) {
+        await api.joinArcadeRoom(roomId);
+      }
       const data = await api.getArcadeRoom(roomId);
       setActiveRoom({
         ...data.room,
@@ -235,7 +237,20 @@ function ArcadeView({ visible }) {
         gameState: data.gameState,
       });
     } catch (err) {
-      setErrorMsg(err.message || "Não foi possível entrar na sala.");
+      // Se falhou ao tentar entrar como jogador (ex.: partida já começou ou lotou),
+      // tenta carregar os dados para acompanhar diretamente como espectador
+      try {
+        const data = await api.getArcadeRoom(roomId);
+        setActiveRoom({
+          ...data.room,
+          players: data.players,
+          gameState: data.gameState,
+        });
+      } catch (getErr) {
+        setErrorMsg(
+          getErr.message || err.message || "Não foi possível entrar na sala."
+        );
+      }
     }
   };
 
@@ -243,7 +258,9 @@ function ArcadeView({ visible }) {
   const handleLeaveRoom = async () => {
     if (!activeRoom) return;
     try {
-      await api.leaveArcadeRoom(activeRoom.id);
+      if (myPlayerObj) {
+        await api.leaveArcadeRoom(activeRoom.id);
+      }
     } catch (err) {
       console.error("Erro ao sair da sala:", err);
     } finally {
@@ -560,7 +577,9 @@ function ArcadeView({ visible }) {
 
                     <button
                       className="enterRoomBtn"
-                      onClick={() => handleEnterRoom(room.id)}
+                      onClick={() =>
+                        handleEnterRoom(room.id, room.status !== "WAITING")
+                      }
                     >
                       {room.status === "WAITING"
                         ? "Entrar na Sala"
@@ -690,7 +709,25 @@ function ArcadeView({ visible }) {
           activeRoom &&
           (activeRoom.status === "PLAYING" ||
             activeRoom.status === "FINISHED") && (
-            <div>
+            <div className="arcadeActiveGameWrapper">
+              <div className="activeGameTopBar">
+                <div className="activeGameInfo">
+                  <span className="roomTitle">{activeRoom.title}</span>
+                  <span className={`gameBadge ${activeRoom.gameType}`}>
+                    {activeRoom.gameType === "checkers" ? "Damas" : "Uno"}
+                  </span>
+                  {!myPlayerObj && (
+                    <span className="spectatorBadge">
+                      👁️ Modo Espectador
+                    </span>
+                  )}
+                </div>
+
+                <button className="leaveBtn" onClick={handleLeaveRoom}>
+                  {myPlayerObj ? "Sair da Partida" : "Voltar ao Saguão"}
+                </button>
+              </div>
+
               {activeRoom.gameType === "checkers" && (
                 <CheckersBoard
                   gameState={activeRoom.gameState}
