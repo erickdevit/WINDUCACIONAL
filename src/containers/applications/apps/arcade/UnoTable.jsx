@@ -29,6 +29,7 @@ const COLOR_NAMES_PT = {
 export function UnoTable({
   gameState,
   currentUserId,
+  currentUsername,
   onPlayCard,
   onDrawCard,
   onPassTurn,
@@ -54,10 +55,20 @@ export function UnoTable({
   } = gameState;
 
   const currentPlayer = players[currentTurn];
-  const isMyTurn = currentPlayer?.userId === currentUserId;
-  const me = players.find((p) => p.userId === currentUserId);
+  const isMyTurn =
+    (currentUserId && currentPlayer?.userId === currentUserId) ||
+    (currentUsername && currentPlayer?.username === currentUsername);
+  const me = players.find(
+    (p) =>
+      (currentUserId && p.userId === currentUserId) ||
+      (currentUsername && p.username === currentUsername)
+  );
   const myHand = me?.hand || [];
-  const opponents = players.filter((p) => p.userId !== currentUserId);
+  const opponents = players.filter(
+    (p) =>
+      (!currentUserId || p.userId !== currentUserId) &&
+      (!currentUsername || p.username !== currentUsername)
+  );
 
   const isCardPlayable = (card) => {
     if (!isMyTurn || status !== "PLAYING") return false;

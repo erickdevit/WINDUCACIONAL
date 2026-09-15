@@ -1,6 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-export function CheckersBoard({ gameState, currentUserId, onMove, onResign }) {
+export function CheckersBoard({
+  gameState,
+  currentUserId,
+  currentUsername,
+  onMove,
+  onResign,
+}) {
   const [selectedPos, setSelectedPos] = useState(null);
 
   if (!gameState || !gameState.board) {
@@ -10,7 +16,7 @@ export function CheckersBoard({ gameState, currentUserId, onMove, onResign }) {
   const {
     board,
     currentTurn,
-    players,
+    players = [],
     activeJumpFrom,
     capturedCount,
     winner,
@@ -18,10 +24,29 @@ export function CheckersBoard({ gameState, currentUserId, onMove, onResign }) {
   } = gameState;
 
   const playerObj = players[currentTurn];
-  const isMyTurn = playerObj?.userId === currentUserId;
-  const myPlayerIndex = players.findIndex((p) => p.userId === currentUserId);
+  const isMyTurn =
+    (currentUserId && playerObj?.userId === currentUserId) ||
+    (currentUsername && playerObj?.username === currentUsername);
 
-  // Calcula movimentos válidos para a peça selecionada
+  const myPlayerIndex = players.findIndex(
+    (p) =>
+      (currentUserId && p.userId === currentUserId) ||
+      (currentUsername && p.username === currentUsername)
+  );
+
+  // Se o usuário autenticado for o Jogador 1 (Brancas), rotaciona o tabuleiro 180°
+  // para que as suas próprias peças sempre iniciem na base (embaixo) e se movam para cima.
+  // Para o Jogador 0 (Vermelhas) ou espectador/professor, a orientação padrão já inicia embaixo.
+  const isFlipped = myPlayerIndex === 1;
+
+  // Seleção automática ao haver salto obrigatório contínuo
+  useEffect(() => {
+    if (activeJumpFrom && isMyTurn) {
+      setSelectedPos(activeJumpFrom);
+    }
+  }, [activeJumpFrom, isMyTurn]);
+
+  // Calcula movimentos válidos para a peça selecionada em coordenadas canônicas
   // Em damas brasileiras: peças simples movem para frente; capturas podem ser para frente e para trás
   const getMovesForSquare = (r, c) => {
     const piece = board[r]?.[c];
@@ -162,7 +187,7 @@ export function CheckersBoard({ gameState, currentUserId, onMove, onResign }) {
     }
 
     // Se clicar em uma peça sua
-    const piece = board[r][c];
+    const piece = board[r]?.[c];
     if (piece && piece.player === myPlayerIndex) {
       // Se houver salto contínuo obrigatório, só permite selecionar aquela peça
       if (
@@ -177,8 +202,17 @@ export function CheckersBoard({ gameState, currentUserId, onMove, onResign }) {
     }
   };
 
-  const player0 = players[0];
-  const player1 = players[1];
+  const topPlayerIndex = isFlipped ? 0 : 1;
+  const bottomPlayerIndex = isFlipped ? 1 : 0;
+
+  const topPlayer = players[topPlayerIndex];
+  const bottomPlayer = players[bottomPlayerIndex];
+
+  const topCaptured = capturedCount?.[topPlayerIndex] || 0;
+  const bottomCaptured = capturedCount?.[bottomPlayerIndex] || 0;
+
+  const isTopTurn = currentTurn === topPlayerIndex;
+  const isBottomTurn = currentTurn === bottomPlayerIndex;
 
   return (
     <div className="checkersGameContainer">
@@ -210,23 +244,57 @@ export function CheckersBoard({ gameState, currentUserId, onMove, onResign }) {
         </div>
       </div>
 
-      {/* Tabuleiro 8x8 */}
+      {/* Cartão do Adversário (Topo do Tabuleiro) */}
+      <div
+        className={`checkersPlayerBar oppBar ${isTopTurn ? "activeTurn" : ""}`}
+      >
+        <div className="playerInfoLeft">
+          <div
+            className={`playerPieceIndicator ${
+              topPlayerIndex === 0 ? "red" : "white"
+            }`}
+          />
+          <div className="playerNameGroup">
+            <span className="playerName">
+              {topPlayer
+                ? topPlayer.displayName || topPlayer.username
+                : "Aguardando adversário..."}
+            </span>
+            <span className="playerColorLabel">
+              {topPlayerIndex === 0 ? "Vermelhas" : "Brancas"} (Adversário)
+            </span>
+          </div>
+        </div>
+
+        <div className="playerStatsRight">
+          <span className="capturesPill">Capturadas: {topCaptured}</span>
+          <span className={`turnStatusTag ${isTopTurn ? "active" : "waiting"}`}>
+            {isTopTurn ? "Vez de jogar" : "Aguardando"}
+          </span>
+        </div>
+      </div>
+
+      {/* Tabuleiro 8x8 com orientação dinâmica */}
       <div className="checkersBoard">
-        {board.map((row, r) =>
-          row.map((piece, c) => {
-            const isDark = (r + c) % 2 === 1;
-            const isSelected = selectedPos?.row === r && selectedPos?.col === c;
+        {Array.from({ length: 8 }).map((_, displayR) =>
+          Array.from({ length: 8 }).map((_, displayC) => {
+            const boardR = isFlipped ? 7 - displayR : displayR;
+            const boardC = isFlipped ? 7 - displayC : displayC;
+            const piece = board[boardR]?.[boardC];
+            const isDark = (boardR + boardC) % 2 === 1;
+            const isSelected =
+              selectedPos?.row === boardR && selectedPos?.col === boardC;
             const isValidTarget = validMovesForSelected.some(
-              (m) => m.to.row === r && m.to.col === c
+              (m) => m.to.row === boardR && m.to.col === boardC
             );
 
             return (
               <div
-                key={`${r}-${c}`}
+                key={`${displayR}-${displayC}`}
                 className={`checkersSquare ${isDark ? "dark" : "light"} ${
                   isValidTarget ? "validMoveTarget" : ""
                 }`}
-                onClick={() => handleSquareClick(r, c)}
+                onClick={() => handleSquareClick(boardR, boardC)}
               >
                 {piece && (
                   <div
@@ -243,14 +311,38 @@ export function CheckersBoard({ gameState, currentUserId, onMove, onResign }) {
         )}
       </div>
 
-      <div className="flex items-center justify-between w-full max-w-[520px] text-xs text-slate-400 px-2">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-red-600 border border-red-400" />
-          <span>{player0?.displayName} (Vermelhas)</span>
+      {/* Cartão do Jogador Atual (Base do Tabuleiro) */}
+      <div
+        className={`checkersPlayerBar myBar ${
+          isBottomTurn ? "activeTurn" : ""
+        }`}
+      >
+        <div className="playerInfoLeft">
+          <div
+            className={`playerPieceIndicator ${
+              bottomPlayerIndex === 0 ? "red" : "white"
+            }`}
+          />
+          <div className="playerNameGroup">
+            <span className="playerName">
+              {bottomPlayer
+                ? bottomPlayer.displayName || bottomPlayer.username
+                : "Você"}
+              {myPlayerIndex >= 0 && " (Você)"}
+            </span>
+            <span className="playerColorLabel">
+              {bottomPlayerIndex === 0 ? "Vermelhas" : "Brancas"}
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-slate-100 border border-slate-300" />
-          <span>{player1?.displayName} (Brancas)</span>
+
+        <div className="playerStatsRight">
+          <span className="capturesPill">Capturadas: {bottomCaptured}</span>
+          <span
+            className={`turnStatusTag ${isBottomTurn ? "active" : "waiting"}`}
+          >
+            {isBottomTurn ? "Sua vez!" : "Aguardando"}
+          </span>
         </div>
       </div>
     </div>

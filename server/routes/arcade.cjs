@@ -169,9 +169,10 @@ module.exports = function injectArcadeRoutes(ctx) {
       const whereClauses = [];
 
       // Alunos só enxergam salas da própria turma (ou salas gerais sem turma)
+      const userTurmaId = req.user.turma_id || req.user.turmaId;
       if (!isStaff) {
-        if (req.user.turmaId) {
-          params.push(req.user.turmaId);
+        if (userTurmaId) {
+          params.push(userTurmaId);
           whereClauses.push(
             `(r.turma_id = $${params.length} OR r.turma_id IS NULL)`
           );
@@ -233,13 +234,14 @@ module.exports = function injectArcadeRoutes(ctx) {
         parsedMaxPlayers = parseInt(maxPlayers, 10);
         if (
           isNaN(parsedMaxPlayers) ||
-          parsedMaxPlayers < 3 ||
+          parsedMaxPlayers < 2 ||
           parsedMaxPlayers > 100
         ) {
           parsedMaxPlayers = 10;
         }
       }
 
+      const userTurmaId = req.user.turma_id || req.user.turmaId;
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
@@ -249,7 +251,7 @@ module.exports = function injectArcadeRoutes(ctx) {
            VALUES ($1, $2, $3, $4, 'WAITING', $5)
            RETURNING id, turma_id AS "turmaId", host_user_id AS "hostUserId", title, game_type AS "gameType", status, max_players AS "maxPlayers", created_at AS "createdAt"`,
           [
-            req.user.turmaId || null,
+            userTurmaId || null,
             req.user.id,
             trimmedTitle,
             gameType,
@@ -314,10 +316,11 @@ module.exports = function injectArcadeRoutes(ctx) {
       const room = roomRes.rows[0];
 
       // Alunos só podem acessar salas da própria turma
+      const userTurmaId = req.user.turma_id || req.user.turmaId;
       if (
         !["professor", "admin"].includes(req.user.role) &&
         room.turmaId &&
-        room.turmaId !== req.user.turmaId
+        room.turmaId !== userTurmaId
       ) {
         throw httpError(403, "Você não tem acesso a salas de outra turma.");
       }
@@ -387,10 +390,11 @@ module.exports = function injectArcadeRoutes(ctx) {
           throw httpError(400, "A sala já começou ou já foi encerrada.");
         }
 
+        const userTurmaId = req.user.turma_id || req.user.turmaId;
         if (
           !["professor", "admin"].includes(req.user.role) &&
           room.turma_id &&
-          room.turma_id !== req.user.turmaId
+          room.turma_id !== userTurmaId
         ) {
           throw httpError(403, "Você não tem acesso a esta turma.");
         }
@@ -527,10 +531,10 @@ module.exports = function injectArcadeRoutes(ctx) {
           );
         }
 
-        if (room.game_type === "uno" && players.length < 3) {
+        if (room.game_type === "uno" && players.length < 2) {
           throw httpError(
             400,
-            "O jogo de Uno necessita de no mínimo 3 jogadores para iniciar."
+            "O jogo de Uno necessita de no mínimo 2 jogadores para iniciar."
           );
         }
 
@@ -883,10 +887,11 @@ module.exports = function injectArcadeRoutes(ctx) {
         }
 
         const room = roomRes.rows[0];
+        const userTurmaId = req.user.turma_id || req.user.turmaId;
         if (
           !["professor", "admin"].includes(req.user.role) &&
           room.turma_id &&
-          room.turma_id !== req.user.turmaId
+          room.turma_id !== userTurmaId
         ) {
           throw httpError(403, "Você não pertence à turma desta sala.");
         }
@@ -948,7 +953,8 @@ module.exports = function injectArcadeRoutes(ctx) {
 
       // Ranking por Turma
       let turmaRankings = [];
-      const activeTurmaId = turmaId || req.user.turmaId;
+      const activeTurmaId =
+        turmaId || req.user.turma_id || req.user.turmaId;
 
       if (activeTurmaId) {
         const turmaRes = await pool.query(

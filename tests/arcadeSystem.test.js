@@ -61,6 +61,16 @@ describe("Arcade - Backend, Rotas e Streaming SSE", () => {
     expect(arcadeRoutesCode).toContain("turmaRankings");
     expect(arcadeRoutesCode).toContain("globalRankings");
   });
+
+  it("valida vínculo de turma do usuário com suporte a turma_id e turmaId na entrada e início de salas", () => {
+    expect(arcadeRoutesCode).toContain(
+      "userTurmaId = req.user.turma_id || req.user.turmaId"
+    );
+    expect(arcadeRoutesCode).toContain(
+      'room.game_type === "uno" && players.length < 2'
+    );
+    expect(indexServerCode).toContain("req.user.turmaId = req.user.turma_id");
+  });
 });
 
 describe("Arcade - Integração com Simulador e Área de Trabalho", () => {
@@ -102,6 +112,19 @@ describe("Arcade - Componentes Frontend e Experiência do Usuário", () => {
     expect(checkersComponentCode).toContain("checkersPiece");
     expect(checkersComponentCode).toContain("validMovesForSelected");
     expect(checkersComponentCode).toContain("👑");
+  });
+
+  it("implementa perspectiva dinâmica no tabuleiro de Damas mantendo jogador na base e adversário no topo", () => {
+    expect(checkersComponentCode).toContain("isFlipped = myPlayerIndex === 1");
+    expect(checkersComponentCode).toContain(
+      "isFlipped ? 7 - displayR : displayR"
+    );
+    expect(checkersComponentCode).toContain(
+      "isFlipped ? 7 - displayC : displayC"
+    );
+    expect(checkersComponentCode).toContain("checkersPlayerBar oppBar");
+    expect(checkersComponentCode).toContain("checkersPlayerBar myBar");
+    expect(scssCode).toContain(".checkersPlayerBar");
   });
 
   it("renderiza a mesa de Uno com cartas, compra, chamada de UNO e denúncia", () => {

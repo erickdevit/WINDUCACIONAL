@@ -113,8 +113,8 @@ const getNextPlayerIndex = (
  * Inicializa uma partida de Uno para os jogadores fornecidos
  */
 const initUnoGame = (playerList) => {
-  if (!playerList || playerList.length < 3) {
-    throw new Error("O Uno requer no mínimo 3 jogadores.");
+  if (!playerList || playerList.length < 2) {
+    throw new Error("O Uno requer no mínimo 2 jogadores.");
   }
 
   // Escala a quantidade de baralhos de acordo com o tamanho da turma (ex: 30 alunos)

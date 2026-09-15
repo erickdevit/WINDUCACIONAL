@@ -83,10 +83,38 @@ function ArcadeView({ visible }) {
     if (!visible) return;
     if (activeTab === "lobby" && !activeRoom) {
       loadRooms();
+      const interval = setInterval(() => {
+        loadRooms();
+      }, 4000);
+      return () => clearInterval(interval);
     } else if (activeTab === "ranking") {
       loadRankings();
     }
   }, [visible, activeTab, activeRoom, loadRooms, loadRankings]);
+
+  // Sincronização periódica da sala de espera para atualização rápida de participantes
+  useEffect(() => {
+    if (!visible || !activeRoom?.id || activeRoom.status !== "WAITING") return;
+    const interval = setInterval(async () => {
+      try {
+        const data = await api.getArcadeRoom(activeRoom.id);
+        if (data && data.room) {
+          setActiveRoom((prev) => {
+            if (!prev || prev.id !== data.room.id) return prev;
+            return {
+              ...prev,
+              ...data.room,
+              players: data.players || prev.players,
+              gameState: data.gameState || prev.gameState,
+            };
+          });
+        }
+      } catch {
+        // Silencioso em caso de instabilidade pontual
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [visible, activeRoom?.id, activeRoom?.status]);
 
   // Streaming SSE em tempo real (apenas quando a janela está visível e dentro de uma sala)
   useEffect(() => {
@@ -277,15 +305,23 @@ function ArcadeView({ visible }) {
     }
   };
 
-  const isHost = activeRoom?.hostUserId === person.id;
-  const myPlayerObj = activeRoom?.players?.find((p) => p.userId === person.id);
+  const isStaff = person.role === "professor" || person.role === "admin";
+  const isHost =
+    activeRoom?.hostUserId === person.id ||
+    (person.username && activeRoom?.hostUsername === person.username) ||
+    isStaff;
+  const myPlayerObj = activeRoom?.players?.find(
+    (p) =>
+      (person.id && p.userId === person.id) ||
+      (person.username && p.username === person.username)
+  );
 
   // Validação de início de partida
   const canStartMatch =
     isHost &&
     (activeRoom?.gameType === "checkers"
       ? activeRoom.players?.length === 2
-      : activeRoom?.players?.length >= 3);
+      : activeRoom?.players?.length >= 2);
 
   return (
     <div className="arcadeContainer">
@@ -640,10 +676,10 @@ function ArcadeView({ visible }) {
                 )}
 
               {activeRoom.gameType === "uno" &&
-                activeRoom.players?.length < 3 && (
+                activeRoom.players?.length < 2 && (
                   <div className="text-center text-xs text-amber-300">
-                    O Uno requer no mínimo 3 jogadores para iniciar. Convide
-                    mais colegas!
+                    Aguardando pelo menos mais 1 jogador para liberar o início
+                    do Uno. Convide seus colegas de turma!
                   </div>
                 )}
             </div>
@@ -659,6 +695,7 @@ function ArcadeView({ visible }) {
                 <CheckersBoard
                   gameState={activeRoom.gameState}
                   currentUserId={person.id}
+                  currentUsername={person.username}
                   onMove={(move) => handleGameAction({ type: "MOVE", move })}
                   onResign={() => handleGameAction({ type: "RESIGN" })}
                 />
@@ -668,6 +705,7 @@ function ArcadeView({ visible }) {
                 <UnoTable
                   gameState={activeRoom.gameState}
                   currentUserId={person.id}
+                  currentUsername={person.username}
                   onPlayCard={(cardId, chosenColor) =>
                     handleGameAction({ type: "PLAY_CARD", cardId, chosenColor })
                   }
@@ -751,7 +789,7 @@ function ArcadeView({ visible }) {
                     onClick={() => setNewRoomGameType("uno")}
                   >
                     <strong>Uno</strong>
-                    <small>Min. 3 até a turma toda</small>
+                    <small>A partir de 2 até a turma toda</small>
                   </div>
                 </div>
               </div>
@@ -765,6 +803,7 @@ function ArcadeView({ visible }) {
                       setNewRoomMaxPlayers(parseInt(e.target.value, 10))
                     }
                   >
+                    <option value={2}>2 jogadores (Duelo)</option>
                     <option value={4}>4 jogadores</option>
                     <option value={8}>8 jogadores</option>
                     <option value={15}>15 jogadores</option>

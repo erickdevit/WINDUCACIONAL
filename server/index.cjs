@@ -1071,6 +1071,7 @@ const requireAuth = async (req, res, next) => {
   }
 
   req.user = result.rows[0];
+  req.user.turmaId = req.user.turma_id;
   return next();
 };
 

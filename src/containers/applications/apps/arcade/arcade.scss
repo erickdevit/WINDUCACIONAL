@@ -832,6 +832,96 @@
   }
 }
 
+/* Barras de Jogador (Adversário no Topo e Jogador Atual na Base) */
+.checkersPlayerBar {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(30, 41, 59, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+  transition: all 0.2s ease;
+
+  &.activeTurn {
+    border-color: rgba(59, 130, 246, 0.4);
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
+  }
+
+  .playerInfoLeft {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .playerPieceIndicator {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      flex-shrink: 0;
+
+      &.red {
+        background: radial-gradient(circle at 35% 35%, #ef4444, #991b1b);
+      }
+      &.white {
+        background: radial-gradient(circle at 35% 35%, #ffffff, #94a3b8);
+      }
+    }
+
+    .playerNameGroup {
+      display: flex;
+      flex-direction: column;
+
+      .playerName {
+        font-size: 13px;
+        font-weight: 700;
+        color: #f1f5f9;
+        line-height: 1.2;
+      }
+
+      .playerColorLabel {
+        font-size: 11px;
+        color: #94a3b8;
+        line-height: 1.2;
+      }
+    }
+  }
+
+  .playerStatsRight {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .capturesPill {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(15, 23, 42, 0.6);
+      color: #cbd5e1;
+    }
+
+    .turnStatusTag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 6px;
+
+      &.active {
+        background: rgba(16, 185, 129, 0.2);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+
+      &.waiting {
+        color: #64748b;
+      }
+    }
+  }
+}
+
 /* Tabuleiro 8x8 de Damas */
 .checkersBoard {
   display: grid;

@@ -85,6 +85,34 @@ describe("Arcade - Damas (Checkers)", () => {
     expect(game.board[0][1]).toEqual({ player: 0, isKing: true }); // Virou Dama!
     expect(game.capturedCount[0]).toBe(1);
   });
+
+  it("garante que a rotação de perspectiva para o jogador 1 preserva a paridade das casas escuras e posiciona peças na base", () => {
+    const board = checkers.createInitialCheckersBoard();
+
+    // Testa todas as 64 casas
+    for (let displayR = 0; displayR < 8; displayR++) {
+      for (let displayC = 0; displayC < 8; displayC++) {
+        // Mapeamento de rotação de 180°
+        const boardR = 7 - displayR;
+        const boardC = 7 - displayC;
+
+        const displayIsDark = (displayR + displayC) % 2 === 1;
+        const boardIsDark = (boardR + boardC) % 2 === 1;
+
+        // Paridade matemática exata: sem distorção ou espelhamento lateral incorreto
+        expect(displayIsDark).toBe(boardIsDark);
+
+        const piece = board[boardR][boardC];
+        if (displayR >= 5 && displayIsDark) {
+          // As 3 linhas inferiores da tela (displayR = 5, 6, 7) contêm as peças brancas do Jogador 1
+          expect(piece).toEqual({ player: 1, isKing: false });
+        } else if (displayR <= 2 && displayIsDark) {
+          // As 3 linhas superiores da tela (displayR = 0, 1, 2) contêm as peças vermelhas do Jogador 0
+          expect(piece).toEqual({ player: 0, isKing: false });
+        }
+      }
+    }
+  });
 });
 
 describe("Arcade - Uno Multiplayer", () => {
@@ -107,12 +135,21 @@ describe("Arcade - Uno Multiplayer", () => {
     expect(game.status).toBe("PLAYING");
   });
 
-  it("não permite iniciar partida de Uno com menos de 3 jogadores", () => {
+  it("permite iniciar partida de Uno com 2 jogadores", () => {
     const players = [
       { userId: "u1", username: "ana", displayName: "Ana" },
       { userId: "u2", username: "bruno", displayName: "Bruno" },
     ];
-    expect(() => uno.initUnoGame(players)).toThrow("mínimo 3 jogadores");
+    const game = uno.initUnoGame(players);
+    expect(game.players.length).toBe(2);
+    expect(game.players[0].hand.length).toBe(7);
+    expect(game.players[1].hand.length).toBe(7);
+    expect(game.status).toBe("PLAYING");
+  });
+
+  it("não permite iniciar partida de Uno com menos de 2 jogadores", () => {
+    const players = [{ userId: "u1", username: "ana", displayName: "Ana" }];
+    expect(() => uno.initUnoGame(players)).toThrow("mínimo 2 jogadores");
   });
 
   it("aplica jogada de carta comum e avança o turno", () => {
