@@ -1,0 +1,1476 @@
+/* Estilos do App Arcade - WINDUCACIONAL */
+
+.arcadeAppWindow {
+  .windowScreen,
+  .restWindow {
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+}
+
+.arcadeContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: radial-gradient(
+    circle at 50% 0%,
+    #1e1b4b 0%,
+    #0f172a 60%,
+    #020617 100%
+  );
+  color: #f8fafc;
+  font-family: inherit;
+  user-select: none;
+  overflow: hidden;
+}
+
+/* Barra Superior / Header do Arcade */
+.arcadeHeader {
+  height: 58px;
+  flex: 0 0 58px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(15, 23, 42, 0.85);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  backdrop-filter: blur(12px);
+  z-index: 10;
+}
+
+.arcadeBrand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .arcadeLogoIcon {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+    box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35);
+
+    img {
+      width: 26px;
+      height: 26px;
+    }
+  }
+
+  .arcadeBrandTitles {
+    display: flex;
+    flex-direction: column;
+
+    h2 {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      background: linear-gradient(90deg, #38bdf8, #818cf8, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
+    }
+
+    span {
+      font-size: 10px;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+  }
+}
+
+.arcadeNavTabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(30, 41, 59, 0.7);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  button {
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    &:hover {
+      color: #f1f5f9;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    &.active {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    }
+  }
+}
+
+.arcadeHeaderUser {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .arcadeUserBadge {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+
+    strong {
+      font-size: 12px;
+      color: #e2e8f0;
+    }
+
+    small {
+      font-size: 10px;
+      color: #38bdf8;
+      font-weight: 600;
+    }
+  }
+
+  .arcadeAvatarCircle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 12px;
+    color: #fff;
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* Área de Conteúdo com Rolagem Suave */
+.arcadeMainContent {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px;
+  position: relative;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.6);
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 4px;
+    &:hover {
+      background: #475569;
+    }
+  }
+}
+
+/* Lobby de Salas */
+.arcadeLobbyView {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.arcadeLobbyBanner {
+  background: linear-gradient(
+    135deg,
+    rgba(79, 70, 229, 0.25) 0%,
+    rgba(219, 39, 119, 0.15) 100%
+  );
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+
+  .bannerInfo {
+    h3 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      margin: 0 0 6px 0;
+    }
+    p {
+      font-size: 13px;
+      color: #cbd5e1;
+      margin: 0;
+      max-width: 600px;
+    }
+  }
+
+  .bannerActionBtn {
+    padding: 12px 22px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #ec4899, #8b5cf6);
+    color: white;
+    font-weight: 800;
+    font-size: 13px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(236, 72, 153, 0.4);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(236, 72, 153, 0.55);
+      filter: brightness(1.1);
+    }
+  }
+}
+
+.arcadeFilterRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  .gameTypeFilters {
+    display: flex;
+    gap: 8px;
+
+    button {
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(30, 41, 59, 0.6);
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.18s ease;
+
+      &:hover {
+        background: rgba(51, 65, 85, 0.8);
+        color: #f1f5f9;
+      }
+
+      &.active {
+        background: #3b82f6;
+        color: #fff;
+        border-color: #60a5fa;
+      }
+    }
+  }
+
+  .refreshBtn {
+    padding: 7px 14px;
+    border-radius: 8px;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    &:hover {
+      color: #fff;
+      background: rgba(51, 65, 85, 0.8);
+    }
+  }
+}
+
+/* Grid de Salas */
+.arcadeRoomsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 18px;
+}
+
+.arcadeRoomCard {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: rgba(148, 163, 184, 0.25);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  .cardTop {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+
+    .gameBadge {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+
+      &.checkers {
+        background: rgba(239, 68, 68, 0.2);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.35);
+      }
+
+      &.uno {
+        background: rgba(234, 179, 8, 0.2);
+        color: #facc15;
+        border: 1px solid rgba(234, 179, 8, 0.35);
+      }
+    }
+
+    .statusPill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+
+      &.waiting {
+        color: #34d399;
+        background: rgba(16, 185, 129, 0.15);
+      }
+      &.playing {
+        color: #fbbf24;
+        background: rgba(245, 158, 11, 0.15);
+      }
+      &.finished {
+        color: #94a3b8;
+        background: rgba(148, 163, 184, 0.15);
+      }
+    }
+  }
+
+  .cardBody {
+    h4 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      margin: 0 0 4px 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    p {
+      font-size: 12px;
+      color: #94a3b8;
+      margin: 0;
+    }
+  }
+
+  .cardFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 12px;
+
+    .playerCount {
+      font-size: 12px;
+      color: #cbd5e1;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .enterRoomBtn {
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      transition: all 0.2s;
+
+      &:hover {
+        background: linear-gradient(135deg, #60a5fa, #3b82f6);
+        transform: translateY(-1px);
+      }
+    }
+  }
+}
+
+.arcadeEmptyState {
+  text-align: center;
+  padding: 60px 20px;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+
+  h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #cbd5e1;
+    margin: 12px 0 6px 0;
+  }
+
+  p {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
+  }
+}
+
+/* Modal de Criação de Sala */
+.arcadeModalOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 20px;
+}
+
+.arcadeModalCard {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 440px;
+  padding: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  h3 {
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+    margin: 0;
+  }
+
+  .formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+
+    input,
+    select {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 13px;
+      color: #fff;
+      outline: none;
+
+      &:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+      }
+    }
+  }
+
+  .gameTypeSelector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+
+    .gameChoice {
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 14px 10px;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(15, 23, 42, 0.6);
+      transition: all 0.2s;
+
+      strong {
+        display: block;
+        font-size: 13px;
+        color: #cbd5e1;
+      }
+
+      small {
+        font-size: 10px;
+        color: #64748b;
+      }
+
+      &:hover {
+        border-color: rgba(255, 255, 255, 0.25);
+      }
+
+      &.selected {
+        border-color: #ec4899;
+        background: rgba(236, 72, 153, 0.15);
+
+        strong {
+          color: #f472b6;
+        }
+      }
+    }
+  }
+
+  .modalActions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 8px;
+
+    button {
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+
+      &.cancelBtn {
+        background: rgba(255, 255, 255, 0.08);
+        color: #94a3b8;
+        &:hover {
+          background: rgba(255, 255, 255, 0.14);
+          color: #fff;
+        }
+      }
+
+      &.submitBtn {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        &:hover {
+          filter: brightness(1.1);
+        }
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+}
+
+/* Sala de Espera (Room Lobby) */
+.arcadeWaitingRoom {
+  max-width: 800px;
+  margin: 0 auto;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  backdrop-filter: blur(12px);
+
+  .waitingHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 16px;
+
+    .waitingInfo {
+      h3 {
+        font-size: 20px;
+        font-weight: 800;
+        color: #fff;
+        margin: 0 0 4px 0;
+      }
+
+      span {
+        font-size: 12px;
+        color: #94a3b8;
+      }
+    }
+
+    .leaveBtn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background: rgba(239, 68, 68, 0.25);
+      }
+    }
+  }
+
+  .playersGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+
+    .playerSeatCard {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .playerAvatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #3b82f6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 13px;
+        color: #fff;
+      }
+
+      .playerMeta {
+        flex: 1;
+        strong {
+          display: block;
+          font-size: 13px;
+          color: #f1f5f9;
+        }
+        small {
+          font-size: 11px;
+          color: #94a3b8;
+        }
+      }
+
+      .readyTag {
+        font-size: 10px;
+        font-weight: 800;
+        padding: 3px 6px;
+        border-radius: 4px;
+
+        &.ready {
+          background: rgba(16, 185, 129, 0.2);
+          color: #34d399;
+        }
+        &.waiting {
+          background: rgba(245, 158, 11, 0.2);
+          color: #fbbf24;
+        }
+      }
+    }
+  }
+
+  .waitingFooterActions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 18px;
+
+    .readyToggleBtn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.06);
+      color: #cbd5e1;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &.isReady {
+        background: rgba(16, 185, 129, 0.2);
+        border-color: #10b981;
+        color: #34d399;
+      }
+    }
+
+    .startMatchBtn {
+      padding: 12px 28px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      font-size: 14px;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+      transition: all 0.2s;
+
+      &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+    }
+  }
+}
+
+/* =========================================
+   JOGO DE DAMAS (CHECKERS)
+   ========================================= */
+.checkersGameContainer {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.gameStatusBar {
+  width: 100%;
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  backdrop-filter: blur(8px);
+
+  .playerTurnCard {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .pieceMini {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+
+      &.red {
+        background: radial-gradient(circle at 35% 35%, #ef4444, #991b1b);
+      }
+      &.white {
+        background: radial-gradient(circle at 35% 35%, #ffffff, #94a3b8);
+      }
+    }
+
+    span {
+      font-size: 13px;
+      font-weight: 700;
+      color: #e2e8f0;
+    }
+  }
+
+  .turnAlert {
+    font-size: 13px;
+    font-weight: 800;
+    padding: 6px 14px;
+    border-radius: 8px;
+
+    &.myTurn {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      animation: turnGlow 1.5s infinite alternate ease-in-out;
+    }
+
+    &.oppTurn {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+    }
+  }
+
+  .resignBtn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: transparent;
+    color: #f87171;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(239, 68, 68, 0.15);
+    }
+  }
+}
+
+@keyframes turnGlow {
+  from {
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.3);
+  }
+  to {
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.7);
+  }
+}
+
+/* Tabuleiro 8x8 de Damas */
+.checkersBoard {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  width: min(72vh, 520px);
+  height: min(72vh, 520px);
+  border: 10px solid #1e293b;
+  border-radius: 12px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+  background: #334155;
+}
+
+.checkersSquare {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.15s ease;
+
+  &.light {
+    background: #e2e8f0;
+  }
+
+  &.dark {
+    background: #1e293b;
+  }
+
+  &.validMoveTarget {
+    cursor: pointer;
+    background: #064e3b !important;
+
+    &::after {
+      content: "";
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+      animation: pulseTarget 1s infinite alternate ease-in-out;
+    }
+  }
+}
+
+@keyframes pulseTarget {
+  from {
+    transform: scale(0.85);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+/* Peças de Damas */
+.checkersPiece {
+  width: 78%;
+  height: 78%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.45);
+  transition: all 0.18s ease;
+  position: relative;
+
+  &.redPiece {
+    background: radial-gradient(
+      circle at 35% 35%,
+      #f87171,
+      #dc2626 55%,
+      #7f1d1d
+    );
+    border: 2px solid #ef4444;
+  }
+
+  &.whitePiece {
+    background: radial-gradient(
+      circle at 35% 35%,
+      #ffffff,
+      #cbd5e1 60%,
+      #64748b
+    );
+    border: 2px solid #e2e8f0;
+  }
+
+  &.selected {
+    transform: scale(1.12);
+    box-shadow: 0 0 16px #38bdf8, 0 4px 10px rgba(0, 0, 0, 0.5);
+    border-color: #38bdf8;
+  }
+
+  .crownIcon {
+    font-size: 20px;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
+  }
+}
+
+/* =========================================
+   JOGO DE UNO MULTIPLAYER
+   ========================================= */
+.unoGameContainer {
+  max-width: 1000px;
+  margin: 0 auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* Mesa de Outros Jogadores ao redor */
+.unoOpponentsBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+
+  .opponentCard {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    transition: all 0.2s;
+
+    &.activeTurn {
+      border-color: #fbbf24;
+      box-shadow: 0 0 12px rgba(251, 191, 36, 0.4);
+    }
+
+    .oppMeta {
+      strong {
+        display: block;
+        font-size: 12px;
+        color: #f1f5f9;
+      }
+      small {
+        font-size: 11px;
+        color: #38bdf8;
+      }
+    }
+
+    .oppUnoCall {
+      background: #ef4444;
+      color: white;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      animation: pulseTarget 1s infinite alternate;
+    }
+
+    .catchUnoBtn {
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: #dc2626;
+      color: white;
+      border: none;
+      font-size: 10px;
+      font-weight: 800;
+      cursor: pointer;
+      &:hover {
+        background: #b91c1c;
+      }
+    }
+  }
+}
+
+/* Centro da Mesa de Uno: Monte de Compras e Descarte */
+.unoCenterTable {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+  padding: 20px 0;
+  position: relative;
+
+  .activeColorIndicator {
+    position: absolute;
+    top: 0;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    background: rgba(15, 23, 42, 0.8);
+    border: 2px solid;
+
+    &.red {
+      color: #ef4444;
+      border-color: #ef4444;
+    }
+    &.blue {
+      color: #3b82f6;
+      border-color: #3b82f6;
+    }
+    &.green {
+      color: #10b981;
+      border-color: #10b981;
+    }
+    &.yellow {
+      color: #eab308;
+      border-color: #eab308;
+    }
+  }
+
+  .deckPile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+
+    .deckCardBack {
+      width: 90px;
+      height: 135px;
+      border-radius: 10px;
+      background: radial-gradient(circle, #18181b 40%, #000 100%);
+      border: 3px solid #ffffff;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(56, 189, 248, 0.4);
+      }
+
+      .unoDeckLogo {
+        background: #ef4444;
+        color: #facc15;
+        font-weight: 900;
+        font-size: 20px;
+        transform: rotate(-25deg);
+        padding: 4px 12px;
+        border-radius: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      }
+    }
+
+    span {
+      font-size: 11px;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+  }
+}
+
+/* Cartas de Uno */
+.unoCard {
+  width: 90px;
+  height: 135px;
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  position: relative;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  border: 3px solid #ffffff;
+
+  &.red {
+    background: #ef4444;
+  }
+  &.blue {
+    background: #3b82f6;
+  }
+  &.green {
+    background: #10b981;
+  }
+  &.yellow {
+    background: #eab308;
+  }
+  &.wild {
+    background: radial-gradient(circle at 50% 50%, #18181b 0%, #000000 100%);
+  }
+
+  .cardInnerOval {
+    width: 100%;
+    height: 100%;
+    border-radius: 50% / 40%;
+    background: rgba(255, 255, 255, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(-20deg);
+  }
+
+  .cardCenterValue {
+    font-size: 36px;
+    font-weight: 900;
+    color: #ffffff;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  }
+
+  .cardCornerTop,
+  .cardCornerBottom {
+    position: absolute;
+    font-size: 14px;
+    font-weight: 900;
+    color: #ffffff;
+  }
+
+  .cardCornerTop {
+    top: 6px;
+    left: 8px;
+  }
+
+  .cardCornerBottom {
+    bottom: 6px;
+    right: 8px;
+    transform: rotate(180deg);
+  }
+
+  &.playable {
+    cursor: pointer;
+    &:hover {
+      transform: translateY(-16px) scale(1.08);
+      box-shadow: 0 16px 28px rgba(0, 0, 0, 0.6), 0 0 16px #38bdf8;
+      z-index: 10;
+    }
+  }
+
+  &.notPlayable {
+    opacity: 0.65;
+    filter: grayscale(0.2);
+  }
+}
+
+/* Área de Mão do Jogador Atual */
+.unoPlayerHandArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: rgba(15, 23, 42, 0.8);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 14px 20px;
+  border-radius: 16px;
+
+  .handActionBar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .turnStatusText {
+      font-size: 14px;
+      font-weight: 800;
+      color: #38bdf8;
+    }
+
+    .handButtons {
+      display: flex;
+      gap: 10px;
+
+      .unoShoutBtn {
+        padding: 8px 20px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #ef4444, #b91c1c);
+        color: white;
+        font-weight: 900;
+        font-size: 13px;
+        border: 2px solid #fecaca;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        transition: all 0.2s;
+
+        &:hover {
+          transform: scale(1.05);
+          box-shadow: 0 6px 18px rgba(239, 68, 68, 0.6);
+        }
+      }
+
+      .passBtn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #cbd5e1;
+        font-size: 12px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        &:hover {
+          background: rgba(255, 255, 255, 0.18);
+        }
+      }
+    }
+  }
+
+  .handCardsRow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    width: 100%;
+    padding: 6px;
+  }
+}
+
+/* Seletor de Cores para Coringa */
+.unoColorPickerOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+
+  .colorPickerBox {
+    background: #1e293b;
+    border-radius: 18px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+
+    h4 {
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+      margin: 0;
+    }
+
+    .colorOptionsGrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+
+      button {
+        width: 100px;
+        height: 60px;
+        border-radius: 12px;
+        border: none;
+        font-weight: 800;
+        font-size: 14px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &.red {
+          background: #ef4444;
+        }
+        &.blue {
+          background: #3b82f6;
+        }
+        &.green {
+          background: #10b981;
+        }
+        &.yellow {
+          background: #eab308;
+        }
+
+        &:hover {
+          transform: scale(1.08);
+          filter: brightness(1.15);
+        }
+      }
+    }
+  }
+}
+
+/* Modal de Fim de Jogo / Pódio */
+.arcadeGameOverModal {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 70;
+  padding: 20px;
+
+  .gameOverCard {
+    background: linear-gradient(145deg, #1e293b, #0f172a);
+    border: 2px solid rgba(245, 158, 11, 0.4);
+    border-radius: 20px;
+    padding: 32px;
+    text-align: center;
+    max-width: 460px;
+    width: 100%;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+
+    .trophyIcon {
+      font-size: 48px;
+    }
+
+    h3 {
+      font-size: 22px;
+      font-weight: 900;
+      color: #fef08a;
+      margin: 0;
+    }
+
+    p {
+      font-size: 14px;
+      color: #cbd5e1;
+      margin: 0;
+    }
+
+    .modalActionBtns {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+
+      button {
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 800;
+        font-size: 13px;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+
+        &.rematchBtn {
+          background: linear-gradient(135deg, #3b82f6, #6366f1);
+          color: white;
+          &:hover {
+            filter: brightness(1.1);
+          }
+        }
+
+        &.backToLobbyBtn {
+          background: rgba(255, 255, 255, 0.1);
+          color: #cbd5e1;
+          &:hover {
+            background: rgba(255, 255, 255, 0.18);
+            color: #fff;
+          }
+        }
+      }
+    }
+  }
+}
+
+/* =========================================
+   RANKINGS (HALL DA FAMA)
+   ========================================= */
+.arcadeRankingsView {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  .rankingControlBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    .scopeSelector {
+      display: flex;
+      gap: 6px;
+      background: rgba(30, 41, 59, 0.6);
+      padding: 4px;
+      border-radius: 8px;
+
+      button {
+        padding: 6px 14px;
+        border-radius: 6px;
+        border: none;
+        background: transparent;
+        color: #94a3b8;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+
+        &.active {
+          background: #3b82f6;
+          color: white;
+        }
+      }
+    }
+  }
+
+  .rankingsTableContainer {
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    overflow: hidden;
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+
+      th {
+        background: rgba(15, 23, 42, 0.6);
+        padding: 12px 18px;
+        font-size: 11px;
+        font-weight: 800;
+        color: #94a3b8;
+        text-transform: uppercase;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      td {
+        padding: 14px 18px;
+        font-size: 13px;
+        color: #e2e8f0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      }
+
+      tr:hover td {
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      tr.currentUserRow td {
+        background: rgba(99, 102, 241, 0.15);
+        font-weight: 700;
+      }
+    }
+  }
+}

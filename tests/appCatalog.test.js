@@ -217,6 +217,7 @@ describe("Catálogo de apps", () => {
       "Montagem de PC",
       "Word",
       "Gerador de Imagens",
+      "Arcade",
     ]);
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
       "desktop",
@@ -256,6 +257,10 @@ describe("Catálogo de apps", () => {
     );
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
       "desktop-seed-imagegen-v1",
+      "true"
+    );
+    expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      "desktop-seed-arcade-v1",
       "true"
     );
   });

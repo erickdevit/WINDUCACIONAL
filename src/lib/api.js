@@ -223,7 +223,13 @@ export const api = {
       },
     };
   },
-  getTypingDifficulty: ({ mode, scope = "type", studentType, turmaId, studentId } = {}) => {
+  getTypingDifficulty: ({
+    mode,
+    scope = "type",
+    studentType,
+    turmaId,
+    studentId,
+  } = {}) => {
     const params = new URLSearchParams({ mode, scope });
     if (studentType) params.set("studentType", studentType);
     if (turmaId) params.set("turmaId", turmaId);
@@ -584,5 +590,51 @@ export const api = {
   getQuizRankings: (turmaId) => {
     const query = turmaId ? `?turmaId=${turmaId}` : "";
     return request(`/api/quiz/rankings${query}`);
+  },
+  // --- Arcade de Jogos (Damas & Uno) ---
+  getArcadeRooms: ({ gameType, status } = {}) => {
+    const params = new URLSearchParams();
+    if (gameType) params.set("gameType", gameType);
+    if (status) params.set("status", status);
+    const suffix = params.toString() ? `?${params.toString()}` : "";
+    return request(`/api/arcade/rooms${suffix}`);
+  },
+  createArcadeRoom: (payload) =>
+    request("/api/arcade/rooms", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  getArcadeRoom: (id) => request(`/api/arcade/rooms/${id}`),
+  joinArcadeRoom: (id) =>
+    request(`/api/arcade/rooms/${id}/join`, {
+      method: "POST",
+    }),
+  toggleArcadeReady: (id) =>
+    request(`/api/arcade/rooms/${id}/ready`, {
+      method: "POST",
+    }),
+  startArcadeGame: (id) =>
+    request(`/api/arcade/rooms/${id}/start`, {
+      method: "POST",
+    }),
+  sendArcadeAction: (id, action) =>
+    request(`/api/arcade/rooms/${id}/action`, {
+      method: "POST",
+      body: JSON.stringify({ action }),
+    }),
+  leaveArcadeRoom: (id) =>
+    request(`/api/arcade/rooms/${id}/leave`, {
+      method: "POST",
+    }),
+  rematchArcadeGame: (id) =>
+    request(`/api/arcade/rooms/${id}/rematch`, {
+      method: "POST",
+    }),
+  getArcadeRankings: ({ turmaId, gameType } = {}) => {
+    const params = new URLSearchParams();
+    if (turmaId) params.set("turmaId", turmaId);
+    if (gameType) params.set("gameType", gameType);
+    const suffix = params.toString() ? `?${params.toString()}` : "";
+    return request(`/api/arcade/rankings${suffix}`);
   },
 };

@@ -46,7 +46,8 @@ As janelas devem permanecer sempre dentro da área útil do desktop, limitada pe
 
 - `vite.config.js`: build Vite e configuração PWA.
 - `server/index.cjs`: raiz de composição do backend. Concentra configuração, pool PostgreSQL, helpers compartilhados, middleware de autenticação, estado em memória (clientes SSE, usuários online) e a função `start()`. Monta `routeContext` com as dependências compartilhadas e injeta os módulos de rota. Exporta `{ app, start }` e só executa `start()` quando rodado diretamente (`require.main === module`), permitindo carregá-lo em testes sem subir o servidor.
-- `server/routes/*.cjs`: rotas agrupadas por domínio (`auth`, `users`, `turmas`, `booklets`, `attendance`, `fs`, `exams`, `lessons`, `pcBuilder`, `typing`, `notifications`, `chat`, `gestor`, `edgeProxy`, `imagegen`). Cada módulo exporta uma função injetora `inject<Dominio>Routes(ctx)` que recebe o `routeContext`, seguindo o mesmo padrão de `server/typingPvp.cjs`.
+- `server/routes/*.cjs`: rotas agrupadas por domínio (`auth`, `users`, `turmas`, `booklets`, `attendance`, `fs`, `exams`, `lessons`, `pcBuilder`, `typing`, `notifications`, `chat`, `gestor`, `edgeProxy`, `imagegen`, `quiz`, `arcade`). Cada módulo exporta uma função injetora `inject<Dominio>Routes(ctx)` que recebe o `routeContext`, seguindo o mesmo padrão de `server/typingPvp.cjs`.
+- `server/domain/arcadeCheckers.cjs` e `server/domain/arcadeUno.cjs`: motores de regras puras para partidas de Damas e Uno Multiplayer em sala.
 - `server/domain/pcBuilderCatalog.mjs` e `server/domain/pcBuilderRules.mjs`: catálogo de peças e regras puras compartilhadas entre frontend e backend do Montagem de PC. O cliente usa as regras para retorno imediato, enquanto o servidor recalcula o resultado antes de persistir.
 - `server/db/migrations/`: migrations versionadas do PostgreSQL (`0001_baseline.sql` consolida o schema inicial).
 - `server/db/migrate.cjs`: runner de migrations executado no boot.

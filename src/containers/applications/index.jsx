@@ -31,6 +31,7 @@ export * from "./apps/pcBuilder";
 export * from "./apps/ouroModerno";
 export * from "./apps/word";
 export * from "./apps/quizArena";
+export * from "./apps/arcade";
 
 export const ScreenPreview = () => {
   const tasks = useSelector((state) => state.taskbar);

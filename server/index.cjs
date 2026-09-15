@@ -1457,7 +1457,11 @@ const getEffectiveTypingSettings = async ({
   });
 
   if (!override) {
-    return { settings: { ...base, source: "type" }, source: "type", override: null };
+    return {
+      settings: { ...base, source: "type" },
+      source: "type",
+      override: null,
+    };
   }
 
   const settings =
@@ -1956,6 +1960,7 @@ require("./routes/notifications.cjs")(routeContext);
 require("./routes/chat.cjs")(routeContext);
 require("./routes/imagegen.cjs")(routeContext);
 require("./routes/quiz.cjs")(routeContext);
+require("./routes/arcade.cjs")(routeContext);
 
 const { injectPvpRoutes } = require("./typingPvp.cjs");
 injectPvpRoutes(

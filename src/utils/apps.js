@@ -332,6 +332,12 @@ const apps = [
     type: "app",
     action: "QUIZARENAAPP",
   },
+  {
+    name: "Arcade",
+    icon: "arcade",
+    type: "app",
+    action: "ARCADEAPP",
+  },
 ];
 
 for (let i = 0; i < installed.length; i++) {

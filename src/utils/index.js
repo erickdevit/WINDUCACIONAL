@@ -76,6 +76,7 @@ var { taskbar, desktop, pinned, recent } = {
     "Avaliação",
     "Lições",
     "Montagem de PC",
+    "Arcade",
   ]),
   pinned: readStoredList("pinned", [
     "Navegador",
@@ -93,6 +94,7 @@ var { taskbar, desktop, pinned, recent } = {
     "Terminal",
     "Câmera",
     "Gestor",
+    "Arcade",
   ]),
   recent: readStoredList("recent", [
     "Email",
@@ -179,6 +181,13 @@ desktop = seedStoredApps(
   "desktop",
   "desktop-seed-imagegen-v1",
   ["Gerador de Imagens"],
+  desktop
+);
+
+desktop = seedStoredApps(
+  "desktop",
+  "desktop-seed-arcade-v1",
+  ["Arcade"],
   desktop
 );
 
