@@ -26,6 +26,41 @@ const COLOR_NAMES_PT = {
   wild: "Especial",
 };
 
+// Mapeamento posicional dos assentos ao redor da mesa elíptica para até 6 jogadores
+const getSeatPositionClass = (relativeIndex, totalPlayers) => {
+  if (relativeIndex === 0) {
+    return "seat-bottom-center";
+  }
+
+  if (totalPlayers === 2) {
+    return "seat-top-center";
+  }
+
+  if (totalPlayers === 3) {
+    return relativeIndex === 1 ? "seat-top-left" : "seat-top-right";
+  }
+
+  if (totalPlayers === 4) {
+    if (relativeIndex === 1) return "seat-middle-left";
+    if (relativeIndex === 2) return "seat-top-center";
+    return "seat-middle-right";
+  }
+
+  if (totalPlayers === 5) {
+    if (relativeIndex === 1) return "seat-bottom-left";
+    if (relativeIndex === 2) return "seat-top-left";
+    if (relativeIndex === 3) return "seat-top-right";
+    return "seat-bottom-right";
+  }
+
+  // totalPlayers === 6
+  if (relativeIndex === 1) return "seat-bottom-left";
+  if (relativeIndex === 2) return "seat-top-left";
+  if (relativeIndex === 3) return "seat-top-center";
+  if (relativeIndex === 4) return "seat-top-right";
+  return "seat-bottom-right";
+};
+
 export function UnoTable({
   gameState,
   currentUserId,
@@ -49,7 +84,6 @@ export function UnoTable({
     currentTurn,
     direction,
     drawnThisTurn,
-    drawnPlayableCardId,
     status,
     eventsLog = [],
   } = gameState;
@@ -64,11 +98,19 @@ export function UnoTable({
       (currentUsername && p.username === currentUsername)
   );
   const myHand = me?.hand || [];
-  const opponents = players.filter(
+
+  const myPlayerIndex = players.findIndex(
     (p) =>
-      (!currentUserId || p.userId !== currentUserId) &&
-      (!currentUsername || p.username !== currentUsername)
+      (currentUserId && p.userId === currentUserId) ||
+      (currentUsername && p.username === currentUsername)
   );
+
+  // Rotaciona a ordem dos jogadores na mesa para que o jogador local fique sempre no centro inferior (posição 0)
+  // Em modo espectador, preserva a ordem natural da mesa
+  const orderedPlayers =
+    myPlayerIndex >= 0
+      ? players.map((_, i) => players[(myPlayerIndex + i) % players.length])
+      : players;
 
   const isCardPlayable = (card) => {
     if (!isMyTurn || status !== "PLAYING") return false;
@@ -101,92 +143,141 @@ export function UnoTable({
 
   return (
     <div className="unoGameContainer">
-      {/* Barra Superior de Oponentes */}
-      <div className="unoOpponentsBar">
-        {opponents.map((opp) => {
-          const isOppTurn = currentPlayer?.userId === opp.userId;
-          const hasOneCard = opp.cardCount === 1;
-
-          return (
-            <div
-              key={opp.userId}
-              className={`opponentCard ${isOppTurn ? "activeTurn" : ""}`}
-            >
-              <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white">
-                {opp.displayName?.[0] || "?"}
-              </div>
-              <div className="oppMeta">
-                <strong>{opp.displayName || opp.username}</strong>
-                <small>{opp.cardCount} cartas</small>
-              </div>
-
-              {hasOneCard && opp.calledUno && (
-                <span className="oppUnoCall">UNO!</span>
-              )}
-
-              {hasOneCard && !opp.calledUno && isMyTurn && (
-                <button
-                  className="catchUnoBtn"
-                  title="Pegar Uno: penaliza o colega com 2 cartas se ele não gritou UNO!"
-                  onClick={() => onCatchUno(opp.userId)}
-                >
-                  🚨 Denunciar UNO
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Centro da Mesa: Pilha de Descarte e Monte de Compras */}
-      <div className="unoCenterTable">
-        <div className={`activeColorIndicator ${activeColor}`}>
-          Cor Ativa: {COLOR_NAMES_PT[activeColor] || activeColor}{" "}
-          {direction === 1 ? "↻" : "↺"}
-        </div>
-
-        {/* Monte de Compras (Draw Pile) */}
-        <div className="deckPile">
-          <div
-            className="deckCardBack"
-            title={
-              isMyTurn ? "Clique para comprar uma carta" : "Aguarde sua vez"
-            }
-            onClick={() => {
-              if (isMyTurn && !drawnThisTurn && status === "PLAYING") {
-                onDrawCard();
-              }
-            }}
-          >
-            <div className="unoDeckLogo">UNO</div>
-          </div>
-          <span>Comprar</span>
-        </div>
-
-        {/* Pilha de Descarte (Top Card) */}
-        {topCard && (
-          <div className={`unoCard ${topCard.color}`}>
-            <span className="cardCornerTop">
-              {getCardValueLabel(topCard.value)}
-            </span>
-            <div className="cardInnerOval">
-              <span className="cardCenterValue">
-                {getCardValueLabel(topCard.value)}
-              </span>
-            </div>
-            <span className="cardCornerBottom">
-              {getCardValueLabel(topCard.value)}
-            </span>
-          </div>
-        )}
-      </div>
-
       {/* Notificação da Última Ação */}
       {lastEvent && (
-        <div className="text-center text-xs font-semibold text-slate-300 py-1 bg-slate-900/60 rounded-lg mx-auto px-4 max-w-lg border border-slate-800">
+        <div className="unoActionNotification">
           {lastEvent.message}
         </div>
       )}
+
+      {/* Arena da Mesa Visual de Uno com Jogadores ao Redor */}
+      <div className="unoVisualArena">
+        {/* Mesa Oval com Feltro Verde */}
+        <div className="unoTableFelt">
+          {/* Indicador de Cor Ativa e Sentido de Jogo no Topo da Mesa */}
+          <div className="feltHeaderInfo">
+            <span className={`activeColorBadge ${activeColor}`}>
+              Cor: {COLOR_NAMES_PT[activeColor] || activeColor}
+            </span>
+            <span className="directionBadge" title="Sentido do jogo">
+              {direction === 1 ? "↻ Sentido Horário" : "↺ Sentido Anti-horário"}
+            </span>
+          </div>
+
+          {/* Centro da Mesa: Pilha de Compras e Descarte */}
+          <div className="unoCenterPiles">
+            {/* Monte de Compras (Draw Pile) */}
+            <div className="deckPile">
+              <div
+                className={`deckCardBack ${
+                  isMyTurn && !drawnThisTurn && status === "PLAYING"
+                    ? "canDraw"
+                    : ""
+                }`}
+                title={
+                  isMyTurn ? "Clique para comprar uma carta" : "Aguarde sua vez"
+                }
+                onClick={() => {
+                  if (isMyTurn && !drawnThisTurn && status === "PLAYING") {
+                    onDrawCard();
+                  }
+                }}
+              >
+                <div className="unoDeckLogo">UNO</div>
+              </div>
+              <span className="pileLabel">Comprar</span>
+            </div>
+
+            {/* Pilha de Descarte (Top Card) */}
+            {topCard && (
+              <div className="discardPile">
+                <div className={`unoCard ${topCard.color} topCardTable`}>
+                  <span className="cardCornerTop">
+                    {getCardValueLabel(topCard.value)}
+                  </span>
+                  <div className="cardInnerOval">
+                    <span className="cardCenterValue">
+                      {getCardValueLabel(topCard.value)}
+                    </span>
+                  </div>
+                  <span className="cardCornerBottom">
+                    {getCardValueLabel(topCard.value)}
+                  </span>
+                </div>
+                <span className="pileLabel">Descarte</span>
+              </div>
+            )}
+          </div>
+
+          {/* Chamada de Turno no Centro da Mesa */}
+          <div className={`feltTurnCallout ${isMyTurn ? "isMyTurn" : ""}`}>
+            {isMyTurn
+              ? "⭐ SUA VEZ DE JOGAR!"
+              : `Vez de ${
+                  currentPlayer?.displayName || currentPlayer?.username || "..."
+                }`}
+          </div>
+        </div>
+
+        {/* Assentos dos Jogadores Posicionados ao Redor da Mesa (Até 6 Alunos) */}
+        <div className="unoSeatsContainer">
+          {orderedPlayers.map((p, relIdx) => {
+            const posClass = getSeatPositionClass(
+              relIdx,
+              orderedPlayers.length
+            );
+            const isThisPlayerTurn = currentPlayer?.userId === p.userId;
+            const isMe =
+              (currentUserId && p.userId === currentUserId) ||
+              (currentUsername && p.username === currentUsername);
+            const hasOneCard = p.cardCount === 1;
+
+            return (
+              <div
+                key={p.userId}
+                className={`unoTableSeat ${posClass} ${
+                  isThisPlayerTurn ? "activeTurnSeat" : ""
+                } ${isMe ? "localPlayerSeat" : ""}`}
+              >
+                <div className="seatAvatarBadge">
+                  <div className="seatAvatar">
+                    {p.displayName?.[0] || p.username?.[0] || "?"}
+                  </div>
+                  {isThisPlayerTurn && (
+                    <span className="turnPlayingBadge" title="Vez de jogar">
+                      🎮
+                    </span>
+                  )}
+                </div>
+
+                <div className="seatInfo">
+                  <strong className="seatName">
+                    {p.displayName || p.username}
+                    {isMe && " (Você)"}
+                  </strong>
+                  <span className="seatCards">
+                    🎴 {isMe ? myHand.length : p.cardCount} cartas
+                  </span>
+                </div>
+
+                {hasOneCard && p.calledUno && (
+                  <span className="oppUnoCall">UNO!</span>
+                )}
+
+                {!isMe && hasOneCard && !p.calledUno && isMyTurn && (
+                  <button
+                    className="catchUnoBtn"
+                    title="Pegar Uno: penaliza o colega com 2 cartas se ele não gritou UNO!"
+                    onClick={() => onCatchUno(p.userId)}
+                  >
+                    🚨 Denunciar
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Área da Mão do Jogador Atual */}
       <div className="unoPlayerHandArea">

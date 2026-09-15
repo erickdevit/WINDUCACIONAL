@@ -39,7 +39,7 @@ function ArcadeView({ visible }) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newRoomTitle, setNewRoomTitle] = useState("");
   const [newRoomGameType, setNewRoomGameType] = useState("checkers");
-  const [newRoomMaxPlayers, setNewRoomMaxPlayers] = useState(10);
+  const [newRoomMaxPlayers, setNewRoomMaxPlayers] = useState(6);
 
   // Rankings
   const [rankings, setRankings] = useState({
@@ -932,14 +932,14 @@ function ArcadeView({ visible }) {
                     onClick={() => setNewRoomGameType("uno")}
                   >
                     <strong>Uno</strong>
-                    <small>A partir de 2 até a turma toda</small>
+                    <small>Mesa de 2 até 6 jogadores</small>
                   </div>
                 </div>
               </div>
 
               {newRoomGameType === "uno" && (
                 <div className="formGroup">
-                  <label>Capacidade Máxima de Jogadores:</label>
+                  <label>Capacidade Máxima de Jogadores (Máx. 6):</label>
                   <select
                     value={newRoomMaxPlayers}
                     onChange={(e) =>
@@ -947,11 +947,10 @@ function ArcadeView({ visible }) {
                     }
                   >
                     <option value={2}>2 jogadores (Duelo)</option>
+                    <option value={3}>3 jogadores</option>
                     <option value={4}>4 jogadores</option>
-                    <option value={8}>8 jogadores</option>
-                    <option value={15}>15 jogadores</option>
-                    <option value={30}>30 jogadores (Turma Inteira)</option>
-                    <option value={50}>50 jogadores (Multiturma)</option>
+                    <option value={5}>5 jogadores</option>
+                    <option value={6}>6 jogadores (Mesa Cheia - Máximo)</option>
                   </select>
                 </div>
               )}

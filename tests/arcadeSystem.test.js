@@ -67,7 +67,7 @@ describe("Arcade - Backend, Rotas e Streaming SSE", () => {
       "userTurmaId = req.user.turma_id || req.user.turmaId"
     );
     expect(arcadeRoutesCode).toContain(
-      'room.game_type === "uno" && players.length < 2'
+      "O jogo de Uno necessita de no mínimo 2 jogadores para iniciar."
     );
     expect(indexServerCode).toContain("req.user.turmaId = req.user.turma_id");
   });
@@ -162,6 +162,35 @@ describe("Arcade - Componentes Frontend e Experiência do Usuário", () => {
     expect(unoComponentCode).toContain("unoShoutBtn");
     expect(unoComponentCode).toContain("catchUnoBtn");
     expect(unoComponentCode).toContain("unoColorPickerOverlay");
+  });
+
+  it("renderiza a mesa visual de Uno com feltro oval e posiciona o jogador local sempre no centro inferior para ele mesmo", () => {
+    expect(unoComponentCode).toContain("unoVisualArena");
+    expect(unoComponentCode).toContain("unoTableFelt");
+    expect(unoComponentCode).toContain("unoSeatsContainer");
+    expect(unoComponentCode).toContain("unoTableSeat");
+    expect(unoComponentCode).toContain("getSeatPositionClass");
+    expect(unoComponentCode).toContain("seat-bottom-center");
+    expect(unoComponentCode).toContain("localPlayerSeat");
+    expect(unoComponentCode).toContain("(myPlayerIndex + i) % players.length");
+    expect(scssCode).toContain(".unoVisualArena");
+    expect(scssCode).toContain(".unoTableFelt");
+    expect(scssCode).toContain(".seat-bottom-center");
+  });
+
+  it("limita a mesa de Uno a no máximo 6 alunos nas opções de criação e na validação do servidor", () => {
+    expect(arcadeRoutesCode).toContain("parsedMaxPlayers > 6");
+    expect(arcadeRoutesCode).toContain("parsedMaxPlayers = 6");
+    expect(arcadeRoutesCode).toContain("players.length > 6");
+    expect(arcadeRoutesCode).toContain(
+      "A mesa de Uno comporta no máximo 6 alunos por partida."
+    );
+    expect(appComponentCode).toContain(
+      "Mesa de 2 até 6 jogadores"
+    );
+    expect(appComponentCode).toContain(
+      "6 jogadores (Mesa Cheia - Máximo)"
+    );
   });
 
   it("contém estilos SCSS completos para o Arcade, Damas e Uno", () => {

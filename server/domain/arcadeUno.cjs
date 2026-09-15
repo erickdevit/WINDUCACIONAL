@@ -116,6 +116,9 @@ const initUnoGame = (playerList) => {
   if (!playerList || playerList.length < 2) {
     throw new Error("O Uno requer no mínimo 2 jogadores.");
   }
+  if (playerList.length > 6) {
+    throw new Error("A mesa de Uno comporta no máximo 6 jogadores.");
+  }
 
   // Escala a quantidade de baralhos de acordo com o tamanho da turma (ex: 30 alunos)
   const numDecks = Math.max(1, Math.ceil(playerList.length / 5));

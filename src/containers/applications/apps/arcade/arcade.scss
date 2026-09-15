@@ -1199,42 +1199,285 @@
   gap: 16px;
 }
 
-/* Mesa de Outros Jogadores ao redor */
-.unoOpponentsBar {
+/* Notificação de Última Ação do Uno */
+.unoActionNotification {
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  color: #cbd5e1;
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Arena Visual da Mesa de Uno com Jogadores ao Redor */
+.unoVisualArena {
+  position: relative;
+  width: 100%;
+  min-height: 460px;
+  background: radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8), 0 10px 24px rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  flex-wrap: wrap;
-  padding: 8px 12px;
-  background: rgba(30, 41, 59, 0.5);
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 24px;
+}
 
-  .opponentCard {
+/* Mesa Oval de Feltro Verde */
+.unoTableFelt {
+  width: 660px;
+  max-width: 84%;
+  height: 270px;
+  border-radius: 135px;
+  background: radial-gradient(ellipse at center, #15803d 0%, #166534 55%, #14532d 100%);
+  border: 12px solid #78350f;
+  outline: 3px solid #b45309;
+  box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.65), 0 12px 28px rgba(0, 0, 0, 0.7);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  z-index: 2;
+
+  .feltHeaderInfo {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 14px;
-    background: #0f172a;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    transition: all 0.2s;
+    gap: 12px;
+    z-index: 3;
 
-    &.activeTurn {
-      border-color: #fbbf24;
-      box-shadow: 0 0 12px rgba(251, 191, 36, 0.4);
+    .activeColorBadge {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 2px solid;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+
+      &.red {
+        color: #f87171;
+        border-color: #ef4444;
+      }
+      &.blue {
+        color: #60a5fa;
+        border-color: #3b82f6;
+      }
+      &.green {
+        color: #4ade80;
+        border-color: #22c55e;
+      }
+      &.yellow {
+        color: #facc15;
+        border-color: #eab308;
+      }
     }
 
-    .oppMeta {
-      strong {
-        display: block;
-        font-size: 12px;
-        color: #f1f5f9;
-      }
-      small {
+    .directionBadge {
+      font-size: 11px;
+      font-weight: 700;
+      color: #cbd5e1;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 4px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+  }
+
+  .unoCenterPiles {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    z-index: 3;
+
+    .deckPile,
+    .discardPile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+
+      .pileLabel {
         font-size: 11px;
-        color: #38bdf8;
+        font-weight: 800;
+        color: #fef08a;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+      }
+    }
+
+    .deckCardBack {
+      width: 78px;
+      height: 116px;
+      border-radius: 9px;
+      background: radial-gradient(circle, #18181b 40%, #000 100%);
+      border: 3px solid #ffffff;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+
+      &.canDraw {
+        cursor: pointer;
+        border-color: #facc15;
+        box-shadow: 0 0 16px rgba(250, 204, 21, 0.6);
+        animation: drawPulse 1.2s infinite alternate;
+
+        &:hover {
+          transform: translateY(-4px) scale(1.05);
+          box-shadow: 0 0 22px rgba(250, 204, 21, 0.85);
+        }
+      }
+
+      .unoDeckLogo {
+        background: #ef4444;
+        color: #facc15;
+        font-weight: 900;
+        font-size: 18px;
+        transform: rotate(-25deg);
+        padding: 4px 10px;
+        border-radius: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      }
+    }
+
+    .topCardTable {
+      width: 78px;
+      height: 116px;
+      cursor: default;
+
+      &:hover {
+        transform: none;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+      }
+    }
+  }
+
+  .feltTurnCallout {
+    font-size: 12px;
+    font-weight: 800;
+    color: #e2e8f0;
+    background: rgba(0, 0, 0, 0.55);
+    padding: 5px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    z-index: 3;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+
+    &.isMyTurn {
+      color: #fef08a;
+      background: rgba(180, 83, 9, 0.75);
+      border-color: #facc15;
+      box-shadow: 0 0 12px rgba(250, 204, 21, 0.5);
+      animation: turnGlow 1.5s infinite alternate;
+    }
+  }
+}
+
+/* Assentos dos Jogadores Posicionados ao Redor da Mesa */
+.unoSeatsContainer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+
+  .unoTableSeat {
+    position: absolute;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    transition: all 0.25s ease;
+    max-width: 175px;
+
+    &.activeTurnSeat {
+      border-color: #facc15;
+      box-shadow: 0 0 16px rgba(250, 204, 21, 0.6);
+      background: rgba(30, 41, 59, 0.96);
+    }
+
+    &.localPlayerSeat {
+      border-color: #38bdf8;
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.4);
+      background: rgba(12, 74, 110, 0.88);
+
+      &.activeTurnSeat {
+        border-color: #facc15;
+        box-shadow: 0 0 20px rgba(250, 204, 21, 0.7), 0 0 10px rgba(56, 189, 248, 0.5);
+      }
+    }
+
+    .seatAvatarBadge {
+      position: relative;
+      flex-shrink: 0;
+
+      .seatAvatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 13px;
+        text-transform: uppercase;
+        border: 1.5px solid rgba(255, 255, 255, 0.3);
+      }
+
+      .turnPlayingBadge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        font-size: 10px;
+        background: #f59e0b;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+      }
+    }
+
+    .seatInfo {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+
+      .seatName {
+        font-size: 11px;
+        font-weight: 800;
+        color: #f8fafc;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .seatCards {
+        font-size: 10px;
+        font-weight: 700;
+        color: #94a3b8;
+        margin-top: 1px;
       }
     }
 
@@ -1242,14 +1485,16 @@
       background: #ef4444;
       color: white;
       font-size: 10px;
-      font-weight: 800;
+      font-weight: 900;
       padding: 2px 6px;
-      border-radius: 4px;
-      animation: pulseTarget 1s infinite alternate;
+      border-radius: 6px;
+      box-shadow: 0 0 8px #ef4444;
+      animation: pulseUno 1s infinite alternate;
+      flex-shrink: 0;
     }
 
     .catchUnoBtn {
-      padding: 4px 8px;
+      padding: 3px 6px;
       border-radius: 6px;
       background: #dc2626;
       color: white;
@@ -1257,93 +1502,120 @@
       font-size: 10px;
       font-weight: 800;
       cursor: pointer;
+      flex-shrink: 0;
+      transition: transform 0.15s;
+
       &:hover {
         background: #b91c1c;
+        transform: scale(1.05);
+      }
+    }
+
+    /* Posições dos assentos ao redor do feltro */
+    &.seat-bottom-center {
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+
+      &.activeTurnSeat {
+        transform: translateX(-50%) scale(1.04);
+      }
+    }
+
+    &.seat-bottom-left {
+      bottom: 40px;
+      left: 4%;
+
+      &.activeTurnSeat {
+        transform: scale(1.04);
+      }
+    }
+
+    &.seat-middle-left {
+      top: 50%;
+      left: 2%;
+      transform: translateY(-50%);
+
+      &.activeTurnSeat {
+        transform: translateY(-50%) scale(1.04);
+      }
+    }
+
+    &.seat-top-left {
+      top: 12px;
+      left: 16%;
+
+      &.activeTurnSeat {
+        transform: scale(1.04);
+      }
+    }
+
+    &.seat-top-center {
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+
+      &.activeTurnSeat {
+        transform: translateX(-50%) scale(1.04);
+      }
+    }
+
+    &.seat-top-right {
+      top: 12px;
+      right: 16%;
+
+      &.activeTurnSeat {
+        transform: scale(1.04);
+      }
+    }
+
+    &.seat-middle-right {
+      top: 50%;
+      right: 2%;
+      transform: translateY(-50%);
+
+      &.activeTurnSeat {
+        transform: translateY(-50%) scale(1.04);
+      }
+    }
+
+    &.seat-bottom-right {
+      bottom: 40px;
+      right: 4%;
+
+      &.activeTurnSeat {
+        transform: scale(1.04);
       }
     }
   }
 }
 
-/* Centro da Mesa de Uno: Monte de Compras e Descarte */
-.unoCenterTable {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 36px;
-  padding: 20px 0;
-  position: relative;
-
-  .activeColorIndicator {
-    position: absolute;
-    top: 0;
-    font-size: 12px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 4px 14px;
-    border-radius: 20px;
-    background: rgba(15, 23, 42, 0.8);
-    border: 2px solid;
-
-    &.red {
-      color: #ef4444;
-      border-color: #ef4444;
-    }
-    &.blue {
-      color: #3b82f6;
-      border-color: #3b82f6;
-    }
-    &.green {
-      color: #10b981;
-      border-color: #10b981;
-    }
-    &.yellow {
-      color: #eab308;
-      border-color: #eab308;
-    }
+@keyframes drawPulse {
+  0% {
+    box-shadow: 0 0 8px rgba(250, 204, 21, 0.4);
   }
+  100% {
+    box-shadow: 0 0 20px rgba(250, 204, 21, 0.85);
+  }
+}
 
-  .deckPile {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
+@keyframes turnGlow {
+  0% {
+    box-shadow: 0 0 6px rgba(250, 204, 21, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 16px rgba(250, 204, 21, 0.8);
+  }
+}
 
-    .deckCardBack {
-      width: 90px;
-      height: 135px;
-      border-radius: 10px;
-      background: radial-gradient(circle, #18181b 40%, #000 100%);
-      border: 3px solid #ffffff;
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-
-      &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(56, 189, 248, 0.4);
-      }
-
-      .unoDeckLogo {
-        background: #ef4444;
-        color: #facc15;
-        font-weight: 900;
-        font-size: 20px;
-        transform: rotate(-25deg);
-        padding: 4px 12px;
-        border-radius: 20px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-      }
-    }
-
-    span {
-      font-size: 11px;
-      font-weight: 700;
-      color: #94a3b8;
-    }
+@keyframes pulseUno {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.08);
+    opacity: 1;
   }
 }
 

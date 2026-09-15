@@ -152,6 +152,21 @@ describe("Arcade - Uno Multiplayer", () => {
     expect(() => uno.initUnoGame(players)).toThrow("mínimo 2 jogadores");
   });
 
+  it("não permite iniciar partida de Uno com mais de 6 jogadores", () => {
+    const players = [
+      { userId: "u1", username: "ana", displayName: "Ana" },
+      { userId: "u2", username: "bruno", displayName: "Bruno" },
+      { userId: "u3", username: "carla", displayName: "Carla" },
+      { userId: "u4", username: "diego", displayName: "Diego" },
+      { userId: "u5", username: "elena", displayName: "Elena" },
+      { userId: "u6", username: "fabio", displayName: "Fabio" },
+      { userId: "u7", username: "gabriel", displayName: "Gabriel" },
+    ];
+    expect(() => uno.initUnoGame(players)).toThrow(
+      "A mesa de Uno comporta no máximo 6 jogadores."
+    );
+  });
+
   it("aplica jogada de carta comum e avança o turno", () => {
     const players = [
       { userId: "u1", username: "ana", displayName: "Ana" },

@@ -335,9 +335,9 @@ module.exports = function injectArcadeRoutes(ctx) {
         if (
           isNaN(parsedMaxPlayers) ||
           parsedMaxPlayers < 2 ||
-          parsedMaxPlayers > 100
+          parsedMaxPlayers > 6
         ) {
-          parsedMaxPlayers = 10;
+          parsedMaxPlayers = 6;
         }
       }
 
@@ -664,11 +664,19 @@ module.exports = function injectArcadeRoutes(ctx) {
           );
         }
 
-        if (room.game_type === "uno" && players.length < 2) {
-          throw httpError(
-            400,
-            "O jogo de Uno necessita de no mínimo 2 jogadores para iniciar."
-          );
+        if (room.game_type === "uno") {
+          if (players.length < 2) {
+            throw httpError(
+              400,
+              "O jogo de Uno necessita de no mínimo 2 jogadores para iniciar."
+            );
+          }
+          if (players.length > 6) {
+            throw httpError(
+              400,
+              "A mesa de Uno comporta no máximo 6 alunos por partida."
+            );
+          }
         }
 
         let initialGameState = null;
