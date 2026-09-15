@@ -24,6 +24,10 @@
   font-family: inherit;
   user-select: none;
   overflow: hidden;
+
+  &.inMatchMode {
+    background: #020617;
+  }
 }
 
 /* Barra Superior / Header do Arcade */
@@ -164,6 +168,14 @@
   overflow-x: hidden;
   padding: 24px;
   position: relative;
+
+  &.inMatchContent {
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -794,35 +806,61 @@
   }
 }
 
-/* Wrapper da Partida Ativa (Damas / Uno) */
+/* Wrapper da Partida Ativa com HUD Integrada e Área Maximizada */
 .arcadeActiveGameWrapper {
   width: 100%;
+  height: 100%;
+  flex: 1 1 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  overflow: hidden;
+  gap: 0;
 
   .activeGameTopBar {
-    max-width: 900px;
     width: 100%;
-    margin: 0 auto;
+    margin: 0;
+    height: 48px;
+    flex: 0 0 48px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: rgba(15, 23, 42, 0.75);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 8px 16px;
-    backdrop-filter: blur(8px);
+    background: rgba(15, 23, 42, 0.95);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 0;
+    padding: 0 16px;
+    backdrop-filter: blur(12px);
+    z-index: 20;
 
     .activeGameInfo {
       display: flex;
       align-items: center;
       gap: 10px;
 
+      .gameLogoMini {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+
+        img {
+          width: 18px;
+          height: 18px;
+        }
+      }
+
       .roomTitle {
         font-size: 13px;
         font-weight: 700;
         color: #f1f5f9;
+        max-width: 220px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .gameBadge {
@@ -853,6 +891,72 @@
         border: 1px solid rgba(168, 85, 247, 0.35);
         padding: 2px 8px;
         border-radius: 6px;
+      }
+    }
+
+    .activeGameHudCenter {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .checkersHudSummary {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 800;
+        color: #f1f5f9;
+        background: rgba(30, 41, 59, 0.75);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        padding: 4px 14px;
+        border-radius: 16px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      .unoHudSummary {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .hudColorPill {
+          font-size: 11px;
+          font-weight: 800;
+          text-transform: uppercase;
+          padding: 3px 10px;
+          border-radius: 12px;
+          border: 1.5px solid;
+
+          &.red {
+            background: rgba(239, 68, 68, 0.25);
+            color: #f87171;
+            border-color: #ef4444;
+          }
+          &.blue {
+            background: rgba(59, 130, 246, 0.25);
+            color: #60a5fa;
+            border-color: #3b82f6;
+          }
+          &.green {
+            background: rgba(34, 197, 94, 0.25);
+            color: #4ade80;
+            border-color: #22c55e;
+          }
+          &.yellow {
+            background: rgba(234, 179, 8, 0.25);
+            color: #facc15;
+            border-color: #eab308;
+          }
+        }
+
+        .hudDirection {
+          font-size: 11px;
+          color: #94a3b8;
+          font-weight: 700;
+          background: rgba(0, 0, 0, 0.4);
+          padding: 3px 10px;
+          border-radius: 10px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
       }
     }
 
@@ -904,36 +1008,43 @@
 }
 
 /* =========================================
-   JOGO DE DAMAS (CHECKERS)
+   JOGO DE DAMAS (CHECKERS) - MESA INTEGRADA MAXIMIZADA
    ========================================= */
 .checkersGameContainer {
-  max-width: 860px;
-  margin: 0 auto;
+  width: 100%;
+  height: 100%;
+  flex: 1 1 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
+  justify-content: center;
+  padding: 8px 12px;
+  gap: 0;
+  overflow: hidden;
 }
 
 .gameStatusBar {
-  width: 100%;
+  width: min(calc(100vh - 165px), 520px);
   background: rgba(30, 41, 59, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  padding: 12px 20px;
+  border-radius: 8px;
+  padding: 4px 14px;
+  margin-bottom: 6px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   backdrop-filter: blur(8px);
+  flex-shrink: 0;
 
   .playerTurnCard {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 
     .pieceMini {
-      width: 22px;
-      height: 22px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       border: 2px solid rgba(255, 255, 255, 0.3);
 
@@ -946,17 +1057,17 @@
     }
 
     span {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       color: #e2e8f0;
     }
   }
 
   .turnAlert {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 800;
-    padding: 6px 14px;
-    border-radius: 8px;
+    padding: 4px 12px;
+    border-radius: 6px;
 
     &.myTurn {
       background: rgba(16, 185, 129, 0.2);
@@ -972,7 +1083,7 @@
   }
 
   .resignBtn {
-    padding: 6px 12px;
+    padding: 4px 10px;
     border-radius: 6px;
     border: 1px solid rgba(239, 68, 68, 0.3);
     background: transparent;
@@ -996,33 +1107,42 @@
   }
 }
 
-/* Barras de Jogador (Adversário no Topo e Jogador Atual na Base) */
+/* Barras de Jogador Acopladas ao Tabuleiro */
 .checkersPlayerBar {
-  width: 100%;
-  max-width: 520px;
+  width: min(calc(100vh - 165px), 520px);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 14px;
-  background: rgba(30, 41, 59, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
+  padding: 6px 14px;
+  background: rgba(15, 23, 42, 0.94);
+  border: 2px solid #334155;
   backdrop-filter: blur(6px);
   transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  &.oppBar {
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
+  }
+
+  &.myBar {
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+  }
 
   &.activeTurn {
-    border-color: rgba(59, 130, 246, 0.4);
-    box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
+    border-color: #38bdf8;
+    box-shadow: 0 0 14px rgba(56, 189, 248, 0.3);
   }
 
   .playerInfoLeft {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 
     .playerPieceIndicator {
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
       border: 2px solid rgba(255, 255, 255, 0.4);
       flex-shrink: 0;
@@ -1040,14 +1160,14 @@
       flex-direction: column;
 
       .playerName {
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 700;
         color: #f1f5f9;
         line-height: 1.2;
       }
 
       .playerColorLabel {
-        font-size: 11px;
+        font-size: 10px;
         color: #94a3b8;
         line-height: 1.2;
       }
@@ -1057,20 +1177,20 @@
   .playerStatsRight {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 
     .capturesPill {
       font-size: 11px;
-      padding: 3px 8px;
+      padding: 2px 8px;
       border-radius: 6px;
       background: rgba(15, 23, 42, 0.6);
       color: #cbd5e1;
     }
 
     .turnStatusTag {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
-      padding: 3px 10px;
+      padding: 2px 8px;
       border-radius: 6px;
 
       &.active {
@@ -1086,17 +1206,21 @@
   }
 }
 
-/* Tabuleiro 8x8 de Damas */
+/* Tabuleiro 8x8 de Damas Maximizado */
 .checkersBoard {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(8, 1fr);
-  width: min(72vh, 520px);
-  height: min(72vh, 520px);
-  border: 10px solid #1e293b;
-  border-radius: 12px;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+  width: min(calc(100vh - 165px), 520px);
+  height: min(calc(100vh - 165px), 520px);
+  border-left: 2px solid #334155;
+  border-right: 2px solid #334155;
+  border-top: none;
+  border-bottom: none;
+  border-radius: 0;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
   background: #334155;
+  flex-shrink: 0;
 }
 
 .checkersSquare {
@@ -1189,68 +1313,80 @@
 /* =========================================
    JOGO DE UNO MULTIPLAYER
    ========================================= */
+/* =========================================
+   JOGO DE UNO MULTIPLAYER - ARENA MAXIMIZADA
+   ========================================= */
 .unoGameContainer {
-  max-width: 1000px;
-  margin: 0 auto;
+  width: 100%;
   height: 100%;
+  flex: 1 1 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 16px;
+  overflow: hidden;
+  position: relative;
+  gap: 0;
 }
 
-/* Notificação de Última Ação do Uno */
+/* Notificação de Última Ação do Uno (Badge Flutuante no Topo) */
 .unoActionNotification {
-  background: rgba(30, 41, 59, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
-  padding: 6px 14px;
-  font-size: 12px;
-  color: #cbd5e1;
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  pointer-events: none;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 4px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #f1f5f9;
   text-align: center;
-  max-width: 600px;
-  margin: 0 auto;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
 }
 
 /* Arena Visual da Mesa de Uno com Jogadores ao Redor */
 .unoVisualArena {
   position: relative;
   width: 100%;
-  min-height: 460px;
+  flex: 1 1 0;
+  min-height: 0;
   background: radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%);
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: none;
+  border-radius: 0;
   overflow: hidden;
-  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8), 0 10px 24px rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 6px 12px;
 }
 
 /* Mesa Oval de Feltro Verde */
 .unoTableFelt {
-  width: 660px;
-  max-width: 84%;
-  height: 270px;
-  border-radius: 135px;
+  width: min(88%, 740px);
+  height: min(46vh, 250px);
+  border-radius: 125px;
   background: radial-gradient(ellipse at center, #15803d 0%, #166534 55%, #14532d 100%);
-  border: 12px solid #78350f;
+  border: 10px solid #78350f;
   outline: 3px solid #b45309;
-  box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.65), 0 12px 28px rgba(0, 0, 0, 0.7);
+  box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.7), 0 10px 24px rgba(0, 0, 0, 0.6);
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 20px;
+  padding: 10px 18px;
   z-index: 2;
 
   .feltHeaderInfo {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     z-index: 3;
 
     .activeColorBadge {
@@ -1258,7 +1394,7 @@
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      padding: 4px 12px;
+      padding: 3px 12px;
       border-radius: 20px;
       background: rgba(15, 23, 42, 0.85);
       border: 2px solid;
@@ -1287,7 +1423,7 @@
       font-weight: 700;
       color: #cbd5e1;
       background: rgba(0, 0, 0, 0.45);
-      padding: 4px 10px;
+      padding: 3px 10px;
       border-radius: 14px;
       border: 1px solid rgba(255, 255, 255, 0.15);
     }
@@ -1297,7 +1433,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 28px;
+    gap: 24px;
     z-index: 3;
 
     .deckPile,
@@ -1305,10 +1441,10 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
 
       .pileLabel {
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 800;
         color: #fef08a;
         text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
@@ -1316,12 +1452,12 @@
     }
 
     .deckCardBack {
-      width: 78px;
-      height: 116px;
-      border-radius: 9px;
+      width: 72px;
+      height: 104px;
+      border-radius: 8px;
       background: radial-gradient(circle, #18181b 40%, #000 100%);
-      border: 3px solid #ffffff;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+      border: 2.5px solid #ffffff;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.6);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1330,12 +1466,12 @@
       &.canDraw {
         cursor: pointer;
         border-color: #facc15;
-        box-shadow: 0 0 16px rgba(250, 204, 21, 0.6);
+        box-shadow: 0 0 16px rgba(250, 204, 21, 0.7);
         animation: drawPulse 1.2s infinite alternate;
 
         &:hover {
-          transform: translateY(-4px) scale(1.05);
-          box-shadow: 0 0 22px rgba(250, 204, 21, 0.85);
+          transform: translateY(-3px) scale(1.05);
+          box-shadow: 0 0 20px rgba(250, 204, 21, 0.9);
         }
       }
 
@@ -1343,40 +1479,40 @@
         background: #ef4444;
         color: #facc15;
         font-weight: 900;
-        font-size: 18px;
+        font-size: 16px;
         transform: rotate(-25deg);
-        padding: 4px 10px;
-        border-radius: 20px;
+        padding: 3px 9px;
+        border-radius: 18px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
       }
     }
 
     .topCardTable {
-      width: 78px;
-      height: 116px;
+      width: 72px;
+      height: 104px;
       cursor: default;
 
       &:hover {
         transform: none;
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
       }
     }
   }
 
   .feltTurnCallout {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     color: #e2e8f0;
     background: rgba(0, 0, 0, 0.55);
-    padding: 5px 16px;
-    border-radius: 20px;
+    padding: 4px 14px;
+    border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.15);
     z-index: 3;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
 
     &.isMyTurn {
       color: #fef08a;
-      background: rgba(180, 83, 9, 0.75);
+      background: rgba(180, 83, 9, 0.8);
       border-color: #facc15;
       box-shadow: 0 0 12px rgba(250, 204, 21, 0.5);
       animation: turnGlow 1.5s infinite alternate;
@@ -1396,15 +1532,15 @@
     pointer-events: auto;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    border-radius: 12px;
-    background: rgba(15, 23, 42, 0.9);
+    gap: 7px;
+    padding: 4px 10px;
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.92);
     border: 1.5px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(8px);
     transition: all 0.25s ease;
-    max-width: 175px;
+    max-width: 165px;
 
     &.activeTurnSeat {
       border-color: #facc15;
@@ -1415,7 +1551,7 @@
     &.localPlayerSeat {
       border-color: #38bdf8;
       box-shadow: 0 0 14px rgba(56, 189, 248, 0.4);
-      background: rgba(12, 74, 110, 0.88);
+      background: rgba(12, 74, 110, 0.9);
 
       &.activeTurnSeat {
         border-color: #facc15;
@@ -1428,8 +1564,8 @@
       flex-shrink: 0;
 
       .seatAvatar {
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
         background: linear-gradient(135deg, #3b82f6, #8b5cf6);
         color: white;
@@ -1437,7 +1573,7 @@
         align-items: center;
         justify-content: center;
         font-weight: 800;
-        font-size: 13px;
+        font-size: 12px;
         text-transform: uppercase;
         border: 1.5px solid rgba(255, 255, 255, 0.3);
       }
@@ -1446,11 +1582,11 @@
         position: absolute;
         top: -4px;
         right: -4px;
-        font-size: 10px;
+        font-size: 9px;
         background: #f59e0b;
         border-radius: 50%;
-        width: 16px;
-        height: 16px;
+        width: 15px;
+        height: 15px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1484,22 +1620,22 @@
     .oppUnoCall {
       background: #ef4444;
       color: white;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 900;
-      padding: 2px 6px;
-      border-radius: 6px;
+      padding: 2px 5px;
+      border-radius: 5px;
       box-shadow: 0 0 8px #ef4444;
       animation: pulseUno 1s infinite alternate;
       flex-shrink: 0;
     }
 
     .catchUnoBtn {
-      padding: 3px 6px;
-      border-radius: 6px;
+      padding: 2px 6px;
+      border-radius: 5px;
       background: #dc2626;
       color: white;
       border: none;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 800;
       cursor: pointer;
       flex-shrink: 0;
@@ -1513,7 +1649,7 @@
 
     /* Posições dos assentos ao redor do feltro */
     &.seat-bottom-center {
-      bottom: 10px;
+      bottom: 4px;
       left: 50%;
       transform: translateX(-50%);
 
@@ -1523,8 +1659,8 @@
     }
 
     &.seat-bottom-left {
-      bottom: 40px;
-      left: 4%;
+      bottom: 24px;
+      left: 3%;
 
       &.activeTurnSeat {
         transform: scale(1.04);
@@ -1533,7 +1669,7 @@
 
     &.seat-middle-left {
       top: 50%;
-      left: 2%;
+      left: 1%;
       transform: translateY(-50%);
 
       &.activeTurnSeat {
@@ -1542,8 +1678,8 @@
     }
 
     &.seat-top-left {
-      top: 12px;
-      left: 16%;
+      top: 8px;
+      left: 14%;
 
       &.activeTurnSeat {
         transform: scale(1.04);
@@ -1551,7 +1687,7 @@
     }
 
     &.seat-top-center {
-      top: 10px;
+      top: 6px;
       left: 50%;
       transform: translateX(-50%);
 
@@ -1561,8 +1697,8 @@
     }
 
     &.seat-top-right {
-      top: 12px;
-      right: 16%;
+      top: 8px;
+      right: 14%;
 
       &.activeTurnSeat {
         transform: scale(1.04);
@@ -1571,7 +1707,7 @@
 
     &.seat-middle-right {
       top: 50%;
-      right: 2%;
+      right: 1%;
       transform: translateY(-50%);
 
       &.activeTurnSeat {
@@ -1580,8 +1716,8 @@
     }
 
     &.seat-bottom-right {
-      bottom: 40px;
-      right: 4%;
+      bottom: 24px;
+      right: 3%;
 
       &.activeTurnSeat {
         transform: scale(1.04);
@@ -1599,15 +1735,6 @@
   }
 }
 
-@keyframes turnGlow {
-  0% {
-    box-shadow: 0 0 6px rgba(250, 204, 21, 0.3);
-  }
-  100% {
-    box-shadow: 0 0 16px rgba(250, 204, 21, 0.8);
-  }
-}
-
 @keyframes pulseUno {
   0% {
     transform: scale(0.95);
@@ -1619,20 +1746,111 @@
   }
 }
 
+/* Área de Mão do Jogador Atual Integrada na Base */
+.unoPlayerHandArea {
+  flex: 0 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: rgba(10, 15, 29, 0.94);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  padding: 6px 16px 10px;
+
+  .handActionBar {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .turnStatusText {
+      font-size: 13px;
+      font-weight: 800;
+      color: #38bdf8;
+    }
+
+    .handButtons {
+      display: flex;
+      gap: 8px;
+
+      .unoShoutBtn {
+        padding: 6px 16px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #ef4444, #b91c1c);
+        color: white;
+        font-weight: 900;
+        font-size: 12px;
+        border: 2px solid #fecaca;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        transition: all 0.2s;
+
+        &:hover {
+          transform: scale(1.05);
+          box-shadow: 0 6px 18px rgba(239, 68, 68, 0.6);
+        }
+      }
+
+      .passBtn {
+        padding: 6px 14px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #cbd5e1;
+        font-size: 11px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        &:hover {
+          background: rgba(255, 255, 255, 0.18);
+        }
+      }
+    }
+  }
+
+  .handCardsRow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: visible;
+    width: 100%;
+    padding: 10px 6px 4px;
+    scrollbar-width: thin;
+    max-height: 135px;
+
+    &.denseCards {
+      .unoCard + .unoCard {
+        margin-left: -18px;
+      }
+
+      .unoCard:hover {
+        z-index: 30;
+        margin-right: 8px;
+      }
+    }
+  }
+}
+
 /* Cartas de Uno */
 .unoCard {
-  width: 90px;
-  height: 135px;
-  border-radius: 10px;
-  padding: 6px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  width: 72px;
+  height: 106px;
+  border-radius: 9px;
+  padding: 5px;
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.45);
   position: relative;
   user-select: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-  border: 3px solid #ffffff;
+  transition: all 0.18s ease;
+  border: 2.5px solid #ffffff;
+  flex-shrink: 0;
 
   &.red {
     background: #ef4444;
@@ -1662,28 +1880,28 @@
   }
 
   .cardCenterValue {
-    font-size: 36px;
+    font-size: 28px;
     font-weight: 900;
     color: #ffffff;
-    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
   }
 
   .cardCornerTop,
   .cardCornerBottom {
     position: absolute;
-    font-size: 14px;
+    font-size: 11px;
     font-weight: 900;
     color: #ffffff;
   }
 
   .cardCornerTop {
-    top: 6px;
-    left: 8px;
+    top: 4px;
+    left: 6px;
   }
 
   .cardCornerBottom {
-    bottom: 6px;
-    right: 8px;
+    bottom: 4px;
+    right: 6px;
     transform: rotate(180deg);
   }
 
@@ -1691,88 +1909,14 @@
     cursor: pointer;
     &:hover {
       transform: translateY(-16px) scale(1.08);
-      box-shadow: 0 16px 28px rgba(0, 0, 0, 0.6), 0 0 16px #38bdf8;
-      z-index: 10;
+      box-shadow: 0 14px 26px rgba(0, 0, 0, 0.6), 0 0 14px #38bdf8;
+      z-index: 25;
     }
   }
 
   &.notPlayable {
-    opacity: 0.65;
-    filter: grayscale(0.2);
-  }
-}
-
-/* Área de Mão do Jogador Atual */
-.unoPlayerHandArea {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  background: rgba(15, 23, 42, 0.8);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 14px 20px;
-  border-radius: 16px;
-
-  .handActionBar {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    .turnStatusText {
-      font-size: 14px;
-      font-weight: 800;
-      color: #38bdf8;
-    }
-
-    .handButtons {
-      display: flex;
-      gap: 10px;
-
-      .unoShoutBtn {
-        padding: 8px 20px;
-        border-radius: 8px;
-        background: linear-gradient(135deg, #ef4444, #b91c1c);
-        color: white;
-        font-weight: 900;
-        font-size: 13px;
-        border: 2px solid #fecaca;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-        transition: all 0.2s;
-
-        &:hover {
-          transform: scale(1.05);
-          box-shadow: 0 6px 18px rgba(239, 68, 68, 0.6);
-        }
-      }
-
-      .passBtn {
-        padding: 8px 16px;
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.1);
-        color: #cbd5e1;
-        font-size: 12px;
-        font-weight: 700;
-        border: none;
-        cursor: pointer;
-        &:hover {
-          background: rgba(255, 255, 255, 0.18);
-        }
-      }
-    }
-  }
-
-  .handCardsRow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    max-height: 200px;
-    overflow-y: auto;
-    width: 100%;
-    padding: 6px;
+    opacity: 0.6;
+    filter: grayscale(0.25);
   }
 }
 

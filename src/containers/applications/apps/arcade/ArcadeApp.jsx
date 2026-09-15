@@ -398,54 +398,61 @@ function ArcadeView({ visible }) {
       ? activeRoom.players?.length === 2
       : activeRoom?.players?.length >= 2);
 
+  const isPlayingOrFinished =
+    activeTab === "lobby" &&
+    activeRoom &&
+    (activeRoom.status === "PLAYING" || activeRoom.status === "FINISHED");
+
   return (
-    <div className="arcadeContainer">
-      {/* Header do Arcade */}
-      <header className="arcadeHeader">
-        <div className="arcadeBrand">
-          <div className="arcadeLogoIcon">
-            <img src="img/icon/arcade.svg" alt="Arcade" />
+    <div className={`arcadeContainer ${isPlayingOrFinished ? "inMatchMode" : ""}`}>
+      {/* Header do Arcade (visível no lobby e ranking; integrado à HUD durante o jogo) */}
+      {!isPlayingOrFinished && (
+        <header className="arcadeHeader">
+          <div className="arcadeBrand">
+            <div className="arcadeLogoIcon">
+              <img src="img/icon/arcade.svg" alt="Arcade" />
+            </div>
+            <div className="arcadeBrandTitles">
+              <h2>Arcade da Turma</h2>
+              <span>Jogos Multiplayer Escolares</span>
+            </div>
           </div>
-          <div className="arcadeBrandTitles">
-            <h2>Arcade da Turma</h2>
-            <span>Jogos Multiplayer Escolares</span>
-          </div>
-        </div>
 
-        <nav className="arcadeNavTabs">
-          <button
-            className={activeTab === "lobby" ? "active" : ""}
-            onClick={() => {
-              setActiveTab("lobby");
-              if (!activeRoom) loadRooms();
-            }}
-          >
-            🕹️ Salas de Jogos
-          </button>
-          <button
-            className={activeTab === "ranking" ? "active" : ""}
-            onClick={() => {
-              setActiveTab("ranking");
-              loadRankings();
-            }}
-          >
-            🏆 Hall da Fama
-          </button>
-        </nav>
+          <nav className="arcadeNavTabs">
+            <button
+              className={activeTab === "lobby" ? "active" : ""}
+              onClick={() => {
+                setActiveTab("lobby");
+                if (!activeRoom) loadRooms();
+              }}
+            >
+              🕹️ Salas de Jogos
+            </button>
+            <button
+              className={activeTab === "ranking" ? "active" : ""}
+              onClick={() => {
+                setActiveTab("ranking");
+                loadRankings();
+              }}
+            >
+              🏆 Hall da Fama
+            </button>
+          </nav>
 
-        <div className="arcadeHeaderUser">
-          <div className="arcadeUserBadge">
-            <strong>{person.name || person.username || "Jogador"}</strong>
-            <small>{person.turmaName || "Turma Geral"}</small>
+          <div className="arcadeHeaderUser">
+            <div className="arcadeUserBadge">
+              <strong>{person.name || person.username || "Jogador"}</strong>
+              <small>{person.turmaName || "Turma Geral"}</small>
+            </div>
+            <div className="arcadeAvatarCircle">
+              {(person.name || person.username || "J")[0]?.toUpperCase()}
+            </div>
           </div>
-          <div className="arcadeAvatarCircle">
-            {(person.name || person.username || "J")[0]?.toUpperCase()}
-          </div>
-        </div>
-      </header>
+        </header>
+      )}
 
-      {/* Conteúdo Principal com Barra de Rolagem */}
-      <main className="arcadeMainContent">
+      {/* Conteúdo Principal (maximizado quando em partida ativa) */}
+      <main className={`arcadeMainContent ${isPlayingOrFinished ? "inMatchContent" : ""}`}>
         {errorMsg && (
           <div className="max-w-2xl mx-auto mb-4 p-3 bg-red-900/60 border border-red-500 rounded-lg text-xs text-red-200 flex justify-between items-center">
             <span>{errorMsg}</span>
@@ -798,6 +805,9 @@ function ArcadeView({ visible }) {
             <div className="arcadeActiveGameWrapper">
               <div className="activeGameTopBar">
                 <div className="activeGameInfo">
+                  <div className="gameLogoMini">
+                    <img src="img/icon/arcade.svg" alt="Arcade" />
+                  </div>
                   <span className="roomTitle">{activeRoom.title}</span>
                   <span className={`gameBadge ${activeRoom.gameType}`}>
                     {activeRoom.gameType === "checkers" ? "Damas" : "Uno"}
@@ -806,6 +816,28 @@ function ArcadeView({ visible }) {
                     <span className="spectatorBadge">
                       👁️ Modo Espectador
                     </span>
+                  )}
+                </div>
+
+                {/* HUD Integrada Central com Informações da Partida em Tempo Real */}
+                <div className="activeGameHudCenter">
+                  {activeRoom.gameType === "checkers" && activeRoom.gameState && (
+                    <div className="checkersHudSummary">
+                      <span className="capturesScore">
+                        Placar: 🔴 {activeRoom.gameState.capturedCount?.[0] || 0} x {activeRoom.gameState.capturedCount?.[1] || 0} ⚪
+                      </span>
+                    </div>
+                  )}
+
+                  {activeRoom.gameType === "uno" && activeRoom.gameState?.activeColor && (
+                    <div className="unoHudSummary">
+                      <span className={`hudColorPill ${activeRoom.gameState.activeColor}`}>
+                        Cor: {activeRoom.gameState.activeColor}
+                      </span>
+                      <span className="hudDirection">
+                        {activeRoom.gameState.direction === 1 ? "↻ Horário" : "↺ Anti-horário"}
+                      </span>
+                    </div>
                   )}
                 </div>
 

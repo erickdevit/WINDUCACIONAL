@@ -310,7 +310,11 @@ export function UnoTable({
         </div>
 
         {/* Fileira de Cartas do Jogador */}
-        <div className="handCardsRow">
+        <div
+          className={`handCardsRow ${
+            myHand && myHand.length > 7 ? "denseCards" : ""
+          }`}
+        >
           {!me ? (
             <div className="text-center text-xs text-slate-400 py-3 w-full">
               👁️ Você está acompanhando a partida como espectador.

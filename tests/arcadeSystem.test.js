@@ -211,6 +211,18 @@ describe("Arcade - Componentes Frontend e Experiência do Usuário", () => {
     expect(scssCode).toContain(".spectatorBadge");
   });
 
+  it("integra a HUD superior com status em tempo real e maximiza a área de jogo eliminando rolagem desnecessária", () => {
+    expect(appComponentCode).toContain("isPlayingOrFinished");
+    expect(appComponentCode).toContain("inMatchMode");
+    expect(appComponentCode).toContain("inMatchContent");
+    expect(appComponentCode).toContain("activeGameHudCenter");
+    expect(unoComponentCode).toContain("denseCards");
+    expect(scssCode).toContain(".inMatchMode");
+    expect(scssCode).toContain(".inMatchContent");
+    expect(scssCode).toContain(".activeGameHudCenter");
+    expect(scssCode).toContain(".denseCards");
+  });
+
   it("exibe contagem regressiva e aviso de remoção automática de sala encerrada no card de fim de jogo", () => {
     expect(appComponentCode).toContain("autoCloseCountdown");
     expect(appComponentCode).toContain("autoCloseNotice");
