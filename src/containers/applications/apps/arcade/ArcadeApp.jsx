@@ -359,6 +359,27 @@ function ArcadeView({ visible }) {
     }
   };
 
+  // Apagar sala (Professor/Admin ou criador)
+  const handleDeleteRoom = async (roomId, roomTitle) => {
+    if (
+      !window.confirm(
+        `Tem certeza de que deseja apagar a sala "${roomTitle || "selecionada"}"?`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await api.deleteArcadeRoom(roomId);
+      if (activeRoom?.id === roomId) {
+        setActiveRoom(null);
+      }
+      loadRooms();
+    } catch (err) {
+      setErrorMsg(err.message || "Não foi possível apagar a sala.");
+    }
+  };
+
   const isStaff = person.role === "professor" || person.role === "admin";
   const isHost =
     activeRoom?.hostUserId === person.id ||
@@ -612,16 +633,31 @@ function ArcadeView({ visible }) {
                       👥 {room.playerCount || 1} / {room.maxPlayers}
                     </div>
 
-                    <button
-                      className="enterRoomBtn"
-                      onClick={() =>
-                        handleEnterRoom(room.id, room.status !== "WAITING")
-                      }
-                    >
-                      {room.status === "WAITING"
-                        ? "Entrar na Sala"
-                        : "Acompanhar"}
-                    </button>
+                    <div className="cardFooterBtns">
+                      <button
+                        className="enterRoomBtn"
+                        onClick={() =>
+                          handleEnterRoom(room.id, room.status !== "WAITING")
+                        }
+                      >
+                        {room.status === "WAITING"
+                          ? "Entrar na Sala"
+                          : "Acompanhar"}
+                      </button>
+
+                      {(isStaff || room.hostUserId === person.id) && (
+                        <button
+                          className="deleteRoomCardBtn"
+                          title="Apagar Sala"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteRoom(room.id, room.title);
+                          }}
+                        >
+                          🗑️
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -658,9 +694,22 @@ function ArcadeView({ visible }) {
                   </span>
                 </div>
 
-                <button className="leaveBtn" onClick={handleLeaveRoom}>
-                  Sair da Sala
-                </button>
+                <div className="waitingHeaderActions">
+                  <button className="leaveBtn" onClick={handleLeaveRoom}>
+                    Sair da Sala
+                  </button>
+
+                  {(isStaff || isHost) && (
+                    <button
+                      className="deleteRoomBtn"
+                      onClick={() =>
+                        handleDeleteRoom(activeRoom.id, activeRoom.title)
+                      }
+                    >
+                      🗑️ Apagar Sala
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -760,9 +809,22 @@ function ArcadeView({ visible }) {
                   )}
                 </div>
 
-                <button className="leaveBtn" onClick={handleLeaveRoom}>
-                  {myPlayerObj ? "Sair da Partida" : "Voltar ao Saguão"}
-                </button>
+                <div className="activeGameActions">
+                  <button className="leaveBtn" onClick={handleLeaveRoom}>
+                    {myPlayerObj ? "Sair da Partida" : "Voltar ao Saguão"}
+                  </button>
+
+                  {(isStaff || isHost) && (
+                    <button
+                      className="deleteRoomBtn"
+                      onClick={() =>
+                        handleDeleteRoom(activeRoom.id, activeRoom.title)
+                      }
+                    >
+                      🗑️ Apagar Sala
+                    </button>
+                  )}
+                </div>
               </div>
 
               {activeRoom.gameType === "checkers" && (

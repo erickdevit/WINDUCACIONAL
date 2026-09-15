@@ -141,7 +141,11 @@ export const useTypingEngine = (user, enabled = true) => {
 
   useEffect(() => {
     if (!mistakeJustAdded) return undefined;
-    const timeoutId = setTimeout(() => setMistakeJustAdded(false), 200);
+    const timeoutId = setTimeout(() => {
+      if (typeof window !== "undefined") {
+        setMistakeJustAdded(false);
+      }
+    }, 200);
     return () => clearTimeout(timeoutId);
   }, [mistakeJustAdded]);
 

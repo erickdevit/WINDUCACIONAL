@@ -80,6 +80,10 @@ describe("Typing Kids Engine", () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    vi.clearAllTimers();
+  });
+
   describe("Math Helpers", () => {
     it("calculates live WPM correctly", () => {
       // 25 chars = 5 words. 1 minute = 60000ms. 5 words / 1 min = 5 WPM.

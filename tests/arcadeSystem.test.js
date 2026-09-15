@@ -91,6 +91,14 @@ describe("Arcade - Backend, Rotas e Streaming SSE", () => {
     expect(arcadeRoutesCode).toContain("AUTO_REMOVE_FINISHED_DELAY_MS");
     expect(arcadeRoutesCode).toContain("ROOM_CLOSED");
   });
+
+  it("permite ao professor ou criador apagar a sala via DELETE /api/arcade/rooms/:id com broadcast aos participantes", () => {
+    expect(arcadeRoutesCode).toContain('app.delete("/api/arcade/rooms/:id"');
+    expect(arcadeRoutesCode).toContain(
+      "Apenas professores ou o criador da sala podem apagar esta sala."
+    );
+    expect(arcadeRoutesCode).toContain("A sala foi apagada pelo professor.");
+  });
 });
 
 describe("Arcade - Integração com Simulador e Área de Trabalho", () => {
@@ -115,6 +123,7 @@ describe("Arcade - Integração com Simulador e Área de Trabalho", () => {
     expect(apiCode).toContain("sendArcadeAction");
     expect(apiCode).toContain("leaveArcadeRoom");
     expect(apiCode).toContain("rematchArcadeGame");
+    expect(apiCode).toContain("deleteArcadeRoom");
     expect(apiCode).toContain("getArcadeRankings");
   });
 });
@@ -181,5 +190,14 @@ describe("Arcade - Componentes Frontend e Experiência do Usuário", () => {
     );
     expect(appComponentCode).toContain("ROOM_CLOSED");
     expect(scssCode).toContain(".autoCloseNotice");
+  });
+
+  it("permite ao professor ou criador apagar salas com botões no saguão, sala de espera e barra superior da partida", () => {
+    expect(appComponentCode).toContain("handleDeleteRoom");
+    expect(appComponentCode).toContain("deleteRoomCardBtn");
+    expect(appComponentCode).toContain("deleteRoomBtn");
+    expect(appComponentCode).toContain("deleteArcadeRoom");
+    expect(scssCode).toContain(".deleteRoomCardBtn");
+    expect(scssCode).toContain(".deleteRoomBtn");
   });
 });

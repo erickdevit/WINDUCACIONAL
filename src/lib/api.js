@@ -630,6 +630,10 @@ export const api = {
     request(`/api/arcade/rooms/${id}/rematch`, {
       method: "POST",
     }),
+  deleteArcadeRoom: (id) =>
+    request(`/api/arcade/rooms/${id}`, {
+      method: "DELETE",
+    }),
   getArcadeRankings: ({ turmaId, gameType } = {}) => {
     const params = new URLSearchParams();
     if (turmaId) params.set("turmaId", turmaId);

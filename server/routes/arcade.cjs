@@ -1037,7 +1037,50 @@ module.exports = function injectArcadeRoutes(ctx) {
     }
   );
 
-  // 10. Streaming SSE para sincronização da sala em tempo real
+  // 10. Apagar sala (permitido para professor/admin ou o criador da sala)
+  app.delete("/api/arcade/rooms/:id", requireAuth, async (req, res, next) => {
+    try {
+      const roomId = normalizeUuid(req.params.id, "ID da sala");
+
+      const roomRes = await pool.query(
+        `SELECT id, host_user_id, turma_id, title FROM arcade_rooms WHERE id = $1`,
+        [roomId]
+      );
+
+      if (roomRes.rows.length === 0) {
+        throw httpError(404, "Sala não encontrada.");
+      }
+
+      const room = roomRes.rows[0];
+      const isStaff = ["professor", "admin"].includes(req.user.role);
+      const isHost = room.host_user_id === req.user.id;
+
+      if (!isStaff && !isHost) {
+        throw httpError(
+          403,
+          "Apenas professores ou o criador da sala podem apagar esta sala."
+        );
+      }
+
+      cancelRoomAutoRemoval(roomId);
+
+      broadcastRoomEvent(roomId, "ROOM_CLOSED", {
+        roomId,
+        message: isStaff
+          ? "A sala foi apagada pelo professor."
+          : "A sala foi apagada pelo criador.",
+      });
+
+      await pool.query(`DELETE FROM arcade_rooms WHERE id = $1`, [roomId]);
+      liveRooms.delete(roomId);
+
+      res.json({ success: true, message: "Sala apagada com sucesso." });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // 11. Streaming SSE para sincronização da sala em tempo real
   app.get(
     "/api/arcade/rooms/:id/stream",
     requireAuth,

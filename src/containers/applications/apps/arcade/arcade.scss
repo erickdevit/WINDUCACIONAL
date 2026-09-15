@@ -399,6 +399,32 @@
       gap: 5px;
     }
 
+    .cardFooterBtns {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .deleteRoomCardBtn {
+        padding: 5px 8px;
+        border-radius: 8px;
+        font-size: 13px;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+          background: rgba(239, 68, 68, 0.35);
+          border-color: rgba(239, 68, 68, 0.6);
+          transform: translateY(-1px);
+        }
+      }
+    }
+
     .enterRoomBtn {
       padding: 6px 16px;
       border-radius: 8px;
@@ -613,19 +639,48 @@
       }
     }
 
-    .leaveBtn {
-      padding: 8px 16px;
-      border-radius: 8px;
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: #f87171;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
+    .waitingHeaderActions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
 
-      &:hover {
-        background: rgba(239, 68, 68, 0.25);
+      .leaveBtn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        background: rgba(148, 163, 184, 0.15);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        color: #cbd5e1;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+          background: rgba(148, 163, 184, 0.25);
+          color: #fff;
+        }
+      }
+
+      .deleteRoomBtn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        background: rgba(239, 68, 68, 0.2);
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        color: #fca5a5;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        &:hover {
+          background: rgba(239, 68, 68, 0.35);
+          border-color: rgba(239, 68, 68, 0.7);
+          color: #fff;
+          transform: translateY(-1px);
+        }
       }
     }
   }
@@ -801,19 +856,48 @@
       }
     }
 
-    .leaveBtn {
-      padding: 6px 14px;
-      border-radius: 8px;
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: #f87171;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
+    .activeGameActions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
 
-      &:hover {
-        background: rgba(239, 68, 68, 0.25);
+      .leaveBtn {
+        padding: 6px 14px;
+        border-radius: 8px;
+        background: rgba(148, 163, 184, 0.15);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        color: #cbd5e1;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+          background: rgba(148, 163, 184, 0.25);
+          color: #fff;
+        }
+      }
+
+      .deleteRoomBtn {
+        padding: 6px 14px;
+        border-radius: 8px;
+        background: rgba(239, 68, 68, 0.2);
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        color: #fca5a5;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+
+        &:hover {
+          background: rgba(239, 68, 68, 0.35);
+          border-color: rgba(239, 68, 68, 0.7);
+          color: #fff;
+          transform: translateY(-1px);
+        }
       }
     }
   }
