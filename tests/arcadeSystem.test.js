@@ -83,6 +83,14 @@ describe("Arcade - Backend, Rotas e Streaming SSE", () => {
       "Apenas os jogadores participantes podem realizar jogadas na partida."
     );
   });
+
+  it("remove salas encerradas sozinhas com agendamento automático, limpeza periódica e cancelamento em revanche", () => {
+    expect(arcadeRoutesCode).toContain("scheduleRoomAutoRemoval");
+    expect(arcadeRoutesCode).toContain("cancelRoomAutoRemoval");
+    expect(arcadeRoutesCode).toContain("cleanupStaleRooms");
+    expect(arcadeRoutesCode).toContain("AUTO_REMOVE_FINISHED_DELAY_MS");
+    expect(arcadeRoutesCode).toContain("ROOM_CLOSED");
+  });
 });
 
 describe("Arcade - Integração com Simulador e Área de Trabalho", () => {
@@ -163,5 +171,15 @@ describe("Arcade - Componentes Frontend e Experiência do Usuário", () => {
     expect(unoComponentCode).toContain("Modo Espectador");
     expect(scssCode).toContain(".activeGameTopBar");
     expect(scssCode).toContain(".spectatorBadge");
+  });
+
+  it("exibe contagem regressiva e aviso de remoção automática de sala encerrada no card de fim de jogo", () => {
+    expect(appComponentCode).toContain("autoCloseCountdown");
+    expect(appComponentCode).toContain("autoCloseNotice");
+    expect(appComponentCode).toContain(
+      "Esta sala encerrada será removida automaticamente em"
+    );
+    expect(appComponentCode).toContain("ROOM_CLOSED");
+    expect(scssCode).toContain(".autoCloseNotice");
   });
 });

@@ -162,9 +162,88 @@ module.exports = function injectArcadeRoutes(ctx) {
     }
   };
 
+  const AUTO_REMOVE_FINISHED_DELAY_MS = 30000; // 30 segundos de tolerância para visualização do resultado e revanche
+
+  /**
+   * Agenda a remoção automática de uma sala encerrada
+   */
+  const scheduleRoomAutoRemoval = (
+    roomId,
+    delayMs = AUTO_REMOVE_FINISHED_DELAY_MS
+  ) => {
+    const live = getOrCreateLiveRoom(roomId);
+    if (live.autoDeleteTimeout) {
+      clearTimeout(live.autoDeleteTimeout);
+    }
+
+    live.autoDeleteTimeout = setTimeout(async () => {
+      try {
+        const checkRes = await pool.query(
+          `SELECT id, status FROM arcade_rooms WHERE id = $1`,
+          [roomId]
+        );
+
+        if (
+          checkRes.rows.length > 0 &&
+          checkRes.rows[0].status === "FINISHED"
+        ) {
+          broadcastRoomEvent(roomId, "ROOM_CLOSED", {
+            roomId,
+            message: "A sala encerrada foi removida automaticamente.",
+          });
+
+          await pool.query(`DELETE FROM arcade_rooms WHERE id = $1`, [roomId]);
+        }
+      } catch (err) {
+        console.error("Erro na remoção automática da sala encerrada:", err);
+      } finally {
+        live.autoDeleteTimeout = null;
+        liveRooms.delete(roomId);
+      }
+    }, delayMs);
+
+    if (live.autoDeleteTimeout.unref) {
+      live.autoDeleteTimeout.unref();
+    }
+  };
+
+  /**
+   * Cancela a remoção automática agendada de uma sala (ex.: em caso de revanche)
+   */
+  const cancelRoomAutoRemoval = (roomId) => {
+    const live = liveRooms.get(roomId);
+    if (live && live.autoDeleteTimeout) {
+      clearTimeout(live.autoDeleteTimeout);
+      live.autoDeleteTimeout = null;
+    }
+  };
+
+  /**
+   * Limpa salas encerradas expiradas, canceladas ou órfãs abandonadas
+   */
+  const cleanupStaleRooms = async () => {
+    try {
+      await pool.query(
+        `DELETE FROM arcade_rooms
+         WHERE status = 'CANCELLED'
+            OR (status = 'FINISHED' AND updated_at < CURRENT_TIMESTAMP - INTERVAL '30 seconds')
+            OR (NOT EXISTS (SELECT 1 FROM arcade_room_players p WHERE p.room_id = arcade_rooms.id)
+                AND created_at < CURRENT_TIMESTAMP - INTERVAL '2 minutes')`
+      );
+    } catch (err) {
+      console.error("Erro na limpeza periódica de salas do Arcade:", err);
+    }
+  };
+
+  const cleanupInterval = setInterval(cleanupStaleRooms, 30000);
+  if (cleanupInterval.unref) {
+    cleanupInterval.unref();
+  }
+
   // 1. Listar salas disponíveis
   app.get("/api/arcade/rooms", requireAuth, async (req, res, next) => {
     try {
+      await cleanupStaleRooms();
       const { gameType, status } = req.query;
       const isStaff = ["professor", "admin"].includes(req.user.role);
 
@@ -211,8 +290,8 @@ module.exports = function injectArcadeRoutes(ctx) {
         params.push(status);
         whereClauses.push(`r.status = $${params.length}`);
       } else {
-        // Por padrão não lista salas finalizadas há muito tempo
-        whereClauses.push(`r.status != 'CANCELLED'`);
+        // Por padrão exibe apenas salas aguardando ou em partida (não polui o saguão com encerradas)
+        whereClauses.push(`r.status IN ('WAITING', 'PLAYING')`);
       }
 
       if (whereClauses.length > 0) {
@@ -763,11 +842,16 @@ module.exports = function injectArcadeRoutes(ctx) {
             allPlayerIds,
           });
 
+          scheduleRoomAutoRemoval(roomId, AUTO_REMOVE_FINISHED_DELAY_MS);
+
           broadcastRoomEvent(roomId, "GAME_OVER", {
             status: "FINISHED",
             winnerUserId: winnerId,
             gameState: updatedState,
             gameType: room.game_type,
+            autoRemoveInSeconds: Math.round(
+              AUTO_REMOVE_FINISHED_DELAY_MS / 1000
+            ),
             message: notificationMsg,
           });
         } else {
@@ -834,11 +918,9 @@ module.exports = function injectArcadeRoutes(ctx) {
         const remaining = remainingPlayersRes.rows;
 
         if (remaining.length === 0) {
-          // Se ninguém ficou na sala, marca como CANCELLED
-          await pool.query(
-            `UPDATE arcade_rooms SET status = 'CANCELLED', updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
-            [roomId]
-          );
+          // Se ninguém ficou na sala, cancela agendamento e remove imediatamente a sala
+          cancelRoomAutoRemoval(roomId);
+          await pool.query(`DELETE FROM arcade_rooms WHERE id = $1`, [roomId]);
           liveRooms.delete(roomId);
         } else {
           // Se o host saiu, passa o host para o próximo jogador
@@ -860,7 +942,7 @@ module.exports = function injectArcadeRoutes(ctx) {
                 live.gameState.winner = winner.userId;
               }
               await pool.query(
-                `UPDATE arcade_rooms SET status = 'FINISHED', winner_user_id = $1 WHERE id = $2`,
+                `UPDATE arcade_rooms SET status = 'FINISHED', winner_user_id = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
                 [winner.userId, roomId]
               );
               await recordMatchOutcome({
@@ -869,9 +951,13 @@ module.exports = function injectArcadeRoutes(ctx) {
                 turmaId: room.turma_id,
                 allPlayerIds: [winner.userId, req.user.id],
               });
+              scheduleRoomAutoRemoval(roomId, AUTO_REMOVE_FINISHED_DELAY_MS);
               broadcastRoomEvent(roomId, "GAME_OVER", {
                 status: "FINISHED",
                 winnerUserId: winner.userId,
+                autoRemoveInSeconds: Math.round(
+                  AUTO_REMOVE_FINISHED_DELAY_MS / 1000
+                ),
                 message: `${
                   req.user.displayName || req.user.username
                 } saiu da sala. Vitória de ${winner.displayName}!`,
@@ -919,8 +1005,10 @@ module.exports = function injectArcadeRoutes(ctx) {
           throw httpError(403, "Apenas o anfitrião pode solicitar revanche.");
         }
 
+        cancelRoomAutoRemoval(roomId);
+
         await pool.query(
-          `UPDATE arcade_rooms SET status = 'WAITING', winner_user_id = NULL, game_state = '{}'::jsonb WHERE id = $1`,
+          `UPDATE arcade_rooms SET status = 'WAITING', winner_user_id = NULL, game_state = '{}'::jsonb, updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
           [roomId]
         );
 
@@ -1025,7 +1113,21 @@ module.exports = function injectArcadeRoutes(ctx) {
           clearInterval(heartbeat);
           live.clients.delete(clientEntry);
           if (live.clients.size === 0 && room.status === "FINISHED") {
-            liveRooms.delete(roomId);
+            setTimeout(async () => {
+              try {
+                const currentLive = liveRooms.get(roomId);
+                if (!currentLive || currentLive.clients.size === 0) {
+                  cancelRoomAutoRemoval(roomId);
+                  await pool.query(
+                    `DELETE FROM arcade_rooms WHERE id = $1 AND status = 'FINISHED'`,
+                    [roomId]
+                  );
+                  liveRooms.delete(roomId);
+                }
+              } catch (err) {
+                console.error("Erro ao remover sala encerrada vazia:", err);
+              }
+            }, 3000);
           }
         });
       } catch (err) {

@@ -1528,6 +1528,17 @@
       margin: 0;
     }
 
+    .autoCloseNotice {
+      font-size: 12px;
+      font-weight: 700;
+      color: #94a3b8;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 6px 14px;
+      animation: pulse 2s infinite ease-in-out;
+    }
+
     .modalActionBtns {
       display: flex;
       gap: 12px;

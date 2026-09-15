@@ -33,6 +33,7 @@ function ArcadeView({ visible }) {
   const [activeRoom, setActiveRoom] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [autoCloseCountdown, setAutoCloseCountdown] = useState(null);
 
   // Modal de criação de sala
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -190,6 +191,13 @@ function ArcadeView({ visible }) {
                 }
               : null
           );
+        } else if (payload.type === "ROOM_CLOSED") {
+          setActiveRoom(null);
+          loadRooms();
+          if (payload.message) {
+            setErrorMsg(payload.message);
+            setTimeout(() => setErrorMsg(""), 4000);
+          }
         }
       } catch (err) {
         console.error("Erro ao processar evento do Arcade:", err);
@@ -203,7 +211,36 @@ function ArcadeView({ visible }) {
     return () => {
       eventSource.close();
     };
-  }, [visible, activeRoom?.id, loadRankings]);
+  }, [visible, activeRoom?.id, loadRankings, loadRooms]);
+
+  // Contagem regressiva para remoção automática de sala encerrada
+  useEffect(() => {
+    if (!activeRoom || activeRoom.status !== "FINISHED") {
+      setAutoCloseCountdown(null);
+      return;
+    }
+
+    setAutoCloseCountdown(30);
+    const timer = setInterval(() => {
+      setAutoCloseCountdown((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [activeRoom?.status, activeRoom?.id]);
+
+  // Retorna automaticamente ao saguão quando o tempo esgota
+  useEffect(() => {
+    if (autoCloseCountdown === 0 && activeRoom?.status === "FINISHED") {
+      setActiveRoom(null);
+      loadRooms();
+    }
+  }, [autoCloseCountdown, activeRoom?.status, loadRooms]);
 
   // Criação de nova sala
   const handleCreateRoom = async (e) => {
@@ -772,6 +809,13 @@ function ArcadeView({ visible }) {
                       )?.displayName || "outro jogador"
                     }!`}
               </p>
+
+              {autoCloseCountdown !== null && (
+                <div className="autoCloseNotice">
+                  ⏳ Esta sala encerrada será removida automaticamente em{" "}
+                  {autoCloseCountdown}s
+                </div>
+              )}
 
               <div className="modalActionBtns">
                 {isHost && (
