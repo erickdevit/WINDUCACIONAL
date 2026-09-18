@@ -284,7 +284,7 @@ export const Gestor = () => {
                       </button>
                     )}
                   </div>
-                  <div className="sessionList">
+                  <div className="sessionList win11Scroll">
                     {turma.sessions.map((session) => (
                       <div key={session.sessionId} className="sessionRow">
                         <div className="sessionIdentity">
