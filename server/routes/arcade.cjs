@@ -1,6 +1,9 @@
 const crypto = require("node:crypto");
 const checkers = require("../domain/arcadeCheckers.cjs");
 const uno = require("../domain/arcadeUno.cjs");
+const domino = require("../domain/arcadeDomino.cjs");
+const tictactoe = require("../domain/arcadeTicTacToe.cjs");
+const hangman = require("../domain/arcadeHangman.cjs");
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -47,7 +50,7 @@ module.exports = function injectArcadeRoutes(ctx) {
   };
 
   /**
-   * Sanitiza o estado de Uno para um jogador específico, escondendo as cartas de outros jogadores
+   * Sanitiza o estado de jogos com informações ocultas (Uno, Dominó, Forca)
    */
   const sanitizeGameStateForUser = (rawGameState, gameType, userId) => {
     const gameState = parseJsonField(rawGameState);
@@ -58,31 +61,71 @@ module.exports = function injectArcadeRoutes(ctx) {
     ) {
       return null;
     }
-    if (gameType !== "uno") return gameState;
-    if (!Array.isArray(gameState.players)) return null;
 
-    // No Uno, cada jogador vê suas cartas e apenas o número de cartas dos outros
-    return {
-      ...gameState,
-      drawPileCount:
-        gameState.drawPile && Array.isArray(gameState.drawPile)
-          ? gameState.drawPile.length
-          : 0,
-      drawPile: undefined, // Esconde monte de compras para evitar trapaça
-      players: gameState.players.map((p) => {
-        if (p.userId === userId) {
-          return p; // Suas próprias cartas
-        }
-        return {
-          userId: p.userId,
-          username: p.username,
-          displayName: p.displayName,
-          seatIndex: p.seatIndex,
-          cardCount: p.hand ? p.hand.length : 0,
-          calledUno: p.calledUno,
-        };
-      }),
-    };
+    if (gameType === "uno") {
+      if (!Array.isArray(gameState.players)) return null;
+      return {
+        ...gameState,
+        drawPileCount:
+          gameState.drawPile && Array.isArray(gameState.drawPile)
+            ? gameState.drawPile.length
+            : 0,
+        drawPile: undefined, // Esconde monte de compras
+        players: gameState.players.map((p) => {
+          if (p.userId === userId) {
+            return p; // Suas próprias cartas
+          }
+          return {
+            userId: p.userId,
+            username: p.username,
+            displayName: p.displayName,
+            seatIndex: p.seatIndex,
+            cardCount: p.hand ? p.hand.length : 0,
+            calledUno: p.calledUno,
+          };
+        }),
+      };
+    }
+
+    if (gameType === "domino") {
+      if (!Array.isArray(gameState.players)) return null;
+      return {
+        ...gameState,
+        boneyardCount:
+          gameState.boneyard && Array.isArray(gameState.boneyard)
+            ? gameState.boneyard.length
+            : 0,
+        boneyard: undefined, // Esconde pedras do dorme
+        players: gameState.players.map((p) => {
+          if (p.userId === userId) {
+            return p; // Suas próprias pedras
+          }
+          return {
+            userId: p.userId,
+            username: p.username,
+            displayName: p.displayName,
+            seatIndex: p.seatIndex,
+            tileCount: p.hand ? p.hand.length : 0,
+          };
+        }),
+      };
+    }
+
+    if (gameType === "hangman") {
+      const isFinished = gameState.status === "FINISHED";
+      return {
+        ...gameState,
+        secretWord: isFinished ? gameState.secretWord : undefined, // Oculta a palavra secreta durante o jogo
+        displayWord: isFinished ? gameState.displayWord : undefined, // Oculta a exibição original sem acento durante o jogo
+        maskedWord: hangman.getMaskedWord(
+          gameState.secretWord,
+          gameState.displayWord,
+          gameState.guessedLetters || []
+        ),
+      };
+    }
+
+    return gameState;
   };
 
   /**
@@ -290,7 +333,6 @@ module.exports = function injectArcadeRoutes(ctx) {
         params.push(status);
         whereClauses.push(`r.status = $${params.length}`);
       } else {
-        // Por padrão exibe apenas salas aguardando ou em partida (não polui o saguão com encerradas)
         whereClauses.push(`r.status IN ('WAITING', 'PLAYING')`);
       }
 
@@ -320,23 +362,24 @@ module.exports = function injectArcadeRoutes(ctx) {
         );
       }
 
-      if (!["checkers", "uno"].includes(gameType)) {
+      if (!["checkers", "uno", "domino", "tictactoe", "hangman"].includes(gameType)) {
         throw httpError(
           400,
-          "Tipo de jogo inválido. Escolha 'checkers' ou 'uno'."
+          "Tipo de jogo inválido."
         );
       }
 
       let parsedMaxPlayers = 2;
-      if (gameType === "checkers") {
+      if (gameType === "checkers" || gameType === "tictactoe") {
         parsedMaxPlayers = 2;
-      } else {
+      } else if (gameType === "domino" || gameType === "hangman") {
         parsedMaxPlayers = parseInt(maxPlayers, 10);
-        if (
-          isNaN(parsedMaxPlayers) ||
-          parsedMaxPlayers < 2 ||
-          parsedMaxPlayers > 6
-        ) {
+        if (isNaN(parsedMaxPlayers) || parsedMaxPlayers < 2 || parsedMaxPlayers > 4) {
+          parsedMaxPlayers = 4;
+        }
+      } else if (gameType === "uno") {
+        parsedMaxPlayers = parseInt(maxPlayers, 10);
+        if (isNaN(parsedMaxPlayers) || parsedMaxPlayers < 2 || parsedMaxPlayers > 6) {
           parsedMaxPlayers = 6;
         }
       }
@@ -415,7 +458,6 @@ module.exports = function injectArcadeRoutes(ctx) {
 
       const room = roomRes.rows[0];
 
-      // Alunos só podem acessar salas da própria turma
       const userTurmaId = req.user.turma_id || req.user.turmaId;
       if (
         !["professor", "admin"].includes(req.user.role) &&
@@ -497,7 +539,6 @@ module.exports = function injectArcadeRoutes(ctx) {
           throw httpError(403, "Você não tem acesso a esta turma.");
         }
 
-        // Verifica se já está na sala como jogador
         const existing = await pool.query(
           `SELECT id FROM arcade_room_players WHERE room_id = $1 AND user_id = $2`,
           [roomId, req.user.id]
@@ -519,7 +560,6 @@ module.exports = function injectArcadeRoutes(ctx) {
           });
         }
 
-        // Se não é jogador da sala e a partida já começou ou foi encerrada, aceita como espectador
         if (room.status !== "WAITING") {
           const allPlayersRes = await pool.query(
             `SELECT p.user_id AS "userId", p.seat_index AS "seatIndex", p.is_ready AS "isReady", u.display_name AS "displayName", u.username
@@ -657,11 +697,23 @@ module.exports = function injectArcadeRoutes(ctx) {
 
         const players = playersRes.rows;
 
-        if (room.game_type === "checkers" && players.length !== 2) {
+        if (
+          (room.game_type === "checkers" || room.game_type === "tictactoe") &&
+          players.length !== 2
+        ) {
           throw httpError(
             400,
-            "O jogo de Damas necessita exatamente de 2 jogadores para iniciar."
+            "Este jogo exige exatamente 2 jogadores para iniciar."
           );
+        }
+
+        if (room.game_type === "domino" || room.game_type === "hangman") {
+          if (players.length < 2 || players.length > 4) {
+            throw httpError(
+              400,
+              "Este jogo exige de 2 a 4 jogadores para iniciar."
+            );
+          }
         }
 
         if (room.game_type === "uno") {
@@ -685,6 +737,12 @@ module.exports = function injectArcadeRoutes(ctx) {
             initialGameState = checkers.initCheckersGame(players);
           } else if (room.game_type === "uno") {
             initialGameState = uno.initUnoGame(players);
+          } else if (room.game_type === "domino") {
+            initialGameState = domino.initDominoGame(players);
+          } else if (room.game_type === "tictactoe") {
+            initialGameState = tictactoe.initTicTacToeGame(players);
+          } else if (room.game_type === "hangman") {
+            initialGameState = hangman.initHangmanGame(players);
           }
         } catch (domainErr) {
           throw httpError(
@@ -726,7 +784,7 @@ module.exports = function injectArcadeRoutes(ctx) {
     }
   );
 
-  // 7. Ação no jogo (Jogar peça, jogar carta, comprar carta, gritar uno, etc.)
+  // 7. Ação no jogo
   app.post(
     "/api/arcade/rooms/:id/action",
     requireAuth,
@@ -763,7 +821,6 @@ module.exports = function injectArcadeRoutes(ctx) {
           throw httpError(400, "O estado da partida não foi encontrado.");
         }
 
-        // Valida se o usuário é participante ativo da partida
         const isParticipant = (live.gameState?.players || []).some(
           (p) => p.userId === req.user.id
         );
@@ -786,7 +843,6 @@ module.exports = function injectArcadeRoutes(ctx) {
                 req.user.id
               );
             } else if (action.type === "RESIGN") {
-              // Desistência
               const opponent = updatedState.players.find(
                 (p) => p.userId !== req.user.id
               );
@@ -824,6 +880,47 @@ module.exports = function injectArcadeRoutes(ctx) {
               notificationMsg = catchRes.message;
             } else {
               throw httpError(400, "Tipo de ação inválido para Uno.");
+            }
+          } else if (room.game_type === "domino") {
+            if (action.type === "PLAY_TILE") {
+              updatedState = domino.playDominoTile(
+                updatedState,
+                req.user.id,
+                action.tileId,
+                action.targetEnd
+              );
+            } else if (action.type === "DRAW_TILE") {
+              updatedState = domino.drawDominoTile(updatedState, req.user.id);
+            } else if (action.type === "PASS") {
+              updatedState = domino.passDominoTurn(updatedState, req.user.id);
+            } else {
+              throw httpError(400, "Tipo de ação inválido para Dominó.");
+            }
+          } else if (room.game_type === "tictactoe") {
+            if (action.type === "MAKE_MOVE") {
+              updatedState = tictactoe.makeTicTacToeMove(
+                updatedState,
+                req.user.id,
+                action.position
+              );
+            } else {
+              throw httpError(400, "Tipo de ação inválido para Jogo da Velha.");
+            }
+          } else if (room.game_type === "hangman") {
+            if (action.type === "GUESS_LETTER") {
+              updatedState = hangman.guessHangmanLetter(
+                updatedState,
+                req.user.id,
+                action.letter
+              );
+            } else if (action.type === "GUESS_WORD") {
+              updatedState = hangman.guessHangmanWord(
+                updatedState,
+                req.user.id,
+                action.attemptWord
+              );
+            } else {
+              throw httpError(400, "Tipo de ação inválido para Jogo da Forca.");
             }
           }
         } catch (domainErr) {
@@ -863,7 +960,6 @@ module.exports = function injectArcadeRoutes(ctx) {
             message: notificationMsg,
           });
         } else {
-          // Atualiza estado no banco
           await pool.query(
             `UPDATE arcade_rooms SET game_state = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
             [JSON.stringify(updatedState), roomId]
@@ -926,12 +1022,10 @@ module.exports = function injectArcadeRoutes(ctx) {
         const remaining = remainingPlayersRes.rows;
 
         if (remaining.length === 0) {
-          // Se ninguém ficou na sala, cancela agendamento e remove imediatamente a sala
           cancelRoomAutoRemoval(roomId);
           await pool.query(`DELETE FROM arcade_rooms WHERE id = $1`, [roomId]);
           liveRooms.delete(roomId);
         } else {
-          // Se o host saiu, passa o host para o próximo jogador
           if (room.host_user_id === req.user.id) {
             const newHost = remaining[0];
             await pool.query(
@@ -940,10 +1034,12 @@ module.exports = function injectArcadeRoutes(ctx) {
             );
           }
 
-          // Se estava jogando Damas e um jogador saiu, o outro vence
           const live = getOrCreateLiveRoom(roomId);
           if (room.status === "PLAYING") {
-            if (room.game_type === "checkers" && remaining.length === 1) {
+            if (
+              (room.game_type === "checkers" || room.game_type === "tictactoe") &&
+              remaining.length === 1
+            ) {
               const winner = remaining[0];
               if (live.gameState) {
                 live.gameState.status = "FINISHED";
@@ -1045,7 +1141,7 @@ module.exports = function injectArcadeRoutes(ctx) {
     }
   );
 
-  // 10. Apagar sala (permitido para professor/admin ou o criador da sala)
+  // 10. Apagar sala
   app.delete("/api/arcade/rooms/:id", requireAuth, async (req, res, next) => {
     try {
       const roomId = normalizeUuid(req.params.id, "ID da sala");
@@ -1088,7 +1184,7 @@ module.exports = function injectArcadeRoutes(ctx) {
     }
   });
 
-  // 11. Streaming SSE para sincronização da sala em tempo real
+  // 11. Streaming SSE
   app.get(
     "/api/arcade/rooms/:id/stream",
     requireAuth,
@@ -1137,7 +1233,6 @@ module.exports = function injectArcadeRoutes(ctx) {
         }
         live.clients.add(clientEntry);
 
-        // Envia estado inicial sincronizado
         const initialSanitized = sanitizeGameStateForUser(
           live.gameState || parsedDbState,
           room.game_type,
@@ -1187,12 +1282,11 @@ module.exports = function injectArcadeRoutes(ctx) {
     }
   );
 
-  // 11. Rankings (Global e por Turma)
+  // 12. Rankings
   app.get("/api/arcade/rankings", requireAuth, async (req, res, next) => {
     try {
       const { turmaId, gameType = "overall" } = req.query;
 
-      // Ranking por Turma
       let turmaRankings = [];
       const activeTurmaId =
         turmaId || req.user.turma_id || req.user.turmaId;
@@ -1217,7 +1311,6 @@ module.exports = function injectArcadeRoutes(ctx) {
         turmaRankings = turmaRes.rows;
       }
 
-      // Ranking Global
       const globalRes = await pool.query(
         `SELECT 
            r.user_id AS "userId",
