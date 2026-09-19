@@ -166,6 +166,123 @@ module.exports = function injectQuizRoutes(ctx) {
             },
           ],
         },
+        {
+          title: "Módulo Windows 11 (Iniciante)",
+          description: "Quiz super fácil sobre os recursos e aplicativos do Windows 11 com base nas apostilas do curso.",
+          category: "Windows 11",
+          questions: [
+            {
+              text: "No Windows 11, qual elemento da interface fica posicionado de forma centralizada por padrão na Barra de Tarefas?",
+              timeLimit: 20,
+              points: 1000,
+              options: [
+                { text: "A Lixeira do sistema", isCorrect: false, letter: "A" },
+                { text: "O Menu Iniciar", isCorrect: true, letter: "B" },
+                { text: "O Painel de Controle", isCorrect: false, letter: "C" },
+                { text: "O relógio e a data", isCorrect: false, letter: "D" },
+              ],
+            },
+            {
+              text: "Qual aplicativo nativo do Windows 11 é um editor de texto simples, ideal para anotações rápidas e que salva arquivos com a extensão .txt?",
+              timeLimit: 20,
+              points: 1000,
+              options: [
+                { text: "Bloco de Notas", isCorrect: true, letter: "A" },
+                { text: "Calculadora", isCorrect: false, letter: "B" },
+                { text: "Microsoft Edge", isCorrect: false, letter: "C" },
+                { text: "Paint", isCorrect: false, letter: "D" },
+              ],
+            },
+            {
+              text: "Qual é o navegador de Internet padrão desenvolvido pela Microsoft e integrado ao Windows 11?",
+              timeLimit: 20,
+              points: 1000,
+              options: [
+                { text: "Explorador de Arquivos", isCorrect: false, letter: "A" },
+                { text: "Bloco de Notas", isCorrect: false, letter: "B" },
+                { text: "Microsoft Edge", isCorrect: true, letter: "C" },
+                { text: "Outlook", isCorrect: false, letter: "D" },
+              ],
+            },
+            {
+              text: "Na informática básica, quantos bits formam 1 Byte (quantidade necessária para representar um caractere)?",
+              timeLimit: 20,
+              points: 1000,
+              options: [
+                { text: "2 bits", isCorrect: false, letter: "A" },
+                { text: "4 bits", isCorrect: false, letter: "B" },
+                { text: "16 bits", isCorrect: false, letter: "C" },
+                { text: "8 bits", isCorrect: true, letter: "D" },
+              ],
+            },
+            {
+              text: "Para onde vão temporariamente os arquivos excluídos do computador, permitindo que eles sejam restaurados caso necessário?",
+              timeLimit: 20,
+              points: 1000,
+              options: [
+                { text: "Lixeira", isCorrect: true, letter: "A" },
+                { text: "Barra de Tarefas", isCorrect: false, letter: "B" },
+                { text: "Área de Transferência", isCorrect: false, letter: "C" },
+                { text: "Menu Iniciar", isCorrect: false, letter: "D" },
+              ],
+            },
+            {
+              text: "Em qual seção das Configurações do Windows 11 é possível alterar o plano de fundo (papel de parede), as cores e os temas da tela?",
+              timeLimit: 20,
+              points: 1000,
+              options: [
+                { text: "Rede e Internet", isCorrect: false, letter: "A" },
+                { text: "Personalização", isCorrect: true, letter: "B" },
+                { text: "Hora e Idioma", isCorrect: false, letter: "C" },
+                { text: "Dispositivos e Impressoras", isCorrect: false, letter: "D" },
+              ],
+            },
+            {
+              text: "Nas configurações de Acessibilidade do Windows 11, os recursos são organizados em três categorias principais. Quais são elas?",
+              timeLimit: 20,
+              points: 1000,
+              options: [
+                { text: "Visão, Audição e Interação", isCorrect: true, letter: "A" },
+                { text: "Jogos, Músicas e Filmes", isCorrect: false, letter: "B" },
+                { text: "Arquivos, Pastas e Discos", isCorrect: false, letter: "C" },
+                { text: "Teclado, Mouse e Monitor", isCorrect: false, letter: "D" },
+              ],
+            },
+            {
+              text: "Qual programa tradicional do Windows permite criar desenhos, recortar imagens e pintar usando formas geométricas básicas?",
+              timeLimit: 20,
+              points: 1000,
+              options: [
+                { text: "Microsoft To Do", isCorrect: false, letter: "A" },
+                { text: "Outlook", isCorrect: false, letter: "B" },
+                { text: "Paint", isCorrect: true, letter: "C" },
+                { text: "Bloco de Notas", isCorrect: false, letter: "D" },
+              ],
+            },
+            {
+              text: "Em qual local da Barra de Tarefas ficam situados o relógio do sistema e a data, permitindo abrir o calendário com um clique?",
+              timeLimit: 20,
+              points: 1000,
+              options: [
+                { text: "No canto inferior esquerdo", isCorrect: false, letter: "A" },
+                { text: "No canto inferior direito", isCorrect: true, letter: "B" },
+                { text: "No topo da Área de Trabalho", isCorrect: false, letter: "C" },
+                { text: "Centralizado junto ao Menu Iniciar", isCorrect: false, letter: "D" },
+              ],
+            },
+            {
+              text: "Qual ferramenta de acessibilidade do Windows 11 realiza a leitura em voz alta do conteúdo exibido na tela para auxiliar pessoas com deficiência visual?",
+              timeLimit: 20,
+              points: 1000,
+              options: [
+                { text: "Gravador de Passos", isCorrect: false, letter: "A" },
+                { text: "Gerenciador de Tarefas", isCorrect: false, letter: "B" },
+                { text: "Lupa", isCorrect: false, letter: "C" },
+                { text: "Narrador", isCorrect: true, letter: "D" },
+              ],
+            },
+          ],
+        },
       ];
 
       for (const tpl of defaultTemplates) {

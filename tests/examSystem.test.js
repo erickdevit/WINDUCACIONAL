@@ -130,4 +130,47 @@ describe("EduExam Pro - Lógica de Avaliação", () => {
     expect(examAppSource).toContain("normalizeName(event.target.value)");
     expect(examAppSource).toContain("api.updateMyDisplayName");
   });
+
+  it("deve conter a migration 0011 com a prova do módulo Windows 11 baseada nas apostilas sem Clipchamp", () => {
+    const migrationPath = path.resolve(
+      __dirname,
+      "../server/db/migrations/0011_windows_11_exam.sql"
+    );
+    expect(fs.existsSync(migrationPath)).toBe(true);
+
+    const sql = fs.readFileSync(migrationPath, "utf8");
+    expect(sql).toContain("Prova: Módulo Windows 11");
+    expect(sql).toContain("e1100000-0000-4000-a000-000000000011");
+
+    // Deve cobrir os tópicos das apostilas do módulo 278
+    expect(sql).toContain("Barra de Tarefas");
+    expect(sql).toContain("Bloco de Notas");
+    expect(sql).toContain("Microsoft Edge");
+    expect(sql).toContain("quantos bits formam 1 Byte");
+    expect(sql).toContain("Lixeira");
+    expect(sql).toContain("Personalização");
+    expect(sql).toContain("Visão, Audição e Interação");
+    expect(sql).toContain("Paint");
+    expect(sql).toContain("Narrador");
+
+    // Deve ignorar estritamente o Clipchamp conforme solicitação
+    expect(sql.toLowerCase()).not.toContain("clipchamp");
+
+    // Deve conter 10 questões
+    const questionMatches = sql.match(/INSERT INTO exam_questions/g);
+    expect(questionMatches).toHaveLength(10);
+  });
+
+  it("deve garantir o semeio automático da prova do Windows 11 em server/routes/exams.cjs", () => {
+    const examsRoutesSource = fs.readFileSync(
+      path.resolve(__dirname, "../server/routes/exams.cjs"),
+      "utf8"
+    );
+
+    expect(examsRoutesSource).toContain("ensureDefaultExams");
+    expect(examsRoutesSource).toContain("Prova: Módulo Windows 11");
+    expect(examsRoutesSource).toContain("e1100000-0000-4000-a000-000000000011");
+    expect(examsRoutesSource.toLowerCase()).not.toContain("clipchamp");
+  });
 });
+

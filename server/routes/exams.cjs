@@ -25,8 +25,169 @@ module.exports = function injectExamsRoutes(ctx) {
     requireProfessor,
   } = ctx;
 
+  const WINDOWS_11_EXAM_ID = "e1100000-0000-4000-a000-000000000011";
+
+  const ensureDefaultExams = async () => {
+    try {
+      const check = await pool.query(
+        "SELECT id FROM exams WHERE id = $1",
+        [WINDOWS_11_EXAM_ID]
+      );
+      if (check.rowCount > 0) return;
+
+      await pool.query(
+        `INSERT INTO exams (
+          id, turma_id, title, description, container_initial_state, time_limit, is_published, active
+        ) VALUES ($1, NULL, $2, $3, '{}'::jsonb, 30, TRUE, TRUE)
+        ON CONFLICT (id) DO UPDATE SET
+          title = EXCLUDED.title,
+          description = EXCLUDED.description,
+          is_published = TRUE,
+          active = TRUE`,
+        [
+          WINDOWS_11_EXAM_ID,
+          "Prova: Módulo Windows 11",
+          "Avaliação teórica introdutória sobre os principais conceitos do Windows 11 com base nas apostilas do curso: Introdução ao Windows 11, Aplicativos, Microsoft Edge, Explorador de Arquivos, Personalização do Sistema, Acessibilidade e Barra de Tarefas.",
+        ]
+      );
+
+      const defaultQuestions = [
+        {
+          id: "e1100000-0000-4000-a000-000000000001",
+          text: "No Windows 11, qual elemento da interface fica posicionado de forma centralizada por padrão na Barra de Tarefas?",
+          options: [
+            "A Lixeira do sistema",
+            "O Menu Iniciar",
+            "O Painel de Controle",
+            "O relógio e a data",
+          ],
+          correctAnswer: "b",
+          orderIndex: 1,
+        },
+        {
+          id: "e1100000-0000-4000-a000-000000000002",
+          text: "Qual aplicativo nativo do Windows 11 é um editor de texto simples, ideal para anotações rápidas e que salva arquivos com a extensão .txt?",
+          options: ["Bloco de Notas", "Calculadora", "Microsoft Edge", "Paint"],
+          correctAnswer: "a",
+          orderIndex: 2,
+        },
+        {
+          id: "e1100000-0000-4000-a000-000000000003",
+          text: "Qual é o navegador de Internet padrão desenvolvido pela Microsoft e integrado ao Windows 11?",
+          options: [
+            "Explorador de Arquivos",
+            "Bloco de Notas",
+            "Microsoft Edge",
+            "Outlook",
+          ],
+          correctAnswer: "c",
+          orderIndex: 3,
+        },
+        {
+          id: "e1100000-0000-4000-a000-000000000004",
+          text: "Na informática básica, quantos bits formam 1 Byte (quantidade necessária para representar um caractere no computador)?",
+          options: ["2 bits", "4 bits", "16 bits", "8 bits"],
+          correctAnswer: "d",
+          orderIndex: 4,
+        },
+        {
+          id: "e1100000-0000-4000-a000-000000000005",
+          text: "Para onde vão temporariamente os arquivos excluídos do computador, permitindo que eles sejam restaurados caso necessário?",
+          options: [
+            "Lixeira",
+            "Barra de Tarefas",
+            "Área de Transferência",
+            "Menu Iniciar",
+          ],
+          correctAnswer: "a",
+          orderIndex: 5,
+        },
+        {
+          id: "e1100000-0000-4000-a000-000000000006",
+          text: "Em qual seção das Configurações do Windows 11 é possível alterar o plano de fundo (papel de parede), as cores e os temas da tela?",
+          options: [
+            "Rede e Internet",
+            "Personalização",
+            "Hora e Idioma",
+            "Dispositivos e Impressoras",
+          ],
+          correctAnswer: "b",
+          orderIndex: 6,
+        },
+        {
+          id: "e1100000-0000-4000-a000-000000000007",
+          text: "Nas configurações de Acessibilidade do Windows 11, os recursos são organizados em três categorias principais. Quais são elas?",
+          options: [
+            "Visão, Audição e Interação",
+            "Jogos, Músicas e Filmes",
+            "Arquivos, Pastas e Discos",
+            "Teclado, Mouse e Monitor",
+          ],
+          correctAnswer: "a",
+          orderIndex: 7,
+        },
+        {
+          id: "e1100000-0000-4000-a000-000000000008",
+          text: "Qual programa tradicional do Windows permite criar desenhos, recortar imagens e pintar usando formas geométricas básicas?",
+          options: ["Microsoft To Do", "Outlook", "Paint", "Bloco de Notas"],
+          correctAnswer: "c",
+          orderIndex: 8,
+        },
+        {
+          id: "e1100000-0000-4000-a000-000000000009",
+          text: "Em qual local da Barra de Tarefas ficam situados o relógio do sistema e a data, permitindo abrir o calendário com um clique?",
+          options: [
+            "No canto inferior esquerdo",
+            "No canto inferior direito",
+            "No topo da Área de Trabalho",
+            "Centralizado junto ao Menu Iniciar",
+          ],
+          correctAnswer: "b",
+          orderIndex: 9,
+        },
+        {
+          id: "e1100000-0000-4000-a000-000000000010",
+          text: "Qual ferramenta de acessibilidade do Windows 11 realiza a leitura em voz alta do conteúdo exibido na tela para auxiliar pessoas com deficiência visual?",
+          options: [
+            "Gravador de Passos",
+            "Gerenciador de Tarefas",
+            "Lupa",
+            "Narrador",
+          ],
+          correctAnswer: "d",
+          orderIndex: 10,
+        },
+      ];
+
+      for (const q of defaultQuestions) {
+        await pool.query(
+          `INSERT INTO exam_questions (
+            id, exam_id, type, text, options, correct_answer, validation_rules, points, time_limit, order_index
+          ) VALUES ($1, $2, 'mcq', $3, $4, $5, '[]'::jsonb, 1, 0, $6)
+          ON CONFLICT (id) DO UPDATE SET
+            text = EXCLUDED.text,
+            options = EXCLUDED.options,
+            correct_answer = EXCLUDED.correct_answer,
+            points = EXCLUDED.points,
+            order_index = EXCLUDED.order_index`,
+          [
+            q.id,
+            WINDOWS_11_EXAM_ID,
+            q.text,
+            JSON.stringify(q.options),
+            q.correctAnswer,
+            q.orderIndex,
+          ]
+        );
+      }
+    } catch (err) {
+      console.error("Erro ao semear prova padrão do Windows 11:", err);
+    }
+  };
+
   app.get("/api/exams", requireAuth, async (req, res, next) => {
     try {
+      await ensureDefaultExams();
       let result;
       if (req.user.role !== "aluno") {
         result = await pool.query(
