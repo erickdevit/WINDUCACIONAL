@@ -130,4 +130,18 @@ describe("App Window Structure", () => {
     );
     expect(chatContent).toContain("preventScroll: true");
   });
+
+  it("Gestor deve conter classe win11Scroll na lista de alunos logados por turma com overflow vertical no SCSS", () => {
+    const gestorContent = read(
+      "../src/containers/applications/apps/Gestor.jsx"
+    );
+    const gestorStyles = read(
+      "../src/containers/applications/apps/gestor.scss"
+    );
+
+    expect(gestorContent).toContain("sessionList win11Scroll");
+    expect(gestorStyles).toContain(".sessionList {");
+    expect(gestorStyles).toContain("max-height:");
+    expect(gestorStyles).toContain("overflow-y: auto;");
+  });
 });
