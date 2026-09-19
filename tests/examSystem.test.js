@@ -152,13 +152,19 @@ describe("EduExam Pro - Lógica de Avaliação", () => {
     expect(sql).toContain("Visão, Audição e Interação");
     expect(sql).toContain("Paint");
     expect(sql).toContain("Narrador");
+    expect(sql).toContain("Snap Layout");
+    expect(sql).toContain("Apresentação de slides");
+    expect(sql).toContain("Em foco, Inspirador, Informativo e Personalizado");
+    expect(sql).toContain("Bing");
+    expect(sql).toContain("Widgets");
+    expect(sql).toContain("Microsoft To Do");
 
     // Deve ignorar estritamente o Clipchamp conforme solicitação
     expect(sql.toLowerCase()).not.toContain("clipchamp");
 
-    // Deve conter 10 questões
+    // Deve conter 20 questões
     const questionMatches = sql.match(/INSERT INTO exam_questions/g);
-    expect(questionMatches).toHaveLength(10);
+    expect(questionMatches).toHaveLength(20);
   });
 
   it("deve garantir o semeio automático da prova do Windows 11 em server/routes/exams.cjs", () => {
@@ -170,6 +176,7 @@ describe("EduExam Pro - Lógica de Avaliação", () => {
     expect(examsRoutesSource).toContain("ensureDefaultExams");
     expect(examsRoutesSource).toContain("Prova: Módulo Windows 11");
     expect(examsRoutesSource).toContain("e1100000-0000-4000-a000-000000000011");
+    expect(examsRoutesSource).toContain("Snap Layout");
     expect(examsRoutesSource.toLowerCase()).not.toContain("clipchamp");
   });
 });

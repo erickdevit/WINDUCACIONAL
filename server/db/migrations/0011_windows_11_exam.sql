@@ -330,3 +330,303 @@ INSERT INTO exam_questions (
   correct_answer = EXCLUDED.correct_answer,
   points = EXCLUDED.points,
   order_index = EXCLUDED.order_index;
+
+-- Questão 11: Snap Layout (Apostila 1 - Introdução ao Windows 11)
+INSERT INTO exam_questions (
+  id,
+  exam_id,
+  type,
+  text,
+  options,
+  correct_answer,
+  validation_rules,
+  points,
+  time_limit,
+  order_index
+) VALUES (
+  'e1100000-0000-4000-a000-000000000011',
+  'e1100000-0000-4000-a000-000000000011',
+  'mcq',
+  'O que é o recurso Snap Layout no Windows 11 e qual é a sua principal função?',
+  '["Um recurso para desenhar formas geométricas no Paint", "Uma ferramenta de organização que ajuda a dividir e posicionar janelas na tela com facilidade", "Um antivírus integrado que remove arquivos da Lixeira", "Um reprodutor de vídeos e músicas"]'::jsonb,
+  'b',
+  '[]'::jsonb,
+  1,
+  0,
+  11
+) ON CONFLICT (id) DO UPDATE SET
+  text = EXCLUDED.text,
+  options = EXCLUDED.options,
+  correct_answer = EXCLUDED.correct_answer,
+  points = EXCLUDED.points,
+  order_index = EXCLUDED.order_index;
+
+-- Questão 12: Como acionar o Snap Layout (Apostila 1 - Introdução ao Windows 11)
+INSERT INTO exam_questions (
+  id,
+  exam_id,
+  type,
+  text,
+  options,
+  correct_answer,
+  validation_rules,
+  points,
+  time_limit,
+  order_index
+) VALUES (
+  'e1100000-0000-4000-a000-000000000012',
+  'e1100000-0000-4000-a000-000000000011',
+  'mcq',
+  'Como o usuário pode abrir o menu flutuante com as opções de Snap Layout em uma janela?',
+  '["Posicionando o ponteiro do mouse sobre o botão Maximizar/Restaurar da janela", "Clicando duas vezes na Lixeira", "Pressionando a tecla Esc dez vezes", "Desligando o monitor do computador"]'::jsonb,
+  'a',
+  '[]'::jsonb,
+  1,
+  0,
+  12
+) ON CONFLICT (id) DO UPDATE SET
+  text = EXCLUDED.text,
+  options = EXCLUDED.options,
+  correct_answer = EXCLUDED.correct_answer,
+  points = EXCLUDED.points,
+  order_index = EXCLUDED.order_index;
+
+-- Questão 13: Personalização da Área de Trabalho (Apostila 6 - Personalizando o Sistema)
+INSERT INTO exam_questions (
+  id,
+  exam_id,
+  type,
+  text,
+  options,
+  correct_answer,
+  validation_rules,
+  points,
+  time_limit,
+  order_index
+) VALUES (
+  'e1100000-0000-4000-a000-000000000013',
+  'e1100000-0000-4000-a000-000000000011',
+  'mcq',
+  'Na personalização da tela de fundo da Área de Trabalho, qual opção permite alternar automaticamente várias fotos de uma pasta ao longo do tempo?',
+  '["Cor sólida", "Imagem única", "Apresentação de slides", "Bloqueio de tela"]'::jsonb,
+  'c',
+  '[]'::jsonb,
+  1,
+  0,
+  13
+) ON CONFLICT (id) DO UPDATE SET
+  text = EXCLUDED.text,
+  options = EXCLUDED.options,
+  correct_answer = EXCLUDED.correct_answer,
+  points = EXCLUDED.points,
+  order_index = EXCLUDED.order_index;
+
+-- Questão 14: Modos de Cores do Sistema (Apostila 6 - Personalizando o Sistema)
+INSERT INTO exam_questions (
+  id,
+  exam_id,
+  type,
+  text,
+  options,
+  correct_answer,
+  validation_rules,
+  points,
+  time_limit,
+  order_index
+) VALUES (
+  'e1100000-0000-4000-a000-000000000014',
+  'e1100000-0000-4000-a000-000000000011',
+  'mcq',
+  'Ao personalizar as cores do Windows 11, quais são os três modos de cores disponíveis para o sistema e aplicativos?',
+  '["Claro, Escuro e Personalizado", "Azul, Vermelho e Amarelo", "Econômico, Turbo e Silencioso", "Manhã, Tarde e Noite"]'::jsonb,
+  'a',
+  '[]'::jsonb,
+  1,
+  0,
+  14
+) ON CONFLICT (id) DO UPDATE SET
+  text = EXCLUDED.text,
+  options = EXCLUDED.options,
+  correct_answer = EXCLUDED.correct_answer,
+  points = EXCLUDED.points,
+  order_index = EXCLUDED.order_index;
+
+-- Questão 15: Personalização do Microsoft Edge - Layouts (Apostila 3 - Microsoft Edge)
+INSERT INTO exam_questions (
+  id,
+  exam_id,
+  type,
+  text,
+  options,
+  correct_answer,
+  validation_rules,
+  points,
+  time_limit,
+  order_index
+) VALUES (
+  'e1100000-0000-4000-a000-000000000015',
+  'e1100000-0000-4000-a000-000000000011',
+  'mcq',
+  'Ao personalizar a página inicial do navegador Microsoft Edge, quais são as opções de layout que o usuário pode escolher?',
+  '["Em foco, Inspirador, Informativo e Personalizado", "Rápido, Médio, Lento e Parado", "Desenho, Pintura, Escultura e Foto", "Word, Excel, PowerPoint e Access"]'::jsonb,
+  'a',
+  '[]'::jsonb,
+  1,
+  0,
+  15
+) ON CONFLICT (id) DO UPDATE SET
+  text = EXCLUDED.text,
+  options = EXCLUDED.options,
+  correct_answer = EXCLUDED.correct_answer,
+  points = EXCLUDED.points,
+  order_index = EXCLUDED.order_index;
+
+-- Questão 16: Buscador Padrão do Microsoft Edge (Apostila 3 - Microsoft Edge)
+INSERT INTO exam_questions (
+  id,
+  exam_id,
+  type,
+  text,
+  options,
+  correct_answer,
+  validation_rules,
+  points,
+  time_limit,
+  order_index
+) VALUES (
+  'e1100000-0000-4000-a000-000000000016',
+  'e1100000-0000-4000-a000-000000000011',
+  'mcq',
+  'Qual é o motor de busca (buscador) padrão integrado ao Microsoft Edge para pesquisar sites, notícias e imagens na Internet?',
+  '["Bing", "Paint", "Bloco de Notas", "Lixeira"]'::jsonb,
+  'a',
+  '[]'::jsonb,
+  1,
+  0,
+  16
+) ON CONFLICT (id) DO UPDATE SET
+  text = EXCLUDED.text,
+  options = EXCLUDED.options,
+  correct_answer = EXCLUDED.correct_answer,
+  points = EXCLUDED.points,
+  order_index = EXCLUDED.order_index;
+
+-- Questão 17: Personalização do Bloco de Notas (Apostila 2 - Aplicativos Parte I)
+INSERT INTO exam_questions (
+  id,
+  exam_id,
+  type,
+  text,
+  options,
+  correct_answer,
+  validation_rules,
+  points,
+  time_limit,
+  order_index
+) VALUES (
+  'e1100000-0000-4000-a000-000000000017',
+  'e1100000-0000-4000-a000-000000000011',
+  'mcq',
+  'Como o usuário pode alterar o tema (Claro ou Escuro) e o estilo de fonte dentro do Bloco de Notas no Windows 11?',
+  '["Clicando no ícone de engrenagem (Configurações) no canto superior direito do aplicativo", "Excluindo o arquivo de texto", "Pressionando o botão de desligar do computador", "Abrindo a calculadora do sistema"]'::jsonb,
+  'a',
+  '[]'::jsonb,
+  1,
+  0,
+  17
+) ON CONFLICT (id) DO UPDATE SET
+  text = EXCLUDED.text,
+  options = EXCLUDED.options,
+  correct_answer = EXCLUDED.correct_answer,
+  points = EXCLUDED.points,
+  order_index = EXCLUDED.order_index;
+
+-- Questão 18: Barra de Tarefas - Fixar Aplicativos (Apostila 10 - Barra de Tarefas)
+INSERT INTO exam_questions (
+  id,
+  exam_id,
+  type,
+  text,
+  options,
+  correct_answer,
+  validation_rules,
+  points,
+  time_limit,
+  order_index
+) VALUES (
+  'e1100000-0000-4000-a000-000000000018',
+  'e1100000-0000-4000-a000-000000000011',
+  'mcq',
+  'O que acontece quando você escolhe a opção \"Fixar na barra de tarefas\" em um aplicativo no Windows 11?',
+  '["O aplicativo é desinstalado do computador", "É criado um atalho permanente do aplicativo na Barra de Tarefas para acesso rápido", "O computador é reiniciado imediatamente", "O aplicativo passa a abrir somente no Bloco de Notas"]'::jsonb,
+  'b',
+  '[]'::jsonb,
+  1,
+  0,
+  18
+) ON CONFLICT (id) DO UPDATE SET
+  text = EXCLUDED.text,
+  options = EXCLUDED.options,
+  correct_answer = EXCLUDED.correct_answer,
+  points = EXCLUDED.points,
+  order_index = EXCLUDED.order_index;
+
+-- Questão 19: Widgets no Windows 11 (Apostila 10 - Barra de Tarefas)
+INSERT INTO exam_questions (
+  id,
+  exam_id,
+  type,
+  text,
+  options,
+  correct_answer,
+  validation_rules,
+  points,
+  time_limit,
+  order_index
+) VALUES (
+  'e1100000-0000-4000-a000-000000000019',
+  'e1100000-0000-4000-a000-000000000011',
+  'mcq',
+  'Qual recurso da Barra de Tarefas permite acompanhar rapidamente previsões do clima, notícias recentes e informações úteis do dia?',
+  '["Widgets", "Prompt de Comando", "Desfragmentador de Disco", "Lixeira"]'::jsonb,
+  'a',
+  '[]'::jsonb,
+  1,
+  0,
+  19
+) ON CONFLICT (id) DO UPDATE SET
+  text = EXCLUDED.text,
+  options = EXCLUDED.options,
+  correct_answer = EXCLUDED.correct_answer,
+  points = EXCLUDED.points,
+  order_index = EXCLUDED.order_index;
+
+-- Questão 20: Gerenciamento de Tarefas com Microsoft To Do (Apostila 8 - Aplicativos Parte II)
+INSERT INTO exam_questions (
+  id,
+  exam_id,
+  type,
+  text,
+  options,
+  correct_answer,
+  validation_rules,
+  points,
+  time_limit,
+  order_index
+) VALUES (
+  'e1100000-0000-4000-a000-000000000020',
+  'e1100000-0000-4000-a000-000000000011',
+  'mcq',
+  'Qual aplicativo da Microsoft incluído no Windows 11 é dedicado à criação e organização de listas de tarefas para o dia a dia?',
+  '["Paint", "Microsoft To Do", "Bloco de Notas", "Calculadora"]'::jsonb,
+  'b',
+  '[]'::jsonb,
+  1,
+  0,
+  20
+) ON CONFLICT (id) DO UPDATE SET
+  text = EXCLUDED.text,
+  options = EXCLUDED.options,
+  correct_answer = EXCLUDED.correct_answer,
+  points = EXCLUDED.points,
+  order_index = EXCLUDED.order_index;
