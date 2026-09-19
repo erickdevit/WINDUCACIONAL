@@ -582,31 +582,103 @@ function ArcadeView({ visible }) {
         {/* ================= ABA DO LOBBY ================= */}
         {activeTab === "lobby" && !activeRoom && (
           <div className="arcadeLobbyView">
-            <div className="arcadeLobbyBanner">
-              <div className="bannerInfo">
-                <h3>Salas de Jogos da Turma</h3>
+            {/* Banner Gamer / Showcase */}
+            <section className="arcadeHeroShowcase">
+              <div className="heroGlowEffect"></div>
+              <div className="heroContent">
+                <div className="heroBadge">
+                  <span className="liveDot"></span> ARENA MULTIPLAYER DA TURMA
+                </div>
+                <h2>Hub Principal de Games</h2>
                 <p>
                   Jogue partidas multiplayer educativas com seus colegas de classe!
                   Escolha entre Damas, Uno, Dominó, Jogo da Velha e Forca.
                 </p>
+
+                <div className="heroStatsRow">
+                  <div className="statItem">
+                    <span className="statValue">{rooms.length}</span>
+                    <span className="statLabel">Salas Ativas</span>
+                  </div>
+                  <div className="statDivider"></div>
+                  <div className="statItem">
+                    <span className="statValue">
+                      {rooms.reduce((acc, r) => acc + (r.playerCount || 1), 0)}
+                    </span>
+                    <span className="statLabel">Jogadores Online</span>
+                  </div>
+                  <div className="statDivider"></div>
+                  <div className="statItem">
+                    <span className="statValue">5 Games</span>
+                    <span className="statLabel">Disponíveis</span>
+                  </div>
+                </div>
               </div>
-              <button
-                className="bannerActionBtn"
-                onClick={() => setShowCreateModal(true)}
-              >
-                <span>➕</span> Criar Sala de Jogo
-              </button>
-            </div>
+
+              <div className="heroActions">
+                <button
+                  className="heroCreateRoomBtn"
+                  onClick={() => setShowCreateModal(true)}
+                >
+                  <span className="btnIcon">⚡</span>
+                  <div className="btnTextGroup">
+                    <strong>Criar Nova Sala</strong>
+                    <small>Seja o host da partida</small>
+                  </div>
+                </button>
+              </div>
+            </section>
+
+            {/* Vitrine Visual dos Games Disponíveis */}
+            <section className="arcadeGamesCatalog">
+              <div className="sectionTitleGroup">
+                <h3>🎮 Jogos Disponíveis</h3>
+                <span>Selecione para filtrar salas ou criar nova partida</span>
+              </div>
+
+              <div className="gamesCardsGrid flex flex-wrap gap-3">
+                {[
+                  { id: "checkers", name: "Damas", tag: "Estratégia 1v1", icon: "🔴⚪", desc: "Duelo tático tradicional em tabuleiro 8x8.", meta: "👥 2 Jogadores" },
+                  { id: "uno", name: "Uno Clássico", tag: "Cartas Multiplayer", icon: "🃏", desc: "Mesa rápida de cartas especiais e acusações de UNO.", meta: "👥 2 até 6 Jogadores" },
+                  { id: "domino", name: "Dominó", tag: "Mesa & Peças", icon: "🎲", desc: "Encaixe pedras nas pontas e esvazie sua mão.", meta: "👥 2 até 4 Jogadores" },
+                  { id: "tictactoe", name: "Jogo da Velha", tag: "Casual 1v1", icon: "❌⭕", desc: "Alinhe 3 símbolos em linha, coluna ou diagonal.", meta: "👥 2 Jogadores" },
+                  { id: "hangman", name: "Jogo da Forca", tag: "Educativo / Palavras", icon: "✏️", desc: "Adivinhe a palavra secreta por letras ou palpite.", meta: "👥 2 até 4 Jogadores" },
+                ].map((g) => (
+                  <div
+                    key={g.id}
+                    className={`gameHubCard ${selectedGameFilter === g.id ? "active" : ""}`}
+                    onClick={() =>
+                      setSelectedGameFilter((prev) =>
+                        prev === g.id ? "all" : g.id
+                      )
+                    }
+                  >
+                    <div className="gameCardBanner">
+                      <span className="gameTag">{g.tag}</span>
+                      <div className="gameCardIcon">{g.icon}</div>
+                    </div>
+                    <div className="gameCardInfo">
+                      <h4>{g.name}</h4>
+                      <p>{g.desc}</p>
+                      <div className="gameCardMeta">
+                        <span>{g.meta}</span>
+                        <span className="highlight">Ranking</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
 
             <div className="arcadeFilterRow">
               <div className="gameTypeFilters flex flex-wrap gap-1.5">
                 {[
-                  { id: "all", label: "Todos os Jogos" },
-                  { id: "checkers", label: "Damas" },
-                  { id: "uno", label: "Uno" },
-                  { id: "domino", label: "Dominó" },
-                  { id: "tictactoe", label: "Jogo da Velha" },
-                  { id: "hangman", label: "Forca" },
+                  { id: "all", label: "🕹️ Todas as Salas" },
+                  { id: "checkers", label: "🔴 Damas" },
+                  { id: "uno", label: "🃏 Uno" },
+                  { id: "domino", label: "🎲 Dominó" },
+                  { id: "tictactoe", label: "❌⭕ Velha" },
+                  { id: "hangman", label: "✏️ Forca" },
                 ].map((f) => (
                   <button
                     key={f.id}
@@ -619,7 +691,7 @@ function ArcadeView({ visible }) {
               </div>
 
               <button className="refreshBtn" onClick={loadRooms}>
-                🔄 Atualizar
+                🔄 Atualizar Salas
               </button>
             </div>
 
@@ -633,33 +705,38 @@ function ArcadeView({ visible }) {
                     </span>
                     <span className={`statusPill ${room.status.toLowerCase()}`}>
                       {room.status === "WAITING"
-                        ? "Aguardando"
+                        ? "🟢 Aguardando"
                         : room.status === "PLAYING"
-                        ? "Em partida"
-                        : "Encerrada"}
+                        ? "⚔️ Em Partida"
+                        : "🏁 Encerrada"}
                     </span>
                   </div>
 
                   <div className="cardBody">
                     <h4>{room.title}</h4>
-                    <p>Criada por {room.hostName || room.hostUsername}</p>
+                    <div className="hostInfo">
+                      <div className="hostAvatar">
+                        {(room.hostName || room.hostUsername || "H")[0].toUpperCase()}
+                      </div>
+                      <span>Host: <strong>{room.hostName || room.hostUsername}</strong></span>
+                    </div>
                   </div>
 
                   <div className="cardFooter">
                     <div className="playerCount">
-                      👥 {room.playerCount || 1} / {room.maxPlayers}
+                      <span className="usersIcon">👥</span> {room.playerCount || 1} / {room.maxPlayers}
                     </div>
 
                     <div className="cardFooterBtns">
                       <button
-                        className="enterRoomBtn"
+                        className={`enterRoomBtn ${room.status === "PLAYING" ? "spectate" : ""}`}
                         onClick={() =>
                           handleEnterRoom(room.id, room.status !== "WAITING")
                         }
                       >
                         {room.status === "WAITING"
                           ? "Entrar na Sala"
-                          : "Acompanhar"}
+                          : "👁️ Espectar"}
                       </button>
 
                       {(isStaff || room.hostUserId === person.id) && (
@@ -682,12 +759,17 @@ function ArcadeView({ visible }) {
 
             {rooms.length === 0 && !loading && (
               <div className="arcadeEmptyState">
-                <div className="text-4xl">🕹️</div>
+                <div className="emptyIcon">🚀</div>
                 <h4>Nenhuma sala aberta no momento</h4>
                 <p>
-                  Que tal criar uma nova sala de jogo e convidar seus
-                  colegas de turma?
+                  A arena está livre! Seja o primeiro a criar uma sala e convide a turma para jogar!
                 </p>
+                <button
+                  className="emptyCreateBtn"
+                  onClick={() => setShowCreateModal(true)}
+                >
+                  ⚡ Criar Primeira Sala
+                </button>
               </div>
             )}
           </div>
