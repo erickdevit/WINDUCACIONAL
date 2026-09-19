@@ -34,6 +34,7 @@ function ArcadeView({ visible }) {
   const [activeTab, setActiveTab] = useState("lobby"); // 'lobby', 'ranking'
   const [rooms, setRooms] = useState([]);
   const [selectedGameFilter, setSelectedGameFilter] = useState("all"); // 'all', 'checkers', 'uno', 'domino', 'tictactoe', 'hangman'
+  const [roomViewMode, setRoomViewMode] = useState("grid"); // 'grid' ou 'list' (padrão: 'grid')
   const [activeRoom, setActiveRoom] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -580,197 +581,267 @@ function ArcadeView({ visible }) {
           </div>
         )}
 
-        {/* ================= ABA DO LOBBY (HUB GAMER DE JOGOS) ================= */}
+        {/* ================= ABA DO LOBBY (LISTA E GRADE DE SALAS) ================= */}
         {activeTab === "lobby" && !activeRoom && (
           <div className="arcadeLobbyView">
-            {/* Showcase Hero Central do Hub Gamer */}
-            <section className="arcadeHeroShowcase">
-              <div className="heroGlowEffect"></div>
-              <div className="heroContent">
-                <div className="heroBadge">
-                  <span className="liveDot"></span> ARENA MULTIPLAYER DA TURMA
-                </div>
-                <h2>Hub Principal de Games</h2>
-                <p>
-                  Jogue partidas multiplayer educativas com seus colegas de classe!
-                  Escolha entre Damas, Uno, Dominó, Jogo da Velha e Forca.
-                </p>
+            {/* Barra de Ações Enxuta: Criar Sala, Filtros e Alternância de Visualização */}
+            <div className="arcadeLobbyTopBar">
+              <button
+                className="arcadeCreateRoomBtn"
+                onClick={() => setShowCreateModal(true)}
+              >
+                <span className="createBtnPlus">+</span> Criar Sala
+              </button>
 
-                <div className="heroStatsRow">
-                  <div className="statItem">
-                    <span className="statValue">{rooms.length}</span>
-                    <span className="statLabel">Salas Ativas</span>
-                  </div>
-                  <div className="statDivider"></div>
-                  <div className="statItem">
-                    <span className="statValue">
-                      {rooms.reduce((acc, r) => acc + (r.playerCount || 1), 0)}
-                    </span>
-                    <span className="statLabel">Jogadores Online</span>
-                  </div>
-                  <div className="statDivider"></div>
-                  <div className="statItem">
-                    <span className="statValue">5 Games</span>
-                    <span className="statLabel">Disponíveis</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="heroActions">
+              <div className="arcadeGameFilters">
                 <button
-                  className="heroCreateRoomBtn"
-                  onClick={() => setShowCreateModal(true)}
+                  className={selectedGameFilter === "all" ? "active" : ""}
+                  onClick={() => setSelectedGameFilter("all")}
                 >
-                  <span className="btnIcon">⚡</span>
-                  <div className="btnTextGroup">
-                    <strong>Criar Nova Sala</strong>
-                    <small>Seja o host da partida</small>
-                  </div>
+                  🕹️ Todas as Salas ({rooms.length})
+                </button>
+                <button
+                  className={selectedGameFilter === "checkers" ? "active" : ""}
+                  onClick={() => setSelectedGameFilter("checkers")}
+                >
+                  🔴 Damas ({rooms.filter((r) => r.gameType === "checkers").length})
+                </button>
+                <button
+                  className={selectedGameFilter === "uno" ? "active" : ""}
+                  onClick={() => setSelectedGameFilter("uno")}
+                >
+                  🃏 Uno ({rooms.filter((r) => r.gameType === "uno").length})
+                </button>
+                <button
+                  className={selectedGameFilter === "domino" ? "active" : ""}
+                  onClick={() => setSelectedGameFilter("domino")}
+                >
+                  🎲 Dominó ({rooms.filter((r) => r.gameType === "domino").length})
+                </button>
+                <button
+                  className={selectedGameFilter === "tictactoe" ? "active" : ""}
+                  onClick={() => setSelectedGameFilter("tictactoe")}
+                >
+                  ❌⭕ Velha ({rooms.filter((r) => r.gameType === "tictactoe").length})
+                </button>
+                <button
+                  className={selectedGameFilter === "hangman" ? "active" : ""}
+                  onClick={() => setSelectedGameFilter("hangman")}
+                >
+                  ✏️ Forca ({rooms.filter((r) => r.gameType === "hangman").length})
                 </button>
               </div>
-            </section>
 
-            {/* Vitrine Visual dos Games Disponíveis */}
-            <section className="arcadeGamesCatalog">
-              <div className="sectionTitleGroup">
-                <h3>🎮 Jogos Disponíveis</h3>
-                <span>Selecione para filtrar salas ou criar nova partida</span>
-              </div>
-
-              <div className="gamesCardsGrid flex flex-wrap gap-3">
-                {[
-                  { id: "checkers", name: "Damas", tag: "Estratégia 1v1", icon: "🔴⚪", desc: "Duelo tático tradicional em tabuleiro 8x8.", meta: "👥 2 Jogadores" },
-                  { id: "uno", name: "Uno Clássico", tag: "Cartas Multiplayer", icon: "🃏", desc: "Mesa rápida de cartas especiais e acusações de UNO.", meta: "👥 2 até 6 Jogadores" },
-                  { id: "domino", name: "Dominó", tag: "Mesa & Peças", icon: "🎲", desc: "Encaixe pedras nas pontas e esvazie sua mão.", meta: "👥 2 até 4 Jogadores" },
-                  { id: "tictactoe", name: "Jogo da Velha", tag: "Casual 1v1", icon: "❌⭕", desc: "Alinhe 3 símbolos em linha, coluna ou diagonal.", meta: "👥 2 Jogadores" },
-                  { id: "hangman", name: "Jogo da Forca", tag: "Educativo / Palavras", icon: "✏️", desc: "Adivinhe a palavra secreta por letras ou palpite.", meta: "👥 2 até 4 Jogadores" },
-                ].map((g) => (
-                  <div
-                    key={g.id}
-                    className={`gameHubCard ${selectedGameFilter === g.id ? "active" : ""}`}
-                    onClick={() =>
-                      setSelectedGameFilter((prev) =>
-                        prev === g.id ? "all" : g.id
-                      )
-                    }
-                  >
-                    <div className="gameCardBanner">
-                      <span className="gameTag">{g.tag}</span>
-                      <div className="gameCardIcon">{g.icon}</div>
-                    </div>
-                    <div className="gameCardInfo">
-                      <h4>{g.name}</h4>
-                      <p>{g.desc}</p>
-                      <div className="gameCardMeta">
-                        <span>{g.meta}</span>
-                        <span className="highlight">Ranking</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Filtros e Barra de Controle de Salas */}
-            <div className="arcadeFilterRow">
-              <div className="gameTypeFilters flex flex-wrap gap-1.5">
-                {[
-                  { id: "all", label: "🕹️ Todas as Salas" },
-                  { id: "checkers", label: "🔴 Damas" },
-                  { id: "uno", label: "🃏 Uno" },
-                  { id: "domino", label: "🎲 Dominó" },
-                  { id: "tictactoe", label: "❌⭕ Velha" },
-                  { id: "hangman", label: "✏️ Forca" },
-                ].map((f) => (
+              <div className="arcadeViewControls">
+                <div
+                  className="viewModeSwitch"
+                  role="group"
+                  aria-label="Modo de visualização"
+                >
                   <button
-                    key={f.id}
-                    className={selectedGameFilter === f.id ? "active" : ""}
-                    onClick={() => setSelectedGameFilter(f.id)}
+                    className={`viewModeBtn ${roomViewMode === "grid" ? "active" : ""}`}
+                    onClick={() => setRoomViewMode("grid")}
+                    title="Modo Grade"
+                    aria-label="Modo Grade"
                   >
-                    {f.label}
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 16 16"
+                      fill="currentColor"
+                    >
+                      <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z" />
+                    </svg>
+                    <span>Grade</span>
                   </button>
+                  <button
+                    className={`viewModeBtn ${roomViewMode === "list" ? "active" : ""}`}
+                    onClick={() => setRoomViewMode("list")}
+                    title="Modo Lista"
+                    aria-label="Modo Lista"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 16 16"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"
+                      />
+                    </svg>
+                    <span>Lista</span>
+                  </button>
+                </div>
+
+                <button
+                  className="refreshBtn"
+                  onClick={loadRooms}
+                  title="Atualizar Salas"
+                >
+                  🔄 Atualizar
+                </button>
+              </div>
+            </div>
+
+            {/* Listagem das Salas: Modo Grade (Padrão) */}
+            {roomViewMode === "grid" && rooms.length > 0 && (
+              <div className="arcadeRoomsGrid">
+                {rooms.map((room) => (
+                  <div key={room.id} className="arcadeRoomCard">
+                    <div className="cardTop">
+                      <span className={`gameBadge ${room.gameType}`}>
+                        {getGameLabel(room.gameType)}
+                      </span>
+                      <span className={`statusPill ${room.status.toLowerCase()}`}>
+                        {room.status === "WAITING"
+                          ? "🟢 Aguardando"
+                          : room.status === "PLAYING"
+                          ? "⚔️ Em Partida"
+                          : "🏁 Encerrada"}
+                      </span>
+                    </div>
+
+                    <div className="cardBody">
+                      <h4>{room.title}</h4>
+                      <div className="hostInfo">
+                        <div className="hostAvatar">
+                          {(room.hostName || room.hostUsername || "H")[0].toUpperCase()}
+                        </div>
+                        <span>Host: <strong>{room.hostName || room.hostUsername}</strong></span>
+                      </div>
+                    </div>
+
+                    <div className="cardFooter">
+                      <div className="playerCount">
+                        <span className="usersIcon">👥</span> {room.playerCount || 1} / {room.maxPlayers}
+                      </div>
+
+                      <div className="cardFooterBtns">
+                        <button
+                          className={`enterRoomBtn ${room.status === "PLAYING" ? "spectate" : ""}`}
+                          onClick={() =>
+                            handleEnterRoom(room.id, room.status !== "WAITING")
+                          }
+                        >
+                          {room.status === "WAITING"
+                            ? "Entrar na Sala"
+                            : "👁️ Espectar"}
+                        </button>
+
+                        {(isStaff || room.hostUserId === person.id) && (
+                          <button
+                            className="deleteRoomCardBtn"
+                            title="Apagar Sala"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteRoom(room.id, room.title);
+                            }}
+                          >
+                            🗑️
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
+            )}
 
-              <button className="refreshBtn" onClick={loadRooms}>
-                🔄 Atualizar Salas
-              </button>
-            </div>
+            {/* Listagem das Salas: Modo Lista */}
+            {roomViewMode === "list" && rooms.length > 0 && (
+              <div className="arcadeRoomsList">
+                <table className="roomsTable">
+                  <thead>
+                    <tr>
+                      <th>Jogo</th>
+                      <th>Sala</th>
+                      <th>Host</th>
+                      <th>Jogadores</th>
+                      <th>Status</th>
+                      <th className="actionsHeader">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rooms.map((room) => (
+                      <tr key={room.id} className="roomRow">
+                        <td className="gameCell">
+                          <span className={`gameBadge ${room.gameType}`}>
+                            {getGameLabel(room.gameType)}
+                          </span>
+                        </td>
+                        <td className="roomTitleCell">
+                          <strong>{room.title}</strong>
+                        </td>
+                        <td className="hostCell">
+                          <div className="hostInfoInline">
+                            <div className="hostAvatarMini">
+                              {(room.hostName || room.hostUsername || "H")[0].toUpperCase()}
+                            </div>
+                            <span>{room.hostName || room.hostUsername}</span>
+                          </div>
+                        </td>
+                        <td className="playersCell">
+                          <span className="playerCountBadge">
+                            👥 {room.playerCount || 1} / {room.maxPlayers}
+                          </span>
+                        </td>
+                        <td className="statusCell">
+                          <span className={`statusPill ${room.status.toLowerCase()}`}>
+                            {room.status === "WAITING"
+                              ? "🟢 Aguardando"
+                              : room.status === "PLAYING"
+                              ? "⚔️ Em Partida"
+                              : "🏁 Encerrada"}
+                          </span>
+                        </td>
+                        <td className="actionsCell">
+                          <div className="roomRowActions">
+                            <button
+                              className={`enterRoomBtn ${room.status === "PLAYING" ? "spectate" : ""}`}
+                              onClick={() =>
+                                handleEnterRoom(room.id, room.status !== "WAITING")
+                              }
+                            >
+                              {room.status === "WAITING"
+                                ? "Entrar na Sala"
+                                : "👁️ Espectar"}
+                            </button>
+                            {(isStaff || room.hostUserId === person.id) && (
+                              <button
+                                className="deleteRoomCardBtn"
+                                title="Apagar Sala"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteRoom(room.id, room.title);
+                                }}
+                              >
+                                🗑️
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-            {/* Grid Futurista de Salas */}
-            <div className="arcadeRoomsGrid">
-              {rooms.map((room) => (
-                <div key={room.id} className="arcadeRoomCard">
-                  <div className="cardTop">
-                    <span className={`gameBadge ${room.gameType}`}>
-                      {getGameLabel(room.gameType)}
-                    </span>
-                    <span className={`statusPill ${room.status.toLowerCase()}`}>
-                      {room.status === "WAITING"
-                        ? "🟢 Aguardando"
-                        : room.status === "PLAYING"
-                        ? "⚔️ Em Partida"
-                        : "🏁 Encerrada"}
-                    </span>
-                  </div>
-
-                  <div className="cardBody">
-                    <h4>{room.title}</h4>
-                    <div className="hostInfo">
-                      <div className="hostAvatar">
-                        {(room.hostName || room.hostUsername || "H")[0].toUpperCase()}
-                      </div>
-                      <span>Host: <strong>{room.hostName || room.hostUsername}</strong></span>
-                    </div>
-                  </div>
-
-                  <div className="cardFooter">
-                    <div className="playerCount">
-                      <span className="usersIcon">👥</span> {room.playerCount || 1} / {room.maxPlayers}
-                    </div>
-
-                    <div className="cardFooterBtns">
-                      <button
-                        className={`enterRoomBtn ${room.status === "PLAYING" ? "spectate" : ""}`}
-                        onClick={() =>
-                          handleEnterRoom(room.id, room.status !== "WAITING")
-                        }
-                      >
-                        {room.status === "WAITING"
-                          ? "Entrar na Sala"
-                          : "👁️ Espectar"}
-                      </button>
-
-                      {(isStaff || room.hostUserId === person.id) && (
-                        <button
-                          className="deleteRoomCardBtn"
-                          title="Apagar Sala"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteRoom(room.id, room.title);
-                          }}
-                        >
-                          🗑️
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
+            {/* Estado Vazio Quando Não Há Salas */}
             {rooms.length === 0 && !loading && (
               <div className="arcadeEmptyState">
-                <div className="emptyIcon">🚀</div>
+                <div className="emptyIcon">🕹️</div>
                 <h4>Nenhuma sala aberta no momento</h4>
                 <p>
-                  A arena está livre! Seja o primeiro a criar uma sala e convide a turma para jogar!
+                  A arena está livre! Crie uma sala e convide a turma para jogar!
                 </p>
                 <button
-                  className="emptyCreateBtn"
+                  className="arcadeCreateRoomBtn"
                   onClick={() => setShowCreateModal(true)}
                 >
-                  ⚡ Criar Primeira Sala
+                  <span className="createBtnPlus">+</span> Criar Sala
                 </button>
               </div>
             )}

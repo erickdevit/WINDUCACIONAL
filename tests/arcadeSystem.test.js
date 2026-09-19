@@ -90,4 +90,19 @@ describe("Arcade - Componentes Frontend dos Novos Jogos", () => {
     expect(appComponentCode).toContain("Jogo da Velha");
     expect(appComponentCode).toContain("Forca");
   });
+
+  it("oferece interface enxuta com botão de criar sala e alternância entre modos grade (padrão) e lista", () => {
+    expect(appComponentCode).toContain("arcadeLobbyTopBar");
+    expect(appComponentCode).toContain("arcadeCreateRoomBtn");
+    expect(appComponentCode).toContain("roomViewMode");
+    expect(appComponentCode).toContain('useState("grid")');
+    expect(appComponentCode).toContain("arcadeRoomsGrid");
+    expect(appComponentCode).toContain("arcadeRoomsList");
+    expect(appComponentCode).toContain("roomsTable");
+    expect(scssCode).toContain(".arcadeLobbyTopBar");
+    expect(scssCode).toContain(".arcadeCreateRoomBtn");
+    expect(scssCode).toContain(".arcadeRoomsList");
+    expect(scssCode).toContain(".viewModeSwitch");
+  });
 });
+
