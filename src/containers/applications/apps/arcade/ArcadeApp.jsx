@@ -14,8 +14,9 @@ export function ArcadeApp() {
       wnapp={wnapp}
       app={wnapp.action || "ARCADEAPP"}
       icon="arcade"
-      name="Arcade"
+      name="Arcade da Turma"
       className="arcadeAppWindow"
+      toolbarProps={{ bg: "#0b0f19", invert: true }}
       windowScreenClassName="flex flex-col"
       restWindowClassName="flex-grow flex flex-col"
     >
@@ -566,90 +567,184 @@ function ArcadeView({ visible }) {
           </div>
         )}
 
-        {/* ================= ABA DO LOBBY ================= */}
+        {/* ================= ABA DO LOBBY (HUB GAMER DE JOGOS) ================= */}
         {activeTab === "lobby" && !activeRoom && (
           <div className="arcadeLobbyView">
-            <div className="arcadeLobbyBanner">
-              <div className="bannerInfo">
-                <h3>Salas de Jogos da Turma</h3>
+            {/* Showcase Hero Central do Hub Gamer */}
+            <section className="arcadeHeroShowcase">
+              <div className="heroGlowEffect"></div>
+              <div className="heroContent">
+                <div className="heroBadge">
+                  <span className="liveDot"></span> ARENA MULTIPLAYER DA TURMA
+                </div>
+                <h2>Hub Principal de Games</h2>
                 <p>
-                  Jogue partidas multiplayer com seus colegas de classe! Dispute
-                  estratégia no Jogo de Damas em duplas ou divirta-se com Uno
-                  reunindo até a turma inteira.
+                  Escolha um jogo em destaque, dispute estratégias no Jogo de Damas
+                  ou desafie seus colegas na mesa clássica de Uno em tempo real!
                 </p>
-              </div>
-              <button
-                className="bannerActionBtn"
-                onClick={() => setShowCreateModal(true)}
-              >
-                <span>➕</span> Criar Sala de Jogo
-              </button>
-            </div>
 
+                <div className="heroStatsRow">
+                  <div className="statItem">
+                    <span className="statValue">{rooms.length}</span>
+                    <span className="statLabel">Salas Ativas</span>
+                  </div>
+                  <div className="statDivider"></div>
+                  <div className="statItem">
+                    <span className="statValue">
+                      {rooms.reduce((acc, r) => acc + (r.playerCount || 1), 0)}
+                    </span>
+                    <span className="statLabel">Jogadores Online</span>
+                  </div>
+                  <div className="statDivider"></div>
+                  <div className="statItem">
+                    <span className="statValue">2 Games</span>
+                    <span className="statLabel">Damas & Uno</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="heroActions">
+                <button
+                  className="heroCreateRoomBtn"
+                  onClick={() => setShowCreateModal(true)}
+                >
+                  <span className="btnIcon">⚡</span>
+                  <div className="btnTextGroup">
+                    <strong>Criar Nova Sala</strong>
+                    <small>Seja o host da partida</small>
+                  </div>
+                </button>
+              </div>
+            </section>
+
+            {/* Vitrine Visual dos Games Disponíveis */}
+            <section className="arcadeGamesCatalog">
+              <div className="sectionTitleGroup">
+                <h3>🎮 Jogos Disponíveis</h3>
+                <span>Selecione para filtrar salas ou criar nova partida</span>
+              </div>
+
+              <div className="gamesCardsGrid">
+                <div
+                  className={`gameHubCard checkersCard ${
+                    selectedGameFilter === "checkers" ? "active" : ""
+                  }`}
+                  onClick={() =>
+                    setSelectedGameFilter((prev) =>
+                      prev === "checkers" ? "all" : "checkers"
+                    )
+                  }
+                >
+                  <div className="gameCardBanner">
+                    <span className="gameTag">Estratégia 1v1</span>
+                    <div className="gameCardIcon">🔴⚪</div>
+                  </div>
+                  <div className="gameCardInfo">
+                    <h4>Jogo de Damas</h4>
+                    <p>Duelo tático tradicional em tabuleiro 8x8 com regra de captura contínua.</p>
+                    <div className="gameCardMeta">
+                      <span>👥 2 Jogadores</span>
+                      <span className="highlight">Ranking da Turma</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  className={`gameHubCard unoCard ${
+                    selectedGameFilter === "uno" ? "active" : ""
+                  }`}
+                  onClick={() =>
+                    setSelectedGameFilter((prev) =>
+                      prev === "uno" ? "all" : "uno"
+                    )
+                  }
+                >
+                  <div className="gameCardBanner">
+                    <span className="gameTag">Cartas Multiplayer</span>
+                    <div className="gameCardIcon">🃏</div>
+                  </div>
+                  <div className="gameCardInfo">
+                    <h4>Uno Clássico</h4>
+                    <p>Mesa rápida e divertida com cartas especiais, inversões e o botão de Gritar UNO!</p>
+                    <div className="gameCardMeta">
+                      <span>👥 2 até 6 Jogadores</span>
+                      <span className="highlight">Mesa Cheia</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Filtros e Barra de Controle de Salas */}
             <div className="arcadeFilterRow">
               <div className="gameTypeFilters">
                 <button
                   className={selectedGameFilter === "all" ? "active" : ""}
                   onClick={() => setSelectedGameFilter("all")}
                 >
-                  Todos os Jogos
+                  🕹️ Todas as Salas
                 </button>
                 <button
                   className={selectedGameFilter === "checkers" ? "active" : ""}
                   onClick={() => setSelectedGameFilter("checkers")}
                 >
-                  Damas (2 Jogadores)
+                  🔴 Damas ({rooms.filter((r) => r.gameType === "checkers").length})
                 </button>
                 <button
                   className={selectedGameFilter === "uno" ? "active" : ""}
                   onClick={() => setSelectedGameFilter("uno")}
                 >
-                  Uno (3+ Jogadores)
+                  🃏 Uno ({rooms.filter((r) => r.gameType === "uno").length})
                 </button>
               </div>
 
               <button className="refreshBtn" onClick={loadRooms}>
-                🔄 Atualizar
+                🔄 Atualizar Salas
               </button>
             </div>
 
-            {/* Grid de Salas */}
+            {/* Grid Futurista de Salas */}
             <div className="arcadeRoomsGrid">
               {rooms.map((room) => (
                 <div key={room.id} className="arcadeRoomCard">
                   <div className="cardTop">
                     <span className={`gameBadge ${room.gameType}`}>
-                      {room.gameType === "checkers" ? "Damas" : "Uno"}
+                      {room.gameType === "checkers" ? "🔴 Damas" : "🃏 Uno"}
                     </span>
                     <span className={`statusPill ${room.status.toLowerCase()}`}>
                       {room.status === "WAITING"
-                        ? "Aguardando"
+                        ? "🟢 Aguardando"
                         : room.status === "PLAYING"
-                        ? "Em partida"
-                        : "Encerrada"}
+                        ? "⚔️ Em Partida"
+                        : "🏁 Encerrada"}
                     </span>
                   </div>
 
                   <div className="cardBody">
                     <h4>{room.title}</h4>
-                    <p>Criada por {room.hostName || room.hostUsername}</p>
+                    <div className="hostInfo">
+                      <div className="hostAvatar">
+                        {(room.hostName || room.hostUsername || "H")[0].toUpperCase()}
+                      </div>
+                      <span>Host: <strong>{room.hostName || room.hostUsername}</strong></span>
+                    </div>
                   </div>
 
                   <div className="cardFooter">
                     <div className="playerCount">
-                      👥 {room.playerCount || 1} / {room.maxPlayers}
+                      <span className="usersIcon">👥</span> {room.playerCount || 1} / {room.maxPlayers}
                     </div>
 
                     <div className="cardFooterBtns">
                       <button
-                        className="enterRoomBtn"
+                        className={`enterRoomBtn ${room.status === "PLAYING" ? "spectate" : ""}`}
                         onClick={() =>
                           handleEnterRoom(room.id, room.status !== "WAITING")
                         }
                       >
                         {room.status === "WAITING"
                           ? "Entrar na Sala"
-                          : "Acompanhar"}
+                          : "👁️ Espectar"}
                       </button>
 
                       {(isStaff || room.hostUserId === person.id) && (
@@ -672,12 +767,18 @@ function ArcadeView({ visible }) {
 
             {rooms.length === 0 && !loading && (
               <div className="arcadeEmptyState">
-                <div className="text-4xl">🕹️</div>
+                <div className="emptyIcon">🚀</div>
                 <h4>Nenhuma sala aberta no momento</h4>
                 <p>
-                  Que tal criar uma nova sala de Damas ou Uno e convidar seus
-                  colegas de classe?
+                  A arena está livre! Seja o primeiro a criar uma sala de Damas ou
+                  Uno e convide a turma inteira para jogar!
                 </p>
+                <button
+                  className="emptyCreateBtn"
+                  onClick={() => setShowCreateModal(true)}
+                >
+                  ⚡ Criar Primeira Sala
+                </button>
               </div>
             )}
           </div>

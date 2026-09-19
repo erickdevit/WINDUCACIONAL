@@ -222,7 +222,7 @@ export function CheckersBoard({
         <div className="playerTurnCard">
           <div className={`pieceMini ${currentTurn === 0 ? "red" : "white"}`} />
           <span>
-            {playerObj ? playerObj.displayName || playerObj.username : "..."}
+            Turno de <strong>{playerObj ? playerObj.displayName || playerObj.username : "..."}</strong>
           </span>
         </div>
 
@@ -230,131 +230,144 @@ export function CheckersBoard({
           {isSpectator
             ? `Vez de ${playerObj?.displayName || playerObj?.username || "jogador"}`
             : isMyTurn
-            ? "Sua vez de jogar!"
-            : `Vez de ${playerObj?.displayName || "adversário"}`}
-          {activeJumpFrom && isMyTurn && " (Salto consecutivo!)"}
+            ? "⚡ SUA VEZ DE JOGAR!"
+            : `Aguardando ${playerObj?.displayName || "adversário"}...`}
+          {activeJumpFrom && isMyTurn && " (🔥 Salto consecutivo obrigatório!)"}
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-400">
-            Capturas: Vermelhas {capturedCount?.[0] || 0} x{" "}
-            {capturedCount?.[1] || 0} Brancas
+          <span className="text-xs text-slate-300 font-semibold">
+            Placar: 🔴 {capturedCount?.[0] || 0} x {capturedCount?.[1] || 0} ⚪
           </span>
           {status === "PLAYING" && !isSpectator && (
             <button className="resignBtn" onClick={onResign}>
-              Desistir
+              🏳️ Desistir
             </button>
           )}
         </div>
       </div>
 
-      {/* Cartão do Adversário (Topo do Tabuleiro) */}
-      <div
-        className={`checkersPlayerBar oppBar ${isTopTurn ? "activeTurn" : ""}`}
-      >
-        <div className="playerInfoLeft">
-          <div
-            className={`playerPieceIndicator ${
-              topPlayerIndex === 0 ? "red" : "white"
-            }`}
-          />
-          <div className="playerNameGroup">
-            <span className="playerName">
-              {topPlayer
-                ? topPlayer.displayName || topPlayer.username
-                : "Aguardando adversário..."}
-            </span>
-            <span className="playerColorLabel">
-              {topPlayerIndex === 0 ? "Vermelhas" : "Brancas"} (Adversário)
+      {/* Arena Tática de Damas */}
+      <div className="checkersBoardArena">
+        {/* Cartão HUD do Adversário (Topo do Tabuleiro) */}
+        <div
+          className={`checkersPlayerBar oppBar ${isTopTurn ? "activeTurn" : ""}`}
+        >
+          <div className="playerInfoLeft">
+            <div className="avatarRing">
+              {(topPlayer?.displayName || topPlayer?.username || "A")[0].toUpperCase()}
+            </div>
+            <div
+              className={`playerPieceIndicator ${
+                topPlayerIndex === 0 ? "red" : "white"
+              }`}
+            />
+            <div className="playerNameGroup">
+              <span className="playerName">
+                {topPlayer
+                  ? topPlayer.displayName || topPlayer.username
+                  : "Aguardando adversário..."}
+              </span>
+              <span className="playerColorLabel">
+                {topPlayerIndex === 0 ? "🔴 Vermelhas" : "⚪ Brancas"} (Adversário)
+              </span>
+            </div>
+          </div>
+
+          <div className="playerStatsRight">
+            <span className="capturesPill">Peças comidas: <strong>{topCaptured}</strong></span>
+            <span className={`turnStatusTag ${isTopTurn ? "active" : "waiting"}`}>
+              {isTopTurn ? "🎮 Jogando agora" : "Aguardando"}
             </span>
           </div>
         </div>
 
-        <div className="playerStatsRight">
-          <span className="capturesPill">Capturadas: {topCaptured}</span>
-          <span className={`turnStatusTag ${isTopTurn ? "active" : "waiting"}`}>
-            {isTopTurn ? "Vez de jogar" : "Aguardando"}
-          </span>
+        {/* Tabuleiro 8x8 de Feltro/Madeira com iluminação tática */}
+        <div className="checkersBoard">
+          {Array.from({ length: 8 }).map((_, displayR) =>
+            Array.from({ length: 8 }).map((_, displayC) => {
+              const boardR = isFlipped ? 7 - displayR : displayR;
+              const boardC = isFlipped ? 7 - displayC : displayC;
+              const piece = board[boardR]?.[boardC];
+              const isDark = (boardR + boardC) % 2 === 1;
+              const isSelected =
+                selectedPos?.row === boardR && selectedPos?.col === boardC;
+              const isValidTarget = validMovesForSelected.some(
+                (m) => m.to.row === boardR && m.to.col === boardC
+              );
+
+              return (
+                <div
+                  key={`${displayR}-${displayC}`}
+                  className={`checkersSquare ${isDark ? "dark" : "light"} ${
+                    isValidTarget ? "validMoveTarget" : ""
+                  }`}
+                  onClick={() => handleSquareClick(boardR, boardC)}
+                >
+                  {piece && (
+                    <div
+                      className={`checkersPiece ${
+                        piece.player === 0 ? "redPiece" : "whitePiece"
+                      } ${isSelected ? "selected" : ""}`}
+                    >
+                      {piece.isKing && (
+                        <div className="crownCrownWrap">
+                          <span className="crownIcon">👑</span>
+                          <small className="kingLabel">DAMA</small>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
         </div>
-      </div>
 
-      {/* Tabuleiro 8x8 com orientação dinâmica */}
-      <div className="checkersBoard">
-        {Array.from({ length: 8 }).map((_, displayR) =>
-          Array.from({ length: 8 }).map((_, displayC) => {
-            const boardR = isFlipped ? 7 - displayR : displayR;
-            const boardC = isFlipped ? 7 - displayC : displayC;
-            const piece = board[boardR]?.[boardC];
-            const isDark = (boardR + boardC) % 2 === 1;
-            const isSelected =
-              selectedPos?.row === boardR && selectedPos?.col === boardC;
-            const isValidTarget = validMovesForSelected.some(
-              (m) => m.to.row === boardR && m.to.col === boardC
-            );
+        {/* Cartão HUD do Jogador Local (Base do Tabuleiro) */}
+        <div
+          className={`checkersPlayerBar myBar ${
+            isBottomTurn ? "activeTurn" : ""
+          }`}
+        >
+          <div className="playerInfoLeft">
+            <div className="avatarRing local">
+              {(bottomPlayer?.displayName || bottomPlayer?.username || "J")[0].toUpperCase()}
+            </div>
+            <div
+              className={`playerPieceIndicator ${
+                bottomPlayerIndex === 0 ? "red" : "white"
+              }`}
+            />
+            <div className="playerNameGroup">
+              <span className="playerName">
+                {bottomPlayer
+                  ? bottomPlayer.displayName || bottomPlayer.username
+                  : isSpectator
+                  ? "Jogador"
+                  : "Você"}
+                {!isSpectator && myPlayerIndex >= 0 && " (Sua Conta)"}
+              </span>
+              <span className="playerColorLabel">
+                {bottomPlayerIndex === 0 ? "🔴 Vermelhas" : "⚪ Brancas"}
+              </span>
+            </div>
+          </div>
 
-            return (
-              <div
-                key={`${displayR}-${displayC}`}
-                className={`checkersSquare ${isDark ? "dark" : "light"} ${
-                  isValidTarget ? "validMoveTarget" : ""
-                }`}
-                onClick={() => handleSquareClick(boardR, boardC)}
-              >
-                {piece && (
-                  <div
-                    className={`checkersPiece ${
-                      piece.player === 0 ? "redPiece" : "whitePiece"
-                    } ${isSelected ? "selected" : ""}`}
-                  >
-                    {piece.isKing && <span className="crownIcon">👑</span>}
-                  </div>
-                )}
-              </div>
-            );
-          })
-        )}
-      </div>
-
-      {/* Cartão do Jogador Atual (Base do Tabuleiro) */}
-      <div
-        className={`checkersPlayerBar myBar ${
-          isBottomTurn ? "activeTurn" : ""
-        }`}
-      >
-        <div className="playerInfoLeft">
-          <div
-            className={`playerPieceIndicator ${
-              bottomPlayerIndex === 0 ? "red" : "white"
-            }`}
-          />
-          <div className="playerNameGroup">
-            <span className="playerName">
-              {bottomPlayer
-                ? bottomPlayer.displayName || bottomPlayer.username
-                : isSpectator
-                ? "Jogador"
-                : "Você"}
-              {!isSpectator && myPlayerIndex >= 0 && " (Você)"}
-            </span>
-            <span className="playerColorLabel">
-              {bottomPlayerIndex === 0 ? "Vermelhas" : "Brancas"}
+          <div className="playerStatsRight">
+            <span className="capturesPill">Peças comidas: <strong>{bottomCaptured}</strong></span>
+            <span
+              className={`turnStatusTag ${isBottomTurn ? "active" : "waiting"}`}
+            >
+              {isSpectator
+                ? isBottomTurn
+                  ? "🎮 Jogando agora"
+                  : "Aguardando"
+                : isBottomTurn
+                ? "⚡ SUA VEZ!"
+                : "Aguardando"}
             </span>
           </div>
-        </div>
-
-        <div className="playerStatsRight">
-          <span className="capturesPill">Capturadas: {bottomCaptured}</span>
-          <span
-            className={`turnStatusTag ${isBottomTurn ? "active" : "waiting"}`}
-          >
-            {isSpectator
-              ? isBottomTurn
-                ? "Vez de jogar"
-                : "Aguardando"
-              : isBottomTurn
-              ? "Sua vez!"
-              : "Aguardando"}
-          </span>
         </div>
       </div>
     </div>
