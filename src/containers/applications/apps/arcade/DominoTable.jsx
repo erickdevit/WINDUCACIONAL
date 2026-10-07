@@ -115,7 +115,7 @@ export function DominoTable({
           >
             <svg
               className="dominoChainPath"
-              viewBox={`0 0 ${dominoColumns * 100} ${dominoRows * 100}`}
+              viewBox={`0 0 ${dominoColumns * 100} ${dominoRows * 92}`}
               preserveAspectRatio="none"
               aria-hidden="true"
             >
@@ -125,9 +125,9 @@ export function DominoTable({
                   <line
                     key={`${previous.index}-${slot.index}`}
                     x1={previous.column * 100 + 50}
-                    y1={previous.row * 100 + 50}
+                    y1={previous.row * 92 + 46}
                     x2={slot.column * 100 + 50}
-                    y2={slot.row * 100 + 50}
+                    y2={slot.row * 92 + 46}
                   />
                 );
               })}

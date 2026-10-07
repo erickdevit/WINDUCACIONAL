@@ -3381,8 +3381,8 @@
       }
 
       &.notPlayable {
-        opacity: 0.9;
-        filter: saturate(0.9) brightness(0.92);
+        opacity: 1;
+        filter: none;
       }
     }
 
@@ -3401,43 +3401,80 @@
   }
 }
 
+.unoGameContainer {
+  background: radial-gradient(
+      ellipse at 50% 44%,
+      rgba(255, 92, 16, 0.32),
+      transparent 34%
+    ),
+    radial-gradient(ellipse at center, #511018 0%, #210911 48%, #08070d 100%);
+}
+
 /* Damas: a dama é uma peça empilhada, não uma legenda sobre a peça */
 .checkersPiece.kingPiece {
   z-index: 2;
 
   .kingPieceTopper {
     position: absolute;
-    top: -21%;
-    left: 18%;
+    top: -40%;
+    left: 8%;
     z-index: 3;
     display: grid;
     place-items: center;
-    width: 64%;
-    height: 64%;
-    border: 2px solid #ffe6a0;
+    width: 84%;
+    height: 84%;
+    border: 3px solid;
     border-radius: 50%;
-    background: radial-gradient(
-      circle at 32% 23%,
-      #fff2c1,
-      #ca963b 52%,
-      #68431d 100%
-    );
-    box-shadow: 0 4px 0 #46301e, 0 8px 8px rgba(0, 0, 0, 0.62),
-      inset 0 2px 3px rgba(255, 255, 255, 0.76),
-      inset 0 -3px 4px rgba(64, 36, 12, 0.58);
-    transform: translateY(-3px);
+    box-shadow: 0 5px 0 rgba(32, 14, 10, 0.72),
+      0 8px 9px rgba(0, 0, 0, 0.48),
+      inset 0 2px 3px rgba(255, 255, 255, 0.72),
+      inset 0 -4px 5px rgba(0, 0, 0, 0.38);
     pointer-events: none;
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 14%;
+      border: 2px solid rgba(255, 255, 255, 0.42);
+      border-radius: 50%;
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.25);
+    }
   }
 
   .kingPieceEmblem {
-    width: 62%;
+    position: relative;
+    z-index: 1;
+    width: 68%;
+    height: 68%;
     overflow: visible;
-    fill: #fff3c0;
-    stroke: #805721;
+    fill: #ffe19a;
+    stroke: #6f3b16;
     stroke-linecap: round;
     stroke-linejoin: round;
-    stroke-width: 1.5px;
-    filter: drop-shadow(0 1px 1px rgba(67, 36, 8, 0.76));
+    stroke-width: 2px;
+    filter: drop-shadow(0 2px 1px rgba(50, 23, 8, 0.9));
+  }
+
+  &.redPiece .kingPieceTopper {
+    border-color: #ff8a7f;
+    background: radial-gradient(
+      circle at 32% 24%,
+      #ffb7a8 0%,
+      #ed3942 38%,
+      #a20e21 78%,
+      #530b17 100%
+    );
+  }
+
+  &.whitePiece .kingPieceTopper {
+    border-color: #fff0c6;
+    background: radial-gradient(
+      circle at 32% 24%,
+      #fffdf1 0%,
+      #e9d8ad 38%,
+      #b79c6c 78%,
+      #675031 100%
+    );
   }
 }
 
@@ -3481,8 +3518,8 @@
 .dominoChain {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(var(--domino-columns), 78px);
-  grid-auto-rows: 76px;
+  grid-template-columns: repeat(var(--domino-columns), 100px);
+  grid-auto-rows: 92px;
   width: max-content;
   min-width: max-content;
   padding: 4px;
@@ -3500,8 +3537,8 @@
   pointer-events: none;
 
   line {
-    stroke: rgba(239, 214, 148, 0.68);
-    stroke-width: 7px;
+    stroke: rgba(255, 224, 157, 0.78);
+    stroke-width: 6px;
     stroke-linecap: round;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.44));
   }
@@ -3512,14 +3549,14 @@
   z-index: 1;
   display: grid;
   place-items: center;
-  width: 78px;
-  height: 76px;
+  width: 100px;
+  height: 92px;
 }
 
 .dominoBoardTile {
   display: flex;
-  width: 72px;
-  height: 42px;
+  width: 92px;
+  height: 56px;
   flex-direction: row;
   align-items: stretch;
   justify-content: space-around;
@@ -3535,14 +3572,9 @@
   }
 
   &.isDouble {
-    width: 42px;
-    height: 68px;
-    flex-direction: column;
-    transform: none;
-  }
-
-  &.isDouble.reverseDirection {
-    transform: rotate(180deg);
+    border-color: #e9c878;
+    box-shadow: 0 5px 0 #786443, 0 8px 12px rgba(0, 0, 0, 0.48),
+      inset 0 0 0 2px rgba(210, 166, 67, 0.3), inset 0 1px 2px #fff;
   }
 
   .dominoHalf {
@@ -3556,11 +3588,6 @@
     flex: 0 0 1px;
   }
 
-  &.isDouble .dominoDivider {
-    width: auto;
-    height: 1px;
-    flex: 0 0 1px;
-  }
 }
 
 .dominoPlayerHandArea {
@@ -3798,11 +3825,6 @@
   .dominoBoardTile {
     width: 62px;
     height: 38px;
-
-    &.isDouble {
-      width: 38px;
-      height: 60px;
-    }
   }
 
   .dominoPlayerHandArea {
@@ -3828,5 +3850,35 @@
 
   .ticTacToeBoard {
     width: min(86vw, 70vh, 560px);
+  }
+}
+
+.unoGameContainer {
+  --uno-hand-height: clamp(118px, 22vh, 166px);
+
+  .unoVisualArena {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .unoTableFelt {
+    transform: perspective(1000px) rotateX(8deg) translateY(-11vh);
+  }
+
+  .unoSeatsContainer {
+    inset: 0 0 var(--uno-hand-height);
+  }
+
+  .unoPlayerHandArea {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 5;
+    min-height: var(--uno-hand-height);
+    width: 100%;
   }
 }

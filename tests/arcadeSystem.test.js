@@ -71,6 +71,10 @@ describe("Arcade - Componentes Frontend dos Novos Jogos", () => {
     expect(dominoComponentCode).toContain("reverse: row % 2 === 1");
     expect(dominoComponentCode).toContain("Jogar na ponta esquerda");
     expect(dominoComponentCode).toContain("Comprar <span>");
+    expect(scssCode).toContain(
+      "grid-template-columns: repeat(var(--domino-columns), 100px)"
+    );
+    expect(scssCode).not.toContain("&.isDouble .dominoDivider");
   });
 
   it("mantém apenas o tabuleiro 3x3 visível no Jogo da Velha", () => {
@@ -85,6 +89,9 @@ describe("Arcade - Componentes Frontend dos Novos Jogos", () => {
     expect(unoComponentCode).toContain('className="opponentCardBack"');
     expect(unoComponentCode).toContain("if (isMe) return null");
     expect(unoComponentCode).not.toContain("turnStatusText");
+    expect(scssCode).toContain(".unoPlayerHandArea .handCardsRow");
+    expect(scssCode).toContain("opacity: 1;\n        filter: none;");
+    expect(scssCode).toContain("position: absolute;\n    right: 0;\n    bottom: 0;");
   });
 
   it("representa a dama com uma peça superior própria, sem rótulo textual", () => {
@@ -92,6 +99,8 @@ describe("Arcade - Componentes Frontend dos Novos Jogos", () => {
     expect(checkersComponentCode).toContain("kingPieceEmblem");
     expect(checkersComponentCode).not.toContain("kingLabel");
     expect(checkersComponentCode).not.toContain(">DAMA<");
+    expect(scssCode).toContain("top: -40%;");
+    expect(scssCode).toContain("width: 84%;");
   });
 
   it("integra a dica da Forca no palco e remove o banner de última ação", () => {
