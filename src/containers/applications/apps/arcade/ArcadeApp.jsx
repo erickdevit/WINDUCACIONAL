@@ -4,6 +4,9 @@ import { AppWindow } from "../../../../components/shared/AppWindow";
 import { api } from "../../../../lib/api";
 import { CheckersBoard } from "./CheckersBoard";
 import { UnoTable } from "./UnoTable";
+import { DominoTable } from "./DominoTable";
+import { TicTacToeBoard } from "./TicTacToeBoard";
+import { HangmanGame } from "./HangmanGame";
 import "./arcade.scss";
 
 export function ArcadeApp() {
@@ -30,7 +33,7 @@ function ArcadeView({ visible }) {
 
   const [activeTab, setActiveTab] = useState("lobby"); // 'lobby', 'ranking'
   const [rooms, setRooms] = useState([]);
-  const [selectedGameFilter, setSelectedGameFilter] = useState("all"); // 'all', 'checkers', 'uno'
+  const [selectedGameFilter, setSelectedGameFilter] = useState("all"); // 'all', 'checkers', 'uno', 'domino', 'tictactoe', 'hangman'
   const [activeRoom, setActiveRoom] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -40,7 +43,7 @@ function ArcadeView({ visible }) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newRoomTitle, setNewRoomTitle] = useState("");
   const [newRoomGameType, setNewRoomGameType] = useState("checkers");
-  const [newRoomMaxPlayers, setNewRoomMaxPlayers] = useState(6);
+  const [newRoomMaxPlayers, setNewRoomMaxPlayers] = useState(4);
 
   // Rankings
   const [rankings, setRankings] = useState({
@@ -248,10 +251,15 @@ function ArcadeView({ visible }) {
     e.preventDefault();
     setErrorMsg("");
     try {
+      let maxP = 2;
+      if (newRoomGameType === "uno") maxP = newRoomMaxPlayers;
+      else if (newRoomGameType === "domino" || newRoomGameType === "hangman")
+        maxP = newRoomMaxPlayers;
+
       const data = await api.createArcadeRoom({
         title: newRoomTitle,
         gameType: newRoomGameType,
-        maxPlayers: newRoomGameType === "uno" ? newRoomMaxPlayers : 2,
+        maxPlayers: maxP,
       });
       setShowCreateModal(false);
       setNewRoomTitle("");
@@ -275,8 +283,6 @@ function ArcadeView({ visible }) {
         gameState: data.gameState,
       });
     } catch (err) {
-      // Se falhou ao tentar entrar como jogador (ex.: partida já começou ou lotou),
-      // tenta carregar os dados para acompanhar diretamente como espectador
       try {
         const data = await api.getArcadeRoom(roomId);
         setActiveRoom({
@@ -334,7 +340,7 @@ function ArcadeView({ visible }) {
     }
   };
 
-  // Ações de jogo (Damas & Uno)
+  // Ações de jogo
   const handleGameAction = async (action) => {
     if (!activeRoom) return;
     try {
@@ -360,7 +366,7 @@ function ArcadeView({ visible }) {
     }
   };
 
-  // Apagar sala (Professor/Admin ou criador)
+  // Apagar sala
   const handleDeleteRoom = async (roomId, roomTitle) => {
     if (
       !window.confirm(
@@ -395,7 +401,7 @@ function ArcadeView({ visible }) {
   // Validação de início de partida
   const canStartMatch =
     isHost &&
-    (activeRoom?.gameType === "checkers"
+    (activeRoom?.gameType === "checkers" || activeRoom?.gameType === "tictactoe"
       ? activeRoom.players?.length === 2
       : activeRoom?.players?.length >= 2);
 
@@ -404,9 +410,26 @@ function ArcadeView({ visible }) {
     activeRoom &&
     (activeRoom.status === "PLAYING" || activeRoom.status === "FINISHED");
 
+  const getGameLabel = (type) => {
+    switch (type) {
+      case "checkers":
+        return "Damas";
+      case "uno":
+        return "Uno";
+      case "domino":
+        return "Dominó";
+      case "tictactoe":
+        return "Jogo da Velha";
+      case "hangman":
+        return "Forca";
+      default:
+        return type;
+    }
+  };
+
   return (
     <div className={`arcadeContainer ${isPlayingOrFinished ? "inMatchMode" : ""}`}>
-      {/* Header do Arcade (visível no lobby e ranking; integrado à HUD durante o jogo) */}
+      {/* Header do Arcade */}
       {!isPlayingOrFinished && (
         <header className="arcadeHeader">
           <div className="arcadeBrand">
@@ -452,7 +475,7 @@ function ArcadeView({ visible }) {
         </header>
       )}
 
-      {/* Conteúdo Principal (maximizado quando em partida ativa) */}
+      {/* Conteúdo Principal */}
       <main className={`arcadeMainContent ${isPlayingOrFinished ? "inMatchContent" : ""}`}>
         {errorMsg && (
           <div className="max-w-2xl mx-auto mb-4 p-3 bg-red-900/60 border border-red-500 rounded-lg text-xs text-red-200 flex justify-between items-center">
@@ -469,7 +492,7 @@ function ArcadeView({ visible }) {
         {/* ================= ABA DE RANKINGS ================= */}
         {activeTab === "ranking" && (
           <div className="arcadeRankingsView">
-            <div className="rankingControlBar">
+            <div className="rankingControlBar flex flex-wrap gap-2 justify-between items-center">
               <div className="scopeSelector">
                 <button
                   className={rankingScope === "turma" ? "active" : ""}
@@ -485,37 +508,27 @@ function ArcadeView({ visible }) {
                 </button>
               </div>
 
-              <div className="flex gap-2">
-                <button
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold ${
-                    rankingGameType === "overall"
-                      ? "bg-indigo-600 text-white"
-                      : "bg-slate-800 text-slate-400"
-                  }`}
-                  onClick={() => setRankingGameType("overall")}
-                >
-                  Todos os Jogos
-                </button>
-                <button
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold ${
-                    rankingGameType === "checkers"
-                      ? "bg-indigo-600 text-white"
-                      : "bg-slate-800 text-slate-400"
-                  }`}
-                  onClick={() => setRankingGameType("checkers")}
-                >
-                  Damas
-                </button>
-                <button
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold ${
-                    rankingGameType === "uno"
-                      ? "bg-indigo-600 text-white"
-                      : "bg-slate-800 text-slate-400"
-                  }`}
-                  onClick={() => setRankingGameType("uno")}
-                >
-                  Uno
-                </button>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { id: "overall", label: "Todos os Jogos" },
+                  { id: "checkers", label: "Damas" },
+                  { id: "uno", label: "Uno" },
+                  { id: "domino", label: "Dominó" },
+                  { id: "tictactoe", label: "Jogo da Velha" },
+                  { id: "hangman", label: "Forca" },
+                ].map((g) => (
+                  <button
+                    key={g.id}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold ${
+                      rankingGameType === g.id
+                        ? "bg-indigo-600 text-white"
+                        : "bg-slate-800 text-slate-400 hover:text-white"
+                    }`}
+                    onClick={() => setRankingGameType(g.id)}
+                  >
+                    {g.label}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -579,8 +592,8 @@ function ArcadeView({ visible }) {
                 </div>
                 <h2>Hub Principal de Games</h2>
                 <p>
-                  Escolha um jogo em destaque, dispute estratégias no Jogo de Damas
-                  ou desafie seus colegas na mesa clássica de Uno em tempo real!
+                  Jogue partidas multiplayer educativas com seus colegas de classe!
+                  Escolha entre Damas, Uno, Dominó, Jogo da Velha e Forca.
                 </p>
 
                 <div className="heroStatsRow">
@@ -597,8 +610,8 @@ function ArcadeView({ visible }) {
                   </div>
                   <div className="statDivider"></div>
                   <div className="statItem">
-                    <span className="statValue">2 Games</span>
-                    <span className="statLabel">Damas & Uno</span>
+                    <span className="statValue">5 Games</span>
+                    <span className="statLabel">Disponíveis</span>
                   </div>
                 </div>
               </div>
@@ -624,78 +637,59 @@ function ArcadeView({ visible }) {
                 <span>Selecione para filtrar salas ou criar nova partida</span>
               </div>
 
-              <div className="gamesCardsGrid">
-                <div
-                  className={`gameHubCard checkersCard ${
-                    selectedGameFilter === "checkers" ? "active" : ""
-                  }`}
-                  onClick={() =>
-                    setSelectedGameFilter((prev) =>
-                      prev === "checkers" ? "all" : "checkers"
-                    )
-                  }
-                >
-                  <div className="gameCardBanner">
-                    <span className="gameTag">Estratégia 1v1</span>
-                    <div className="gameCardIcon">🔴⚪</div>
-                  </div>
-                  <div className="gameCardInfo">
-                    <h4>Jogo de Damas</h4>
-                    <p>Duelo tático tradicional em tabuleiro 8x8 com regra de captura contínua.</p>
-                    <div className="gameCardMeta">
-                      <span>👥 2 Jogadores</span>
-                      <span className="highlight">Ranking da Turma</span>
+              <div className="gamesCardsGrid flex flex-wrap gap-3">
+                {[
+                  { id: "checkers", name: "Damas", tag: "Estratégia 1v1", icon: "🔴⚪", desc: "Duelo tático tradicional em tabuleiro 8x8.", meta: "👥 2 Jogadores" },
+                  { id: "uno", name: "Uno Clássico", tag: "Cartas Multiplayer", icon: "🃏", desc: "Mesa rápida de cartas especiais e acusações de UNO.", meta: "👥 2 até 6 Jogadores" },
+                  { id: "domino", name: "Dominó", tag: "Mesa & Peças", icon: "🎲", desc: "Encaixe pedras nas pontas e esvazie sua mão.", meta: "👥 2 até 4 Jogadores" },
+                  { id: "tictactoe", name: "Jogo da Velha", tag: "Casual 1v1", icon: "❌⭕", desc: "Alinhe 3 símbolos em linha, coluna ou diagonal.", meta: "👥 2 Jogadores" },
+                  { id: "hangman", name: "Jogo da Forca", tag: "Educativo / Palavras", icon: "✏️", desc: "Adivinhe a palavra secreta por letras ou palpite.", meta: "👥 2 até 4 Jogadores" },
+                ].map((g) => (
+                  <div
+                    key={g.id}
+                    className={`gameHubCard ${selectedGameFilter === g.id ? "active" : ""}`}
+                    onClick={() =>
+                      setSelectedGameFilter((prev) =>
+                        prev === g.id ? "all" : g.id
+                      )
+                    }
+                  >
+                    <div className="gameCardBanner">
+                      <span className="gameTag">{g.tag}</span>
+                      <div className="gameCardIcon">{g.icon}</div>
+                    </div>
+                    <div className="gameCardInfo">
+                      <h4>{g.name}</h4>
+                      <p>{g.desc}</p>
+                      <div className="gameCardMeta">
+                        <span>{g.meta}</span>
+                        <span className="highlight">Ranking</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                <div
-                  className={`gameHubCard unoCard ${
-                    selectedGameFilter === "uno" ? "active" : ""
-                  }`}
-                  onClick={() =>
-                    setSelectedGameFilter((prev) =>
-                      prev === "uno" ? "all" : "uno"
-                    )
-                  }
-                >
-                  <div className="gameCardBanner">
-                    <span className="gameTag">Cartas Multiplayer</span>
-                    <div className="gameCardIcon">🃏</div>
-                  </div>
-                  <div className="gameCardInfo">
-                    <h4>Uno Clássico</h4>
-                    <p>Mesa rápida e divertida com cartas especiais, inversões e o botão de Gritar UNO!</p>
-                    <div className="gameCardMeta">
-                      <span>👥 2 até 6 Jogadores</span>
-                      <span className="highlight">Mesa Cheia</span>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </section>
 
             {/* Filtros e Barra de Controle de Salas */}
             <div className="arcadeFilterRow">
-              <div className="gameTypeFilters">
-                <button
-                  className={selectedGameFilter === "all" ? "active" : ""}
-                  onClick={() => setSelectedGameFilter("all")}
-                >
-                  🕹️ Todas as Salas
-                </button>
-                <button
-                  className={selectedGameFilter === "checkers" ? "active" : ""}
-                  onClick={() => setSelectedGameFilter("checkers")}
-                >
-                  🔴 Damas ({rooms.filter((r) => r.gameType === "checkers").length})
-                </button>
-                <button
-                  className={selectedGameFilter === "uno" ? "active" : ""}
-                  onClick={() => setSelectedGameFilter("uno")}
-                >
-                  🃏 Uno ({rooms.filter((r) => r.gameType === "uno").length})
-                </button>
+              <div className="gameTypeFilters flex flex-wrap gap-1.5">
+                {[
+                  { id: "all", label: "🕹️ Todas as Salas" },
+                  { id: "checkers", label: "🔴 Damas" },
+                  { id: "uno", label: "🃏 Uno" },
+                  { id: "domino", label: "🎲 Dominó" },
+                  { id: "tictactoe", label: "❌⭕ Velha" },
+                  { id: "hangman", label: "✏️ Forca" },
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    className={selectedGameFilter === f.id ? "active" : ""}
+                    onClick={() => setSelectedGameFilter(f.id)}
+                  >
+                    {f.label}
+                  </button>
+                ))}
               </div>
 
               <button className="refreshBtn" onClick={loadRooms}>
@@ -709,7 +703,7 @@ function ArcadeView({ visible }) {
                 <div key={room.id} className="arcadeRoomCard">
                   <div className="cardTop">
                     <span className={`gameBadge ${room.gameType}`}>
-                      {room.gameType === "checkers" ? "🔴 Damas" : "🃏 Uno"}
+                      {getGameLabel(room.gameType)}
                     </span>
                     <span className={`statusPill ${room.status.toLowerCase()}`}>
                       {room.status === "WAITING"
@@ -770,8 +764,7 @@ function ArcadeView({ visible }) {
                 <div className="emptyIcon">🚀</div>
                 <h4>Nenhuma sala aberta no momento</h4>
                 <p>
-                  A arena está livre! Seja o primeiro a criar uma sala de Damas ou
-                  Uno e convide a turma inteira para jogar!
+                  A arena está livre! Seja o primeiro a criar uma sala e convide a turma para jogar!
                 </p>
                 <button
                   className="emptyCreateBtn"
@@ -795,9 +788,7 @@ function ArcadeView({ visible }) {
                   <span>
                     Jogo:{" "}
                     <strong className="text-indigo-400">
-                      {activeRoom.gameType === "checkers"
-                        ? "Damas (Duplas - 2 Jogadores)"
-                        : "Uno Multiplayer da Turma"}
+                      {getGameLabel(activeRoom.gameType)} ({activeRoom.maxPlayers} Jogadores)
                     </strong>
                   </span>
                 </div>
@@ -880,21 +871,11 @@ function ArcadeView({ visible }) {
                 )}
               </div>
 
-              {activeRoom.gameType === "checkers" &&
-                activeRoom.players?.length < 2 && (
-                  <div className="text-center text-xs text-amber-300">
-                    Aguardando 2º jogador para liberar o início da partida de
-                    Damas.
-                  </div>
-                )}
-
-              {activeRoom.gameType === "uno" &&
-                activeRoom.players?.length < 2 && (
-                  <div className="text-center text-xs text-amber-300">
-                    Aguardando pelo menos mais 1 jogador para liberar o início
-                    do Uno. Convide seus colegas de turma!
-                  </div>
-                )}
+              {activeRoom.players?.length < 2 && (
+                <div className="text-center text-xs text-amber-300">
+                  Aguardando pelo menos mais 1 jogador para liberar o início da partida.
+                </div>
+              )}
             </div>
           )}
 
@@ -911,7 +892,7 @@ function ArcadeView({ visible }) {
                   </div>
                   <span className="roomTitle">{activeRoom.title}</span>
                   <span className={`gameBadge ${activeRoom.gameType}`}>
-                    {activeRoom.gameType === "checkers" ? "Damas" : "Uno"}
+                    {getGameLabel(activeRoom.gameType)}
                   </span>
                   {!myPlayerObj && (
                     <span className="spectatorBadge">
@@ -920,7 +901,6 @@ function ArcadeView({ visible }) {
                   )}
                 </div>
 
-                {/* HUD Integrada Central com Informações da Partida em Tempo Real */}
                 <div className="activeGameHudCenter">
                   {activeRoom.gameType === "checkers" && activeRoom.gameState && (
                     <div className="checkersHudSummary">
@@ -934,9 +914,6 @@ function ArcadeView({ visible }) {
                     <div className="unoHudSummary">
                       <span className={`hudColorPill ${activeRoom.gameState.activeColor}`}>
                         Cor: {activeRoom.gameState.activeColor}
-                      </span>
-                      <span className="hudDirection">
-                        {activeRoom.gameState.direction === 1 ? "↻ Horário" : "↺ Anti-horário"}
                       </span>
                     </div>
                   )}
@@ -986,6 +963,41 @@ function ArcadeView({ visible }) {
                   }
                 />
               )}
+
+              {activeRoom.gameType === "domino" && (
+                <DominoTable
+                  gameState={activeRoom.gameState}
+                  currentUserId={person.id}
+                  onPlayTile={(tileId, targetEnd) =>
+                    handleGameAction({ type: "PLAY_TILE", tileId, targetEnd })
+                  }
+                  onDrawTile={() => handleGameAction({ type: "DRAW_TILE" })}
+                  onPassTurn={() => handleGameAction({ type: "PASS" })}
+                />
+              )}
+
+              {activeRoom.gameType === "tictactoe" && (
+                <TicTacToeBoard
+                  gameState={activeRoom.gameState}
+                  currentUserId={person.id}
+                  onMakeMove={(position) =>
+                    handleGameAction({ type: "MAKE_MOVE", position })
+                  }
+                />
+              )}
+
+              {activeRoom.gameType === "hangman" && (
+                <HangmanGame
+                  gameState={activeRoom.gameState}
+                  currentUserId={person.id}
+                  onGuessLetter={(letter) =>
+                    handleGameAction({ type: "GUESS_LETTER", letter })
+                  }
+                  onGuessWord={(attemptWord) =>
+                    handleGameAction({ type: "GUESS_WORD", attemptWord })
+                  }
+                />
+              )}
             </div>
           )}
 
@@ -998,11 +1010,13 @@ function ArcadeView({ visible }) {
               <p>
                 {activeRoom.winnerUserId === person.id
                   ? "Parabéns! Você venceu a partida e conquistou pontos para o ranking!"
-                  : `Vitória de ${
+                  : activeRoom.winnerUserId
+                  ? `Vitória de ${
                       activeRoom.players?.find(
                         (p) => p.userId === activeRoom.winnerUserId
                       )?.displayName || "outro jogador"
-                    }!`}
+                    }!`
+                  : "Empate ou limite de tentativas atingido!"}
               </p>
 
               {autoCloseCountdown !== null && (
@@ -1048,42 +1062,48 @@ function ArcadeView({ visible }) {
 
               <div className="formGroup">
                 <label>Escolha o Jogo:</label>
-                <div className="gameTypeSelector">
-                  <div
-                    className={`gameChoice ${
-                      newRoomGameType === "checkers" ? "selected" : ""
-                    }`}
-                    onClick={() => setNewRoomGameType("checkers")}
-                  >
-                    <strong>Damas</strong>
-                    <small>Duplas (2 jogadores)</small>
-                  </div>
-                  <div
-                    className={`gameChoice ${
-                      newRoomGameType === "uno" ? "selected" : ""
-                    }`}
-                    onClick={() => setNewRoomGameType("uno")}
-                  >
-                    <strong>Uno</strong>
-                    <small>Mesa de 2 até 6 jogadores</small>
-                  </div>
+                <div className="gameTypeSelector grid grid-cols-2 gap-2">
+                  {[
+                    { id: "checkers", name: "Damas", sub: "2 jogadores" },
+                    { id: "uno", name: "Uno", sub: "2 até 6 jogadores" },
+                    { id: "domino", name: "Dominó", sub: "2 até 4 jogadores" },
+                    { id: "tictactoe", name: "Jogo da Velha", sub: "2 jogadores" },
+                    { id: "hangman", name: "Forca", sub: "2 até 4 jogadores" },
+                  ].map((g) => (
+                    <div
+                      key={g.id}
+                      className={`gameChoice ${
+                        newRoomGameType === g.id ? "selected" : ""
+                      }`}
+                      onClick={() => setNewRoomGameType(g.id)}
+                    >
+                      <strong>{g.name}</strong>
+                      <small>{g.sub}</small>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {newRoomGameType === "uno" && (
-                <div className="formGroup">
-                  <label>Capacidade Máxima de Jogadores (Máx. 6):</label>
+              {(newRoomGameType === "uno" ||
+                newRoomGameType === "domino" ||
+                newRoomGameType === "hangman") && (
+                <div className="formGroup mt-3">
+                  <label>Capacidade Máxima de Jogadores:</label>
                   <select
                     value={newRoomMaxPlayers}
                     onChange={(e) =>
                       setNewRoomMaxPlayers(parseInt(e.target.value, 10))
                     }
                   >
-                    <option value={2}>2 jogadores (Duelo)</option>
+                    <option value={2}>2 jogadores</option>
                     <option value={3}>3 jogadores</option>
                     <option value={4}>4 jogadores</option>
-                    <option value={5}>5 jogadores</option>
-                    <option value={6}>6 jogadores (Mesa Cheia - Máximo)</option>
+                    {newRoomGameType === "uno" && (
+                      <>
+                        <option value={5}>5 jogadores</option>
+                        <option value={6}>6 jogadores (Máximo)</option>
+                      </>
+                    )}
                   </select>
                 </div>
               )}
