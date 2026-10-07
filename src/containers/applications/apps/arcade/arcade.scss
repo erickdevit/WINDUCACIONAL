@@ -1503,7 +1503,12 @@
   width: min(88%, 740px);
   height: min(46vh, 250px);
   border-radius: 125px;
-  background: radial-gradient(ellipse at center, #15803d 0%, #166534 55%, #14532d 100%);
+  background: radial-gradient(
+    ellipse at center,
+    #15803d 0%,
+    #166534 55%,
+    #14532d 100%
+  );
   border: 10px solid #78350f;
   outline: 3px solid #b45309;
   box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.7), 0 10px 24px rgba(0, 0, 0, 0.6);
@@ -1687,7 +1692,8 @@
 
       &.activeTurnSeat {
         border-color: #facc15;
-        box-shadow: 0 0 20px rgba(250, 204, 21, 0.7), 0 0 10px rgba(56, 189, 248, 0.5);
+        box-shadow: 0 0 20px rgba(250, 204, 21, 0.7),
+          0 0 10px rgba(56, 189, 248, 0.5);
       }
     }
 
@@ -2245,5 +2251,801 @@
         font-weight: 700;
       }
     }
+  }
+}
+
+/* Arenas dos jogos: profundidade, iluminação e controles com resposta tátil */
+.arcadeMainContent.inMatchContent {
+  background: radial-gradient(
+      ellipse at 50% 10%,
+      rgba(40, 53, 87, 0.32),
+      transparent 58%
+    ),
+    linear-gradient(145deg, #080b13, #03050a 70%);
+}
+
+.arcadeActiveGameWrapper {
+  background: #05070d;
+
+  .activeGameTopBar {
+    background: linear-gradient(
+      180deg,
+      rgba(20, 25, 39, 0.98),
+      rgba(8, 11, 19, 0.96)
+    );
+    border-bottom-color: rgba(148, 163, 184, 0.16);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+
+    .activeGameInfo .roomTitle {
+      letter-spacing: 0.02em;
+      color: #f1f5f9;
+    }
+
+    .activeGameActions button {
+      min-height: 32px;
+    }
+  }
+}
+
+/* Damas: madeira escura, casas em relevo e peças metálicas */
+.checkersGameContainer {
+  position: relative;
+  isolation: isolate;
+  background: radial-gradient(
+      ellipse at 50% 45%,
+      rgba(118, 68, 36, 0.18),
+      transparent 54%
+    ),
+    radial-gradient(ellipse at center, #11141b 0%, #080a0f 72%);
+}
+
+.gameStatusBar {
+  width: min(460px, 82vw);
+  min-height: 42px;
+  gap: 10px;
+  justify-content: center;
+  border-radius: 12px;
+  border-color: rgba(226, 190, 132, 0.24);
+  background: linear-gradient(
+    180deg,
+    rgba(28, 31, 39, 0.96),
+    rgba(12, 15, 21, 0.96)
+  );
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.34),
+    inset 0 1px rgba(255, 255, 255, 0.06);
+
+  .turnAlert {
+    flex: 1 1 auto;
+    white-space: nowrap;
+  }
+
+  .mandatoryCaptureHint {
+    color: #ffd477;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  > .flex {
+    gap: 8px;
+  }
+}
+
+.checkersBoardArena {
+  position: relative;
+  padding: 10px;
+  border: 1px solid rgba(240, 199, 136, 0.48);
+  border-radius: 16px;
+  background: linear-gradient(
+      135deg,
+      rgba(255, 232, 184, 0.12),
+      transparent 18% 82%,
+      rgba(0, 0, 0, 0.35)
+    ),
+    repeating-linear-gradient(
+      112deg,
+      #5b351f 0 8px,
+      #684128 8px 15px,
+      #50301d 15px 22px
+    );
+  box-shadow: 0 24px 44px rgba(0, 0, 0, 0.64), 0 0 0 4px rgba(31, 19, 12, 0.95),
+    inset 0 1px 1px rgba(255, 235, 194, 0.42),
+    inset 0 -5px 10px rgba(0, 0, 0, 0.48);
+  perspective: 1100px;
+}
+
+.checkersPlayerBar {
+  width: min(460px, 82vw);
+  padding: 7px 12px;
+  border: 1px solid rgba(226, 190, 132, 0.24);
+  background: linear-gradient(
+    180deg,
+    rgba(24, 26, 32, 0.98),
+    rgba(12, 14, 19, 0.98)
+  );
+
+  &.oppBar {
+    border-radius: 10px 10px 4px 4px;
+  }
+
+  &.myBar {
+    border-radius: 4px 4px 10px 10px;
+  }
+
+  &.activeTurn {
+    border-color: #f2c46d;
+    box-shadow: 0 0 18px rgba(255, 184, 72, 0.38),
+      inset 0 0 18px rgba(255, 184, 72, 0.07);
+  }
+}
+
+.checkersBoard {
+  width: min(460px, 82vw, calc(100vh - 315px));
+  height: min(460px, 82vw, calc(100vh - 315px));
+  border: 8px solid #704525;
+  border-radius: 3px;
+  transform: perspective(1100px) rotateX(5deg);
+  transform-origin: center 62%;
+  box-shadow: 0 14px 25px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(255, 227, 174, 0.34),
+    inset 0 0 24px rgba(0, 0, 0, 0.48);
+
+  .checkersSquare {
+    &.light {
+      background: linear-gradient(
+          145deg,
+          rgba(255, 245, 215, 0.52),
+          transparent 52%
+        ),
+        repeating-linear-gradient(8deg, #e4c58f 0 4px, #d7b57b 4px 8px);
+      box-shadow: inset 0 0 0 1px rgba(103, 63, 31, 0.15);
+    }
+
+    &.dark {
+      background: linear-gradient(
+          145deg,
+          rgba(255, 222, 164, 0.11),
+          transparent 52%
+        ),
+        repeating-linear-gradient(8deg, #55321f 0 4px, #472817 4px 8px);
+      box-shadow: inset 0 0 0 1px rgba(12, 7, 4, 0.36);
+    }
+
+    &.validMoveTarget {
+      background: rgba(17, 145, 100, 0.56) !important;
+      box-shadow: inset 0 0 0 3px rgba(124, 255, 200, 0.8),
+        inset 0 0 22px rgba(48, 255, 163, 0.62);
+    }
+  }
+
+  .checkersPiece {
+    width: 78%;
+    height: 78%;
+    border-width: 3px;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 5px rgba(0, 0, 0, 0.58),
+      0 2px 0 rgba(255, 255, 255, 0.27) inset,
+      0 -5px 0 rgba(0, 0, 0, 0.22) inset;
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 17%;
+      border: 2px solid rgba(255, 255, 255, 0.34);
+      border-radius: 50%;
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.28);
+      pointer-events: none;
+    }
+
+    &.redPiece {
+      background: radial-gradient(
+        circle at 32% 25%,
+        #ffb2a3 0%,
+        #ed3942 34%,
+        #a20e21 72%,
+        #530b17 100%
+      );
+      border-color: #ff7070;
+    }
+
+    &.whitePiece {
+      background: radial-gradient(
+        circle at 32% 24%,
+        #fffdf1 0%,
+        #e9d8ad 36%,
+        #b79c6c 74%,
+        #675031 100%
+      );
+      border-color: #fff0c6;
+    }
+
+    &.selected {
+      transform: translateY(-7px) scale(1.08);
+      box-shadow: 0 0 0 3px #5de2ff, 0 12px 16px rgba(0, 0, 0, 0.62),
+        0 0 24px rgba(56, 189, 248, 0.82);
+    }
+
+    .crownIcon {
+      color: #ffe18b;
+      filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.9));
+    }
+  }
+}
+
+/* Uno: mesa de arena com aro luminoso, pilhas inclinadas e mão em leque */
+.unoVisualArena {
+  background: radial-gradient(
+      ellipse at 50% 44%,
+      rgba(255, 92, 16, 0.38),
+      transparent 34%
+    ),
+    radial-gradient(ellipse at center, #511018 0%, #210911 48%, #08070d 100%);
+
+  &::before {
+    content: "";
+    position: absolute;
+    width: min(94%, 1320px);
+    height: 94%;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 63, 46, 0.72);
+    box-shadow: 0 0 22px rgba(255, 35, 34, 0.62),
+      inset 0 0 34px rgba(244, 63, 50, 0.21), 0 0 0 12px rgba(131, 16, 24, 0.08);
+    pointer-events: none;
+  }
+}
+
+.unoActionNotification {
+  top: 10px;
+  right: 14px;
+  left: auto;
+  max-width: min(250px, 45vw);
+  transform: none;
+}
+
+.unoTableFelt {
+  width: min(82%, 900px);
+  height: min(48vh, 310px);
+  min-height: 220px;
+  border: 9px solid #68131d;
+  outline: 2px solid rgba(255, 179, 70, 0.78);
+  background: radial-gradient(
+      ellipse at 50% 48%,
+      rgba(255, 162, 34, 0.98) 0%,
+      rgba(218, 47, 24, 0.98) 40%,
+      rgba(132, 12, 31, 0.98) 78%
+    ),
+    repeating-linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.025) 0 2px,
+      transparent 2px 7px
+    );
+  box-shadow: inset 0 0 48px rgba(40, 2, 9, 0.62),
+    0 18px 36px rgba(0, 0, 0, 0.68), 0 0 36px rgba(239, 40, 37, 0.42),
+    0 0 0 8px rgba(74, 10, 20, 0.78);
+  transform: perspective(1000px) rotateX(8deg);
+  transform-style: preserve-3d;
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: clamp(138px, 22vh, 205px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 8px solid #ffd37a;
+    background: conic-gradient(
+      #ff393c 0deg 90deg,
+      #ffd52f 90deg 180deg,
+      #29d86d 180deg 270deg,
+      #27c7f2 270deg 360deg
+    );
+    box-shadow: 0 10px 20px rgba(72, 7, 10, 0.62),
+      0 0 24px rgba(255, 219, 92, 0.84),
+      inset 0 0 0 3px rgba(255, 255, 255, 0.54);
+    transform: translate(-50%, -50%) rotate(-12deg) translateZ(8px);
+    opacity: 0.9;
+    pointer-events: none;
+  }
+
+  .unoCenterPiles {
+    gap: clamp(36px, 6vw, 76px);
+    transform: translateY(3px) translateZ(20px);
+  }
+
+  .deckCardBack {
+    appearance: none;
+    padding: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.12),
+        transparent 32%
+      ),
+      repeating-linear-gradient(45deg, #121116 0 7px, #26131a 7px 9px);
+    border: 3px solid #fff4d8;
+    box-shadow: 2px 10px 0 #c6b6a1, 4px 14px 0 #87786f,
+      7px 18px 19px rgba(0, 0, 0, 0.68);
+    transform: rotate(-9deg) translateY(-4px);
+
+    &:disabled {
+      opacity: 1;
+      cursor: default;
+    }
+
+    &.canDraw {
+      animation: drawPulse 1.2s infinite alternate;
+      &:hover {
+        transform: rotate(-9deg) translateY(-10px) scale(1.05);
+      }
+    }
+
+    .unoDeckLogo {
+      border: 2px solid #fff2cc;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.7);
+    }
+  }
+
+  .discardPile .topCardTable {
+    transform: rotate(8deg) translateY(-4px);
+    box-shadow: 2px 8px 0 rgba(255, 255, 255, 0.42),
+      5px 13px 16px rgba(0, 0, 0, 0.55);
+    &:hover {
+      transform: rotate(8deg) translateY(-4px);
+    }
+  }
+}
+
+.unoSeatsContainer .unoTableSeat {
+  max-width: min(230px, 28vw);
+  padding: 6px 9px;
+  border-radius: 13px;
+  border-color: rgba(255, 222, 163, 0.36);
+  background: linear-gradient(
+    135deg,
+    rgba(42, 17, 24, 0.96),
+    rgba(12, 13, 22, 0.97)
+  );
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.58),
+    inset 0 1px rgba(255, 255, 255, 0.09);
+
+  &.activeTurnSeat {
+    border-color: #ffd44c;
+    box-shadow: 0 0 22px rgba(255, 204, 57, 0.68),
+      0 8px 22px rgba(0, 0, 0, 0.58);
+  }
+
+  .seatAvatar {
+    width: 34px;
+    height: 34px;
+    background: radial-gradient(
+      circle at 35% 28%,
+      #ffcf73,
+      #ef553e 58%,
+      #762036
+    );
+    border: 2px solid #ffe0a3;
+    box-shadow: 0 0 13px rgba(255, 166, 72, 0.4);
+  }
+
+  .seatCardStack {
+    display: flex;
+    align-items: center;
+    width: 32px;
+    height: 34px;
+    flex: 0 0 32px;
+    margin-left: 2px;
+  }
+
+  .seatCardBack {
+    width: 22px;
+    height: 31px;
+    margin-left: -13px;
+    border: 1px solid #fff0c0;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffdc54;
+    font-size: 5px;
+    font-weight: 1000;
+    background: radial-gradient(ellipse, #db2929 0 34%, #101116 36% 100%);
+    box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.62);
+
+    &:first-child {
+      margin-left: 0;
+      transform: rotate(-8deg);
+    }
+
+    &:last-child {
+      transform: rotate(8deg) translateY(-2px);
+    }
+  }
+}
+
+.unoPlayerHandArea {
+  background: radial-gradient(
+      ellipse at 50% 0%,
+      rgba(81, 37, 42, 0.56),
+      transparent 56%
+    ),
+    linear-gradient(180deg, rgba(15, 13, 20, 0.97), rgba(5, 7, 12, 0.99));
+  border-top: 1px solid rgba(255, 205, 143, 0.24);
+  box-shadow: 0 -14px 34px rgba(0, 0, 0, 0.32);
+
+  .handCardsRow {
+    max-height: 148px;
+    padding-top: 14px;
+    perspective: 900px;
+
+    .unoCard {
+      width: clamp(52px, 6.1vw, 82px);
+      height: clamp(76px, 8.9vw, 120px);
+      transform: translateY(var(--hand-lift, 0px))
+        rotate(var(--hand-rotation, 0deg));
+      transform-origin: center bottom;
+      border-radius: 10px;
+      box-shadow: 0 9px 17px rgba(0, 0, 0, 0.58),
+        0 0 0 1px rgba(255, 255, 255, 0.32);
+
+      &.notPlayable {
+        filter: saturate(0.72) brightness(0.76);
+      }
+
+      &.playable:hover {
+        transform: translateY(-18px) rotate(0deg) scale(1.1);
+      }
+    }
+
+    &.denseCards .unoCard + .unoCard {
+      margin-left: clamp(-24px, -2vw, -12px);
+    }
+  }
+}
+
+/* Dominó: fichas de marfim com pontos e mesa em feltro verde */
+.dominoGameContainer {
+  gap: 14px;
+  padding: clamp(12px, 2vw, 24px);
+  background: radial-gradient(
+      ellipse at 50% 45%,
+      rgba(16, 100, 66, 0.34),
+      transparent 55%
+    ),
+    linear-gradient(145deg, #071b18, #06100f 70%);
+  border-color: rgba(95, 205, 148, 0.28);
+}
+
+.dominoHeaderBar,
+.dominoPlayerHandArea {
+  background: linear-gradient(
+    145deg,
+    rgba(20, 75, 56, 0.92),
+    rgba(7, 33, 27, 0.96)
+  ) !important;
+  border-color: rgba(125, 236, 174, 0.25) !important;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28),
+    inset 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.dominoBoardArena {
+  min-height: 0;
+  margin: 0;
+  flex: 1 1 0;
+  background: radial-gradient(
+      ellipse at center,
+      rgba(25, 121, 79, 0.82),
+      rgba(7, 55, 40, 0.94) 65%
+    ),
+    repeating-linear-gradient(
+      40deg,
+      rgba(255, 255, 255, 0.025) 0 2px,
+      transparent 2px 6px
+    ) !important;
+  border: 8px solid #513321 !important;
+  box-shadow: inset 0 0 36px rgba(0, 0, 0, 0.62),
+    0 16px 28px rgba(0, 0, 0, 0.42);
+  perspective: 1000px;
+}
+
+.dominoChain {
+  min-width: max-content;
+  transform: perspective(1000px) rotateX(4deg);
+  filter: drop-shadow(0 12px 9px rgba(0, 0, 0, 0.46));
+}
+
+.dominoBoardTile,
+.dominoHandTile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: stretch;
+  width: 38px;
+  height: 68px;
+  padding: 4px;
+  border: 1px solid #fff5d2;
+  border-radius: 7px;
+  color: #18251e;
+  background: linear-gradient(135deg, #fff8db 0%, #e6d6a8 48%, #bca678 100%);
+  box-shadow: 0 5px 0 #766344, 0 8px 12px rgba(0, 0, 0, 0.48),
+    inset 0 1px 2px #fff;
+}
+
+.dominoHandTile {
+  width: 46px;
+  height: 82px;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-6px) rotate(-2deg);
+    box-shadow: 0 8px 0 #766344, 0 14px 18px rgba(0, 0, 0, 0.5),
+      inset 0 1px 2px #fff;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.8;
+  }
+
+  &.selected {
+    transform: translateY(-10px) scale(1.06);
+    border: 2px solid #facc15;
+    box-shadow: 0 8px 0 #766344, 0 0 0 3px rgba(250, 204, 21, 0.45),
+      0 16px 22px rgba(0, 0, 0, 0.58);
+  }
+}
+
+.dominoHalf {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  place-items: center;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.dominoPip {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: transparent;
+
+  &.visible {
+    background: #202521;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.5), 0 0 1px #111;
+  }
+}
+
+.dominoDivider {
+  height: 1px;
+  flex: 0 0 1px;
+  background: rgba(57, 48, 32, 0.62);
+}
+
+/* Jogo da Velha: casas elevadas e símbolos com brilho */
+.tictactoeGameContainer {
+  min-height: 0;
+  gap: 10px;
+  padding: clamp(12px, 2vw, 24px) !important;
+  background: radial-gradient(
+      ellipse at 50% 44%,
+      rgba(79, 70, 229, 0.17),
+      transparent 45%
+    ),
+    linear-gradient(145deg, #11172a, #070a12) !important;
+  border-color: rgba(129, 140, 248, 0.42) !important;
+}
+
+.ticTacToeBoard {
+  max-width: min(400px, 55vh);
+  padding: 12px !important;
+  gap: 10px !important;
+  background: linear-gradient(145deg, #25304e, #12192c) !important;
+  border: 2px solid rgba(167, 139, 250, 0.72) !important;
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.5),
+    inset 0 2px rgba(255, 255, 255, 0.1) !important;
+  transform: perspective(1000px) rotateX(5deg);
+}
+
+.ticTacToeCell {
+  min-width: 0;
+  border-radius: 14px !important;
+  background: linear-gradient(145deg, #121a2d, #202b46) !important;
+  border: 1px solid rgba(148, 163, 184, 0.32) !important;
+  box-shadow: 0 7px 0 #0b1020, 0 10px 14px rgba(0, 0, 0, 0.42),
+    inset 0 1px rgba(255, 255, 255, 0.08);
+  text-shadow: 0 0 18px currentColor;
+
+  &:not(:disabled):hover {
+    transform: translateY(-3px) scale(1.025);
+    border-color: rgba(165, 180, 252, 0.88) !important;
+    box-shadow: 0 10px 0 #0b1020, 0 16px 22px rgba(0, 0, 0, 0.48),
+      0 0 22px rgba(129, 140, 248, 0.3);
+  }
+
+  &.winningCell {
+    background: linear-gradient(145deg, #0d8b69, #075c4b) !important;
+    border-color: #73ffd0 !important;
+    box-shadow: 0 7px 0 #064638, 0 0 24px rgba(52, 211, 153, 0.7);
+  }
+}
+
+/* Forca: palco iluminado, letras encaixadas e teclado em teclas */
+.hangmanGameContainer {
+  gap: 12px;
+  background: radial-gradient(
+      ellipse at 50% 45%,
+      rgba(124, 58, 237, 0.14),
+      transparent 48%
+    ),
+    linear-gradient(145deg, #111020, #070810) !important;
+  border-color: rgba(192, 132, 252, 0.4) !important;
+}
+
+.hangmanInfoBar,
+.hangmanKeyboard {
+  background: linear-gradient(
+    145deg,
+    rgba(41, 27, 66, 0.92),
+    rgba(17, 16, 31, 0.96)
+  ) !important;
+  border-color: rgba(192, 132, 252, 0.28) !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3),
+    inset 0 1px rgba(255, 255, 255, 0.07);
+}
+
+.hangmanStage {
+  flex: 1 1 0;
+  min-height: 180px;
+  background: radial-gradient(
+      ellipse at 24% 75%,
+      rgba(217, 119, 6, 0.14),
+      transparent 38%
+    ),
+    linear-gradient(145deg, rgba(27, 27, 45, 0.94), rgba(10, 12, 22, 0.98)) !important;
+  border-color: rgba(167, 139, 250, 0.25) !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.05),
+    0 14px 30px rgba(0, 0, 0, 0.28);
+
+  svg {
+    filter: drop-shadow(0 12px 10px rgba(0, 0, 0, 0.56));
+  }
+}
+
+.hangmanWord {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+  font-size: clamp(22px, 3.8vw, 36px) !important;
+}
+
+.hangmanWordLetter {
+  min-width: 30px;
+  padding: 0 7px 5px;
+  margin: 0 3px;
+  color: #fff0b3;
+  border-color: #f59e0b !important;
+  filter: drop-shadow(0 4px 5px rgba(245, 158, 11, 0.22));
+}
+
+.hangmanWordGap {
+  flex: 0 0 12px;
+  width: 12px;
+}
+
+.hangmanKeyboard button {
+  min-width: 36px;
+  height: 40px;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 0 rgba(6, 6, 15, 0.84), 0 7px 10px rgba(0, 0, 0, 0.34) !important;
+
+  &:not(:disabled):hover {
+    transform: translateY(-2px);
+    filter: brightness(1.16);
+  }
+
+  &:not(:disabled):active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 rgba(6, 6, 15, 0.84) !important;
+  }
+}
+
+.hangmanGuessForm input {
+  min-height: 38px;
+  border-radius: 10px;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.hangmanGuessForm button {
+  border: 1px solid #ffe18a;
+  border-radius: 10px;
+  box-shadow: 0 4px 0 #925311, 0 7px 12px rgba(0, 0, 0, 0.34);
+}
+
+@media (max-width: 760px) {
+  .checkersGameContainer {
+    padding: 6px;
+  }
+
+  .gameStatusBar {
+    width: min(100%, 560px);
+    gap: 6px;
+    padding: 6px 8px;
+    font-size: 10px;
+
+    .turnAlert {
+      font-size: 10px;
+      padding: 4px 6px;
+    }
+  }
+
+  .checkersBoardArena {
+    padding: 6px;
+  }
+
+  .checkersPlayerBar {
+    width: min(86vw, 460px);
+    padding: 5px 7px;
+
+    .playerStatsRight .capturesPill {
+      padding: 3px 5px;
+      font-size: 9px;
+    }
+
+    .playerStatsRight .turnStatusTag {
+      display: none;
+    }
+  }
+
+  .checkersBoard {
+    width: min(86vw, calc(100vh - 330px));
+    height: min(86vw, calc(100vh - 330px));
+    border-width: 5px;
+  }
+
+  .unoTableFelt {
+    width: 84%;
+    min-height: 190px;
+    height: min(42vh, 270px);
+    border-width: 6px;
+    padding: 8px 10px;
+  }
+
+  .unoSeatsContainer .unoTableSeat {
+    max-width: 42vw;
+    gap: 4px;
+    padding: 4px 6px;
+
+    &.seat-middle-left,
+    &.seat-middle-right {
+      top: 48%;
+    }
+
+    .seatCardStack {
+      display: none;
+    }
+  }
+
+  .unoPlayerHandArea .handCardsRow {
+    justify-content: flex-start;
+  }
+
+  .dominoGameContainer {
+    padding: 10px;
+  }
+
+  .dominoBoardArena {
+    justify-content: flex-start;
+  }
+
+  .hangmanGuessForm {
+    flex-wrap: wrap;
+  }
+
+  .hangmanGuessForm input {
+    flex-basis: 100%;
   }
 }

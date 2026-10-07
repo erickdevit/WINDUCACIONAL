@@ -58,22 +58,34 @@ export function HangmanGame({
         <line x1="70" y1="10" x2="70" y2="25" className="stroke-amber-600" />
 
         {/* 1. Cabeça */}
-        {wrongGuesses >= 1 && <circle cx="70" cy="35" r="10" className="stroke-rose-400" />}
+        {wrongGuesses >= 1 && (
+          <circle cx="70" cy="35" r="10" className="stroke-rose-400" />
+        )}
 
         {/* 2. Tronco */}
-        {wrongGuesses >= 2 && <line x1="70" y1="45" x2="70" y2="75" className="stroke-rose-400" />}
+        {wrongGuesses >= 2 && (
+          <line x1="70" y1="45" x2="70" y2="75" className="stroke-rose-400" />
+        )}
 
         {/* 3. Braço Esquerdo */}
-        {wrongGuesses >= 3 && <line x1="70" y1="52" x2="55" y2="65" className="stroke-rose-400" />}
+        {wrongGuesses >= 3 && (
+          <line x1="70" y1="52" x2="55" y2="65" className="stroke-rose-400" />
+        )}
 
         {/* 4. Braço Direito */}
-        {wrongGuesses >= 4 && <line x1="70" y1="52" x2="85" y2="65" className="stroke-rose-400" />}
+        {wrongGuesses >= 4 && (
+          <line x1="70" y1="52" x2="85" y2="65" className="stroke-rose-400" />
+        )}
 
         {/* 5. Perna Esquerda */}
-        {wrongGuesses >= 5 && <line x1="70" y1="75" x2="55" y2="95" className="stroke-rose-400" />}
+        {wrongGuesses >= 5 && (
+          <line x1="70" y1="75" x2="55" y2="95" className="stroke-rose-400" />
+        )}
 
         {/* 6. Perna Direita */}
-        {wrongGuesses >= 6 && <line x1="70" y1="75" x2="85" y2="95" className="stroke-rose-400" />}
+        {wrongGuesses >= 6 && (
+          <line x1="70" y1="75" x2="85" y2="95" className="stroke-rose-400" />
+        )}
       </svg>
     );
   };
@@ -81,7 +93,7 @@ export function HangmanGame({
   return (
     <div className="hangmanGameContainer flex-grow flex flex-col justify-between p-4 bg-slate-950 text-white rounded-2xl border border-purple-500/30 shadow-2xl relative overflow-hidden">
       {/* Topo - Dica e Categoria */}
-      <div className="flex flex-wrap justify-between items-center bg-slate-900/80 p-3 rounded-xl border border-slate-800 text-xs gap-2">
+      <div className="hangmanInfoBar flex flex-wrap justify-between items-center bg-slate-900/80 p-3 rounded-xl border border-slate-800 text-xs gap-2">
         <div className="flex items-center gap-2">
           <span className="px-2.5 py-1 bg-purple-900/80 text-purple-200 border border-purple-500/40 rounded-lg font-bold">
             💡 {category || "Educativo"}
@@ -107,19 +119,25 @@ export function HangmanGame({
       )}
 
       {/* Centro: Forca SVG + Palavra Mascarada */}
-      <div className="flex flex-col md:flex-row items-center justify-around my-3 gap-6 bg-slate-900/50 p-4 rounded-xl border border-slate-800">
-        <div className="flex justify-center items-center">{renderHangmanSvg()}</div>
+      <div className="hangmanStage flex flex-col md:flex-row items-center justify-around my-3 gap-6 bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+        <div className="flex justify-center items-center">
+          {renderHangmanSvg()}
+        </div>
 
         <div className="flex flex-col items-center gap-4">
-          <div className="text-3xl md:text-4xl font-mono font-black tracking-widest text-amber-300 drop-shadow">
-            {maskedWord.split("").map((char, i) => (
-              <span
-                key={i}
-                className="inline-block mx-1 border-b-4 border-amber-400 px-1 min-w-[24px] text-center"
-              >
-                {char}
-              </span>
-            ))}
+          <div className="hangmanWord text-3xl md:text-4xl font-mono font-black tracking-widest text-amber-300 drop-shadow">
+            {maskedWord.split("").map((char, i) =>
+              char === " " ? (
+                <span key={i} className="hangmanWordGap" aria-hidden="true" />
+              ) : (
+                <span
+                  key={i}
+                  className="hangmanWordLetter inline-block border-b-4 border-amber-400 text-center"
+                >
+                  {char}
+                </span>
+              )
+            )}
           </div>
 
           {status === "FINISHED" && displayWord && (
@@ -157,7 +175,10 @@ export function HangmanGame({
 
           {/* Opção para Tentar Palavra Inteira */}
           {isMyTurn && (
-            <form onSubmit={handleWordSubmit} className="flex gap-2 mt-1 w-full max-w-md">
+            <form
+              onSubmit={handleWordSubmit}
+              className="hangmanGuessForm flex gap-2 mt-1 w-full max-w-md"
+            >
               <input
                 type="text"
                 placeholder="Sabe a palavra inteira? Arrisque aqui..."

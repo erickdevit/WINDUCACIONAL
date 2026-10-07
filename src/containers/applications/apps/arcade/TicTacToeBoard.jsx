@@ -30,7 +30,8 @@ export function TicTacToeBoard({ gameState, currentUserId, onMakeMove }) {
         {players.map((p, idx) => {
           const isMe = p.userId === currentUserId;
           const isCurrentTurn = currentTurn === idx && status === "PLAYING";
-          const symbolColor = p.symbol === "X" ? "text-cyan-400" : "text-rose-400";
+          const symbolColor =
+            p.symbol === "X" ? "text-cyan-400" : "text-rose-400";
 
           return (
             <div
@@ -68,7 +69,7 @@ export function TicTacToeBoard({ gameState, currentUserId, onMakeMove }) {
 
       {/* Grade do Jogo da Velha (3x3) */}
       <div className="flex-grow flex items-center justify-center my-4">
-        <div className="grid grid-cols-3 gap-3 bg-slate-800 p-4 rounded-2xl border-2 border-indigo-500/40 shadow-inner w-full max-w-[320px] aspect-square">
+        <div className="ticTacToeBoard grid grid-cols-3 gap-3 bg-slate-800 p-4 rounded-2xl border-2 border-indigo-500/40 shadow-inner w-full max-w-[320px] aspect-square">
           {board.map((cellValue, idx) => {
             const isWinningCell = winningLine && winningLine.includes(idx);
             const isClickable =
@@ -79,7 +80,7 @@ export function TicTacToeBoard({ gameState, currentUserId, onMakeMove }) {
                 key={idx}
                 disabled={!isClickable}
                 onClick={() => onMakeMove(idx)}
-                className={`flex items-center justify-center text-4xl font-black rounded-xl transition-all transform active:scale-95 ${
+                className={`ticTacToeCell flex items-center justify-center text-4xl font-black rounded-xl transition-all transform active:scale-95 ${
                   cellValue === "X"
                     ? "text-cyan-400"
                     : cellValue === "O"
@@ -87,7 +88,7 @@ export function TicTacToeBoard({ gameState, currentUserId, onMakeMove }) {
                     : "text-slate-600"
                 } ${
                   isWinningCell
-                    ? "bg-emerald-500/30 border-2 border-emerald-400 animate-bounce text-emerald-300"
+                    ? "winningCell bg-emerald-500/30 border-2 border-emerald-400 animate-bounce text-emerald-300"
                     : "bg-slate-900 border border-slate-700"
                 } ${
                   isClickable
@@ -107,7 +108,8 @@ export function TicTacToeBoard({ gameState, currentUserId, onMakeMove }) {
         {status === "PLAYING" ? (
           isMyTurn ? (
             <span className="text-amber-400 font-bold animate-pulse">
-              👉 Clique em uma das casas vazias da grade acima para marcar seu símbolo!
+              👉 Clique em uma das casas vazias da grade acima para marcar seu
+              símbolo!
             </span>
           ) : (
             <span>Aguardando a jogada de {activePlayer?.displayName}...</span>

@@ -1,5 +1,33 @@
 import React, { useState } from "react";
 
+const DOMINO_PIP_POSITIONS = {
+  0: [],
+  1: [4],
+  2: [0, 8],
+  3: [0, 4, 8],
+  4: [0, 2, 6, 8],
+  5: [0, 2, 4, 6, 8],
+  6: [0, 3, 6, 2, 5, 8],
+};
+
+function DominoHalf({ value }) {
+  const visiblePips = DOMINO_PIP_POSITIONS[value] || [];
+
+  return (
+    <span className="dominoHalf" role="img" aria-label={`${value} pontos`}>
+      {Array.from({ length: 9 }, (_, index) => (
+        <span
+          key={index}
+          aria-hidden="true"
+          className={`dominoPip ${
+            visiblePips.includes(index) ? "visible" : ""
+          }`}
+        />
+      ))}
+    </span>
+  );
+}
+
 export function DominoTable({
   gameState,
   currentUserId,
@@ -112,13 +140,13 @@ export function DominoTable({
               return (
                 <div
                   key={`${tile.id}_${idx}`}
-                  className={`dominoBoardTile bg-amber-50 text-slate-900 border-2 border-amber-200 rounded p-1 flex flex-col justify-between items-center w-8 h-14 shadow-md ${
+                  className={`dominoBoardTile ${
                     tile.isDouble ? "rotate-90 my-2" : ""
                   }`}
                 >
-                  <span className="font-extrabold text-sm">{val1}</span>
-                  <div className="w-full h-[1px] bg-slate-400" />
-                  <span className="font-extrabold text-sm">{val2}</span>
+                  <DominoHalf value={val1} />
+                  <span className="dominoDivider" />
+                  <DominoHalf value={val2} />
                 </div>
               );
             })}
@@ -178,15 +206,13 @@ export function DominoTable({
                   key={tile.id}
                   disabled={!isMyTurn || status !== "PLAYING"}
                   onClick={() => handleTileClick(tile.id)}
-                  className={`dominoHandTile bg-amber-100 hover:bg-amber-200 text-slate-900 border-2 rounded p-1 flex flex-col justify-between items-center w-9 h-16 transition-all transform ${
-                    isSelected
-                      ? "border-amber-500 -translate-y-2 ring-4 ring-amber-400 scale-105"
-                      : "border-amber-300 shadow"
-                  } ${!isMyTurn ? "opacity-90 cursor-not-allowed" : "cursor-pointer"}`}
+                  className={`dominoHandTile ${isSelected ? "selected" : ""} ${
+                    !isMyTurn ? "cursor-not-allowed" : "cursor-pointer"
+                  }`}
                 >
-                  <span className="font-black text-base">{tile.left}</span>
-                  <div className="w-full h-[2px] bg-slate-400" />
-                  <span className="font-black text-base">{tile.right}</span>
+                  <DominoHalf value={tile.left} />
+                  <span className="dominoDivider" />
+                  <DominoHalf value={tile.right} />
                 </button>
               );
             })}

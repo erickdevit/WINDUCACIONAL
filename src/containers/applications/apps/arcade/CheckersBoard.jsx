@@ -219,21 +219,20 @@ export function CheckersBoard({
   return (
     <div className="checkersGameContainer">
       <div className="gameStatusBar">
-        <div className="playerTurnCard">
-          <div className={`pieceMini ${currentTurn === 0 ? "red" : "white"}`} />
-          <span>
-            Turno de <strong>{playerObj ? playerObj.displayName || playerObj.username : "..."}</strong>
-          </span>
-        </div>
-
         <div className={`turnAlert ${isMyTurn ? "myTurn" : "oppTurn"}`}>
           {isSpectator
-            ? `Vez de ${playerObj?.displayName || playerObj?.username || "jogador"}`
+            ? `Vez de ${
+                playerObj?.displayName || playerObj?.username || "jogador"
+              }`
             : isMyTurn
-            ? "⚡ SUA VEZ DE JOGAR!"
-            : `Aguardando ${playerObj?.displayName || "adversário"}...`}
-          {activeJumpFrom && isMyTurn && " (🔥 Salto consecutivo obrigatório!)"}
+            ? "⚡ SUA VEZ!"
+            : `Vez de ${playerObj?.displayName || "adversário"}`}
         </div>
+        {activeJumpFrom && isMyTurn && (
+          <span className="mandatoryCaptureHint">
+            Salto consecutivo obrigatório
+          </span>
+        )}
 
         <div className="flex items-center gap-3">
           <span className="text-xs text-slate-300 font-semibold">
@@ -251,11 +250,15 @@ export function CheckersBoard({
       <div className="checkersBoardArena">
         {/* Cartão HUD do Adversário (Topo do Tabuleiro) */}
         <div
-          className={`checkersPlayerBar oppBar ${isTopTurn ? "activeTurn" : ""}`}
+          className={`checkersPlayerBar oppBar ${
+            isTopTurn ? "activeTurn" : ""
+          }`}
         >
           <div className="playerInfoLeft">
             <div className="avatarRing">
-              {(topPlayer?.displayName || topPlayer?.username || "A")[0].toUpperCase()}
+              {(topPlayer?.displayName ||
+                topPlayer?.username ||
+                "A")[0].toUpperCase()}
             </div>
             <div
               className={`playerPieceIndicator ${
@@ -269,14 +272,19 @@ export function CheckersBoard({
                   : "Aguardando adversário..."}
               </span>
               <span className="playerColorLabel">
-                {topPlayerIndex === 0 ? "🔴 Vermelhas" : "⚪ Brancas"} (Adversário)
+                {topPlayerIndex === 0 ? "🔴 Vermelhas" : "⚪ Brancas"}{" "}
+                (Adversário)
               </span>
             </div>
           </div>
 
           <div className="playerStatsRight">
-            <span className="capturesPill">Peças comidas: <strong>{topCaptured}</strong></span>
-            <span className={`turnStatusTag ${isTopTurn ? "active" : "waiting"}`}>
+            <span className="capturesPill">
+              Peças comidas: <strong>{topCaptured}</strong>
+            </span>
+            <span
+              className={`turnStatusTag ${isTopTurn ? "active" : "waiting"}`}
+            >
               {isTopTurn ? "🎮 Jogando agora" : "Aguardando"}
             </span>
           </div>
@@ -332,7 +340,9 @@ export function CheckersBoard({
         >
           <div className="playerInfoLeft">
             <div className="avatarRing local">
-              {(bottomPlayer?.displayName || bottomPlayer?.username || "J")[0].toUpperCase()}
+              {(bottomPlayer?.displayName ||
+                bottomPlayer?.username ||
+                "J")[0].toUpperCase()}
             </div>
             <div
               className={`playerPieceIndicator ${
@@ -355,7 +365,9 @@ export function CheckersBoard({
           </div>
 
           <div className="playerStatsRight">
-            <span className="capturesPill">Peças comidas: <strong>{bottomCaptured}</strong></span>
+            <span className="capturesPill">
+              Peças comidas: <strong>{bottomCaptured}</strong>
+            </span>
             <span
               className={`turnStatusTag ${isBottomTurn ? "active" : "waiting"}`}
             >

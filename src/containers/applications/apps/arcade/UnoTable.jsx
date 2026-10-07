@@ -169,9 +169,7 @@ export function UnoTable({
     <div className="unoGameContainer">
       {/* Notificação da Última Ação */}
       {lastEvent && (
-        <div className="unoActionNotification">
-          {lastEvent.message}
-        </div>
+        <div className="unoActionNotification">{lastEvent.message}</div>
       )}
 
       {/* Arena da Mesa Visual de Uno com Jogadores ao Redor */}
@@ -192,23 +190,22 @@ export function UnoTable({
           <div className="unoCenterPiles">
             {/* Monte de Compras (Draw Pile) */}
             <div className="deckPile">
-              <div
+              <button
+                type="button"
                 className={`deckCardBack ${
                   isMyTurn && !drawnThisTurn && status === "PLAYING"
                     ? "canDraw"
                     : ""
                 }`}
+                disabled={!(isMyTurn && !drawnThisTurn && status === "PLAYING")}
+                aria-label="Comprar uma carta"
                 title={
                   isMyTurn ? "Clique para comprar uma carta" : "Aguarde sua vez"
                 }
-                onClick={() => {
-                  if (isMyTurn && !drawnThisTurn && status === "PLAYING") {
-                    onDrawCard();
-                  }
-                }}
+                onClick={onDrawCard}
               >
                 <div className="unoDeckLogo">UNO</div>
-              </div>
+              </button>
               <span className="pileLabel">Comprar</span>
             </div>
 
@@ -276,6 +273,18 @@ export function UnoTable({
                   </span>
                 </div>
 
+                {!isMe && (
+                  <div className="seatCardStack" aria-hidden="true">
+                    {Array.from({ length: Math.min(p.cardCount || 0, 3) }).map(
+                      (_, index) => (
+                        <span className="seatCardBack" key={index}>
+                          UNO
+                        </span>
+                      )
+                    )}
+                  </div>
+                )}
+
                 {hasOneCard && p.calledUno && (
                   <span className="oppUnoCall">UNO!</span>
                 )}
@@ -336,23 +345,32 @@ export function UnoTable({
               👁️ Você está acompanhando a partida como espectador.
             </div>
           ) : (
-            myHand.map((card) => {
+            myHand.map((card, index) => {
               const playable = isCardPlayable(card);
-            return (
-              <button
-                type="button"
-                key={card.id}
-                aria-label={getCardAccessibleName(card)}
-                disabled={!playable}
-                className={`unoCard ${card.color} ${
-                  playable ? "playable" : "notPlayable"
-                }`}
-                onClick={() => handleCardClick(card)}
-              >
-                <img src={getCardImageSrc(card)} alt="" />
-              </button>
-            );
-          })
+              const distanceFromCenter = Math.abs(
+                index - (myHand.length - 1) / 2
+              );
+              return (
+                <button
+                  type="button"
+                  key={card.id}
+                  aria-label={getCardAccessibleName(card)}
+                  disabled={!playable}
+                  className={`unoCard ${card.color} ${
+                    playable ? "playable" : "notPlayable"
+                  }`}
+                  style={{
+                    "--hand-rotation": `${
+                      (index - (myHand.length - 1) / 2) * 2
+                    }deg`,
+                    "--hand-lift": `${distanceFromCenter * 1.4}px`,
+                  }}
+                  onClick={() => handleCardClick(card)}
+                >
+                  <img src={getCardImageSrc(card)} alt="" />
+                </button>
+              );
+            })
           )}
         </div>
       </div>
