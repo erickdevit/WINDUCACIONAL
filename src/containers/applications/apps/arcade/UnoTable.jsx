@@ -321,32 +321,37 @@ export function UnoTable({
               myHand && myHand.length > 7 ? "denseCards" : ""
             }`}
           >
-            {myHand.map((card, index) => {
-              const playable = isCardPlayable(card);
-              const distanceFromCenter = Math.abs(
-                index - (myHand.length - 1) / 2
-              );
-              return (
-                <button
-                  type="button"
-                  key={card.id}
-                  aria-label={getCardAccessibleName(card)}
-                  disabled={!playable}
-                  className={`unoCard ${card.color} ${
-                    playable ? "playable" : "notPlayable"
-                  }`}
-                  style={{
-                    "--hand-rotation": `${
-                      (index - (myHand.length - 1) / 2) * 2
-                    }deg`,
-                    "--hand-lift": `${distanceFromCenter * 1.4}px`,
-                  }}
-                  onClick={() => handleCardClick(card)}
-                >
-                  <img src={getCardImageSrc(card)} alt="" />
-                </button>
-              );
-            })}
+            <div className="handCardsRail">
+              {myHand.map((card, index) => {
+                const playable = isCardPlayable(card);
+                const offsetFromCenter = index - (myHand.length - 1) / 2;
+                const distanceFromCenter = Math.abs(offsetFromCenter);
+                const rotation = Math.max(
+                  -16,
+                  Math.min(16, offsetFromCenter * 2.6)
+                );
+                const lift = -Math.min(22, distanceFromCenter ** 2 * 1.2);
+                return (
+                  <button
+                    type="button"
+                    key={card.id}
+                    aria-label={getCardAccessibleName(card)}
+                    disabled={!playable}
+                    className={`unoCard ${card.color} ${
+                      playable ? "playable" : "notPlayable"
+                    }`}
+                    style={{
+                      "--card-index": index,
+                      "--hand-rotation": `${rotation}deg`,
+                      "--hand-lift": `${lift}px`,
+                    }}
+                    onClick={() => handleCardClick(card)}
+                  >
+                    <img src={getCardImageSrc(card)} alt="" />
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}

@@ -5,7 +5,6 @@ export function CheckersBoard({
   currentUserId,
   currentUsername,
   onMove,
-  onResign,
 }) {
   const [selectedPos, setSelectedPos] = useState(null);
 
@@ -18,8 +17,6 @@ export function CheckersBoard({
     currentTurn,
     players = [],
     activeJumpFrom,
-    capturedCount,
-    winner,
     status,
   } = gameState;
 
@@ -202,58 +199,9 @@ export function CheckersBoard({
     }
   };
 
-  const topPlayerIndex = isFlipped ? 0 : 1;
-  const bottomPlayerIndex = isFlipped ? 1 : 0;
-
-  const topPlayer = players[topPlayerIndex];
-  const bottomPlayer = players[bottomPlayerIndex];
-
-  const topCaptured = capturedCount?.[topPlayerIndex] || 0;
-  const bottomCaptured = capturedCount?.[bottomPlayerIndex] || 0;
-
-  const isTopTurn = currentTurn === topPlayerIndex;
-  const isBottomTurn = currentTurn === bottomPlayerIndex;
-
-  const isSpectator = myPlayerIndex === -1;
-
   return (
     <div className="checkersGameContainer">
-      {/* Arena Tática de Damas */}
       <div className="checkersBoardArena">
-        {/* Cartão HUD do Adversário (Topo do Tabuleiro) */}
-        <div
-          className={`checkersPlayerBar oppBar ${
-            isTopTurn ? "activeTurn" : ""
-          }`}
-        >
-          <div className="playerInfoLeft">
-            <div className="avatarRing">
-              {(topPlayer?.displayName ||
-                topPlayer?.username ||
-                "A")[0].toUpperCase()}
-            </div>
-            <div
-              className={`playerPieceIndicator ${
-                topPlayerIndex === 0 ? "red" : "white"
-              }`}
-            />
-            <div className="playerNameGroup">
-              <span className="playerName">
-                {topPlayer
-                  ? topPlayer.displayName || topPlayer.username
-                  : "Aguardando adversário..."}
-              </span>
-            </div>
-          </div>
-
-          <div className="playerStatsRight">
-            <span className="capturesPill">
-              Peças comidas: <strong>{topCaptured}</strong>
-            </span>
-          </div>
-        </div>
-
-        {/* Tabuleiro 8x8 de Feltro/Madeira com iluminação tática */}
         <div className="checkersBoard">
           {Array.from({ length: 8 }).map((_, displayR) =>
             Array.from({ length: 8 }).map((_, displayC) => {
@@ -281,6 +229,10 @@ export function CheckersBoard({
                         piece.player === 0 ? "redPiece" : "whitePiece"
                       } ${piece.isKing ? "kingPiece" : ""} ${
                         isSelected ? "selected" : ""
+                      } ${
+                        status === "PLAYING" && currentTurn === piece.player
+                          ? "activeTurnPiece"
+                          : ""
                       }`}
                     >
                       {piece.isKing && (
@@ -305,51 +257,6 @@ export function CheckersBoard({
               );
             })
           )}
-        </div>
-
-        {/* Cartão HUD do Jogador Local (Base do Tabuleiro) */}
-        <div
-          className={`checkersPlayerBar myBar ${
-            isBottomTurn ? "activeTurn" : ""
-          }`}
-        >
-          <div className="playerInfoLeft">
-            <div className="avatarRing local">
-              {(bottomPlayer?.displayName ||
-                bottomPlayer?.username ||
-                "J")[0].toUpperCase()}
-            </div>
-            <div
-              className={`playerPieceIndicator ${
-                bottomPlayerIndex === 0 ? "red" : "white"
-              }`}
-            />
-            <div className="playerNameGroup">
-              <span className="playerName">
-                {bottomPlayer
-                  ? bottomPlayer.displayName || bottomPlayer.username
-                  : isSpectator
-                  ? "Jogador"
-                  : "Você"}
-              </span>
-            </div>
-          </div>
-
-          <div className="playerStatsRight">
-            <span className="capturesPill">
-              Peças comidas: <strong>{bottomCaptured}</strong>
-            </span>
-            {status === "PLAYING" && !isSpectator && (
-              <button
-                className="resignBtn"
-                aria-label="Desistir da partida"
-                title="Desistir da partida"
-                onClick={onResign}
-              >
-                ⚑
-              </button>
-            )}
-          </div>
         </div>
       </div>
     </div>

@@ -28,6 +28,14 @@ function DominoHalf({ value }) {
   );
 }
 
+const getOpponentSeatPosition = (index, playerCount) => {
+  if (playerCount === 2) return "topCenter";
+  if (playerCount === 3) return index === 0 ? "topLeft" : "topRight";
+  if (index === 0) return "middleLeft";
+  if (index === 1) return "topCenter";
+  return "middleRight";
+};
+
 export function DominoTable({
   gameState,
   currentUserId,
@@ -60,6 +68,14 @@ export function DominoTable({
   const myPlayerObj = players.find((p) => p.userId === currentUserId);
   const myHand = myPlayerObj?.hand || [];
   const isSpectator = !myPlayerObj;
+  const myPlayerIndex = players.findIndex((p) => p.userId === currentUserId);
+  const orderedPlayers =
+    myPlayerIndex >= 0
+      ? players.map(
+          (_, index) => players[(myPlayerIndex + index) % players.length]
+        )
+      : players;
+  const opponentPlayers = orderedPlayers.slice(1);
 
   const selectedTile = myHand.find((t) => t.id === selectedTileId);
   const dominoColumns = Math.min(8, Math.max(board.length, 1));
@@ -105,6 +121,51 @@ export function DominoTable({
         role="region"
         aria-label="Mesa de dominó"
       >
+        <div className="dominoOpponentSeats" aria-label="Outros jogadores">
+          {opponentPlayers.map((player, index) => {
+            const tileCount = player.tileCount ?? player.hand?.length ?? 0;
+            const seatPosition = getOpponentSeatPosition(
+              index,
+              orderedPlayers.length
+            );
+            const avatar =
+              player.displayName?.[0] || player.username?.[0] || "?";
+
+            return (
+              <div
+                className={`dominoOpponentSeat ${seatPosition} ${
+                  currentTurn === player.seatIndex ? "activeTurn" : ""
+                }`}
+                key={player.userId}
+                aria-label={`${
+                  player.displayName || player.username
+                }: ${tileCount} peças${
+                  currentTurn === player.seatIndex ? ", sua vez" : ""
+                }`}
+              >
+                <span className="dominoSeatAvatar" aria-hidden="true">
+                  {avatar.toUpperCase()}
+                </span>
+                <span className="dominoOpponentInfo">
+                  <strong>{player.displayName || player.username}</strong>
+                  <small>{tileCount} peças</small>
+                </span>
+                <span className="dominoOpponentBacks" aria-hidden="true">
+                  {Array.from(
+                    { length: Math.min(3, tileCount) },
+                    (_, tileIndex) => (
+                      <span
+                        className="dominoTileBack"
+                        key={tileIndex}
+                        style={{ "--back-index": tileIndex }}
+                      />
+                    )
+                  )}
+                </span>
+              </div>
+            );
+          })}
+        </div>
         {board.length > 0 && (
           <div
             className="dominoChain"
@@ -115,7 +176,7 @@ export function DominoTable({
           >
             <svg
               className="dominoChainPath"
-              viewBox={`0 0 ${dominoColumns * 100} ${dominoRows * 92}`}
+              viewBox={`0 0 ${dominoColumns * 80} ${dominoRows * 62}`}
               preserveAspectRatio="none"
               aria-hidden="true"
             >
@@ -124,10 +185,10 @@ export function DominoTable({
                 return (
                   <line
                     key={`${previous.index}-${slot.index}`}
-                    x1={previous.column * 100 + 50}
-                    y1={previous.row * 92 + 46}
-                    x2={slot.column * 100 + 50}
-                    y2={slot.row * 92 + 46}
+                    x1={previous.column * 80 + 40}
+                    y1={previous.row * 62 + 31}
+                    x2={slot.column * 80 + 40}
+                    y2={slot.row * 62 + 31}
                   />
                 );
               })}
@@ -163,6 +224,19 @@ export function DominoTable({
         <div
           className={`dominoPlayerHandArea ${isMyTurn ? "isActiveHand" : ""}`}
         >
+          <div className="dominoLocalPlayerCard">
+            <span className="dominoSeatAvatar" aria-hidden="true">
+              {(
+                myPlayerObj.displayName?.[0] ||
+                myPlayerObj.username?.[0] ||
+                "J"
+              ).toUpperCase()}
+            </span>
+            <span>
+              <strong>{myPlayerObj.displayName || myPlayerObj.username}</strong>
+              <small>{myHand.length} peças</small>
+            </span>
+          </div>
           <div className="dominoHandTiles">
             {myHand.map((tile) => {
               const isSelected = selectedTileId === tile.id;

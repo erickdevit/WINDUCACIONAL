@@ -5,7 +5,9 @@ const read = (relativePath) =>
   fs.readFileSync(new URL(relativePath, import.meta.url), "utf8");
 
 const migration0010 = read("../server/db/migrations/0010_arcade_games.sql");
-const migration0011 = read("../server/db/migrations/0011_domino_tictactoe_hangman.sql");
+const migration0011 = read(
+  "../server/db/migrations/0011_domino_tictactoe_hangman.sql"
+);
 const arcadeRoutesCode = read("../server/routes/arcade.cjs");
 const indexServerCode = read("../server/index.cjs");
 const apiCode = read("../src/lib/api.js");
@@ -17,6 +19,9 @@ const checkersComponentCode = read(
 );
 const unoComponentCode = read(
   "../src/containers/applications/apps/arcade/UnoTable.jsx"
+);
+const unoImageFiles = fs.readdirSync(
+  new URL("../public/img/arcade/uno", import.meta.url)
 );
 const dominoComponentCode = read(
   "../src/containers/applications/apps/arcade/DominoTable.jsx"
@@ -36,7 +41,9 @@ describe("Arcade - Schema e Migrações", () => {
     expect(migration0010).toContain(
       "CREATE TABLE IF NOT EXISTS arcade_room_players"
     );
-    expect(migration0010).toContain("CREATE TABLE IF NOT EXISTS arcade_rankings");
+    expect(migration0010).toContain(
+      "CREATE TABLE IF NOT EXISTS arcade_rankings"
+    );
     expect(migration0011).toContain("domino, tictactoe, hangman");
   });
 });
@@ -57,10 +64,12 @@ describe("Arcade - Backend, Rotas e Suporte a Novos Jogos", () => {
   });
 
   it("sanitiza estado do Dominó e Forca para evitar trapaça", () => {
-    expect(arcadeRoutesCode).toContain("gameType === \"domino\"");
+    expect(arcadeRoutesCode).toContain('gameType === "domino"');
     expect(arcadeRoutesCode).toContain("boneyard: undefined");
-    expect(arcadeRoutesCode).toContain("gameType === \"hangman\"");
-    expect(arcadeRoutesCode).toContain("secretWord: isFinished ? gameState.secretWord : undefined");
+    expect(arcadeRoutesCode).toContain('gameType === "hangman"');
+    expect(arcadeRoutesCode).toContain(
+      "secretWord: isFinished ? gameState.secretWord : undefined"
+    );
   });
 });
 
@@ -68,11 +77,13 @@ describe("Arcade - Componentes Frontend dos Novos Jogos", () => {
   it("renderiza o Dominó em sequência serpenteada e mantém controles nas pontas", () => {
     expect(dominoComponentCode).toContain("dominoChain");
     expect(dominoComponentCode).toContain("dominoChainPath");
+    expect(dominoComponentCode).toContain("dominoOpponentSeats");
+    expect(dominoComponentCode).toContain("dominoOpponentSeat");
     expect(dominoComponentCode).toContain("reverse: row % 2 === 1");
     expect(dominoComponentCode).toContain("Jogar na ponta esquerda");
     expect(dominoComponentCode).toContain("Comprar <span>");
     expect(scssCode).toContain(
-      "grid-template-columns: repeat(var(--domino-columns), 100px)"
+      "grid-template-columns: repeat(var(--domino-columns), 80px)"
     );
     expect(scssCode).not.toContain("&.isDouble .dominoDivider");
   });
@@ -91,7 +102,9 @@ describe("Arcade - Componentes Frontend dos Novos Jogos", () => {
     expect(unoComponentCode).not.toContain("turnStatusText");
     expect(scssCode).toContain(".unoPlayerHandArea .handCardsRow");
     expect(scssCode).toContain("opacity: 1;\n        filter: none;");
-    expect(scssCode).toContain("position: absolute;\n    right: 0;\n    bottom: 0;");
+    expect(scssCode).toContain(
+      "position: absolute;\n    right: 0;\n    bottom: 0;"
+    );
   });
 
   it("representa a dama com uma peça superior própria, sem rótulo textual", () => {
@@ -99,8 +112,53 @@ describe("Arcade - Componentes Frontend dos Novos Jogos", () => {
     expect(checkersComponentCode).toContain("kingPieceEmblem");
     expect(checkersComponentCode).not.toContain("kingLabel");
     expect(checkersComponentCode).not.toContain(">DAMA<");
+    expect(checkersComponentCode).not.toContain("checkersPlayerBar");
+    expect(checkersComponentCode).toContain('"activeTurnPiece"');
     expect(scssCode).toContain("top: -40%;");
     expect(scssCode).toContain("width: 84%;");
+    expect(scssCode).toContain("@keyframes checkersTurnPiecePulse");
+    expect(scssCode).toContain(
+      ".checkersBoard {\n  width: min(86vw, 76vh, 680px);"
+    );
+  });
+
+  it("leva a navegação ao título da janela e oculta o ícone e o nome do Arcade", () => {
+    expect(appComponentCode).toContain("createPortal(");
+    expect(appComponentCode).toContain('className="arcadeToolbarTabs"');
+    expect(appComponentCode).toContain("Sala de Jogos");
+    expect(appComponentCode).toContain("Hall da Fama");
+    expect(appComponentCode).not.toContain("arcadeHeader");
+    expect(scssCode).toContain(".arcadeAppWindow .toolbar .appFullName");
+    expect(scssCode).toContain(".arcadeToolbarTabs");
+  });
+
+  it("usa o baralho UNO substituído e mantém a mão em leque com a carta elevada no foco", () => {
+    expect(unoComponentCode).toContain(
+      'const extension = card.value === "0" ? "png" : "jpg";'
+    );
+    expect(unoComponentCode).toContain("--hand-rotation");
+    expect(unoComponentCode).toContain('className="handCardsRail"');
+    expect(scssCode).toContain(".handCardsRail");
+    expect(scssCode).toContain("z-index: 100;");
+    expect(scssCode).toContain("padding: 80px 14px 8px;");
+  });
+
+  it("mantém as 54 cartas do pacote UNO sem arquivos antigos sobrando", () => {
+    const colors = ["Blue", "Green", "Red", "Yellow"];
+    const values = [
+      ...Array.from({ length: 10 }, (_, index) => String(index)),
+      "Draw_2",
+      "Reverse",
+      "Skip",
+    ];
+    const expected = colors.flatMap((color) =>
+      values.map(
+        (value) => `${color}_${value}.${value === "0" ? "png" : "jpg"}`
+      )
+    );
+    expected.push("Wild.jpg", "Wild_Draw_4.jpg");
+
+    expect(unoImageFiles.sort()).toEqual(expected.sort());
   });
 
   it("integra a dica da Forca no palco e remove o banner de última ação", () => {

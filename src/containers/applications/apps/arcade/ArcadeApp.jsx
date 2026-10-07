@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useSelector } from "react-redux";
 import { AppWindow } from "../../../../components/shared/AppWindow";
 import { api } from "../../../../lib/api";
@@ -19,6 +20,7 @@ export function ArcadeApp() {
       icon="arcade"
       name="Arcade da Turma"
       className="arcadeAppWindow"
+      rootProps={{ id: "arcadeApp" }}
       toolbarProps={{ bg: "#0b0f19", invert: true }}
       windowScreenClassName="flex flex-col"
       restWindowClassName="flex-grow flex flex-col"
@@ -32,6 +34,7 @@ function ArcadeView({ visible }) {
   const person = useSelector((state) => state.setting.person) || {};
 
   const [activeTab, setActiveTab] = useState("lobby"); // 'lobby', 'ranking'
+  const [toolbarTarget, setToolbarTarget] = useState(null);
   const [rooms, setRooms] = useState([]);
   const [selectedGameFilter, setSelectedGameFilter] = useState("all"); // 'all', 'checkers', 'uno', 'domino', 'tictactoe', 'hangman'
   const [roomViewMode, setRoomViewMode] = useState("grid"); // 'grid' ou 'list' (padrão: 'grid')
@@ -39,6 +42,12 @@ function ArcadeView({ visible }) {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [autoCloseCountdown, setAutoCloseCountdown] = useState(null);
+
+  useEffect(() => {
+    setToolbarTarget(
+      document.querySelector("#arcadeApp .toolbar .topInfo") || null
+    );
+  }, []);
 
   // Modal de criação de sala
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -371,7 +380,9 @@ function ArcadeView({ visible }) {
   const handleDeleteRoom = async (roomId, roomTitle) => {
     if (
       !window.confirm(
-        `Tem certeza de que deseja apagar a sala "${roomTitle || "selecionada"}"?`
+        `Tem certeza de que deseja apagar a sala "${
+          roomTitle || "selecionada"
+        }"?`
       )
     ) {
       return;
@@ -429,11 +440,18 @@ function ArcadeView({ visible }) {
   };
 
   return (
-    <div className={`arcadeContainer ${isPlayingOrFinished ? "inMatchMode" : ""}`}>
-      {/* Header do Arcade */}
-      {!isPlayingOrFinished && (
-        <header className="arcadeHeader">
-          <nav className="arcadeNavTabs">
+    <div
+      className={`arcadeContainer ${isPlayingOrFinished ? "inMatchMode" : ""}`}
+    >
+      {!isPlayingOrFinished &&
+        toolbarTarget &&
+        createPortal(
+          <nav
+            className="arcadeToolbarTabs"
+            aria-label="Navegação do Arcade"
+            onClick={(event) => event.stopPropagation()}
+            onMouseDown={(event) => event.stopPropagation()}
+          >
             <button
               className={activeTab === "lobby" ? "active" : ""}
               onClick={() => {
@@ -441,7 +459,7 @@ function ArcadeView({ visible }) {
                 if (!activeRoom) loadRooms();
               }}
             >
-              🕹️ Sala de Jogos
+              Sala de Jogos
             </button>
             <button
               className={activeTab === "ranking" ? "active" : ""}
@@ -450,24 +468,18 @@ function ArcadeView({ visible }) {
                 loadRankings();
               }}
             >
-              🏆 Hall da Fama
+              Hall da Fama
             </button>
-          </nav>
-
-          <div className="arcadeHeaderUser">
-            <div className="arcadeUserBadge">
-              <strong>{person.name || person.username || "Jogador"}</strong>
-              <small>{person.turmaName || "Turma Geral"}</small>
-            </div>
-            <div className="arcadeAvatarCircle">
-              {(person.name || person.username || "J")[0]?.toUpperCase()}
-            </div>
-          </div>
-        </header>
-      )}
+          </nav>,
+          toolbarTarget
+        )}
 
       {/* Conteúdo Principal */}
-      <main className={`arcadeMainContent ${isPlayingOrFinished ? "inMatchContent" : ""}`}>
+      <main
+        className={`arcadeMainContent ${
+          isPlayingOrFinished ? "inMatchContent" : ""
+        }`}
+      >
         {errorMsg && (
           <div className="max-w-2xl mx-auto mb-4 p-3 bg-red-900/60 border border-red-500 rounded-lg text-xs text-red-200 flex justify-between items-center">
             <span>{errorMsg}</span>
@@ -594,7 +606,8 @@ function ArcadeView({ visible }) {
                   className={selectedGameFilter === "checkers" ? "active" : ""}
                   onClick={() => setSelectedGameFilter("checkers")}
                 >
-                  🔴 Damas ({rooms.filter((r) => r.gameType === "checkers").length})
+                  🔴 Damas (
+                  {rooms.filter((r) => r.gameType === "checkers").length})
                 </button>
                 <button
                   className={selectedGameFilter === "uno" ? "active" : ""}
@@ -606,19 +619,22 @@ function ArcadeView({ visible }) {
                   className={selectedGameFilter === "domino" ? "active" : ""}
                   onClick={() => setSelectedGameFilter("domino")}
                 >
-                  🎲 Dominó ({rooms.filter((r) => r.gameType === "domino").length})
+                  🎲 Dominó (
+                  {rooms.filter((r) => r.gameType === "domino").length})
                 </button>
                 <button
                   className={selectedGameFilter === "tictactoe" ? "active" : ""}
                   onClick={() => setSelectedGameFilter("tictactoe")}
                 >
-                  ❌⭕ Velha ({rooms.filter((r) => r.gameType === "tictactoe").length})
+                  ❌⭕ Velha (
+                  {rooms.filter((r) => r.gameType === "tictactoe").length})
                 </button>
                 <button
                   className={selectedGameFilter === "hangman" ? "active" : ""}
                   onClick={() => setSelectedGameFilter("hangman")}
                 >
-                  ✏️ Forca ({rooms.filter((r) => r.gameType === "hangman").length})
+                  ✏️ Forca (
+                  {rooms.filter((r) => r.gameType === "hangman").length})
                 </button>
               </div>
 
@@ -629,7 +645,9 @@ function ArcadeView({ visible }) {
                   aria-label="Modo de visualização"
                 >
                   <button
-                    className={`viewModeBtn ${roomViewMode === "grid" ? "active" : ""}`}
+                    className={`viewModeBtn ${
+                      roomViewMode === "grid" ? "active" : ""
+                    }`}
                     onClick={() => setRoomViewMode("grid")}
                     title="Modo Grade"
                     aria-label="Modo Grade"
@@ -645,7 +663,9 @@ function ArcadeView({ visible }) {
                     <span>Grade</span>
                   </button>
                   <button
-                    className={`viewModeBtn ${roomViewMode === "list" ? "active" : ""}`}
+                    className={`viewModeBtn ${
+                      roomViewMode === "list" ? "active" : ""
+                    }`}
                     onClick={() => setRoomViewMode("list")}
                     title="Modo Lista"
                     aria-label="Modo Lista"
@@ -684,7 +704,9 @@ function ArcadeView({ visible }) {
                       <span className={`gameBadge ${room.gameType}`}>
                         {getGameLabel(room.gameType)}
                       </span>
-                      <span className={`statusPill ${room.status.toLowerCase()}`}>
+                      <span
+                        className={`statusPill ${room.status.toLowerCase()}`}
+                      >
                         {room.status === "WAITING"
                           ? "🟢 Aguardando"
                           : room.status === "PLAYING"
@@ -697,20 +719,28 @@ function ArcadeView({ visible }) {
                       <h4>{room.title}</h4>
                       <div className="hostInfo">
                         <div className="hostAvatar">
-                          {(room.hostName || room.hostUsername || "H")[0].toUpperCase()}
+                          {(room.hostName ||
+                            room.hostUsername ||
+                            "H")[0].toUpperCase()}
                         </div>
-                        <span>Host: <strong>{room.hostName || room.hostUsername}</strong></span>
+                        <span>
+                          Host:{" "}
+                          <strong>{room.hostName || room.hostUsername}</strong>
+                        </span>
                       </div>
                     </div>
 
                     <div className="cardFooter">
                       <div className="playerCount">
-                        <span className="usersIcon">👥</span> {room.playerCount || 1} / {room.maxPlayers}
+                        <span className="usersIcon">👥</span>{" "}
+                        {room.playerCount || 1} / {room.maxPlayers}
                       </div>
 
                       <div className="cardFooterBtns">
                         <button
-                          className={`enterRoomBtn ${room.status === "PLAYING" ? "spectate" : ""}`}
+                          className={`enterRoomBtn ${
+                            room.status === "PLAYING" ? "spectate" : ""
+                          }`}
                           onClick={() =>
                             handleEnterRoom(room.id, room.status !== "WAITING")
                           }
@@ -767,7 +797,9 @@ function ArcadeView({ visible }) {
                         <td className="hostCell">
                           <div className="hostInfoInline">
                             <div className="hostAvatarMini">
-                              {(room.hostName || room.hostUsername || "H")[0].toUpperCase()}
+                              {(room.hostName ||
+                                room.hostUsername ||
+                                "H")[0].toUpperCase()}
                             </div>
                             <span>{room.hostName || room.hostUsername}</span>
                           </div>
@@ -778,7 +810,9 @@ function ArcadeView({ visible }) {
                           </span>
                         </td>
                         <td className="statusCell">
-                          <span className={`statusPill ${room.status.toLowerCase()}`}>
+                          <span
+                            className={`statusPill ${room.status.toLowerCase()}`}
+                          >
                             {room.status === "WAITING"
                               ? "🟢 Aguardando"
                               : room.status === "PLAYING"
@@ -789,9 +823,14 @@ function ArcadeView({ visible }) {
                         <td className="actionsCell">
                           <div className="roomRowActions">
                             <button
-                              className={`enterRoomBtn ${room.status === "PLAYING" ? "spectate" : ""}`}
+                              className={`enterRoomBtn ${
+                                room.status === "PLAYING" ? "spectate" : ""
+                              }`}
                               onClick={() =>
-                                handleEnterRoom(room.id, room.status !== "WAITING")
+                                handleEnterRoom(
+                                  room.id,
+                                  room.status !== "WAITING"
+                                )
                               }
                             >
                               {room.status === "WAITING"
@@ -825,7 +864,8 @@ function ArcadeView({ visible }) {
                 <div className="emptyIcon">🕹️</div>
                 <h4>Nenhuma sala aberta no momento</h4>
                 <p>
-                  A arena está livre! Crie uma sala e convide a turma para jogar!
+                  A arena está livre! Crie uma sala e convide a turma para
+                  jogar!
                 </p>
                 <button
                   className="arcadeCreateRoomBtn"
@@ -849,7 +889,8 @@ function ArcadeView({ visible }) {
                   <span>
                     Jogo:{" "}
                     <strong className="text-indigo-400">
-                      {getGameLabel(activeRoom.gameType)} ({activeRoom.maxPlayers} Jogadores)
+                      {getGameLabel(activeRoom.gameType)} (
+                      {activeRoom.maxPlayers} Jogadores)
                     </strong>
                   </span>
                 </div>
@@ -934,7 +975,8 @@ function ArcadeView({ visible }) {
 
               {activeRoom.players?.length < 2 && (
                 <div className="text-center text-xs text-amber-300">
-                  Aguardando pelo menos mais 1 jogador para liberar o início da partida.
+                  Aguardando pelo menos mais 1 jogador para liberar o início da
+                  partida.
                 </div>
               )}
             </div>
@@ -982,7 +1024,6 @@ function ArcadeView({ visible }) {
                   currentUserId={person.id}
                   currentUsername={person.username}
                   onMove={(move) => handleGameAction({ type: "MOVE", move })}
-                  onResign={() => handleGameAction({ type: "RESIGN" })}
                 />
               )}
 
@@ -1106,7 +1147,11 @@ function ArcadeView({ visible }) {
                     { id: "checkers", name: "Damas", sub: "2 jogadores" },
                     { id: "uno", name: "Uno", sub: "2 até 6 jogadores" },
                     { id: "domino", name: "Dominó", sub: "2 até 4 jogadores" },
-                    { id: "tictactoe", name: "Jogo da Velha", sub: "2 jogadores" },
+                    {
+                      id: "tictactoe",
+                      name: "Jogo da Velha",
+                      sub: "2 jogadores",
+                    },
                     { id: "hangman", name: "Forca", sub: "2 até 4 jogadores" },
                   ].map((g) => (
                     <div
