@@ -1,9 +1,15 @@
 const crypto = require("node:crypto");
 const checkers = require("../domain/arcadeCheckers.cjs");
 const uno = require("../domain/arcadeUno.cjs");
-const domino = require("../domain/arcadeDomino.cjs");
 const tictactoe = require("../domain/arcadeTicTacToe.cjs");
 const hangman = require("../domain/arcadeHangman.cjs");
+
+const SUPPORTED_GAME_TYPES = new Set([
+  "checkers",
+  "uno",
+  "tictactoe",
+  "hangman",
+]);
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -17,6 +23,15 @@ const normalizeUuid = (value, fieldName) => {
     throw httpError(400, `${fieldName} deve ser um UUID válido.`);
   }
   return normalized;
+};
+
+const ensureSupportedGameType = (gameType) => {
+  if (gameType === "domino") {
+    throw httpError(410, "O jogo Dominó não está mais disponível.");
+  }
+  if (!SUPPORTED_GAME_TYPES.has(gameType)) {
+    throw httpError(400, "Tipo de jogo inválido.");
+  }
 };
 
 module.exports = function injectArcadeRoutes(ctx) {
@@ -50,7 +65,7 @@ module.exports = function injectArcadeRoutes(ctx) {
   };
 
   /**
-   * Sanitiza o estado de jogos com informações ocultas (Uno, Dominó, Forca)
+   * Sanitiza o estado de jogos com informações ocultas (Uno e Forca)
    */
   const sanitizeGameStateForUser = (rawGameState, gameType, userId) => {
     const gameState = parseJsonField(rawGameState);
@@ -82,30 +97,6 @@ module.exports = function injectArcadeRoutes(ctx) {
             seatIndex: p.seatIndex,
             cardCount: p.hand ? p.hand.length : 0,
             calledUno: p.calledUno,
-          };
-        }),
-      };
-    }
-
-    if (gameType === "domino") {
-      if (!Array.isArray(gameState.players)) return null;
-      return {
-        ...gameState,
-        boneyardCount:
-          gameState.boneyard && Array.isArray(gameState.boneyard)
-            ? gameState.boneyard.length
-            : 0,
-        boneyard: undefined, // Esconde pedras do dorme
-        players: gameState.players.map((p) => {
-          if (p.userId === userId) {
-            return p; // Suas próprias pedras
-          }
-          return {
-            userId: p.userId,
-            username: p.username,
-            displayName: p.displayName,
-            seatIndex: p.seatIndex,
-            tileCount: p.hand ? p.hand.length : 0,
           };
         }),
       };
@@ -269,7 +260,8 @@ module.exports = function injectArcadeRoutes(ctx) {
       await pool.query(
         `DELETE FROM arcade_rooms
          WHERE status = 'CANCELLED'
-            OR (status = 'FINISHED' AND updated_at < CURRENT_TIMESTAMP - INTERVAL '30 seconds')
+            OR (status = 'FINISHED' AND game_type <> 'domino'
+                AND updated_at < CURRENT_TIMESTAMP - INTERVAL '30 seconds')
             OR (NOT EXISTS (SELECT 1 FROM arcade_room_players p WHERE p.room_id = arcade_rooms.id)
                 AND created_at < CURRENT_TIMESTAMP - INTERVAL '2 minutes')`
       );
@@ -309,7 +301,7 @@ module.exports = function injectArcadeRoutes(ctx) {
       `;
 
       const params = [];
-      const whereClauses = [];
+      const whereClauses = [`r.game_type <> 'domino'`];
 
       // Alunos só enxergam salas da própria turma (ou salas gerais sem turma)
       const userTurmaId = req.user.turma_id || req.user.turmaId;
@@ -362,24 +354,27 @@ module.exports = function injectArcadeRoutes(ctx) {
         );
       }
 
-      if (!["checkers", "uno", "domino", "tictactoe", "hangman"].includes(gameType)) {
-        throw httpError(
-          400,
-          "Tipo de jogo inválido."
-        );
-      }
+      ensureSupportedGameType(gameType);
 
       let parsedMaxPlayers = 2;
       if (gameType === "checkers" || gameType === "tictactoe") {
         parsedMaxPlayers = 2;
-      } else if (gameType === "domino" || gameType === "hangman") {
+      } else if (gameType === "hangman") {
         parsedMaxPlayers = parseInt(maxPlayers, 10);
-        if (isNaN(parsedMaxPlayers) || parsedMaxPlayers < 2 || parsedMaxPlayers > 4) {
+        if (
+          isNaN(parsedMaxPlayers) ||
+          parsedMaxPlayers < 2 ||
+          parsedMaxPlayers > 4
+        ) {
           parsedMaxPlayers = 4;
         }
       } else if (gameType === "uno") {
         parsedMaxPlayers = parseInt(maxPlayers, 10);
-        if (isNaN(parsedMaxPlayers) || parsedMaxPlayers < 2 || parsedMaxPlayers > 6) {
+        if (
+          isNaN(parsedMaxPlayers) ||
+          parsedMaxPlayers < 2 ||
+          parsedMaxPlayers > 6
+        ) {
           parsedMaxPlayers = 6;
         }
       }
@@ -467,6 +462,8 @@ module.exports = function injectArcadeRoutes(ctx) {
         throw httpError(403, "Você não tem acesso a salas de outra turma.");
       }
 
+      ensureSupportedGameType(room.gameType);
+
       const playersRes = await pool.query(
         `SELECT 
            p.id,
@@ -529,6 +526,8 @@ module.exports = function injectArcadeRoutes(ctx) {
         }
 
         const room = roomRes.rows[0];
+
+        ensureSupportedGameType(room.game_type);
 
         const userTurmaId = req.user.turma_id || req.user.turmaId;
         if (
@@ -627,10 +626,19 @@ module.exports = function injectArcadeRoutes(ctx) {
       try {
         const roomId = normalizeUuid(req.params.id, "ID da sala");
 
+        const roomRes = await pool.query(
+          `SELECT game_type FROM arcade_rooms WHERE id = $1`,
+          [roomId]
+        );
+        if (roomRes.rows.length === 0) {
+          throw httpError(404, "Sala não encontrada.");
+        }
+        ensureSupportedGameType(roomRes.rows[0].game_type);
+
         await pool.query(
           `UPDATE arcade_room_players
-         SET is_ready = NOT is_ready
-         WHERE room_id = $1 AND user_id = $2`,
+           SET is_ready = NOT is_ready
+           WHERE room_id = $1 AND user_id = $2`,
           [roomId, req.user.id]
         );
 
@@ -672,6 +680,7 @@ module.exports = function injectArcadeRoutes(ctx) {
         }
 
         const room = roomRes.rows[0];
+        ensureSupportedGameType(room.game_type);
         if (
           room.host_user_id !== req.user.id &&
           !["professor", "admin"].includes(req.user.role)
@@ -707,7 +716,7 @@ module.exports = function injectArcadeRoutes(ctx) {
           );
         }
 
-        if (room.game_type === "domino" || room.game_type === "hangman") {
+        if (room.game_type === "hangman") {
           if (players.length < 2 || players.length > 4) {
             throw httpError(
               400,
@@ -737,8 +746,6 @@ module.exports = function injectArcadeRoutes(ctx) {
             initialGameState = checkers.initCheckersGame(players);
           } else if (room.game_type === "uno") {
             initialGameState = uno.initUnoGame(players);
-          } else if (room.game_type === "domino") {
-            initialGameState = domino.initDominoGame(players);
           } else if (room.game_type === "tictactoe") {
             initialGameState = tictactoe.initTicTacToeGame(players);
           } else if (room.game_type === "hangman") {
@@ -807,6 +814,7 @@ module.exports = function injectArcadeRoutes(ctx) {
         }
 
         const room = roomRes.rows[0];
+        ensureSupportedGameType(room.game_type);
         if (room.status !== "PLAYING") {
           throw httpError(400, "A partida não está em andamento.");
         }
@@ -880,21 +888,6 @@ module.exports = function injectArcadeRoutes(ctx) {
               notificationMsg = catchRes.message;
             } else {
               throw httpError(400, "Tipo de ação inválido para Uno.");
-            }
-          } else if (room.game_type === "domino") {
-            if (action.type === "PLAY_TILE") {
-              updatedState = domino.playDominoTile(
-                updatedState,
-                req.user.id,
-                action.tileId,
-                action.targetEnd
-              );
-            } else if (action.type === "DRAW_TILE") {
-              updatedState = domino.drawDominoTile(updatedState, req.user.id);
-            } else if (action.type === "PASS") {
-              updatedState = domino.passDominoTurn(updatedState, req.user.id);
-            } else {
-              throw httpError(400, "Tipo de ação inválido para Dominó.");
             }
           } else if (room.game_type === "tictactoe") {
             if (action.type === "MAKE_MOVE") {
@@ -1037,7 +1030,8 @@ module.exports = function injectArcadeRoutes(ctx) {
           const live = getOrCreateLiveRoom(roomId);
           if (room.status === "PLAYING") {
             if (
-              (room.game_type === "checkers" || room.game_type === "tictactoe") &&
+              (room.game_type === "checkers" ||
+                room.game_type === "tictactoe") &&
               remaining.length === 1
             ) {
               const winner = remaining[0];
@@ -1102,6 +1096,7 @@ module.exports = function injectArcadeRoutes(ctx) {
         }
 
         const room = roomRes.rows[0];
+        ensureSupportedGameType(room.game_type);
         if (
           room.host_user_id !== req.user.id &&
           !["professor", "admin"].includes(req.user.role)
@@ -1202,6 +1197,7 @@ module.exports = function injectArcadeRoutes(ctx) {
         }
 
         const room = roomRes.rows[0];
+        ensureSupportedGameType(room.game_type);
         const userTurmaId = req.user.turma_id || req.user.turmaId;
         if (
           !["professor", "admin"].includes(req.user.role) &&
@@ -1287,9 +1283,12 @@ module.exports = function injectArcadeRoutes(ctx) {
     try {
       const { turmaId, gameType = "overall" } = req.query;
 
+      if (gameType === "domino") {
+        return res.json({ turmaRankings: [], globalRankings: [] });
+      }
+
       let turmaRankings = [];
-      const activeTurmaId =
-        turmaId || req.user.turma_id || req.user.turmaId;
+      const activeTurmaId = turmaId || req.user.turma_id || req.user.turmaId;
 
       if (activeTurmaId) {
         const turmaRes = await pool.query(

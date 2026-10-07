@@ -2651,126 +2651,6 @@
   }
 }
 
-/* Dominó: fichas de marfim com pontos e mesa em feltro verde */
-.dominoGameContainer {
-  gap: 14px;
-  padding: clamp(12px, 2vw, 24px);
-  background: radial-gradient(
-      ellipse at 50% 45%,
-      rgba(16, 100, 66, 0.34),
-      transparent 55%
-    ),
-    linear-gradient(145deg, #071b18, #06100f 70%);
-  border-color: rgba(95, 205, 148, 0.28);
-}
-
-.dominoHeaderBar,
-.dominoPlayerHandArea {
-  background: linear-gradient(
-    145deg,
-    rgba(20, 75, 56, 0.92),
-    rgba(7, 33, 27, 0.96)
-  ) !important;
-  border-color: rgba(125, 236, 174, 0.25) !important;
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28),
-    inset 0 1px rgba(255, 255, 255, 0.06);
-}
-
-.dominoBoardArena {
-  min-height: 0;
-  margin: 0;
-  flex: 1 1 0;
-  background: radial-gradient(
-      ellipse at center,
-      rgba(25, 121, 79, 0.82),
-      rgba(7, 55, 40, 0.94) 65%
-    ),
-    repeating-linear-gradient(
-      40deg,
-      rgba(255, 255, 255, 0.025) 0 2px,
-      transparent 2px 6px
-    ) !important;
-  border: 8px solid #513321 !important;
-  box-shadow: inset 0 0 36px rgba(0, 0, 0, 0.62),
-    0 16px 28px rgba(0, 0, 0, 0.42);
-  perspective: 1000px;
-}
-
-.dominoChain {
-  min-width: max-content;
-  transform: perspective(1000px) rotateX(4deg);
-  filter: drop-shadow(0 12px 9px rgba(0, 0, 0, 0.46));
-}
-
-.dominoBoardTile,
-.dominoHandTile {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  align-items: stretch;
-  width: 38px;
-  height: 68px;
-  padding: 4px;
-  border: 1px solid #fff5d2;
-  border-radius: 7px;
-  color: #18251e;
-  background: linear-gradient(135deg, #fff8db 0%, #e6d6a8 48%, #bca678 100%);
-  box-shadow: 0 5px 0 #766344, 0 8px 12px rgba(0, 0, 0, 0.48),
-    inset 0 1px 2px #fff;
-}
-
-.dominoHandTile {
-  width: 46px;
-  height: 82px;
-  cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-
-  &:hover:not(:disabled) {
-    transform: translateY(-6px) rotate(-2deg);
-    box-shadow: 0 8px 0 #766344, 0 14px 18px rgba(0, 0, 0, 0.5),
-      inset 0 1px 2px #fff;
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.8;
-  }
-
-  &.selected {
-    transform: translateY(-10px) scale(1.06);
-    border: 2px solid #facc15;
-    box-shadow: 0 8px 0 #766344, 0 0 0 3px rgba(250, 204, 21, 0.45),
-      0 16px 22px rgba(0, 0, 0, 0.58);
-  }
-}
-
-.dominoHalf {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  place-items: center;
-  flex: 1 1 0;
-  min-height: 0;
-}
-
-.dominoPip {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: transparent;
-
-  &.visible {
-    background: #202521;
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.5), 0 0 1px #111;
-  }
-}
-
-.dominoDivider {
-  height: 1px;
-  flex: 0 0 1px;
-  background: rgba(57, 48, 32, 0.62);
-}
-
 /* Jogo da Velha: casas elevadas e símbolos com brilho */
 .tictactoeGameContainer {
   min-height: 0;
@@ -3005,14 +2885,6 @@
   }
 
   .unoPlayerHandArea .handCardsRow {
-    justify-content: flex-start;
-  }
-
-  .dominoGameContainer {
-    padding: 10px;
-  }
-
-  .dominoBoardArena {
     justify-content: flex-start;
   }
 
@@ -3347,6 +3219,20 @@
   &.isActiveHand .handCardsRow .unoCard.playable {
     box-shadow: 0 9px 18px rgba(0, 0, 0, 0.58),
       0 0 14px rgba(255, 218, 91, 0.35);
+    animation: unoTurnCardPulse 1.2s ease-in-out 2;
+  }
+}
+
+@keyframes unoTurnCardPulse {
+  0%,
+  100% {
+    box-shadow: 0 9px 18px rgba(0, 0, 0, 0.58),
+      0 0 14px rgba(255, 218, 91, 0.35);
+  }
+
+  50% {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.62),
+      0 0 22px 5px rgba(255, 218, 91, 0.8);
   }
 }
 
@@ -3365,7 +3251,7 @@
 
   .kingPieceTopper {
     position: absolute;
-    top: -40%;
+    top: -12%;
     left: 8%;
     z-index: 3;
     display: grid;
@@ -3392,8 +3278,8 @@
   .kingPieceEmblem {
     position: relative;
     z-index: 1;
-    width: 68%;
-    height: 68%;
+    width: 74%;
+    height: 74%;
     overflow: visible;
     fill: #ffe19a;
     stroke: #6f3b16;
@@ -3424,214 +3310,6 @@
       #675031 100%
     );
   }
-}
-
-/* Dominó: sequência em serpentina com os duplos atravessados */
-.dominoGameContainer {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  flex: 1 1 0;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px;
-  overflow: hidden;
-  background: radial-gradient(ellipse at center, #0b3e2e, #071610 74%);
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-}
-
-.dominoBoardArena {
-  display: flex;
-  min-width: 0;
-  min-height: 0;
-  flex: 1 1 0;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-  padding: 12px;
-  overflow: auto;
-  border: 0 !important;
-  border-radius: 16px;
-  background: radial-gradient(
-    ellipse at center,
-    #1d7955,
-    #0a392b 72%
-  ) !important;
-  box-shadow: inset 0 0 45px rgba(0, 0, 0, 0.5), 0 12px 30px rgba(0, 0, 0, 0.3);
-}
-
-.dominoChain {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(var(--domino-columns), 100px);
-  grid-auto-rows: 92px;
-  width: max-content;
-  min-width: max-content;
-  padding: 4px;
-  transform: perspective(1200px) rotateX(3deg);
-  filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.35));
-}
-
-.dominoChainPath {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-
-  line {
-    stroke: rgba(255, 224, 157, 0.78);
-    stroke-width: 6px;
-    stroke-linecap: round;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.44));
-  }
-}
-
-.dominoBoardSlot {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  width: 100px;
-  height: 92px;
-}
-
-.dominoBoardTile {
-  display: flex;
-  width: 92px;
-  height: 56px;
-  flex-direction: row;
-  align-items: stretch;
-  justify-content: space-around;
-  padding: 3px;
-  border: 1px solid #fff4cf;
-  border-radius: 7px;
-  background: linear-gradient(145deg, #fffce9 0%, #e8d8ae 55%, #c1aa7b 100%);
-  box-shadow: 0 5px 0 #786443, 0 8px 12px rgba(0, 0, 0, 0.48),
-    inset 0 1px 2px #fff;
-
-  &.reverseDirection {
-    transform: rotate(180deg);
-  }
-
-  &.isDouble {
-    border-color: #e9c878;
-    box-shadow: 0 5px 0 #786443, 0 8px 12px rgba(0, 0, 0, 0.48),
-      inset 0 0 0 2px rgba(210, 166, 67, 0.3), inset 0 1px 2px #fff;
-  }
-
-  .dominoHalf {
-    min-width: 0;
-    min-height: 0;
-  }
-
-  .dominoDivider {
-    width: 1px;
-    height: auto;
-    flex: 0 0 1px;
-  }
-}
-
-.dominoPlayerHandArea {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  min-height: 0;
-  padding: 8px 12px;
-  border: 1px solid rgba(206, 235, 199, 0.14);
-  border-radius: 14px;
-  background: linear-gradient(
-    145deg,
-    rgba(18, 64, 47, 0.9),
-    rgba(5, 25, 19, 0.94)
-  );
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-
-  &.isActiveHand {
-    border-color: rgba(242, 204, 104, 0.56);
-    box-shadow: 0 0 20px rgba(242, 204, 104, 0.12),
-      0 8px 24px rgba(0, 0, 0, 0.25);
-  }
-}
-
-.dominoHandTiles {
-  display: flex;
-  min-width: 0;
-  max-height: 108px;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 7px;
-  padding: 5px 3px 9px;
-  overflow: auto hidden;
-}
-
-.dominoHandTile {
-  width: 52px;
-  height: 82px;
-  flex: 0 0 52px;
-  border: 1px solid #fff4cf;
-  cursor: pointer;
-
-  &:disabled {
-    opacity: 0.58;
-  }
-
-  &.selected {
-    border: 2px solid #ffe06d;
-    transform: translateY(-8px);
-  }
-}
-
-.dominoHandTile .dominoDivider {
-  height: 1px;
-  flex: 0 0 1px;
-}
-
-.dominoActionRail,
-.dominoPlacementActions {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.dominoActionRail > button,
-.dominoPlacementActions button {
-  min-width: 74px;
-  min-height: 32px;
-  padding: 5px 8px;
-  border: 1px solid rgba(255, 237, 186, 0.28);
-  border-radius: 9px;
-  color: #f4f5e7;
-  background: rgba(8, 27, 21, 0.76);
-  font-size: 11px;
-  font-weight: 800;
-  white-space: nowrap;
-  cursor: pointer;
-
-  &:hover:not(:disabled) {
-    border-color: #f2cc68;
-    background: rgba(23, 69, 48, 0.96);
-  }
-
-  &:disabled {
-    opacity: 0.38;
-    cursor: not-allowed;
-  }
-}
-
-.dominoActionRail > button span {
-  color: #f2cc68;
-}
-
-.dominoPlacementActions {
-  flex-direction: row;
 }
 
 /* Jogo da Velha: só o tabuleiro permanece visível */
@@ -3752,47 +3430,6 @@
     &.denseCards .unoCard + .unoCard {
       margin-left: clamp(-26px, -4vw, -12px);
     }
-  }
-
-  .dominoBoardArena {
-    justify-content: flex-start;
-    padding: 8px;
-  }
-
-  .dominoChain {
-    grid-template-columns: repeat(var(--domino-columns), 66px);
-    grid-auto-rows: 66px;
-  }
-
-  .dominoBoardSlot {
-    width: 66px;
-    height: 66px;
-  }
-
-  .dominoBoardTile {
-    width: 62px;
-    height: 38px;
-  }
-
-  .dominoPlayerHandArea {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 3px;
-  }
-
-  .dominoHandTiles {
-    max-height: 88px;
-  }
-
-  .dominoHandTile {
-    width: 42px;
-    height: 70px;
-    flex-basis: 42px;
-  }
-
-  .dominoActionRail {
-    flex-direction: row;
-    justify-content: center;
-    flex-wrap: wrap;
   }
 
   .ticTacToeBoard {
@@ -3929,7 +3566,7 @@
   box-shadow: 0 0 9px 3px rgba(255, 218, 72, 0.68),
     0 0 18px 6px rgba(255, 155, 32, 0.42);
   pointer-events: none;
-  animation: checkersTurnPiecePulse 1.2s ease-in-out infinite;
+  animation: checkersTurnPiecePulse 1.2s ease-in-out 2;
 }
 
 @keyframes checkersTurnPiecePulse {
@@ -3953,226 +3590,6 @@
     box-shadow: 0 0 7px 2px rgba(255, 218, 72, 0.48),
       0 0 14px 4px rgba(255, 155, 32, 0.3);
   }
-}
-
-/* Dominó em mesa de feltro com jogadores ao redor e sequência serpenteada. */
-.dominoGameContainer {
-  gap: 0;
-  padding: 0;
-  background: #07502e;
-}
-
-.dominoBoardArena {
-  position: relative;
-  padding: 52px 30px 18px;
-  border: 0 !important;
-  border-radius: 0;
-  background: radial-gradient(
-    ellipse at 50% 45%,
-    #238849,
-    #07502e 68%,
-    #04351f
-  ) !important;
-  box-shadow: inset 0 0 65px rgba(0, 0, 0, 0.34);
-  perspective: none;
-}
-
-.dominoOpponentSeats {
-  position: absolute;
-  z-index: 3;
-  inset: 0;
-  pointer-events: none;
-}
-
-.dominoOpponentSeat {
-  position: absolute;
-  display: flex;
-  min-width: 136px;
-  align-items: center;
-  gap: 7px;
-  padding: 6px 9px;
-  border: 1px solid rgba(255, 215, 150, 0.52);
-  border-radius: 9px;
-  background: linear-gradient(
-    145deg,
-    rgba(101, 51, 28, 0.97),
-    rgba(43, 25, 17, 0.98)
-  );
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.42),
-    inset 0 1px rgba(255, 236, 198, 0.18);
-  color: #fff3d1;
-
-  &.topCenter {
-    top: 7px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  &.topLeft {
-    top: 7px;
-    left: 12px;
-  }
-
-  &.topRight {
-    top: 7px;
-    right: 12px;
-  }
-
-  &.middleLeft {
-    top: 50%;
-    left: 8px;
-    transform: translateY(-50%);
-  }
-
-  &.middleRight {
-    top: 50%;
-    right: 8px;
-    transform: translateY(-50%);
-  }
-
-  &.activeTurn {
-    border-color: #fff09a;
-    box-shadow: 0 0 16px rgba(255, 223, 104, 0.78),
-      0 4px 10px rgba(0, 0, 0, 0.42), inset 0 1px rgba(255, 236, 198, 0.18);
-  }
-}
-
-.dominoSeatAvatar {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  flex: 0 0 28px;
-  place-items: center;
-  border: 1px solid rgba(255, 236, 198, 0.68);
-  border-radius: 50%;
-  background: linear-gradient(135deg, #c47b45, #6c351f);
-  color: #fff7e6;
-  font-size: 11px;
-  font-weight: 900;
-}
-
-.dominoOpponentInfo,
-.dominoLocalPlayerCard > span:last-child {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 2px;
-
-  strong {
-    max-width: 88px;
-    overflow: hidden;
-    color: #fff8e7;
-    font-size: 10px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  small {
-    color: #f5d69a;
-    font-size: 9px;
-    font-weight: 700;
-  }
-}
-
-.dominoOpponentBacks {
-  position: relative;
-  display: block;
-  width: 35px;
-  height: 34px;
-  flex: 0 0 35px;
-  margin-left: auto;
-}
-
-.dominoTileBack {
-  position: absolute;
-  top: 2px;
-  left: calc(var(--back-index) * 6px);
-  width: 21px;
-  height: 29px;
-  border: 1px solid #fff0c0;
-  border-radius: 4px;
-  background: linear-gradient(145deg, #f2d989, #a06a38 45%, #60351d);
-  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
-  transform: rotate(calc((var(--back-index) - 1) * 7deg));
-}
-
-.dominoChain {
-  z-index: 1;
-  grid-template-columns: repeat(var(--domino-columns), 80px);
-  grid-auto-rows: 62px;
-  width: max-content;
-  min-width: max-content;
-  margin: auto;
-  padding: 0;
-  transform: none;
-  filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.28));
-}
-
-.dominoChainPath line {
-  stroke: rgba(248, 225, 165, 0.85);
-  stroke-width: 4px;
-}
-
-.dominoBoardSlot {
-  width: 80px;
-  height: 62px;
-}
-
-.dominoBoardTile {
-  width: 76px;
-  height: 46px;
-  padding: 2px;
-  border: 1px solid #fff5d0;
-  border-radius: 4px;
-  color: #20251f;
-  background: linear-gradient(145deg, #fff8d5, #ecdfa6 65%, #d2c083);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.36), inset 0 1px 2px #fff;
-
-  .dominoDivider {
-    background: rgba(57, 48, 32, 0.65);
-  }
-}
-
-.dominoPip {
-  width: clamp(3px, 0.42vw, 5px);
-  height: clamp(3px, 0.42vw, 5px);
-}
-
-.dominoPlayerHandArea {
-  display: flex;
-  min-height: 98px;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 14px;
-  border: 1px solid rgba(255, 218, 157, 0.42);
-  border-radius: 0;
-  background: linear-gradient(145deg, #70412a, #38231b 76%);
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.3),
-    inset 0 1px rgba(255, 239, 198, 0.2);
-}
-
-.dominoLocalPlayerCard {
-  display: flex;
-  min-width: 126px;
-  align-items: center;
-  gap: 7px;
-  color: #fff4d6;
-
-  .dominoSeatAvatar {
-    width: 32px;
-    height: 32px;
-    flex-basis: 32px;
-  }
-}
-
-.dominoHandTiles {
-  flex: 1 1 0;
-  max-height: 92px;
-}
-
-.dominoHandTile {
-  border-radius: 4px;
-  background: linear-gradient(145deg, #fff8d5, #ecdfa6 65%, #d2c083);
 }
 
 @media (max-width: 760px) {
@@ -4211,118 +3628,5 @@
   .checkersBoard {
     width: min(88vw, 68vh, 620px);
     height: min(88vw, 68vh, 620px);
-  }
-
-  .dominoBoardArena {
-    padding: 46px 6px 8px;
-  }
-
-  .dominoOpponentSeats {
-    display: flex;
-    height: 40px;
-    align-items: flex-start;
-    justify-content: space-around;
-    gap: 3px;
-    padding: 4px;
-    box-sizing: border-box;
-  }
-
-  .dominoOpponentSeat {
-    position: relative;
-    top: auto !important;
-    right: auto !important;
-    left: auto !important;
-    min-width: 0;
-    flex: 0 1 auto;
-    gap: 4px;
-    padding: 3px 5px;
-    transform: none !important;
-
-    .dominoSeatAvatar {
-      width: 22px;
-      height: 22px;
-      flex-basis: 22px;
-      font-size: 9px;
-    }
-  }
-
-  .dominoOpponentInfo strong {
-    max-width: 56px;
-    font-size: 8px;
-  }
-
-  .dominoOpponentInfo small {
-    font-size: 8px;
-  }
-
-  .dominoOpponentBacks {
-    display: none;
-  }
-
-  .dominoPlayerHandArea {
-    min-height: 112px;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 2px 8px;
-    padding: 4px 6px;
-  }
-
-  .dominoLocalPlayerCard {
-    min-width: 0;
-    gap: 4px;
-
-    .dominoSeatAvatar {
-      width: 24px;
-      height: 24px;
-      flex-basis: 24px;
-    }
-
-    strong {
-      max-width: 70px;
-      font-size: 9px;
-    }
-
-    small {
-      font-size: 8px;
-    }
-  }
-
-  .dominoHandTiles {
-    flex-basis: 100%;
-    max-height: 70px;
-    justify-content: center;
-  }
-
-  .dominoHandTile {
-    width: 38px;
-    height: 62px;
-    flex-basis: 38px;
-  }
-
-  .dominoActionRail {
-    flex-direction: row;
-    gap: 4px;
-
-    button {
-      min-height: 26px;
-      padding: 3px 7px;
-      font-size: 9px;
-    }
-  }
-
-  .dominoChain {
-    grid-template-columns: repeat(var(--domino-columns), 58px);
-    grid-auto-rows: 48px;
-  }
-
-  .dominoBoardSlot {
-    width: 58px;
-    height: 48px;
-  }
-
-  .dominoBoardTile {
-    width: 54px;
-    height: 36px;
-    padding: 1px;
   }
 }

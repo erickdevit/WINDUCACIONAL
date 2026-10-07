@@ -38,3 +38,8 @@ do Desenho da Turma, junto com seus traços vinculados por `ON DELETE CASCADE`, 
 restringe o banco a atividades individuais. Como migrations rodam no boot sob
 `pg_advisory_lock`, cada banco compartilhado por uma ou mais instâncias recebe
 essa limpeza uma única vez na primeira inicialização com a atualização.
+
+A migration `0012_retire_domino.sql` encerra salas de Dominó que ainda estavam
+aguardando ou em andamento e limpa seus estados de jogo. Os registros das salas
+e os rankings históricos são preservados, mas o frontend e a API deixam de
+oferecer esse jogo.

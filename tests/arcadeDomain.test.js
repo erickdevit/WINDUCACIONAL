@@ -4,7 +4,6 @@ import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
 const checkers = require("../server/domain/arcadeCheckers.cjs");
 const uno = require("../server/domain/arcadeUno.cjs");
-const domino = require("../server/domain/arcadeDomino.cjs");
 const tictactoe = require("../server/domain/arcadeTicTacToe.cjs");
 const hangman = require("../server/domain/arcadeHangman.cjs");
 
@@ -119,61 +118,6 @@ describe("Arcade - Uno Multiplayer", () => {
     const updated = uno.playUnoCard(game, "u1", matchingCard.id);
     expect(updated.topCard.id).toBe(matchingCard.id);
     expect(updated.currentTurn).toBe(1);
-  });
-});
-
-describe("Arcade - Dominó", () => {
-  it("inicializa a partida de Dominó com 7 pedras por jogador e determina o jogador inicial", () => {
-    const players = [
-      { userId: "u1", username: "ana", displayName: "Ana" },
-      { userId: "u2", username: "bruno", displayName: "Bruno" },
-      { userId: "u3", username: "carla", displayName: "Carla" },
-    ];
-    const game = domino.initDominoGame(players);
-
-    expect(game.players.length).toBe(3);
-    expect(game.players[0].hand.length).toBe(7);
-    expect(game.players[1].hand.length).toBe(7);
-    expect(game.players[2].hand.length).toBe(7);
-    expect(game.boneyard.length).toBe(7); // 28 total - 21 distribuídas
-    expect(game.status).toBe("PLAYING");
-    expect(game.currentTurn).toBeGreaterThanOrEqual(0);
-    expect(game.currentTurn).toBeLessThan(3);
-  });
-
-  it("permite jogar a primeira pedra na mesa vazia e atualiza as pontas", () => {
-    const players = [
-      { userId: "u1", username: "ana", displayName: "Ana" },
-      { userId: "u2", username: "bruno", displayName: "Bruno" },
-    ];
-    const game = domino.initDominoGame(players);
-    game.currentTurn = 0;
-
-    const tileToPlay = game.players[0].hand[0];
-    const updated = domino.playDominoTile(game, "u1", tileToPlay.id);
-
-    expect(updated.board.length).toBe(1);
-    expect(updated.leftEnd).toBe(tileToPlay.left);
-    expect(updated.rightEnd).toBe(tileToPlay.right);
-    expect(updated.players[0].hand.length).toBe(6);
-    expect(updated.currentTurn).toBe(1);
-  });
-
-  it("finaliza a partida quando um jogador bate (acabam suas pedras)", () => {
-    const players = [
-      { userId: "u1", username: "ana", displayName: "Ana" },
-      { userId: "u2", username: "bruno", displayName: "Bruno" },
-    ];
-    const game = domino.initDominoGame(players);
-    game.currentTurn = 0;
-    game.board = [{ tile: { id: "t0", left: 6, right: 6, isDouble: true }, flipped: false }];
-    game.leftEnd = 6;
-    game.rightEnd = 6;
-    game.players[0].hand = [{ id: "win_tile", left: 6, right: 3, isDouble: false }];
-
-    const updated = domino.playDominoTile(game, "u1", "win_tile", "right");
-    expect(updated.status).toBe("FINISHED");
-    expect(updated.winner).toBe("u1");
   });
 });
 

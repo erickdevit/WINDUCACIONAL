@@ -5,7 +5,6 @@ import { AppWindow } from "../../../../components/shared/AppWindow";
 import { api } from "../../../../lib/api";
 import { CheckersBoard } from "./CheckersBoard";
 import { UnoTable } from "./UnoTable";
-import { DominoTable } from "./DominoTable";
 import { TicTacToeBoard } from "./TicTacToeBoard";
 import { HangmanGame } from "./HangmanGame";
 import "./arcade.scss";
@@ -36,7 +35,7 @@ function ArcadeView({ visible }) {
   const [activeTab, setActiveTab] = useState("lobby"); // 'lobby', 'ranking'
   const [toolbarTarget, setToolbarTarget] = useState(null);
   const [rooms, setRooms] = useState([]);
-  const [selectedGameFilter, setSelectedGameFilter] = useState("all"); // 'all', 'checkers', 'uno', 'domino', 'tictactoe', 'hangman'
+  const [selectedGameFilter, setSelectedGameFilter] = useState("all"); // 'all', 'checkers', 'uno', 'tictactoe', 'hangman'
   const [roomViewMode, setRoomViewMode] = useState("grid"); // 'grid' ou 'list' (padrão: 'grid')
   const [activeRoom, setActiveRoom] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -263,8 +262,7 @@ function ArcadeView({ visible }) {
     try {
       let maxP = 2;
       if (newRoomGameType === "uno") maxP = newRoomMaxPlayers;
-      else if (newRoomGameType === "domino" || newRoomGameType === "hangman")
-        maxP = newRoomMaxPlayers;
+      else if (newRoomGameType === "hangman") maxP = newRoomMaxPlayers;
 
       const data = await api.createArcadeRoom({
         title: newRoomTitle,
@@ -428,8 +426,6 @@ function ArcadeView({ visible }) {
         return "Damas";
       case "uno":
         return "Uno";
-      case "domino":
-        return "Dominó";
       case "tictactoe":
         return "Jogo da Velha";
       case "hangman":
@@ -516,7 +512,6 @@ function ArcadeView({ visible }) {
                   { id: "overall", label: "Todos os Jogos" },
                   { id: "checkers", label: "Damas" },
                   { id: "uno", label: "Uno" },
-                  { id: "domino", label: "Dominó" },
                   { id: "tictactoe", label: "Jogo da Velha" },
                   { id: "hangman", label: "Forca" },
                 ].map((g) => (
@@ -614,13 +609,6 @@ function ArcadeView({ visible }) {
                   onClick={() => setSelectedGameFilter("uno")}
                 >
                   🃏 Uno ({rooms.filter((r) => r.gameType === "uno").length})
-                </button>
-                <button
-                  className={selectedGameFilter === "domino" ? "active" : ""}
-                  onClick={() => setSelectedGameFilter("domino")}
-                >
-                  🎲 Dominó (
-                  {rooms.filter((r) => r.gameType === "domino").length})
                 </button>
                 <button
                   className={selectedGameFilter === "tictactoe" ? "active" : ""}
@@ -1044,18 +1032,6 @@ function ArcadeView({ visible }) {
                 />
               )}
 
-              {activeRoom.gameType === "domino" && (
-                <DominoTable
-                  gameState={activeRoom.gameState}
-                  currentUserId={person.id}
-                  onPlayTile={(tileId, targetEnd) =>
-                    handleGameAction({ type: "PLAY_TILE", tileId, targetEnd })
-                  }
-                  onDrawTile={() => handleGameAction({ type: "DRAW_TILE" })}
-                  onPassTurn={() => handleGameAction({ type: "PASS" })}
-                />
-              )}
-
               {activeRoom.gameType === "tictactoe" && (
                 <TicTacToeBoard
                   gameState={activeRoom.gameState}
@@ -1146,7 +1122,6 @@ function ArcadeView({ visible }) {
                   {[
                     { id: "checkers", name: "Damas", sub: "2 jogadores" },
                     { id: "uno", name: "Uno", sub: "2 até 6 jogadores" },
-                    { id: "domino", name: "Dominó", sub: "2 até 4 jogadores" },
                     {
                       id: "tictactoe",
                       name: "Jogo da Velha",
@@ -1168,9 +1143,7 @@ function ArcadeView({ visible }) {
                 </div>
               </div>
 
-              {(newRoomGameType === "uno" ||
-                newRoomGameType === "domino" ||
-                newRoomGameType === "hangman") && (
+              {(newRoomGameType === "uno" || newRoomGameType === "hangman") && (
                 <div className="formGroup mt-3">
                   <label>Capacidade Máxima de Jogadores:</label>
                   <select

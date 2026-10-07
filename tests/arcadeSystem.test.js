@@ -8,6 +8,7 @@ const migration0010 = read("../server/db/migrations/0010_arcade_games.sql");
 const migration0011 = read(
   "../server/db/migrations/0011_domino_tictactoe_hangman.sql"
 );
+const migration0012 = read("../server/db/migrations/0012_retire_domino.sql");
 const arcadeRoutesCode = read("../server/routes/arcade.cjs");
 const indexServerCode = read("../server/index.cjs");
 const apiCode = read("../src/lib/api.js");
@@ -22,9 +23,6 @@ const unoComponentCode = read(
 );
 const unoImageFiles = fs.readdirSync(
   new URL("../public/img/arcade/uno", import.meta.url)
-);
-const dominoComponentCode = read(
-  "../src/containers/applications/apps/arcade/DominoTable.jsx"
 );
 const tictactoeComponentCode = read(
   "../src/containers/applications/apps/arcade/TicTacToeBoard.jsx"
@@ -45,6 +43,9 @@ describe("Arcade - Schema e Migrações", () => {
       "CREATE TABLE IF NOT EXISTS arcade_rankings"
     );
     expect(migration0011).toContain("domino, tictactoe, hangman");
+    expect(migration0012).toContain("status IN ('WAITING', 'PLAYING')");
+    expect(migration0012).toContain("game_state = '{}'::jsonb");
+    expect(migration0012).not.toContain("DELETE FROM arcade_rooms");
   });
 });
 
@@ -55,37 +56,45 @@ describe("Arcade - Backend, Rotas e Suporte a Novos Jogos", () => {
     );
   });
 
-  it("suporta ações dos jogos Dominó, Jogo da Velha e Forca no endpoint de ação", () => {
-    expect(arcadeRoutesCode).toContain("PLAY_TILE");
-    expect(arcadeRoutesCode).toContain("DRAW_TILE");
+  it("suporta ações dos jogos Jogo da Velha e Forca no endpoint de ação", () => {
     expect(arcadeRoutesCode).toContain("MAKE_MOVE");
     expect(arcadeRoutesCode).toContain("GUESS_LETTER");
     expect(arcadeRoutesCode).toContain("GUESS_WORD");
   });
 
-  it("sanitiza estado do Dominó e Forca para evitar trapaça", () => {
-    expect(arcadeRoutesCode).toContain('gameType === "domino"');
-    expect(arcadeRoutesCode).toContain("boneyard: undefined");
+  it("sanitiza o estado da Forca para ocultar a palavra secreta", () => {
     expect(arcadeRoutesCode).toContain('gameType === "hangman"');
     expect(arcadeRoutesCode).toContain(
       "secretWord: isFinished ? gameState.secretWord : undefined"
     );
   });
+
+  it("desativa o Dominó na API e preserva os registros históricos", () => {
+    expect(arcadeRoutesCode).not.toContain(
+      'require("../domain/arcadeDomino.cjs")'
+    );
+    expect(arcadeRoutesCode).toContain('gameType === "domino"');
+    expect(arcadeRoutesCode).toContain("r.game_type <> 'domino'");
+    expect(arcadeRoutesCode).toContain(
+      "ensureSupportedGameType(room.game_type)"
+    );
+  });
 });
 
 describe("Arcade - Componentes Frontend dos Novos Jogos", () => {
-  it("renderiza o Dominó em sequência serpenteada e mantém controles nas pontas", () => {
-    expect(dominoComponentCode).toContain("dominoChain");
-    expect(dominoComponentCode).toContain("dominoChainPath");
-    expect(dominoComponentCode).toContain("dominoOpponentSeats");
-    expect(dominoComponentCode).toContain("dominoOpponentSeat");
-    expect(dominoComponentCode).toContain("reverse: row % 2 === 1");
-    expect(dominoComponentCode).toContain("Jogar na ponta esquerda");
-    expect(dominoComponentCode).toContain("Comprar <span>");
-    expect(scssCode).toContain(
-      "grid-template-columns: repeat(var(--domino-columns), 80px)"
-    );
-    expect(scssCode).not.toContain("&.isDouble .dominoDivider");
+  it("remove o Dominó da interface, das regras visuais e dos arquivos do jogo", () => {
+    expect(appComponentCode).not.toContain("DominoTable");
+    expect(appComponentCode).not.toContain("Dominó");
+    expect(appComponentCode).not.toContain('"domino"');
+    expect(scssCode).not.toContain(".domino");
+    expect(
+      fs.existsSync(
+        new URL(
+          "../src/containers/applications/apps/arcade/DominoTable.jsx",
+          import.meta.url
+        )
+      )
+    ).toBe(false);
   });
 
   it("mantém apenas o tabuleiro 3x3 visível no Jogo da Velha", () => {
@@ -114,9 +123,13 @@ describe("Arcade - Componentes Frontend dos Novos Jogos", () => {
     expect(checkersComponentCode).not.toContain(">DAMA<");
     expect(checkersComponentCode).not.toContain("checkersPlayerBar");
     expect(checkersComponentCode).toContain('"activeTurnPiece"');
-    expect(scssCode).toContain("top: -40%;");
+    expect(scssCode).toContain("top: -12%;");
     expect(scssCode).toContain("width: 84%;");
+    expect(scssCode).toContain("height: 74%;");
     expect(scssCode).toContain("@keyframes checkersTurnPiecePulse");
+    expect(scssCode).toContain(
+      "animation: checkersTurnPiecePulse 1.2s ease-in-out 2;"
+    );
     expect(scssCode).toContain(
       ".checkersBoard {\n  width: min(86vw, 76vh, 680px);"
     );
@@ -141,6 +154,10 @@ describe("Arcade - Componentes Frontend dos Novos Jogos", () => {
     expect(scssCode).toContain(".handCardsRail");
     expect(scssCode).toContain("z-index: 100;");
     expect(scssCode).toContain("padding: 80px 14px 8px;");
+    expect(scssCode).toContain(
+      "animation: unoTurnCardPulse 1.2s ease-in-out 2;"
+    );
+    expect(scssCode).toContain("@keyframes unoTurnCardPulse");
   });
 
   it("mantém as 54 cartas do pacote UNO sem arquivos antigos sobrando", () => {
@@ -175,10 +192,8 @@ describe("Arcade - Componentes Frontend dos Novos Jogos", () => {
   });
 
   it("integra os novos jogos no componente principal ArcadeApp", () => {
-    expect(appComponentCode).toContain("DominoTable");
     expect(appComponentCode).toContain("TicTacToeBoard");
     expect(appComponentCode).toContain("HangmanGame");
-    expect(appComponentCode).toContain("Dominó");
     expect(appComponentCode).toContain("Jogo da Velha");
     expect(appComponentCode).toContain("Forca");
   });
