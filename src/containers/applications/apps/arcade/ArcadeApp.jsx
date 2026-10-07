@@ -433,16 +433,6 @@ function ArcadeView({ visible }) {
       {/* Header do Arcade */}
       {!isPlayingOrFinished && (
         <header className="arcadeHeader">
-          <div className="arcadeBrand">
-            <div className="arcadeLogoIcon">
-              <img src="img/icon/arcade.svg" alt="Arcade" />
-            </div>
-            <div className="arcadeBrandTitles">
-              <h2>Arcade da Turma</h2>
-              <span>Jogos Multiplayer Escolares</span>
-            </div>
-          </div>
-
           <nav className="arcadeNavTabs">
             <button
               className={activeTab === "lobby" ? "active" : ""}
@@ -451,7 +441,7 @@ function ArcadeView({ visible }) {
                 if (!activeRoom) loadRooms();
               }}
             >
-              🕹️ Salas de Jogos
+              🕹️ Sala de Jogos
             </button>
             <button
               className={activeTab === "ranking" ? "active" : ""}

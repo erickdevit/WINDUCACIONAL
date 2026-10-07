@@ -1,29 +1,53 @@
 import React, { useState } from "react";
 
-// Mapeamento visual das cartas de Uno
-const getCardValueLabel = (val) => {
-  switch (val) {
-    case "skip":
-      return "🚫";
-    case "reverse":
-      return "⇄";
-    case "draw2":
-      return "+2";
-    case "wild":
-      return "★";
-    case "wild4":
-      return "+4";
-    default:
-      return val;
-  }
-};
-
 const COLOR_NAMES_PT = {
   red: "Vermelho",
   blue: "Azul",
   green: "Verde",
   yellow: "Amarelo",
   wild: "Especial",
+};
+
+const CARD_VALUE_NAMES_PT = {
+  skip: "Bloqueio",
+  reverse: "Inverte",
+  draw2: "Compra duas",
+  wild: "Coringa",
+  wild4: "Coringa compra quatro",
+};
+
+const CARD_COLOR_FILE_NAMES = {
+  red: "Red",
+  blue: "Blue",
+  green: "Green",
+  yellow: "Yellow",
+};
+
+const CARD_VALUE_FILE_NAMES = {
+  skip: "Skip",
+  reverse: "Reverse",
+  draw2: "Draw_2",
+};
+
+const getCardImageSrc = (card) => {
+  if (card.color === "wild") {
+    return card.value === "wild4"
+      ? "/img/arcade/uno/Wild_Draw_4.jpg"
+      : "/img/arcade/uno/Wild.jpg";
+  }
+
+  const color = CARD_COLOR_FILE_NAMES[card.color];
+  if (!color) return "/img/arcade/uno/Wild.jpg";
+
+  const value = CARD_VALUE_FILE_NAMES[card.value] || card.value;
+  const extension = card.value === "0" ? "png" : "jpg";
+  return `/img/arcade/uno/${color}_${value}.${extension}`;
+};
+
+const getCardAccessibleName = (card) => {
+  const value = CARD_VALUE_NAMES_PT[card.value] || card.value;
+  if (card.color === "wild") return value;
+  return `${value} ${COLOR_NAMES_PT[card.color] || card.color}`;
 };
 
 // Mapeamento posicional dos assentos ao redor da mesa elíptica para até 6 jogadores
@@ -191,19 +215,11 @@ export function UnoTable({
             {/* Pilha de Descarte (Top Card) */}
             {topCard && (
               <div className="discardPile">
-                <div className={`unoCard ${topCard.color} topCardTable`}>
-                  <span className="cardCornerTop">
-                    {getCardValueLabel(topCard.value)}
-                  </span>
-                  <div className="cardInnerOval">
-                    <span className="cardCenterValue">
-                      {getCardValueLabel(topCard.value)}
-                    </span>
-                  </div>
-                  <span className="cardCornerBottom">
-                    {getCardValueLabel(topCard.value)}
-                  </span>
-                </div>
+                <img
+                  className="unoCard topCardTable"
+                  src={getCardImageSrc(topCard)}
+                  alt={getCardAccessibleName(topCard)}
+                />
                 <span className="pileLabel">Descarte</span>
               </div>
             )}
@@ -323,25 +339,18 @@ export function UnoTable({
             myHand.map((card) => {
               const playable = isCardPlayable(card);
             return (
-              <div
+              <button
+                type="button"
                 key={card.id}
+                aria-label={getCardAccessibleName(card)}
+                disabled={!playable}
                 className={`unoCard ${card.color} ${
                   playable ? "playable" : "notPlayable"
                 }`}
                 onClick={() => handleCardClick(card)}
               >
-                <span className="cardCornerTop">
-                  {getCardValueLabel(card.value)}
-                </span>
-                <div className="cardInnerOval">
-                  <span className="cardCenterValue">
-                    {getCardValueLabel(card.value)}
-                  </span>
-                </div>
-                <span className="cardCornerBottom">
-                  {getCardValueLabel(card.value)}
-                </span>
-              </div>
+                <img src={getCardImageSrc(card)} alt="" />
+              </button>
             );
           })
           )}

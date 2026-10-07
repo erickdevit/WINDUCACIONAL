@@ -60,49 +60,6 @@
   z-index: 10;
 }
 
-.arcadeBrand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-
-  .arcadeLogoIcon {
-    width: 38px;
-    height: 38px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
-    box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35);
-
-    img {
-      width: 26px;
-      height: 26px;
-    }
-  }
-
-  .arcadeBrandTitles {
-    display: flex;
-    flex-direction: column;
-
-    h2 {
-      font-size: 15px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      background: linear-gradient(90deg, #38bdf8, #818cf8, #f472b6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin: 0;
-    }
-
-    span {
-      font-size: 10px;
-      color: #94a3b8;
-      font-weight: 600;
-    }
-  }
-}
-
 .arcadeNavTabs {
   display: flex;
   align-items: center;
@@ -2016,7 +1973,8 @@
   width: 72px;
   height: 106px;
   border-radius: 9px;
-  padding: 5px;
+  padding: 0;
+  border: 0;
   box-shadow: 0 5px 14px rgba(0, 0, 0, 0.45);
   position: relative;
   user-select: none;
@@ -2024,60 +1982,14 @@
   align-items: center;
   justify-content: center;
   transition: all 0.18s ease;
-  border: 2.5px solid #ffffff;
+  overflow: hidden;
   flex-shrink: 0;
 
-  &.red {
-    background: #ef4444;
-  }
-  &.blue {
-    background: #3b82f6;
-  }
-  &.green {
-    background: #10b981;
-  }
-  &.yellow {
-    background: #eab308;
-  }
-  &.wild {
-    background: radial-gradient(circle at 50% 50%, #18181b 0%, #000000 100%);
-  }
-
-  .cardInnerOval {
+  img {
+    display: block;
     width: 100%;
     height: 100%;
-    border-radius: 50% / 40%;
-    background: rgba(255, 255, 255, 0.18);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transform: rotate(-20deg);
-  }
-
-  .cardCenterValue {
-    font-size: 28px;
-    font-weight: 900;
-    color: #ffffff;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  }
-
-  .cardCornerTop,
-  .cardCornerBottom {
-    position: absolute;
-    font-size: 11px;
-    font-weight: 900;
-    color: #ffffff;
-  }
-
-  .cardCornerTop {
-    top: 4px;
-    left: 6px;
-  }
-
-  .cardCornerBottom {
-    bottom: 4px;
-    right: 6px;
-    transform: rotate(180deg);
+    object-fit: fill;
   }
 
   &.playable {
@@ -2092,6 +2004,11 @@
   &.notPlayable {
     opacity: 0.6;
     filter: grayscale(0.25);
+  }
+
+  &:focus-visible {
+    outline: 3px solid #38bdf8;
+    outline-offset: 2px;
   }
 }
 
