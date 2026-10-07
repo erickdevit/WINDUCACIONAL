@@ -105,7 +105,6 @@ const serializeActivity = (row) => ({
   topic: row.topic,
   instructions: row.instructions || "",
   backgroundColor: row.background_color || "#ffffff",
-  mode: row.mode,
   status: row.status,
   winnerId: row.winner_id || null,
   winnerName: row.winner_name || null,
@@ -116,12 +115,9 @@ const serializeActivity = (row) => ({
   closedAt: row.closed_at,
 });
 
-const serializeDrawing = (row, activity) => ({
-  userId: activity.mode === "chaos" ? null : row.user_id,
-  displayName:
-    activity.mode === "chaos"
-      ? "Quadro coletivo"
-      : row.display_name || row.username || "Aluno",
+const serializeDrawing = (row) => ({
+  userId: row.user_id,
+  displayName: row.display_name || row.username || "Aluno",
   strokes: Array.isArray(row.strokes) ? row.strokes : [],
   strokeCount: Array.isArray(row.strokes) ? row.strokes.length : 0,
   updatedAt: row.updated_at || null,
@@ -131,7 +127,7 @@ const serializeDrawing = (row, activity) => ({
 const shouldReceiveDrawingEvent = (client, activity, ownerId) => {
   if (client.user.role === "professor") return client.user.id === activity.teacher_id;
   if (client.user.turma_id !== activity.turma_id) return false;
-  if (activity.mode === "chaos" || ownerId === null) return true;
+  if (ownerId === null) return true;
   return client.user.id === ownerId;
 };
 
@@ -196,21 +192,6 @@ module.exports = function injectDrawingRoutes(ctx) {
   };
 
   const readDrawings = async (activity, viewer) => {
-    if (activity.mode === "chaos") {
-      const result = await pool.query(
-        `SELECT s.user_id, s.strokes, s.updated_at
-         FROM drawing_strokes s
-         WHERE s.activity_id = $1 AND s.user_id = $2`,
-        [activity.id, activity.teacher_id]
-      );
-      return [
-        serializeDrawing(
-          result.rows[0] || { strokes: [], updated_at: null },
-          activity
-        ),
-      ];
-    }
-
     if (viewer.role === "aluno") {
       const result = await pool.query(
         `SELECT u.id AS user_id, u.username, u.display_name,
@@ -221,7 +202,7 @@ module.exports = function injectDrawingRoutes(ctx) {
          WHERE u.id = $2 AND u.turma_id = $3 AND u.role = 'aluno'`,
         [activity.id, viewer.id, activity.turma_id]
       );
-      return result.rows.map((row) => serializeDrawing(row, activity));
+      return result.rows.map(serializeDrawing);
     }
 
     const result = await pool.query(
@@ -236,7 +217,7 @@ module.exports = function injectDrawingRoutes(ctx) {
        ORDER BY u.display_name ASC, u.username ASC`,
       [activity.id, activity.turma_id]
     );
-    return result.rows.map((row) => serializeDrawing(row, activity));
+    return result.rows.map(serializeDrawing);
   };
 
   app.get("/api/drawing/active", requireAuth, async (req, res, next) => {
@@ -298,7 +279,7 @@ module.exports = function injectDrawingRoutes(ctx) {
         return res.json({ drawings: [] });
       }
       const result = await pool.query(
-        `SELECT s.strokes, s.updated_at, a.id AS activity_id, a.topic, a.mode, a.background_color,
+        `SELECT s.strokes, s.updated_at, a.id AS activity_id, a.topic, a.background_color,
                 t.nome AS turma_nome, a.closed_at, a.winner_id
          FROM drawing_strokes s
          JOIN drawing_activities a ON a.id = s.activity_id
@@ -312,7 +293,6 @@ module.exports = function injectDrawingRoutes(ctx) {
         drawings: result.rows.map((row) => ({
           activityId: row.activity_id,
           topic: row.topic,
-          mode: row.mode,
           backgroundColor: row.background_color || "#ffffff",
           turmaName: row.turma_nome,
           strokes: Array.isArray(row.strokes) ? row.strokes : [],
@@ -341,10 +321,6 @@ module.exports = function injectDrawingRoutes(ctx) {
         if (["active", "closed"].includes(req.query.status)) {
           params.push(req.query.status);
           filters.push(`a.status = $${params.length}`);
-        }
-        if (["individual", "chaos"].includes(req.query.mode)) {
-          params.push(req.query.mode);
-          filters.push(`a.mode = $${params.length}`);
         }
         const whereClause = `WHERE ${filters.join(" AND ")}`;
         const result = await pool.query(
@@ -392,9 +368,9 @@ module.exports = function injectDrawingRoutes(ctx) {
           fieldName: "As orientações",
           maxLength: 500,
         });
-        const mode = String(req.body.mode || "").trim();
+        const mode = String(req.body.mode || "individual").trim();
         const backgroundColor = normalizeColor(req.body.backgroundColor);
-        if (!["individual", "chaos"].includes(mode)) {
+        if (mode !== "individual") {
           throw httpError(400, "O modo da atividade é inválido.");
         }
 
@@ -495,65 +471,34 @@ module.exports = function injectDrawingRoutes(ctx) {
             ? normalizeUuid(req.body.targetUserId, "O aluno alvo")
             : req.user.id;
 
-        const ownerId =
-          activity.mode === "chaos" ? activity.teacher_id : targetStudentId;
+        const ownerId = targetStudentId;
         const action = String(req.body.action || "replace");
-        let strokes;
-
-        if (activity.mode === "chaos" && action === "append") {
-          const stroke = normalizeStroke(req.body.stroke);
-          const result = await pool.query(
-            `INSERT INTO drawing_strokes
-               (activity_id, user_id, strokes, updated_at)
-             VALUES ($1, $2, $3::jsonb, NOW())
-             ON CONFLICT (activity_id, user_id)
-             DO UPDATE SET
-               strokes = CASE
-                 WHEN jsonb_array_length(drawing_strokes.strokes) < $4
-                 THEN drawing_strokes.strokes || EXCLUDED.strokes
-                 ELSE drawing_strokes.strokes
-               END,
-               updated_at = NOW()
-             RETURNING strokes, updated_at`,
-            [activity.id, ownerId, JSON.stringify([stroke]), MAX_STROKES]
-          );
-          strokes = result.rows[0].strokes;
-        } else {
-          if (activity.mode === "chaos" && action !== "clear") {
-            throw httpError(
-              400,
-              "No modo caos, use uma ação de desenho válida."
-            );
-          }
-          strokes = action === "clear" ? [] : normalizeStrokes(req.body.strokes);
-          const result = await pool.query(
-            `INSERT INTO drawing_strokes
-               (activity_id, user_id, strokes, updated_at)
-             VALUES ($1, $2, $3::jsonb, NOW())
-             ON CONFLICT (activity_id, user_id)
-             DO UPDATE SET strokes = EXCLUDED.strokes, updated_at = NOW()
-             RETURNING strokes, updated_at`,
-            [activity.id, ownerId, JSON.stringify(strokes)]
-          );
-          strokes = result.rows[0].strokes;
-        }
+        const strokes =
+          action === "clear" ? [] : normalizeStrokes(req.body.strokes);
+        const result = await pool.query(
+          `INSERT INTO drawing_strokes
+             (activity_id, user_id, strokes, updated_at)
+           VALUES ($1, $2, $3::jsonb, NOW())
+           ON CONFLICT (activity_id, user_id)
+           DO UPDATE SET strokes = EXCLUDED.strokes, updated_at = NOW()
+           RETURNING strokes, updated_at`,
+          [activity.id, ownerId, JSON.stringify(strokes)]
+        );
+        const savedStrokes = result.rows[0].strokes;
 
         emitDrawingEvent(
           activity,
           "strokes",
           {
             activityId: activity.id,
-            userId: activity.mode === "chaos" ? null : ownerId,
-            displayName:
-              activity.mode === "chaos"
-                ? "Quadro coletivo"
-                : req.user.display_name || req.user.username,
-            strokes,
+            userId: ownerId,
+            displayName: req.user.display_name || req.user.username,
+            strokes: savedStrokes,
             updatedAt: new Date().toISOString(),
           },
-          activity.mode === "chaos" ? null : ownerId
+          ownerId
         );
-        return res.json({ strokes });
+        return res.json({ strokes: savedStrokes });
       } catch (requestError) {
         return next(requestError);
       }
@@ -589,12 +534,6 @@ module.exports = function injectDrawingRoutes(ctx) {
       try {
         const activity = await getActivity(req.params.id);
         const winnerId = normalizeUuid(req.body.winnerId, "O vencedor");
-        if (activity.mode !== "individual") {
-          throw httpError(
-            400,
-            "O modo caos não possui vencedor individual."
-          );
-        }
         const winner = await pool.query(
           `SELECT u.id, u.display_name
            FROM users u

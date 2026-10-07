@@ -55,6 +55,17 @@ describe("Migrations - runner", () => {
     expect(files[0]).toBe("0001_baseline.sql");
     const sorted = [...files].sort((a, b) => a.localeCompare(b, "en"));
     expect(files).toEqual(sorted);
+    expect(files).toContain("0007_remove_drawing_chaos.sql");
+  });
+
+  it("inclui a limpeza do modo coletivo de desenho em uma migration versionada", () => {
+    const cleanup = fs.readFileSync(
+      path.join(migrationsDir, "0007_remove_drawing_chaos.sql"),
+      "utf8"
+    );
+    expect(cleanup).toContain("DELETE FROM drawing_activities");
+    expect(cleanup).toContain("WHERE mode = 'chaos'");
+    expect(cleanup).toContain("CHECK (mode = 'individual')");
   });
 
   it("deve usar schema_migrations e pg_advisory_lock", () => {

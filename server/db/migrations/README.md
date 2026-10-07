@@ -32,3 +32,9 @@ mesmo estado na primeira aplicação.
 A partir daqui, **toda mudança estrutural deve ser uma nova migration numerada**.
 Não edite `0001_baseline.sql` nem reaproveite arquivos já aplicados: crie um novo
 arquivo (`0002_...`, `0003_...`) com o `ALTER`/`CREATE` correspondente.
+
+A migration `0007_remove_drawing_chaos.sql` elimina atividades coletivas antigas
+do Desenho da Turma, junto com seus traços vinculados por `ON DELETE CASCADE`, e
+restringe o banco a atividades individuais. Como migrations rodam no boot sob
+`pg_advisory_lock`, cada banco compartilhado por uma ou mais instâncias recebe
+essa limpeza uma única vez na primeira inicialização com a atualização.

@@ -15,6 +15,9 @@ const migration = read(
 const optionsMigration = read(
   "../server/db/migrations/0005_drawing_activity_options.sql"
 );
+const chaosCleanupMigration = read(
+  "../server/db/migrations/0007_remove_drawing_chaos.sql"
+);
 const client = read("../src/lib/api.js");
 const app = read(
   "../src/containers/applications/apps/drawing/drawing.jsx"
@@ -47,6 +50,17 @@ describe("Desenho da Turma - persistência", () => {
     expect(route).toContain("drawing_count");
     expect(route).toContain("LIMIT 100");
   });
+
+  it("remove atividades coletivas antigas e bloqueia sua criação no banco", () => {
+    expect(chaosCleanupMigration).toContain(
+      "DELETE FROM drawing_activities\nWHERE mode = 'chaos'"
+    );
+    expect(chaosCleanupMigration).toContain(
+      "DROP CONSTRAINT IF EXISTS drawing_activities_mode_check"
+    );
+    expect(chaosCleanupMigration).toContain("CHECK (mode = 'individual')");
+    expect(migration).toContain("ON DELETE CASCADE");
+  });
 });
 
 describe("Desenho da Turma - isolamento e tempo real", () => {
@@ -76,12 +90,13 @@ describe("Desenho da Turma - isolamento e tempo real", () => {
     expect(route).toContain("y > 1");
   });
 
-  it("acrescenta traços do modo caos de forma atômica", () => {
-    expect(route).toContain(
-      "drawing_strokes.strokes || EXCLUDED.strokes"
-    );
-    expect(route).toContain('activity.mode === "chaos" && action === "append"');
-    expect(app).toContain('{ action: "append", stroke: operation.stroke }');
+  it("remove o modo coletivo da API e mantém atividades individuais", () => {
+    expect(route).not.toContain("chaos");
+    expect(route).toContain('mode !== "individual"');
+    expect(app).not.toContain("chaos");
+    expect(app).not.toContain("collaborative");
+    expect(board).not.toContain("collaborative");
+    expect(client).not.toContain("mode) params.set");
   });
 
   it("só aceita como vencedor aluno da turma que enviou desenho", () => {

@@ -387,11 +387,10 @@ export const api = {
   // --- Desenho da turma ---
   getDrawingActive: () => request("/api/drawing/active"),
   getMyDrawings: () => request("/api/drawing/my-drawings"),
-  getDrawingActivities: ({ turmaId, status, mode } = {}) => {
+  getDrawingActivities: ({ turmaId, status } = {}) => {
     const params = new URLSearchParams();
     if (turmaId) params.set("turmaId", turmaId);
     if (status) params.set("status", status);
-    if (mode) params.set("mode", mode);
     const suffix = params.toString() ? `?${params.toString()}` : "";
     return request(`/api/drawing/activities${suffix}`);
   },

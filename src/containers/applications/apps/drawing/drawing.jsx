@@ -15,10 +15,8 @@ const formatDate = (value) => {
   }).format(new Date(value));
 };
 
-const ModeBadge = ({ mode }) => (
-  <span className={`drawingModeBadge ${mode}`}>
-    {mode === "chaos" ? "Caos coletivo" : "Desenhos individuais"}
-  </span>
+const ModeBadge = () => (
+  <span className="drawingModeBadge individual">Desenhos individuais</span>
 );
 
 const IconProjector = () => (
@@ -82,7 +80,7 @@ const ActivityThumbnail = ({ activity = {} }) => (
       />
     ) : (
       <div className="drawingHistoryPlaceholder">
-        <span>{activity.mode === "chaos" ? "COLETIVO" : "ATIVIDADE"}</span>
+        <span>ATIVIDADE</span>
         <strong>{(activity.topic || "D").charAt(0).toUpperCase()}</strong>
       </div>
     )}
@@ -336,7 +334,7 @@ const PresentationModal = ({ drawings = [], activity, onClose, onChooseWinner, b
             <small>{currentDrawing?.strokeCount || 0} traços realizados</small>
           </div>
 
-          {activity?.mode === "individual" && !activity?.winnerId && currentDrawing?.started && onChooseWinner && (
+          {!activity?.winnerId && currentDrawing?.started && onChooseWinner && (
             <button
               type="button"
               className="drawingTeacherWinnerPill"
@@ -432,40 +430,6 @@ const CreateActivity = ({ turmas, activities = [], draft, busy, onDraftChange, o
             />
           </label>
 
-          <fieldset className="drawingModePicker">
-            <legend>Como os alunos vão desenhar?</legend>
-            <label className={draft.mode === "individual" ? "active" : ""}>
-              <input
-                type="radio"
-                name="drawing-mode"
-                value="individual"
-                checked={draft.mode === "individual"}
-                onChange={() => onDraftChange({ mode: "individual" })}
-              />
-              <span className="drawingModeIcon individual" aria-hidden="true"><i /><i /><i /></span>
-              <span>
-                <strong>Cada um no seu quadro</strong>
-                <small>Acompanhe todos em mosaico e escolha um vencedor ao final.</small>
-              </span>
-              <b>Individual</b>
-            </label>
-            <label className={draft.mode === "chaos" ? "active" : ""}>
-              <input
-                type="radio"
-                name="drawing-mode"
-                value="chaos"
-                checked={draft.mode === "chaos"}
-                onChange={() => onDraftChange({ mode: "chaos" })}
-              />
-              <span className="drawingModeIcon chaos" aria-hidden="true"><i /><i /><i /></span>
-              <span>
-                <strong>Todos no mesmo quadro</strong>
-                <small>Os traços chegam juntos, em tempo real, sem sobrescrever colegas.</small>
-              </span>
-              <b>Caos</b>
-            </label>
-          </fieldset>
-
           <fieldset className="drawingBackgroundPicker">
             <legend>Cor do quadro</legend>
             <div>
@@ -531,7 +495,7 @@ const PreviewView = ({ preview, onEdit }) => {
           </div>
           <div className="drawingPreviewDevicePills">
             <span className="drawingTurmaTag">{preview.turmaName || "Turma selecionada"}</span>
-            <ModeBadge mode={preview.mode || "individual"} />
+            <ModeBadge />
             <div className="drawingTopicPill" title={preview.topic || "Tema"}>
               <strong>{preview.topic || "Desafio de Desenho"}</strong>
             </div>
@@ -598,14 +562,14 @@ const ProfessorLiveView = ({
               <div className="drawingActiveCardHeader">
                 <span className="drawingLiveDot active" title="Ao vivo" aria-label="Ao vivo"><i /></span>
                 <span className="drawingTurmaTag">{item.turmaName}</span>
-                <ModeBadge mode={item.mode} />
+                <ModeBadge />
               </div>
               <div className="drawingActiveCardBody">
                 <h3>{item.topic}</h3>
                 {item.instructions ? (
                   <p>{item.instructions}</p>
                 ) : (
-                  <p>{item.mode === "chaos" ? "Construção coletiva no mesmo quadro em tempo real." : "Desenhos individuais em mosaico."}</p>
+                  <p>Desenhos individuais em mosaico.</p>
                 )}
               </div>
               <footer className="drawingActiveCardFooter">
@@ -634,9 +598,8 @@ const ProfessorLiveView = ({
 
   const safeDrawings = Array.isArray(drawings) ? drawings : [];
   const selectedDrawing =
-    activity.mode === "chaos"
-      ? safeDrawings[0]
-      : safeDrawings.find((item) => item.userId === selectedStudentId) || safeDrawings[0];
+    safeDrawings.find((item) => item.userId === selectedStudentId) ||
+    safeDrawings[0];
   const startedCount = safeDrawings.filter((item) => item.started).length;
 
   return (
@@ -651,8 +614,7 @@ const ProfessorLiveView = ({
         />
       )}
 
-      {activity.mode === "individual" && (
-        <aside className="drawingRosterPanel drawingPanel">
+      <aside className="drawingRosterPanel drawingPanel">
           <div className="drawingRosterHeading">
             <div>
               <span className="drawingEyebrow">Mosaico da turma</span>
@@ -674,8 +636,7 @@ const ProfessorLiveView = ({
               />
             ))}
           </div>
-        </aside>
-      )}
+      </aside>
 
       <main className="drawingTeacherStageShell drawingPanel">
         <header className="drawingTeacherFloatingHeader">
@@ -684,26 +645,14 @@ const ProfessorLiveView = ({
               <i />
             </span>
             <span className="drawingTurmaTag">{activity.turmaName}</span>
-            <ModeBadge mode={activity.mode} />
+            <ModeBadge />
             <div className="drawingTopicPill" title={activity.topic}>
               <strong>{activity.topic}</strong>
             </div>
           </div>
 
           <div className="drawingTeacherActionPills">
-            {activity.mode === "chaos" && activity.status === "active" && onClearChaos && (
-              <button
-                type="button"
-                className="drawingIconPillBtn"
-                title="Limpar quadro coletivo"
-                aria-label="Limpar quadro coletivo"
-                disabled={busy}
-                onClick={onClearChaos}
-              >
-                🗑
-              </button>
-            )}
-            {activity.mode === "individual" && startedCount > 0 && (
+            {startedCount > 0 && (
               <button
                 type="button"
                 className="drawingIconPillBtn"
@@ -737,11 +686,11 @@ const ProfessorLiveView = ({
           />
 
           <div className="drawingTeacherStudentBadge">
-            <strong>{activity.mode === "chaos" ? "Quadro Coletivo" : selectedDrawing?.displayName || "Aluno"}</strong>
+            <strong>{selectedDrawing?.displayName || "Aluno"}</strong>
             {selectedDrawing?.started && <small>{selectedDrawing.strokeCount} traços</small>}
           </div>
 
-          {activity.mode === "individual" && !activity.winnerId && selectedDrawing?.started && (
+          {!activity.winnerId && selectedDrawing?.started && (
             <button
               type="button"
               className="drawingTeacherWinnerPill"
@@ -759,7 +708,6 @@ const ProfessorLiveView = ({
 
 const HistoryView = ({ activities, turmas, onOpen, onRepeat }) => {
   const [selectedTurmaTab, setSelectedTurmaTab] = useState("");
-  const [modeFilter, setModeFilter] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
   const closedActivities = useMemo(
@@ -772,10 +720,9 @@ const HistoryView = ({ activities, turmas, onOpen, onRepeat }) => {
     return closedActivities.filter(
       (item) =>
         (!selectedTurmaTab || item.turmaId === selectedTurmaTab) &&
-        (!modeFilter || item.mode === modeFilter) &&
         (!term || (item.topic || "").toLowerCase().includes(term))
     );
-  }, [closedActivities, selectedTurmaTab, modeFilter, searchTerm]);
+  }, [closedActivities, selectedTurmaTab, searchTerm]);
 
   const winnerCount = filteredHistory.filter((item) => item.winnerId).length;
   const participantTotal = filteredHistory.reduce((sum, item) => sum + item.drawingCount, 0);
@@ -843,15 +790,6 @@ const HistoryView = ({ activities, turmas, onOpen, onRepeat }) => {
                 </option>
               ))}
             </select>
-            <select
-              value={modeFilter}
-              onChange={(event) => setModeFilter(event.target.value)}
-              aria-label="Filtrar histórico por modo"
-            >
-              <option value="">Todos os modos</option>
-              <option value="individual">Individual</option>
-              <option value="chaos">Caos coletivo</option>
-            </select>
           </div>
         </div>
 
@@ -895,7 +833,7 @@ const HistoryView = ({ activities, turmas, onOpen, onRepeat }) => {
                       <ActivityThumbnail activity={item} />
                       <div className="drawingHistoryCardBody">
                         <div>
-                          <ModeBadge mode={item.mode} />
+                          <ModeBadge />
                           <time>{formatDate(item.closedAt || item.createdAt)}</time>
                         </div>
                         <h3>{item.topic}</h3>
@@ -909,7 +847,7 @@ const HistoryView = ({ activities, turmas, onOpen, onRepeat }) => {
                           </strong>
                         ) : (
                           <span className="drawingNoWinner">
-                            {item.mode === "chaos" ? "Criação coletiva" : "Sem vencedor escolhido"}
+                            Sem vencedor escolhido
                           </span>
                         )}
                       </div>
@@ -1068,7 +1006,6 @@ const StudentView = ({ activity, drawing, busy, onCommit, resultModal, onDismiss
             <DrawingBoard
               strokes={drawing?.strokes || []}
               backgroundColor={activity.backgroundColor}
-              collaborative={activity.mode === "chaos"}
               readonly={activity.status !== "active"}
               busy={busy}
               onCommit={onCommit}
@@ -1146,7 +1083,6 @@ export const DrawingApp = () => {
     turmaId: "",
     topic: "",
     instructions: "",
-    mode: "individual",
     backgroundColor: "#ffffff",
   });
   const [loading, setLoading] = useState(false);
@@ -1288,12 +1224,11 @@ export const DrawingApp = () => {
           };
           if (isProfessor) {
             setDrawings((current) => {
-              if (activity?.mode === "chaos") return [nextDrawing];
               return (current || []).map((item) =>
                 item.userId === event.userId ? nextDrawing : item
               );
             });
-          } else if (activity?.mode === "chaos" || String(event.userId) === String(user?.id)) {
+          } else if (String(event.userId) === String(user?.id)) {
             setDrawing(nextDrawing);
           }
         }
@@ -1323,7 +1258,7 @@ export const DrawingApp = () => {
       onError: () => {},
     });
     return () => subscription.close();
-  }, [activity?.id, activity?.mode, activity?.status, isProfessor, user?.id, loadStudent, wnapp?.hide]);
+  }, [activity?.id, activity?.status, isProfessor, user?.id, loadStudent, wnapp?.hide]);
 
   const handleCreate = async (payload) => {
     setBusy(true);
@@ -1339,19 +1274,6 @@ export const DrawingApp = () => {
       setViewingDashboard(false);
       await loadProfessor();
       await inspectActivity(result.activity.id);
-    } catch (requestError) {
-      setError(requestError.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleClearChaos = async () => {
-    if (!activity || !window.confirm("Limpar todo o quadro coletivo para a turma?")) return;
-    setBusy(true);
-    try {
-      await api.saveDrawingStrokes(activity.id, { action: "clear", strokes: [] });
-      await inspectActivity(activity.id);
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -1407,12 +1329,7 @@ export const DrawingApp = () => {
     }));
     setBusy(true);
     try {
-      const payload =
-        activity.mode === "chaos"
-          ? { action: "append", stroke: operation.stroke }
-          : operation.action === "clear"
-          ? { action: "replace", strokes: [] }
-          : { action: "replace", strokes: optimisticStrokes };
+      const payload = { action: "replace", strokes: optimisticStrokes };
       const result = await api.saveDrawingStrokes(activity.id, payload);
       setDrawing((current) => ({
         ...(current || {}),
@@ -1520,7 +1437,6 @@ export const DrawingApp = () => {
                     setViewingDashboard(false);
                   }}
                   onClose={handleClose}
-                  onClearChaos={handleClearChaos}
                   onChooseWinner={handleChooseWinner}
                   onCreate={() => setView("create")}
                   busy={busy}
@@ -1553,7 +1469,6 @@ export const DrawingApp = () => {
                       turmaId: item.turmaId,
                       topic: item.topic,
                       instructions: item.instructions || "",
-                      mode: item.mode,
                       backgroundColor: item.backgroundColor,
                     });
                     setView("create");

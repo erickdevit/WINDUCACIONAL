@@ -554,7 +554,6 @@ export const DrawingBoard = ({
   strokes = [],
   backgroundColor = "#ffffff",
   readonly = false,
-  collaborative = false,
   busy = false,
   onCommit,
 }) => {
@@ -654,14 +653,14 @@ export const DrawingBoard = ({
   };
 
   const handleUndo = useCallback(() => {
-    if (!safeStrokes.length || collaborative) return;
+    if (!safeStrokes.length) return;
     onCommit?.({ action: "replace", strokes: safeStrokes.slice(0, -1) });
-  }, [collaborative, onCommit, safeStrokes]);
+  }, [onCommit, safeStrokes]);
 
   const handleClear = useCallback(() => {
-    if (!safeStrokes.length || collaborative) return;
+    if (!safeStrokes.length) return;
     onCommit?.({ action: "clear", strokes: [] });
-  }, [collaborative, onCommit, safeStrokes]);
+  }, [onCommit, safeStrokes]);
 
   useEffect(() => {
     if (readonly) return undefined;
@@ -803,33 +802,29 @@ export const DrawingBoard = ({
               />
             </div>
 
-            {!collaborative && (
-              <>
-                <div className="drawingDockDivider" />
-                <div className="drawingDockActions">
-                  <button
-                    type="button"
-                    className="drawingDockBtn"
-                    title="Desfazer"
-                    aria-label="Desfazer"
-                    disabled={!safeStrokes.length || busy}
-                    onClick={handleUndo}
-                  >
-                    <IconUndo />
-                  </button>
-                  <button
-                    type="button"
-                    className="drawingDockBtn danger"
-                    title="Limpar Quadro"
-                    aria-label="Limpar"
-                    disabled={!safeStrokes.length || busy}
-                    onClick={handleClear}
-                  >
-                    <IconTrash />
-                  </button>
-                </div>
-              </>
-            )}
+            <div className="drawingDockDivider" />
+            <div className="drawingDockActions">
+              <button
+                type="button"
+                className="drawingDockBtn"
+                title="Desfazer"
+                aria-label="Desfazer"
+                disabled={!safeStrokes.length || busy}
+                onClick={handleUndo}
+              >
+                <IconUndo />
+              </button>
+              <button
+                type="button"
+                className="drawingDockBtn danger"
+                title="Limpar Quadro"
+                aria-label="Limpar"
+                disabled={!safeStrokes.length || busy}
+                onClick={handleClear}
+              >
+                <IconTrash />
+              </button>
+            </div>
           </div>
 
           {/* Horizontal Color Bar & Palette Selector (Bottom Edge) */}
