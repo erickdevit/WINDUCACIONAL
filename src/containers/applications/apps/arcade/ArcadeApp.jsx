@@ -17,8 +17,9 @@ export function ArcadeApp() {
       wnapp={wnapp}
       app={wnapp.action || "ARCADEAPP"}
       icon="arcade"
-      name="Arcade"
+      name="Arcade da Turma"
       className="arcadeAppWindow"
+      toolbarProps={{ bg: "#0b0f19", invert: true }}
       windowScreenClassName="flex flex-col"
       restWindowClassName="flex-grow flex flex-col"
     >
@@ -579,10 +580,10 @@ function ArcadeView({ visible }) {
           </div>
         )}
 
-        {/* ================= ABA DO LOBBY ================= */}
+        {/* ================= ABA DO LOBBY (HUB GAMER DE JOGOS) ================= */}
         {activeTab === "lobby" && !activeRoom && (
           <div className="arcadeLobbyView">
-            {/* Banner Gamer / Showcase */}
+            {/* Showcase Hero Central do Hub Gamer */}
             <section className="arcadeHeroShowcase">
               <div className="heroGlowEffect"></div>
               <div className="heroContent">
@@ -670,6 +671,7 @@ function ArcadeView({ visible }) {
               </div>
             </section>
 
+            {/* Filtros e Barra de Controle de Salas */}
             <div className="arcadeFilterRow">
               <div className="gameTypeFilters flex flex-wrap gap-1.5">
                 {[
@@ -695,7 +697,7 @@ function ArcadeView({ visible }) {
               </button>
             </div>
 
-            {/* Grid de Salas */}
+            {/* Grid Futurista de Salas */}
             <div className="arcadeRoomsGrid">
               {rooms.map((room) => (
                 <div key={room.id} className="arcadeRoomCard">
