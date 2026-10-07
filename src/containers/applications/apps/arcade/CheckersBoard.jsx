@@ -218,34 +218,6 @@ export function CheckersBoard({
 
   return (
     <div className="checkersGameContainer">
-      <div className="gameStatusBar">
-        <div className={`turnAlert ${isMyTurn ? "myTurn" : "oppTurn"}`}>
-          {isSpectator
-            ? `Vez de ${
-                playerObj?.displayName || playerObj?.username || "jogador"
-              }`
-            : isMyTurn
-            ? "⚡ SUA VEZ!"
-            : `Vez de ${playerObj?.displayName || "adversário"}`}
-        </div>
-        {activeJumpFrom && isMyTurn && (
-          <span className="mandatoryCaptureHint">
-            Salto consecutivo obrigatório
-          </span>
-        )}
-
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-300 font-semibold">
-            Placar: 🔴 {capturedCount?.[0] || 0} x {capturedCount?.[1] || 0} ⚪
-          </span>
-          {status === "PLAYING" && !isSpectator && (
-            <button className="resignBtn" onClick={onResign}>
-              🏳️ Desistir
-            </button>
-          )}
-        </div>
-      </div>
-
       {/* Arena Tática de Damas */}
       <div className="checkersBoardArena">
         {/* Cartão HUD do Adversário (Topo do Tabuleiro) */}
@@ -271,21 +243,12 @@ export function CheckersBoard({
                   ? topPlayer.displayName || topPlayer.username
                   : "Aguardando adversário..."}
               </span>
-              <span className="playerColorLabel">
-                {topPlayerIndex === 0 ? "🔴 Vermelhas" : "⚪ Brancas"}{" "}
-                (Adversário)
-              </span>
             </div>
           </div>
 
           <div className="playerStatsRight">
             <span className="capturesPill">
               Peças comidas: <strong>{topCaptured}</strong>
-            </span>
-            <span
-              className={`turnStatusTag ${isTopTurn ? "active" : "waiting"}`}
-            >
-              {isTopTurn ? "🎮 Jogando agora" : "Aguardando"}
             </span>
           </div>
         </div>
@@ -316,12 +279,24 @@ export function CheckersBoard({
                     <div
                       className={`checkersPiece ${
                         piece.player === 0 ? "redPiece" : "whitePiece"
-                      } ${isSelected ? "selected" : ""}`}
+                      } ${piece.isKing ? "kingPiece" : ""} ${
+                        isSelected ? "selected" : ""
+                      }`}
                     >
                       {piece.isKing && (
-                        <div className="crownCrownWrap">
-                          <span className="crownIcon">👑</span>
-                          <small className="kingLabel">DAMA</small>
+                        <div
+                          className="kingPieceTopper"
+                          role="img"
+                          aria-label="Dama coroada"
+                        >
+                          <svg
+                            viewBox="0 0 32 26"
+                            className="kingPieceEmblem"
+                            aria-hidden="true"
+                          >
+                            <path d="M3 21h26l-2.5-12-7 6-3.5-11-3.5 11-7-6L3 21Z" />
+                            <path d="M5 24h22" />
+                          </svg>
                         </div>
                       )}
                     </div>
@@ -356,10 +331,6 @@ export function CheckersBoard({
                   : isSpectator
                   ? "Jogador"
                   : "Você"}
-                {!isSpectator && myPlayerIndex >= 0 && " (Sua Conta)"}
-              </span>
-              <span className="playerColorLabel">
-                {bottomPlayerIndex === 0 ? "🔴 Vermelhas" : "⚪ Brancas"}
               </span>
             </div>
           </div>
@@ -368,17 +339,16 @@ export function CheckersBoard({
             <span className="capturesPill">
               Peças comidas: <strong>{bottomCaptured}</strong>
             </span>
-            <span
-              className={`turnStatusTag ${isBottomTurn ? "active" : "waiting"}`}
-            >
-              {isSpectator
-                ? isBottomTurn
-                  ? "🎮 Jogando agora"
-                  : "Aguardando"
-                : isBottomTurn
-                ? "⚡ SUA VEZ!"
-                : "Aguardando"}
-            </span>
+            {status === "PLAYING" && !isSpectator && (
+              <button
+                className="resignBtn"
+                aria-label="Desistir da partida"
+                title="Desistir da partida"
+                onClick={onResign}
+              >
+                ⚑
+              </button>
+            )}
           </div>
         </div>
       </div>

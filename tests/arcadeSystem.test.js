@@ -65,15 +65,40 @@ describe("Arcade - Backend, Rotas e Suporte a Novos Jogos", () => {
 });
 
 describe("Arcade - Componentes Frontend dos Novos Jogos", () => {
-  it("renderiza o Dominó com cadeia de pedras, acoplamento de pontas e ação do dorme", () => {
+  it("renderiza o Dominó em sequência serpenteada e mantém controles nas pontas", () => {
     expect(dominoComponentCode).toContain("dominoChain");
-    expect(dominoComponentCode).toContain("Jogar na Ponta Esquerda");
-    expect(dominoComponentCode).toContain("Comprar do Dorme");
+    expect(dominoComponentCode).toContain("dominoChainPath");
+    expect(dominoComponentCode).toContain("reverse: row % 2 === 1");
+    expect(dominoComponentCode).toContain("Jogar na ponta esquerda");
+    expect(dominoComponentCode).toContain("Comprar <span>");
   });
 
-  it("renderiza o Jogo da Velha com grade 3x3 e símbolos X e O", () => {
-    expect(tictactoeComponentCode).toContain("grid-cols-3");
-    expect(tictactoeComponentCode).toContain("onMakeMove(idx)");
+  it("mantém apenas o tabuleiro 3x3 visível no Jogo da Velha", () => {
+    expect(tictactoeComponentCode).toContain('role="grid"');
+    expect(tictactoeComponentCode).toContain("onMakeMove(index)");
+    expect(tictactoeComponentCode).not.toContain("players.map");
+    expect(tictactoeComponentCode).not.toContain("lastActionMessage");
+  });
+
+  it("mostra todas as cartas dos adversários pelo verso e remove a mão local da mesa", () => {
+    expect(unoComponentCode).toContain("Array.from({ length: cardCount })");
+    expect(unoComponentCode).toContain('className="opponentCardBack"');
+    expect(unoComponentCode).toContain("if (isMe) return null");
+    expect(unoComponentCode).not.toContain("turnStatusText");
+  });
+
+  it("representa a dama com uma peça superior própria, sem rótulo textual", () => {
+    expect(checkersComponentCode).toContain("kingPieceTopper");
+    expect(checkersComponentCode).toContain("kingPieceEmblem");
+    expect(checkersComponentCode).not.toContain("kingLabel");
+    expect(checkersComponentCode).not.toContain(">DAMA<");
+  });
+
+  it("integra a dica da Forca no palco e remove o banner de última ação", () => {
+    expect(hangmanComponentCode).toContain("hangmanHint");
+    expect(hangmanComponentCode).toContain("aria-label={`${wrongGuesses}");
+    expect(hangmanComponentCode).not.toContain("lastActionMessage");
+    expect(hangmanComponentCode).not.toContain("hangmanInfoBar");
   });
 
   it("renderiza o Jogo da Forca com boneco SVG, palavra oculta e teclado virtual A-Z", () => {
@@ -105,4 +130,3 @@ describe("Arcade - Componentes Frontend dos Novos Jogos", () => {
     expect(scssCode).toContain(".viewModeSwitch");
   });
 });
-

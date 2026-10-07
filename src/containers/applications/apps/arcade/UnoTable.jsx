@@ -109,7 +109,6 @@ export function UnoTable({
     direction,
     drawnThisTurn,
     status,
-    eventsLog = [],
   } = gameState;
 
   const currentPlayer = players[currentTurn];
@@ -162,30 +161,12 @@ export function UnoTable({
     }
   };
 
-  const lastEvent =
-    eventsLog.length > 0 ? eventsLog[eventsLog.length - 1] : null;
-
   return (
-    <div className="unoGameContainer">
-      {/* Notificação da Última Ação */}
-      {lastEvent && (
-        <div className="unoActionNotification">{lastEvent.message}</div>
-      )}
-
+    <div className={`unoGameContainer ${isMyTurn ? "isMyTurn" : ""}`}>
       {/* Arena da Mesa Visual de Uno com Jogadores ao Redor */}
       <div className="unoVisualArena">
         {/* Mesa Oval com Feltro Verde */}
         <div className="unoTableFelt">
-          {/* Indicador de Cor Ativa e Sentido de Jogo no Topo da Mesa */}
-          <div className="feltHeaderInfo">
-            <span className={`activeColorBadge ${activeColor}`}>
-              Cor: {COLOR_NAMES_PT[activeColor] || activeColor}
-            </span>
-            <span className="directionBadge" title="Sentido do jogo">
-              {direction === 1 ? "↻ Sentido Horário" : "↺ Sentido Anti-horário"}
-            </span>
-          </div>
-
           {/* Centro da Mesa: Pilha de Compras e Descarte */}
           <div className="unoCenterPiles">
             {/* Monte de Compras (Draw Pile) */}
@@ -206,8 +187,19 @@ export function UnoTable({
               >
                 <div className="unoDeckLogo">UNO</div>
               </button>
-              <span className="pileLabel">Comprar</span>
             </div>
+            <span
+              className="unoDirectionIndicator"
+              role="img"
+              aria-label={
+                direction === 1 ? "Sentido horário" : "Sentido anti-horário"
+              }
+              title={
+                direction === 1 ? "Sentido horário" : "Sentido anti-horário"
+              }
+            >
+              {direction === 1 ? "↻" : "↺"}
+            </span>
 
             {/* Pilha de Descarte (Top Card) */}
             {topCard && (
@@ -217,18 +209,8 @@ export function UnoTable({
                   src={getCardImageSrc(topCard)}
                   alt={getCardAccessibleName(topCard)}
                 />
-                <span className="pileLabel">Descarte</span>
               </div>
             )}
-          </div>
-
-          {/* Chamada de Turno no Centro da Mesa */}
-          <div className={`feltTurnCallout ${isMyTurn ? "isMyTurn" : ""}`}>
-            {isMyTurn
-              ? "⭐ SUA VEZ DE JOGAR!"
-              : `Vez de ${
-                  currentPlayer?.displayName || currentPlayer?.username || "..."
-                }`}
           </div>
         </div>
 
@@ -239,65 +221,75 @@ export function UnoTable({
               relIdx,
               orderedPlayers.length
             );
-            const isThisPlayerTurn = currentPlayer?.userId === p.userId;
             const isMe =
               (currentUserId && p.userId === currentUserId) ||
               (currentUsername && p.username === currentUsername);
             const hasOneCard = p.cardCount === 1;
+            const cardCount = isMe ? 0 : Math.max(0, p.cardCount || 0);
+            const fanStep =
+              cardCount > 1 ? Math.min(14, 190 / (cardCount - 1)) : 0;
+            const fanWidth = cardCount > 0 ? 42 + fanStep * (cardCount - 1) : 0;
+            const canCatchUno = hasOneCard && !p.calledUno && isMyTurn;
+            const avatarLabel = p.displayName || p.username;
+            const avatarInitial = p.displayName?.[0] || p.username?.[0] || "?";
+
+            if (isMe) return null;
 
             return (
               <div
                 key={p.userId}
                 className={`unoTableSeat ${posClass} ${
-                  isThisPlayerTurn ? "activeTurnSeat" : ""
-                } ${isMe ? "localPlayerSeat" : ""}`}
+                  currentPlayer?.userId === p.userId ? "activeTurnSeat" : ""
+                }`}
               >
-                <div className="seatAvatarBadge">
-                  <div className="seatAvatar">
-                    {p.displayName?.[0] || p.username?.[0] || "?"}
-                  </div>
-                  {isThisPlayerTurn && (
-                    <span className="turnPlayingBadge" title="Vez de jogar">
-                      🎮
-                    </span>
-                  )}
-                </div>
-
-                <div className="seatInfo">
-                  <strong className="seatName">
-                    {p.displayName || p.username}
-                    {isMe && " (Você)"}
-                  </strong>
-                  <span className="seatCards">
-                    🎴 {isMe ? myHand.length : p.cardCount} cartas
-                  </span>
-                </div>
-
-                {!isMe && (
-                  <div className="seatCardStack" aria-hidden="true">
-                    {Array.from({ length: Math.min(p.cardCount || 0, 3) }).map(
-                      (_, index) => (
-                        <span className="seatCardBack" key={index}>
-                          UNO
-                        </span>
-                      )
-                    )}
-                  </div>
-                )}
-
-                {hasOneCard && p.calledUno && (
-                  <span className="oppUnoCall">UNO!</span>
-                )}
-
-                {!isMe && hasOneCard && !p.calledUno && isMyTurn && (
+                {canCatchUno ? (
                   <button
-                    className="catchUnoBtn"
-                    title="Pegar Uno: penaliza o colega com 2 cartas se ele não gritou UNO!"
+                    type="button"
+                    className="seatAvatar catchableAvatar"
+                    title={`Pegar UNO de ${avatarLabel}`}
+                    aria-label={`Pegar UNO de ${avatarLabel}`}
                     onClick={() => onCatchUno(p.userId)}
                   >
-                    🚨 Denunciar
+                    {avatarInitial}
+                    <span aria-hidden="true">!</span>
                   </button>
+                ) : (
+                  <span
+                    className="seatAvatar"
+                    title={avatarLabel}
+                    aria-label={avatarLabel}
+                  >
+                    {avatarInitial}
+                  </span>
                 )}
+                <div
+                  className="opponentHandBacks"
+                  role="img"
+                  aria-label={`${
+                    p.displayName || p.username
+                  }: ${cardCount} cartas`}
+                  style={{
+                    "--opponent-card-count": cardCount,
+                    "--opponent-card-step": `${fanStep}px`,
+                    "--opponent-fan-width": `${fanWidth}px`,
+                  }}
+                >
+                  {Array.from({ length: cardCount }).map((_, index) => {
+                    const centerOffset = index - (cardCount - 1) / 2;
+                    return (
+                      <span
+                        className="opponentCardBack"
+                        key={index}
+                        aria-hidden="true"
+                        style={{
+                          "--card-index": index,
+                          "--card-angle": `${centerOffset * 2.4}deg`,
+                          "--card-lift": `${Math.abs(centerOffset) * 1.1}px`,
+                        }}
+                      />
+                    );
+                  })}
+                </div>
               </div>
             );
           })}
@@ -305,47 +297,31 @@ export function UnoTable({
       </div>
 
       {/* Área da Mão do Jogador Atual */}
-      <div className="unoPlayerHandArea">
-        <div className="handActionBar">
-          <span className="turnStatusText">
-            {!me
-              ? `👁️ Modo Espectador: Acompanhando partida (Vez de ${
-                  currentPlayer?.displayName || "..."
-                })`
-              : isMyTurn
-              ? "🎮 Sua vez de jogar!"
-              : `Vez de ${currentPlayer?.displayName || "..."}`}
-          </span>
-
-          <div className="handButtons">
-            {/* Botão de Gritar UNO */}
-            {me && myHand.length <= 2 && myHand.length > 0 && (
-              <button className="unoShoutBtn" onClick={onCallUno}>
-                📢 GRITAR UNO!
-              </button>
-            )}
-
-            {/* Botão de Passar a Vez se tiver comprado carta jogável */}
-            {isMyTurn && drawnThisTurn && (
-              <button className="passBtn" onClick={onPassTurn}>
-                Passar a vez
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Fileira de Cartas do Jogador */}
-        <div
-          className={`handCardsRow ${
-            myHand && myHand.length > 7 ? "denseCards" : ""
-          }`}
-        >
-          {!me ? (
-            <div className="text-center text-xs text-slate-400 py-3 w-full">
-              👁️ Você está acompanhando a partida como espectador.
+      {me && (
+        <div className={`unoPlayerHandArea ${isMyTurn ? "isActiveHand" : ""}`}>
+          {((me && myHand.length <= 2 && myHand.length > 0) ||
+            (isMyTurn && drawnThisTurn)) && (
+            <div className="unoHandControls">
+              {me && myHand.length <= 2 && myHand.length > 0 && (
+                <button className="unoShoutBtn" onClick={onCallUno}>
+                  UNO!
+                </button>
+              )}
+              {isMyTurn && drawnThisTurn && (
+                <button className="passBtn" onClick={onPassTurn}>
+                  Passar
+                </button>
+              )}
             </div>
-          ) : (
-            myHand.map((card, index) => {
+          )}
+
+          {/* Fileira de Cartas do Jogador */}
+          <div
+            className={`handCardsRow ${
+              myHand && myHand.length > 7 ? "denseCards" : ""
+            }`}
+          >
+            {myHand.map((card, index) => {
               const playable = isCardPlayable(card);
               const distanceFromCenter = Math.abs(
                 index - (myHand.length - 1) / 2
@@ -370,10 +346,10 @@ export function UnoTable({
                   <img src={getCardImageSrc(card)} alt="" />
                 </button>
               );
-            })
-          )}
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Modal Seletor de Cor ao jogar Coringa */}
       {selectedWildCard && (

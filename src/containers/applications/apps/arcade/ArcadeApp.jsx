@@ -947,52 +947,30 @@ function ArcadeView({ visible }) {
             activeRoom.status === "FINISHED") && (
             <div className="arcadeActiveGameWrapper">
               <div className="activeGameTopBar">
-                <div className="activeGameInfo">
-                  <div className="gameLogoMini">
-                    <img src="img/icon/arcade.svg" alt="Arcade" />
-                  </div>
-                  <span className="roomTitle">{activeRoom.title}</span>
-                  <span className={`gameBadge ${activeRoom.gameType}`}>
-                    {getGameLabel(activeRoom.gameType)}
-                  </span>
-                  {!myPlayerObj && (
-                    <span className="spectatorBadge">
-                      👁️ Modo Espectador
-                    </span>
-                  )}
-                </div>
-
-                <div className="activeGameHudCenter">
-                  {activeRoom.gameType === "checkers" && activeRoom.gameState && (
-                    <div className="checkersHudSummary">
-                      <span className="capturesScore">
-                        Placar: 🔴 {activeRoom.gameState.capturedCount?.[0] || 0} x {activeRoom.gameState.capturedCount?.[1] || 0} ⚪
-                      </span>
-                    </div>
-                  )}
-
-                  {activeRoom.gameType === "uno" && activeRoom.gameState?.activeColor && (
-                    <div className="unoHudSummary">
-                      <span className={`hudColorPill ${activeRoom.gameState.activeColor}`}>
-                        Cor: {activeRoom.gameState.activeColor}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
                 <div className="activeGameActions">
-                  <button className="leaveBtn" onClick={handleLeaveRoom}>
-                    {myPlayerObj ? "Sair da Partida" : "Voltar ao Saguão"}
+                  <button
+                    type="button"
+                    className="leaveBtn"
+                    aria-label={
+                      myPlayerObj ? "Sair da partida" : "Voltar ao saguão"
+                    }
+                    title={myPlayerObj ? "Sair da partida" : "Voltar ao saguão"}
+                    onClick={handleLeaveRoom}
+                  >
+                    ×
                   </button>
 
                   {(isStaff || isHost) && (
                     <button
+                      type="button"
                       className="deleteRoomBtn"
+                      aria-label="Apagar sala"
+                      title="Apagar sala"
                       onClick={() =>
                         handleDeleteRoom(activeRoom.id, activeRoom.title)
                       }
                     >
-                      🗑️ Apagar Sala
+                      ⌫
                     </button>
                   )}
                 </div>

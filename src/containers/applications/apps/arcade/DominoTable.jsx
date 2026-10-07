@@ -52,7 +52,6 @@ export function DominoTable({
     leftEnd,
     rightEnd,
     boneyardCount = 0,
-    lastActionMessage,
     status,
   } = gameState;
 
@@ -63,6 +62,14 @@ export function DominoTable({
   const isSpectator = !myPlayerObj;
 
   const selectedTile = myHand.find((t) => t.id === selectedTileId);
+  const dominoColumns = Math.min(8, Math.max(board.length, 1));
+  const dominoSlots = board.map((item, index) => {
+    const row = Math.floor(index / dominoColumns);
+    const offset = index % dominoColumns;
+    const column = row % 2 === 0 ? offset : dominoColumns - 1 - offset;
+    return { item, index, row, column, reverse: row % 2 === 1 };
+  });
+  const dominoRows = Math.ceil(board.length / dominoColumns);
 
   const canPlayLeft =
     selectedTile &&
@@ -92,61 +99,59 @@ export function DominoTable({
   };
 
   return (
-    <div className="dominoGameContainer flex-grow flex flex-col justify-between p-4 bg-emerald-950/80 text-white rounded-xl border border-emerald-600/30 shadow-2xl relative overflow-hidden">
-      {/* Barra de Status Topo */}
-      <div className="dominoHeaderBar flex flex-wrap justify-between items-center bg-emerald-900/60 p-3 rounded-lg border border-emerald-500/20 text-xs gap-2">
-        <div className="flex items-center gap-3">
-          <span className="font-bold text-amber-300">
-            🎲 Dominó ({players.length} Jogadores)
-          </span>
-          <span className="bg-emerald-800 px-2 py-0.5 rounded text-emerald-200">
-            Dorme: <strong>{boneyardCount}</strong> pedras
-          </span>
-        </div>
-
-        <div className="turnIndicator font-extrabold flex items-center gap-2">
-          {isMyTurn ? (
-            <span className="px-2 py-1 bg-amber-500 text-slate-950 rounded animate-pulse">
-              ⭐ SEU TURNO!
-            </span>
-          ) : (
-            <span className="text-slate-300">
-              Vez de: <strong>{activePlayer?.displayName || "..."}</strong>
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Mensagem de Última Ação */}
-      {lastActionMessage && (
-        <div className="text-center my-2 text-xs text-emerald-200 bg-emerald-900/40 py-1.5 px-3 rounded border border-emerald-500/20">
-          {lastActionMessage}
-        </div>
-      )}
-
-      {/* Arena/Mesa Principal com a Cadeia de Pedras */}
-      <div className="dominoBoardArena flex-grow flex items-center justify-center my-4 p-4 bg-emerald-900/30 rounded-xl border border-emerald-500/20 min-h-[180px] overflow-x-auto">
-        {board.length === 0 ? (
-          <div className="text-emerald-300/60 text-sm font-semibold animate-pulse">
-            A mesa está vazia. O jogador da vez deve jogar a primeira pedra!
-          </div>
-        ) : (
-          <div className="dominoChain flex items-center gap-1.5 py-2 px-4">
-            {board.map((item, idx) => {
+    <div className={`dominoGameContainer ${isMyTurn ? "isMyTurn" : ""}`}>
+      <div
+        className="dominoBoardArena"
+        role="region"
+        aria-label="Mesa de dominó"
+      >
+        {board.length > 0 && (
+          <div
+            className="dominoChain"
+            style={{
+              "--domino-columns": dominoColumns,
+              "--domino-rows": dominoRows,
+            }}
+          >
+            <svg
+              className="dominoChainPath"
+              viewBox={`0 0 ${dominoColumns * 100} ${dominoRows * 100}`}
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              {dominoSlots.slice(1).map((slot, index) => {
+                const previous = dominoSlots[index];
+                return (
+                  <line
+                    key={`${previous.index}-${slot.index}`}
+                    x1={previous.column * 100 + 50}
+                    y1={previous.row * 100 + 50}
+                    x2={slot.column * 100 + 50}
+                    y2={slot.row * 100 + 50}
+                  />
+                );
+              })}
+            </svg>
+            {dominoSlots.map(({ item, index, row, column, reverse }) => {
               const { tile, flipped } = item;
-              const val1 = flipped ? tile.right : tile.left;
-              const val2 = flipped ? tile.left : tile.right;
+              const firstValue = flipped ? tile.right : tile.left;
+              const secondValue = flipped ? tile.left : tile.right;
 
               return (
                 <div
-                  key={`${tile.id}_${idx}`}
-                  className={`dominoBoardTile ${
-                    tile.isDouble ? "rotate-90 my-2" : ""
-                  }`}
+                  key={`${tile.id}_${index}`}
+                  className="dominoBoardSlot"
+                  style={{ gridColumn: column + 1, gridRow: row + 1 }}
                 >
-                  <DominoHalf value={val1} />
-                  <span className="dominoDivider" />
-                  <DominoHalf value={val2} />
+                  <div
+                    className={`dominoBoardTile ${
+                      tile.isDouble ? "isDouble" : ""
+                    } ${reverse ? "reverseDirection" : ""}`}
+                  >
+                    <DominoHalf value={firstValue} />
+                    <span className="dominoDivider" />
+                    <DominoHalf value={secondValue} />
+                  </div>
                 </div>
               );
             })}
@@ -154,61 +159,24 @@ export function DominoTable({
         )}
       </div>
 
-      {/* Botões de Ação para escolher ponta (Esquerda ou Direita) se a pedra selecionada couber */}
-      {selectedTile && isMyTurn && (
-        <div className="flex justify-center gap-3 my-2 animate-bounce">
-          <button
-            disabled={!canPlayLeft}
-            onClick={() => handlePlayToEnd("left")}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-lg font-bold text-xs shadow-lg"
-          >
-            ⬅️ Jogar na Ponta Esquerda ({leftEnd !== null ? leftEnd : "?"})
-          </button>
-          <button
-            disabled={!canPlayRight}
-            onClick={() => handlePlayToEnd("right")}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-lg font-bold text-xs shadow-lg"
-          >
-            ➡️ Jogar na Ponta Direita ({rightEnd !== null ? rightEnd : "?"})
-          </button>
-        </div>
-      )}
-
-      {/* Painel Inferior: Mão do Jogador Local & Ações do Dorme/Passar */}
       {!isSpectator && (
-        <div className="dominoPlayerHandArea bg-emerald-900/60 p-3 rounded-xl border border-emerald-500/30 flex flex-col items-center gap-3">
-          <div className="flex justify-between w-full text-xs font-bold text-emerald-200 border-b border-emerald-500/20 pb-1">
-            <span>Sua Mão ({myHand.length} pedras)</span>
-            {isMyTurn && (
-              <div className="flex gap-2">
-                <button
-                  onClick={onDrawTile}
-                  disabled={boneyardCount === 0}
-                  className="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 disabled:opacity-40 text-slate-950 font-bold rounded text-xs"
-                >
-                  🛒 Comprar do Dorme ({boneyardCount})
-                </button>
-                <button
-                  onClick={onPassTurn}
-                  className="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded text-xs"
-                >
-                  ⏭️ Passar a Vez
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="dominoHandTiles flex flex-wrap justify-center gap-2 max-h-[130px] overflow-y-auto p-1">
+        <div
+          className={`dominoPlayerHandArea ${isMyTurn ? "isActiveHand" : ""}`}
+        >
+          <div className="dominoHandTiles">
             {myHand.map((tile) => {
               const isSelected = selectedTileId === tile.id;
               return (
                 <button
                   key={tile.id}
+                  type="button"
+                  aria-label={`${tile.left} a ${tile.right}${
+                    isSelected ? ", selecionada" : ""
+                  }`}
+                  aria-pressed={isSelected}
                   disabled={!isMyTurn || status !== "PLAYING"}
                   onClick={() => handleTileClick(tile.id)}
-                  className={`dominoHandTile ${isSelected ? "selected" : ""} ${
-                    !isMyTurn ? "cursor-not-allowed" : "cursor-pointer"
-                  }`}
+                  className={`dominoHandTile ${isSelected ? "selected" : ""}`}
                 >
                   <DominoHalf value={tile.left} />
                   <span className="dominoDivider" />
@@ -217,6 +185,52 @@ export function DominoTable({
               );
             })}
           </div>
+
+          {isMyTurn && (
+            <div className="dominoActionRail">
+              {selectedTile && (
+                <div className="dominoPlacementActions">
+                  <button
+                    type="button"
+                    disabled={!canPlayLeft}
+                    aria-label={`Jogar na ponta esquerda (${
+                      leftEnd ?? "aberta"
+                    })`}
+                    onClick={() => handlePlayToEnd("left")}
+                  >
+                    ← {leftEnd ?? "·"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!canPlayRight}
+                    aria-label={`Jogar na ponta direita (${
+                      rightEnd ?? "aberta"
+                    })`}
+                    onClick={() => handlePlayToEnd("right")}
+                  >
+                    {rightEnd ?? "·"} →
+                  </button>
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={onDrawTile}
+                disabled={boneyardCount === 0}
+                aria-label={`Comprar pedra. ${boneyardCount} restantes`}
+                title="Comprar uma pedra"
+              >
+                Comprar <span>{boneyardCount}</span>
+              </button>
+              <button
+                type="button"
+                onClick={onPassTurn}
+                aria-label="Passar a vez"
+                title="Passar a vez"
+              >
+                Passar
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
