@@ -445,11 +445,26 @@ module.exports = function injectTypingRoutes(ctx) {
           .json({ error: "Identificador de lição inválido." });
       }
 
+      const numWpm = clampInteger(wpm, -1, 0, 300);
+      const parsedAcc = parseFloat(accuracy);
+      if (
+        numWpm < 0 ||
+        Number.isNaN(parsedAcc) ||
+        parsedAcc < 0 ||
+        parsedAcc > 100
+      ) {
+        return res
+          .status(400)
+          .json({ error: "Métricas de digitação inválidas." });
+      }
+      const numAcc = Math.round(parsedAcc * 100) / 100;
+      const numTimeMs = clampInteger(timeMs, 0, 0, 24 * 60 * 60 * 1000);
+
       const id = crypto.randomUUID();
       await pool.query(
         `INSERT INTO typing_scores (id, user_id, lesson_id, wpm, accuracy, time_ms)
        VALUES ($1, $2, $3, $4, $5, $6)`,
-        [id, req.user.id, numLessonId, wpm, accuracy, timeMs || 0]
+        [id, req.user.id, numLessonId, numWpm, numAcc, numTimeMs]
       );
 
       if (req.user.role === "aluno") {
@@ -462,7 +477,7 @@ module.exports = function injectTypingRoutes(ctx) {
           });
           const minWpm = effective?.settings?.passMinWpm ?? 40;
           const minAcc = effective?.settings?.passMinAccuracy ?? 95;
-          if (wpm >= minWpm && accuracy >= minAcc) {
+          if (numWpm >= minWpm && numAcc >= minAcc) {
             let canProgress = numLessonId === 1;
             if (!canProgress && numLessonId > 1) {
               const prev = await pool.query(
@@ -965,7 +980,10 @@ module.exports = function injectTypingRoutes(ctx) {
               error: "Identificador de turma inválido.",
             });
           }
-          if (req.body.turmaId !== targetStudent.turma_id) {
+          if (
+            String(req.body.turmaId).toLowerCase() !==
+            String(targetStudent.turma_id).toLowerCase()
+          ) {
             return res.status(400).json({
               error: "Aluno não pertence à turma selecionada.",
             });

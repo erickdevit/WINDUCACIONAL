@@ -1,5 +1,5 @@
 import "./typing.scss";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { Icon } from "../../../../utils/general";
 import { AppWindow } from "../../../../components/shared/AppWindow";
@@ -101,9 +101,9 @@ const getRhythmColor = (ratio) => {
 
 export const TypingApp = ({ standalone = false }) => {
   const wnapp = useSelector((state) => state.apps.typing || {});
-  const user = useSelector((state) => state.setting.person);
-  const isProfessor = user.role === "professor";
-  const isStaff = user.role !== "aluno";
+  const user = useSelector((state) => state.setting?.person);
+  const isProfessor = user?.role === "professor";
+  const isStaff = Boolean(user && user.role !== "aluno");
 
   const [view, setView] = useState("menu");
   const [currentLesson, setCurrentLesson] = useState(null);
@@ -118,7 +118,9 @@ export const TypingApp = ({ standalone = false }) => {
   const [passed, setPassed] = useState(false);
   const [ranking, setRanking] = useState({ global: [], turma: [] });
   const [rankingTab, setRankingTab] = useState("global");
-  const [selectedTurmaId, setSelectedTurmaId] = useState(user?.turmaId || "");
+  const [selectedTurmaId, setSelectedTurmaId] = useState(
+    user?.turmaId || user?.turma_id || ""
+  );
   const [turmas, setTurmas] = useState([]);
   const [focusLost, setFocusLost] = useState(false);
   const [loadingRanking, setLoadingRanking] = useState(false);
@@ -136,12 +138,9 @@ export const TypingApp = ({ standalone = false }) => {
   const [resetGameRankingStatus, setResetGameRankingStatus] = useState(null);
   const [resettingRanking, setResettingRanking] = useState(false);
   const [resettingGameRanking, setResettingGameRanking] = useState(false);
-  const typingSettings = useTypingSettings({
-    studentType: "normal",
-    isProfessor: isStaff,
-    userId: user?.id,
-    enabled: standalone || wnapp.hide === false,
-    onProgress: (progress) => {
+
+  const handleProgress = useCallback(
+    (progress) => {
       if (
         progress?.type === "reset" ||
         Array.isArray(progress?.completedLessons)
@@ -166,6 +165,15 @@ export const TypingApp = ({ standalone = false }) => {
         }
       }
     },
+    [user?.username, currentLesson, view]
+  );
+
+  const typingSettings = useTypingSettings({
+    studentType: "normal",
+    isProfessor: isStaff,
+    userId: user?.id,
+    enabled: standalone || wnapp.hide === false,
+    onProgress: handleProgress,
   });
   const typingGameSettings = useTypingGameSettings({
     studentType: "normal",
@@ -300,7 +308,7 @@ export const TypingApp = ({ standalone = false }) => {
     if (view === "ranking") {
       fetchRanking();
     }
-    if ((!isStaff && (user.turmaId || user.turma_id)) || isStaff) {
+    if ((!isStaff && (user?.turmaId || user?.turma_id)) || isStaff) {
       fetchTurmas();
     }
     if (view === "ranking" || view === "config" || view.startsWith("games")) {
@@ -348,10 +356,10 @@ export const TypingApp = ({ standalone = false }) => {
       if (rankingTab === "turma") {
         const turmaId = isStaff
           ? selectedTurmaId
-          : user.turmaId || user.turma_id;
+          : user?.turmaId || user?.turma_id;
         if (
-          (user.role === "professor" ||
-            Boolean(user.turmaId || user.turma_id)) &&
+          (user?.role === "professor" ||
+            Boolean(user?.turmaId || user?.turma_id)) &&
           turmaId
         ) {
           turmaData = await api.getTypingTurmaRankingById(turmaId, "normal");
@@ -965,8 +973,8 @@ export const TypingApp = ({ standalone = false }) => {
             >
               Global
             </button>
-            {(user.role === "professor" ||
-              Boolean(user.turmaId || user.turma_id)) && (
+            {(user?.role === "professor" ||
+              Boolean(user?.turmaId || user?.turma_id)) && (
               <button
                 className={`px-4 py-1.5 text-sm font-bold rounded-md transition-all ${
                   rankingTab === "turma"
@@ -1905,7 +1913,7 @@ export const TypingApp = ({ standalone = false }) => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                        {!(user.turmaId || user.turma_id) && !isStaff ? (
+                        {!(user?.turmaId || user?.turma_id) && !isStaff ? (
                           <tr>
                             <td
                               colSpan="6"

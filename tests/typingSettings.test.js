@@ -252,4 +252,30 @@ describe("Configurações de digitação", () => {
     );
     expect(result.current.settings.studentType).toBe("kids");
   });
+
+  it("não recria a conexão SSE quando o hook re-renderiza com novo callback onProgress", async () => {
+    typingSettingsMock.close.mockClear();
+    api.subscribeTypingSettings.mockClear();
+
+    const { rerender } = renderHook(
+      ({ onProgress }) =>
+        useTypingSettings({
+          studentType: "normal",
+          isProfessor: false,
+          enabled: true,
+          onProgress,
+        }),
+      { initialProps: { onProgress: () => {} } }
+    );
+    await act(async () => {});
+
+    expect(api.subscribeTypingSettings).toHaveBeenCalledTimes(1);
+
+    // Simula re-renderização com nova função anônima inline (ex: a cada tecla digitada)
+    rerender({ onProgress: () => {} });
+    await act(async () => {});
+
+    expect(api.subscribeTypingSettings).toHaveBeenCalledTimes(1);
+    expect(typingSettingsMock.close).not.toHaveBeenCalled();
+  });
 });

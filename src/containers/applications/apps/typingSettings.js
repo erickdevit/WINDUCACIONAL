@@ -252,6 +252,11 @@ const useSyncedTypingSettings = ({
     };
   }, [enabled, normalizedType, isProfessor, loadSettings, cacheScope]);
 
+  const onProgressRef = useRef(onProgress);
+  useEffect(() => {
+    onProgressRef.current = onProgress;
+  }, [onProgress]);
+
   useEffect(() => {
     if (!enabled || typeof subscribeSettings !== "function") return undefined;
 
@@ -261,7 +266,7 @@ const useSyncedTypingSettings = ({
         applySettings(nextSettings);
       },
       onProgress: (progress) => {
-        onProgress?.(progress);
+        onProgressRef.current?.(progress);
       },
       onError: () => {},
     });
@@ -269,14 +274,7 @@ const useSyncedTypingSettings = ({
     return () => {
       subscription?.close?.();
     };
-  }, [
-    enabled,
-    normalizedType,
-    isProfessor,
-    subscribeSettings,
-    cacheScope,
-    onProgress,
-  ]);
+  }, [enabled, normalizedType, isProfessor, subscribeSettings, cacheScope]);
 
   const updateDraftSettings = (field, value) => {
     setDraftSettings((current) =>

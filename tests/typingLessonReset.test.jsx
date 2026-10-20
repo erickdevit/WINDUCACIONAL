@@ -11,8 +11,10 @@ import {
   cleanup,
 } from "@testing-library/react";
 import { createRequire } from "node:module";
+import { Provider } from "react-redux";
 import { TYPING_LESSONS } from "../src/containers/applications/apps/assets/typingLessons";
 import { TypingLessonResetSection } from "../src/containers/applications/apps/typing/TypingLessonResetSection";
+import { TypingApp } from "../src/containers/applications/apps/typing/typing";
 import { api } from "../src/lib/api";
 
 const require = createRequire(import.meta.url);
@@ -1146,6 +1148,57 @@ describe("Casos de borda e robustez do reset e progresso", () => {
     expect(res.statusCode).toBe(400);
     expect(res.body.error).toContain("A lição anterior deve ser concluída");
   });
+
+  it("aceita turmaId com variação de maiúsculas e minúsculas no reset por aluno", async () => {
+    const studentId = "11111111-1111-4111-8111-111111111111";
+    const turmaId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    const uppercaseTurmaId = turmaId.toUpperCase();
+
+    const pool = {
+      query: vi.fn().mockImplementation((sql) => {
+        if (sql.includes("FROM users u")) {
+          return Promise.resolve({
+            rowCount: 1,
+            rows: [
+              {
+                id: studentId,
+                username: "aluno1",
+                role: "aluno",
+                turma_id: turmaId,
+                student_type: "normal",
+                turma_nome: "Turma Alpha",
+                turma_code: "ALPHA1",
+              },
+            ],
+          });
+        }
+        if (sql.includes("DELETE FROM typing_lesson_progress")) {
+          return Promise.resolve({ rowCount: 1 });
+        }
+        if (sql.includes("INSERT INTO typing_lesson_resets")) {
+          return Promise.resolve({ rowCount: 1 });
+        }
+        return Promise.resolve({ rowCount: 0, rows: [] });
+      }),
+    };
+
+    const routes = buildRoutes({ pool });
+    const req = {
+      user: { role: "professor" },
+      body: {
+        scope: "student",
+        studentId,
+        turmaId: uppercaseTurmaId,
+      },
+    };
+    const res = mockResponse();
+
+    await executePipeline(routes["POST /api/typing/lessons/reset"], req, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.affectedStudents).toBe(1);
+  });
 });
 
 describe("POST /api/typing/score e integridade de progressão", () => {
@@ -1281,5 +1334,61 @@ describe("POST /api/typing/score e integridade de progressão", () => {
     );
     expect(progressInsertCall).toBeDefined();
     expect(progressInsertCall[1][1]).toBe(2);
+  });
+
+  it("rejeita métricas inválidas ou fora dos limites em POST /api/typing/score com HTTP 400", async () => {
+    const pool = { query: vi.fn() };
+    const routes = buildRoutes({ pool });
+
+    const reqInvalidWpm = {
+      user: { id: studentId, role: "aluno" },
+      body: { lessonId: 1, wpm: "abc", accuracy: 98 },
+    };
+    const res1 = mockResponse();
+    await executePipeline(
+      routes["POST /api/typing/score"],
+      reqInvalidWpm,
+      res1
+    );
+    expect(res1.statusCode).toBe(400);
+    expect(res1.body.error).toBe("Métricas de digitação inválidas.");
+
+    const reqInvalidAcc = {
+      user: { id: studentId, role: "aluno" },
+      body: { lessonId: 1, wpm: 50, accuracy: 150 },
+    };
+    const res2 = mockResponse();
+    await executePipeline(
+      routes["POST /api/typing/score"],
+      reqInvalidAcc,
+      res2
+    );
+    expect(res2.statusCode).toBe(400);
+    expect(res2.body.error).toBe("Métricas de digitação inválidas.");
+  });
+});
+
+describe("Resiliência do componente TypingApp com usuário nulo ou indefinido", () => {
+  it("monta o TypingApp com sucesso sem lançar TypeError quando person é nulo no Redux", () => {
+    const createMockStore = (state) => ({
+      getState: () => state,
+      subscribe: () => () => {},
+      dispatch: vi.fn(),
+    });
+
+    const store = createMockStore({
+      apps: { typing: { hide: false } },
+      setting: { person: null },
+    });
+
+    expect(() => {
+      render(
+        <Provider store={store}>
+          <TypingApp standalone={true} />
+        </Provider>
+      );
+    }).not.toThrow();
+
+    expect(screen.getByText("Linha Base - Esquerda")).toBeDefined();
   });
 });
