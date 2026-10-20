@@ -296,8 +296,8 @@ export const TypingLessonResetSection = ({
                 Zerar também a pontuação no Ranking de Lições
               </span>
               <span className="text-xs text-gray-500 dark:text-gray-400 block mt-0.5">
-                Se marcada, os registros de pontuação em typing_scores do alvo
-                selecionado serão removidos. Se desmarcada, as pontuações e
+                Se marcada, os registros de pontuação do Ranking de Lições do
+                alvo selecionado serão removidos. Se desmarcada, as pontuações e
                 posições no ranking serão mantidas intactas enquanto a
                 progressão recomeça na Lição 1.
               </span>

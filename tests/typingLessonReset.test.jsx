@@ -826,6 +826,15 @@ describe("Componente TypingLessonResetSection", () => {
       expect(screen.getByText(/Pedro Santos/)).toBeDefined();
     });
   });
+
+  it("exibe texto explicativo em português correto sem expor nome técnico de tabela interna", () => {
+    render(<TypingLessonResetSection turmas={turmasMock} />);
+    const subtext = screen.getByText(
+      /do Ranking de Lições do alvo selecionado serão removidos/
+    );
+    expect(subtext).toBeDefined();
+    expect(screen.queryByText(/typing_scores/)).toBeNull();
+  });
 });
 
 describe("Casos de borda e robustez do reset e progresso", () => {
@@ -1136,5 +1145,141 @@ describe("Casos de borda e robustez do reset e progresso", () => {
 
     expect(res.statusCode).toBe(400);
     expect(res.body.error).toContain("A lição anterior deve ser concluída");
+  });
+});
+
+describe("POST /api/typing/score e integridade de progressão", () => {
+  const studentId = "11111111-1111-4111-8111-111111111111";
+
+  it("registra progresso na Lição 1 quando lessonId é enviado como string '1' e o aluno atinge a meta", async () => {
+    const pool = {
+      query: vi.fn().mockImplementation((sql) => {
+        if (sql.includes("INSERT INTO typing_scores")) {
+          return Promise.resolve({ rowCount: 1 });
+        }
+        if (sql.includes("INSERT INTO typing_lesson_progress")) {
+          return Promise.resolve({ rowCount: 1 });
+        }
+        return Promise.resolve({ rowCount: 0, rows: [] });
+      }),
+    };
+
+    const routes = buildRoutes({ pool });
+    const req = {
+      user: {
+        id: studentId,
+        role: "aluno",
+        student_type: "normal",
+        turma_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      },
+      body: {
+        lessonId: "1",
+        wpm: 50,
+        accuracy: 98,
+        timeMs: 12000,
+      },
+    };
+    const res = mockResponse();
+
+    await executePipeline(routes["POST /api/typing/score"], req, res);
+
+    expect(res.statusCode).toBe(201);
+    expect(res.body.ok).toBe(true);
+
+    const progressInsertCall = pool.query.mock.calls.find(([sql]) =>
+      sql.includes("INSERT INTO typing_lesson_progress")
+    );
+    expect(progressInsertCall).toBeDefined();
+    expect(progressInsertCall[1][0]).toBe(studentId);
+    expect(progressInsertCall[1][1]).toBe(1);
+  });
+
+  it("rejeita lessonId inválido em POST /api/typing/score com 400", async () => {
+    const pool = { query: vi.fn() };
+    const routes = buildRoutes({ pool });
+    const req = {
+      user: { id: studentId, role: "aluno" },
+      body: { lessonId: "invalido", wpm: 50, accuracy: 98 },
+    };
+    const res = mockResponse();
+
+    await executePipeline(routes["POST /api/typing/score"], req, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toContain("Identificador de lição inválido");
+  });
+
+  it("não registra progresso na Lição 2 via score se a Lição 1 não tiver sido concluída", async () => {
+    const pool = {
+      query: vi.fn().mockImplementation((sql) => {
+        if (sql.includes("INSERT INTO typing_scores")) {
+          return Promise.resolve({ rowCount: 1 });
+        }
+        if (sql.includes("SELECT 1 FROM typing_lesson_progress")) {
+          return Promise.resolve({ rowCount: 0, rows: [] });
+        }
+        return Promise.resolve({ rowCount: 0, rows: [] });
+      }),
+    };
+
+    const routes = buildRoutes({ pool });
+    const req = {
+      user: {
+        id: studentId,
+        role: "aluno",
+        student_type: "normal",
+        turma_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      },
+      body: { lessonId: 2, wpm: 50, accuracy: 98 },
+    };
+    const res = mockResponse();
+
+    await executePipeline(routes["POST /api/typing/score"], req, res);
+
+    expect(res.statusCode).toBe(201);
+    const progressInsertCall = pool.query.mock.calls.find(([sql]) =>
+      sql.includes("INSERT INTO typing_lesson_progress")
+    );
+    expect(progressInsertCall).toBeUndefined();
+  });
+
+  it("registra progresso na Lição 2 via score quando a Lição 1 já foi concluída", async () => {
+    const pool = {
+      query: vi.fn().mockImplementation((sql, params) => {
+        if (sql.includes("INSERT INTO typing_scores")) {
+          return Promise.resolve({ rowCount: 1 });
+        }
+        if (sql.includes("SELECT 1 FROM typing_lesson_progress")) {
+          if (params[1] === 1) {
+            return Promise.resolve({ rowCount: 1, rows: [{ "?column?": 1 }] });
+          }
+        }
+        if (sql.includes("INSERT INTO typing_lesson_progress")) {
+          return Promise.resolve({ rowCount: 1 });
+        }
+        return Promise.resolve({ rowCount: 0, rows: [] });
+      }),
+    };
+
+    const routes = buildRoutes({ pool });
+    const req = {
+      user: {
+        id: studentId,
+        role: "aluno",
+        student_type: "normal",
+        turma_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      },
+      body: { lessonId: "2", wpm: 50, accuracy: 98 },
+    };
+    const res = mockResponse();
+
+    await executePipeline(routes["POST /api/typing/score"], req, res);
+
+    expect(res.statusCode).toBe(201);
+    const progressInsertCall = pool.query.mock.calls.find(([sql]) =>
+      sql.includes("INSERT INTO typing_lesson_progress")
+    );
+    expect(progressInsertCall).toBeDefined();
+    expect(progressInsertCall[1][1]).toBe(2);
   });
 });

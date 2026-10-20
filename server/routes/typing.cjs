@@ -434,11 +434,22 @@ module.exports = function injectTypingRoutes(ctx) {
         return res.status(400).json({ error: "Dados incompletos." });
       }
 
+      const numLessonId = parseInt(lessonId, 10);
+      if (
+        !Number.isInteger(numLessonId) ||
+        numLessonId < 1 ||
+        numLessonId > 200
+      ) {
+        return res
+          .status(400)
+          .json({ error: "Identificador de lição inválido." });
+      }
+
       const id = crypto.randomUUID();
       await pool.query(
         `INSERT INTO typing_scores (id, user_id, lesson_id, wpm, accuracy, time_ms)
        VALUES ($1, $2, $3, $4, $5, $6)`,
-        [id, req.user.id, lessonId, wpm, accuracy, timeMs || 0]
+        [id, req.user.id, numLessonId, wpm, accuracy, timeMs || 0]
       );
 
       if (req.user.role === "aluno") {
@@ -452,11 +463,11 @@ module.exports = function injectTypingRoutes(ctx) {
           const minWpm = effective?.settings?.passMinWpm ?? 40;
           const minAcc = effective?.settings?.passMinAccuracy ?? 95;
           if (wpm >= minWpm && accuracy >= minAcc) {
-            let canProgress = lessonId === 1;
-            if (!canProgress && lessonId > 1) {
+            let canProgress = numLessonId === 1;
+            if (!canProgress && numLessonId > 1) {
               const prev = await pool.query(
                 "SELECT 1 FROM typing_lesson_progress WHERE user_id = $1 AND lesson_id = $2",
-                [req.user.id, lessonId - 1]
+                [req.user.id, numLessonId - 1]
               );
               canProgress = prev.rowCount > 0;
             }
@@ -465,7 +476,7 @@ module.exports = function injectTypingRoutes(ctx) {
                 `INSERT INTO typing_lesson_progress (user_id, lesson_id, completed_at)
                  VALUES ($1, $2, NOW())
                  ON CONFLICT (user_id, lesson_id) DO NOTHING`,
-                [req.user.id, lessonId]
+                [req.user.id, numLessonId]
               );
             }
           }

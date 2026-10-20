@@ -187,6 +187,11 @@ export const TypingApp = ({ standalone = false }) => {
   const lastRoutePayloadRef = useRef(null);
 
   useEffect(() => {
+    if (!user?.username) {
+      setCompletedLessons([]);
+      return undefined;
+    }
+
     const saved = localStorage.getItem(
       `completedTypingLessons_${user.username}`
     );
@@ -196,8 +201,6 @@ export const TypingApp = ({ standalone = false }) => {
       } catch (e) {}
     }
 
-    if (!user?.username) return undefined;
-
     let active = true;
     api
       .getTypingProgress()
@@ -206,12 +209,10 @@ export const TypingApp = ({ standalone = false }) => {
         if (data && Array.isArray(data.completedLessons)) {
           const next = data.completedLessons;
           setCompletedLessons(next);
-          if (user?.username) {
-            localStorage.setItem(
-              `completedTypingLessons_${user.username}`,
-              JSON.stringify(next)
-            );
-          }
+          localStorage.setItem(
+            `completedTypingLessons_${user.username}`,
+            JSON.stringify(next)
+          );
           if (
             currentLesson &&
             currentLesson.id !== 1 &&
@@ -229,9 +230,13 @@ export const TypingApp = ({ standalone = false }) => {
     return () => {
       active = false;
     };
-  }, [user.username]);
+  }, [user?.username]);
 
   useEffect(() => {
+    if (!user?.username) {
+      setLessonVariants({});
+      return;
+    }
     const saved = localStorage.getItem(getVariantStorageKey(user.username));
     if (saved) {
       try {
@@ -240,7 +245,7 @@ export const TypingApp = ({ standalone = false }) => {
       } catch (e) {}
     }
     setLessonVariants({});
-  }, [user.username]);
+  }, [user?.username]);
 
   useEffect(() => {
     if (view === "config" && !isProfessor) {
@@ -455,6 +460,7 @@ export const TypingApp = ({ standalone = false }) => {
   };
 
   const persistLessonVariants = (nextVariants) => {
+    if (!user?.username) return;
     localStorage.setItem(
       getVariantStorageKey(user.username),
       JSON.stringify(nextVariants)
@@ -697,10 +703,12 @@ export const TypingApp = ({ standalone = false }) => {
       setCompletedLessons((prev) => {
         if (!prev.includes(currentLesson.id)) {
           const next = [...prev, currentLesson.id];
-          localStorage.setItem(
-            `completedTypingLessons_${user.username}`,
-            JSON.stringify(next)
-          );
+          if (user?.username) {
+            localStorage.setItem(
+              `completedTypingLessons_${user.username}`,
+              JSON.stringify(next)
+            );
+          }
           return next;
         }
         return prev;
@@ -980,7 +988,7 @@ export const TypingApp = ({ standalone = false }) => {
             </span>
           )}
           <div className="text-sm font-semibold text-gray-600 dark:text-gray-400">
-            {user.username}
+            {user?.username || ""}
           </div>
         </div>
       </div>
@@ -1661,10 +1669,12 @@ export const TypingApp = ({ standalone = false }) => {
                 .then((data) => {
                   if (data && Array.isArray(data.completedLessons)) {
                     setCompletedLessons(data.completedLessons);
-                    localStorage.setItem(
-                      `completedTypingLessons_${user.username}`,
-                      JSON.stringify(data.completedLessons)
-                    );
+                    if (user?.username) {
+                      localStorage.setItem(
+                        `completedTypingLessons_${user.username}`,
+                        JSON.stringify(data.completedLessons)
+                      );
+                    }
                   }
                 })
                 .catch(() => {});
@@ -1812,7 +1822,9 @@ export const TypingApp = ({ standalone = false }) => {
                         </tr>
                       ) : (
                         ranking.global.map((item, i) => {
-                          const isMe = item.name === user.username;
+                          const isMe = Boolean(
+                            user?.username && item.name === user.username
+                          );
                           return (
                             <tr
                               key={i}
@@ -1913,7 +1925,9 @@ export const TypingApp = ({ standalone = false }) => {
                           </tr>
                         ) : (
                           ranking.turma.map((item, i) => {
-                            const isMe = item.name === user.username;
+                            const isMe = Boolean(
+                              user?.username && item.name === user.username
+                            );
                             return (
                               <tr
                                 key={i}
