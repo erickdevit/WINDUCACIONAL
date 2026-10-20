@@ -113,6 +113,22 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ turmaCode, studentType }),
     }),
+  getTypingProgress: (studentId) => {
+    const params = studentId
+      ? `?studentId=${encodeURIComponent(studentId)}`
+      : "";
+    return request(`/api/typing/progress${params}`);
+  },
+  saveTypingProgress: (lessonId) =>
+    request("/api/typing/progress", {
+      method: "POST",
+      body: JSON.stringify({ lessonId }),
+    }),
+  resetTypingLessonProgress: (payload) =>
+    request("/api/typing/lessons/reset", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
   getTypingGameGlobalRanking: (studentType) => {
     const url = studentType
       ? `/api/typing/game/ranking/global?studentType=${studentType}`
@@ -153,7 +169,7 @@ export const api = {
     }),
   subscribeTypingSettings: (
     studentType,
-    { onSettings, onError, effective = false } = {}
+    { onSettings, onProgress, onError, effective = false } = {}
   ) => {
     if (typeof EventSource === "undefined") {
       return { close: () => {} };
@@ -177,12 +193,23 @@ export const api = {
       }
     };
 
+    const handleProgress = (event) => {
+      try {
+        const data = JSON.parse(event.data || "{}");
+        onProgress?.(data);
+      } catch (error) {
+        onError?.(error);
+      }
+    };
+
     source.addEventListener("typing-settings", handleSettings);
+    source.addEventListener("typing-progress", handleProgress);
     source.onerror = (error) => onError?.(error);
 
     return {
       close: () => {
         source.removeEventListener("typing-settings", handleSettings);
+        source.removeEventListener("typing-progress", handleProgress);
         source.close();
       },
     };

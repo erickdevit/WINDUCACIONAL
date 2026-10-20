@@ -21,6 +21,7 @@ import { TypingSpaceGame } from "../TypingSpaceGame";
 import { TypingPvpGame } from "../TypingPvpGame";
 import { TypingDifficultyAssignmentPanel } from "../TypingDifficultyAssignmentPanel";
 import TypingKeyboard from "./TypingKeyboard";
+import { TypingLessonResetSection } from "./TypingLessonResetSection";
 
 const COMBO_REWARDS = {
   8: "Aquecendo",
@@ -140,6 +141,27 @@ export const TypingApp = ({ standalone = false }) => {
     isProfessor: isStaff,
     userId: user?.id,
     enabled: standalone || wnapp.hide === false,
+    onProgress: (progress) => {
+      if (
+        progress?.type === "reset" ||
+        Array.isArray(progress?.completedLessons)
+      ) {
+        const next = progress.completedLessons || [];
+        setCompletedLessons(next);
+        localStorage.setItem(
+          `completedTypingLessons_${user.username}`,
+          JSON.stringify(next)
+        );
+        if (
+          currentLesson &&
+          currentLesson.id !== 1 &&
+          !next.includes(TYPING_LESSONS[currentLesson.id - 2]?.id)
+        ) {
+          setCurrentLesson(TYPING_LESSONS[0]);
+          setView("menu");
+        }
+      }
+    },
   });
   const typingGameSettings = useTypingGameSettings({
     studentType: "normal",
@@ -169,6 +191,27 @@ export const TypingApp = ({ standalone = false }) => {
         setCompletedLessons(JSON.parse(saved));
       } catch (e) {}
     }
+
+    if (!user?.username) return undefined;
+
+    let active = true;
+    api
+      .getTypingProgress()
+      .then((data) => {
+        if (!active) return;
+        if (data && Array.isArray(data.completedLessons)) {
+          setCompletedLessons(data.completedLessons);
+          localStorage.setItem(
+            `completedTypingLessons_${user.username}`,
+            JSON.stringify(data.completedLessons)
+          );
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
   }, [user.username]);
 
   useEffect(() => {
@@ -235,10 +278,7 @@ export const TypingApp = ({ standalone = false }) => {
     if (view === "ranking") {
       fetchRanking();
     }
-    if (
-      (!isStaff && (user.turmaId || user.turma_id)) ||
-      isStaff
-    ) {
+    if ((!isStaff && (user.turmaId || user.turma_id)) || isStaff) {
       fetchTurmas();
     }
     if (view === "ranking" || view === "config" || view.startsWith("games")) {
@@ -284,8 +324,14 @@ export const TypingApp = ({ standalone = false }) => {
       let turmaData;
 
       if (rankingTab === "turma") {
-        const turmaId = isStaff ? selectedTurmaId : (user.turmaId || user.turma_id);
-        if ((user.role === "professor" || Boolean(user.turmaId || user.turma_id)) && turmaId) {
+        const turmaId = isStaff
+          ? selectedTurmaId
+          : user.turmaId || user.turma_id;
+        if (
+          (user.role === "professor" ||
+            Boolean(user.turmaId || user.turma_id)) &&
+          turmaId
+        ) {
           turmaData = await api.getTypingTurmaRankingById(turmaId, "normal");
         }
       }
@@ -642,6 +688,11 @@ export const TypingApp = ({ standalone = false }) => {
         }
         return prev;
       });
+      if (!isStaff) {
+        api.saveTypingProgress(currentLesson.id).catch((err) => {
+          console.error("Failed to save typing progress:", err);
+        });
+      }
       updateLessonVariant(currentLesson.id, () => 0);
       showPulse("reward", "Fase aprovada", finalBestCombo || bestCombo);
     } else {
@@ -781,114 +832,116 @@ export const TypingApp = ({ standalone = false }) => {
     launchLesson(currentLesson);
   };
 
-  const appScreenTop = view === "lesson" ? null : (
-    <div className="flex items-center justify-between px-8 py-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#18181b] z-10">
-          <div className="flex space-x-2">
-            <button
-              className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
-                view === "menu"
-                  ? "bg-[#ffcc02] text-black"
-                  : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700"
-              }`}
-              onClick={() => setView("menu")}
-            >
-              Lições
-            </button>
-            <button
-              className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
-                view === "ranking"
-                  ? "bg-[#ffcc02] text-black"
-                  : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700"
-              }`}
-              onClick={() => setView("ranking")}
-            >
-              Ranking
-            </button>
-            <button
-              className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
-                view.startsWith("games")
-                  ? "bg-[#ffcc02] text-black"
-                  : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700"
-              }`}
-              onClick={() => setView("games-solo")}
-            >
-              Games
-            </button>
-            {view.startsWith("games") && (
-              <div className="flex items-center space-x-2 ml-1 pl-3 border-l border-gray-300 dark:border-gray-700">
-                <button
-                  className={`px-3 py-1.5 text-xs font-bold rounded-md tracking-wider transition-colors ${
-                    view === "games-solo"
-                      ? "bg-[#ffcc02] text-black"
-                      : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700"
-                  }`}
-                  onClick={() => setView("games-solo")}
-                >
-                  Solo
-                </button>
-                <button
-                  className={`px-3 py-1.5 text-xs font-bold rounded-md tracking-wider transition-colors ${
-                    view === "games-pvp"
-                      ? "bg-[#ffcc02] text-black"
-                      : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700"
-                  }`}
-                  onClick={() => setView("games-pvp")}
-                >
-                  Duelos
-                </button>
-                <button
-                  className={`px-3 py-1.5 text-xs font-bold rounded-md tracking-wider transition-colors ${
-                    view === "games-pvp-scores"
-                      ? "bg-[#ffcc02] text-black"
-                      : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700"
-                  }`}
-                  onClick={() => setView("games-pvp-scores")}
-                >
-                  Placar de Duelos
-                </button>
-                <button
-                  className={`px-3 py-1.5 text-xs font-bold rounded-md tracking-wider transition-colors ${
-                    view === "games-scores"
-                      ? "bg-[#ffcc02] text-black"
-                      : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700"
-                  }`}
-                  onClick={() => setView("games-scores")}
-                >
-                  Ranking do Game
-                </button>
-              </div>
-            )}
-            {isProfessor && (
+  const appScreenTop =
+    view === "lesson" ? null : (
+      <div className="flex items-center justify-between px-8 py-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#18181b] z-10">
+        <div className="flex space-x-2">
+          <button
+            className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
+              view === "menu"
+                ? "bg-[#ffcc02] text-black"
+                : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700"
+            }`}
+            onClick={() => setView("menu")}
+          >
+            Lições
+          </button>
+          <button
+            className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
+              view === "ranking"
+                ? "bg-[#ffcc02] text-black"
+                : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700"
+            }`}
+            onClick={() => setView("ranking")}
+          >
+            Ranking
+          </button>
+          <button
+            className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
+              view.startsWith("games")
+                ? "bg-[#ffcc02] text-black"
+                : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700"
+            }`}
+            onClick={() => setView("games-solo")}
+          >
+            Games
+          </button>
+          {view.startsWith("games") && (
+            <div className="flex items-center space-x-2 ml-1 pl-3 border-l border-gray-300 dark:border-gray-700">
               <button
-                className={`ml-2 px-3 py-2 text-sm font-bold rounded-lg transition-colors flex items-center justify-center ${
-                  view === "config"
+                className={`px-3 py-1.5 text-xs font-bold rounded-md tracking-wider transition-colors ${
+                  view === "games-solo"
                     ? "bg-[#ffcc02] text-black"
                     : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700"
                 }`}
-                onClick={() => setView("config")}
-                title="Configurações"
-                aria-label="Configurações"
+                onClick={() => setView("games-solo")}
               >
-                <Icon fafa="faCog" width={14} />
+                Solo
               </button>
-            )}
-          </div>
-
-          {(view === "ranking" ||
-            view === "games-scores" ||
-            view === "games-pvp-scores") && (
-            <div className="absolute left-1/2 -translate-x-1/2 flex bg-gray-900 dark:bg-black rounded-lg p-1">
               <button
-                className={`px-4 py-1.5 text-sm font-bold rounded-md transition-all ${
-                  rankingTab === "global"
+                className={`px-3 py-1.5 text-xs font-bold rounded-md tracking-wider transition-colors ${
+                  view === "games-pvp"
                     ? "bg-[#ffcc02] text-black"
-                    : "bg-transparent text-white hover:bg-white/10"
+                    : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700"
                 }`}
-                onClick={() => setRankingTab("global")}
+                onClick={() => setView("games-pvp")}
               >
-                Global
+                Duelos
               </button>
-              {(user.role === "professor" || Boolean(user.turmaId || user.turma_id)) && (
+              <button
+                className={`px-3 py-1.5 text-xs font-bold rounded-md tracking-wider transition-colors ${
+                  view === "games-pvp-scores"
+                    ? "bg-[#ffcc02] text-black"
+                    : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700"
+                }`}
+                onClick={() => setView("games-pvp-scores")}
+              >
+                Placar de Duelos
+              </button>
+              <button
+                className={`px-3 py-1.5 text-xs font-bold rounded-md tracking-wider transition-colors ${
+                  view === "games-scores"
+                    ? "bg-[#ffcc02] text-black"
+                    : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700"
+                }`}
+                onClick={() => setView("games-scores")}
+              >
+                Ranking do Game
+              </button>
+            </div>
+          )}
+          {isProfessor && (
+            <button
+              className={`ml-2 px-3 py-2 text-sm font-bold rounded-lg transition-colors flex items-center justify-center ${
+                view === "config"
+                  ? "bg-[#ffcc02] text-black"
+                  : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700"
+              }`}
+              onClick={() => setView("config")}
+              title="Configurações"
+              aria-label="Configurações"
+            >
+              <Icon fafa="faCog" width={14} />
+            </button>
+          )}
+        </div>
+
+        {(view === "ranking" ||
+          view === "games-scores" ||
+          view === "games-pvp-scores") && (
+          <div className="absolute left-1/2 -translate-x-1/2 flex bg-gray-900 dark:bg-black rounded-lg p-1">
+            <button
+              className={`px-4 py-1.5 text-sm font-bold rounded-md transition-all ${
+                rankingTab === "global"
+                  ? "bg-[#ffcc02] text-black"
+                  : "bg-transparent text-white hover:bg-white/10"
+              }`}
+              onClick={() => setRankingTab("global")}
+            >
+              Global
+            </button>
+            {(user.role === "professor" ||
+              Boolean(user.turmaId || user.turma_id)) && (
               <button
                 className={`px-4 py-1.5 text-sm font-bold rounded-md transition-all ${
                   rankingTab === "turma"
@@ -900,456 +953,513 @@ export const TypingApp = ({ standalone = false }) => {
                 Por Turma
               </button>
             )}
-            </div>
-          )}
-
-          <div className="flex items-center space-x-4">
-            {isProfessor && (
-              <span className="text-[10px] uppercase font-bold tracking-widest text-[#ffcc02] border border-[#ffcc02] px-2 py-1 rounded-full">
-                Professor
-              </span>
-            )}
-            <div className="text-sm font-semibold text-gray-600 dark:text-gray-400">
-              {user.username}
-            </div>
-          </div>
-        </div>
-  );
-
-  const innerContent = (
-      <div onClick={handleFocus}>
-        {view === "menu" && (
-          <div className="max-w-6xl mx-auto p-10 animate-fade-in pb-20">
-            <div className="mb-8 border-b border-gray-200 dark:border-gray-800 pb-6 flex flex-col md:flex-row md:items-end justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
-                  Cursos de Digitação
-                </h1>
-                <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 font-medium">
-                  Meta para aprovação: Mínimo de{" "}
-                  <span className="font-bold text-gray-700 dark:text-gray-300">
-                    {passMinWpm} PPM
-                  </span>{" "}
-                  e{" "}
-                  <span className="font-bold text-gray-700 dark:text-gray-300">
-                    {passMinAccuracy}%
-                  </span>{" "}
-                  de Precisão.
-                </p>
-              </div>
-              <div className="mt-4 md:mt-0 text-sm font-bold text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-900/10 px-3 py-1.5 rounded-lg border border-green-200 dark:border-green-800/50">
-                {completedLessons.length} / {TYPING_LESSONS.length} Concluídas
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {TYPING_LESSONS.map((lesson, i) => {
-                const isCompleted = completedLessons.includes(lesson.id);
-                const isLocked =
-                  i !== 0 &&
-                  !completedLessons.includes(TYPING_LESSONS[i - 1].id) &&
-                  !isStaff;
-                const activeVariantIndex = getLessonVariantIndex(
-                  lesson,
-                  lessonVariants
-                );
-                const previewText = lesson.variants[activeVariantIndex];
-
-                return (
-                  <div
-                    key={lesson.id}
-                    className={`relative p-5 rounded-xl border-2 transition-colors ${
-                      isLocked
-                        ? "bg-gray-50 dark:bg-[#151515] border-gray-100 dark:border-gray-900 opacity-60 cursor-not-allowed"
-                        : isCompleted
-                        ? "bg-green-50 dark:bg-green-900/10 border-green-500 hover:bg-green-100 dark:hover:bg-green-900/20 cursor-pointer"
-                        : "bg-white dark:bg-[#18181b] border-gray-200 dark:border-gray-800 hover:border-[#ffcc02] dark:hover:border-[#ffcc02] cursor-pointer"
-                    }`}
-                    onClick={() => {
-                      if (!isLocked) launchLesson(lesson);
-                    }}
-                  >
-                    <div className="flex flex-col h-full justify-between relative z-10">
-                      <div>
-                        <div className="flex justify-between items-start mb-3">
-                          <span className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest flex items-center">
-                            Lição {i + 1}
-                            {isLocked && (
-                              <Icon
-                                fafa="lock"
-                                width={10}
-                                className="ml-2 text-gray-400 dark:text-gray-500"
-                              />
-                            )}
-                          </span>
-                          {isCompleted && (
-                            <span className="bg-green-500 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded flex items-center">
-                              <Icon fafa="check" width={10} className="mr-1" />
-                              Concluída
-                            </span>
-                          )}
-                        </div>
-                        <h3
-                          className={`font-bold text-lg mb-2 ${
-                            isCompleted
-                              ? "text-green-700 dark:text-green-400"
-                              : isLocked
-                              ? "text-gray-500 dark:text-gray-600"
-                              : "text-gray-800 dark:text-gray-200"
-                          }`}
-                        >
-                          {lesson.title}
-                        </h3>
-                        <div className="flex items-center justify-between gap-3 text-[11px] font-bold uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
-                          <span>8 variações</span>
-                          <span>Ativa {activeVariantIndex + 1}/8</span>
-                        </div>
-                      </div>
-
-                      <div
-                        className={`mt-4 text-sm font-mono truncate p-2 rounded ${
-                          isCompleted
-                            ? "bg-green-100/50 dark:bg-green-900/30 text-green-800 dark:text-green-300"
-                            : isLocked
-                            ? "bg-gray-200/50 dark:bg-gray-800/50 text-gray-400 dark:text-gray-600"
-                            : "bg-gray-100 dark:bg-[#202024] text-gray-500 dark:text-gray-400"
-                        }`}
-                      >
-                        {previewText}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           </div>
         )}
 
-        {view.startsWith("games") &&
-          view !== "games-pvp" &&
-          view !== "games-pvp-scores" && (
-            <TypingSpaceGame
-              user={user}
-              studentType="normal"
-              maxLives={maxGameLives}
-              passMinWpm={gamePassMinWpm}
-              passMinAccuracy={gamePassMinAccuracy}
-              gameSpeed={gameSpeed}
-              gameSpeedBoost={gameSpeedBoost}
-              isProfessor={isStaff}
-              turmaId={user?.turmaId || user?.turma_id}
-              turmas={turmas}
-              gameTab={view}
-              rankingTab={rankingTab}
-            />
+        <div className="flex items-center space-x-4">
+          {isProfessor && (
+            <span className="text-[10px] uppercase font-bold tracking-widest text-[#ffcc02] border border-[#ffcc02] px-2 py-1 rounded-full">
+              Professor
+            </span>
           )}
+          <div className="text-sm font-semibold text-gray-600 dark:text-gray-400">
+            {user.username}
+          </div>
+        </div>
+      </div>
+    );
 
-        {(view === "games-pvp" || view === "games-pvp-scores") && (
-          <TypingPvpGame
+  const innerContent = (
+    <div onClick={handleFocus}>
+      {view === "menu" && (
+        <div className="max-w-6xl mx-auto p-10 animate-fade-in pb-20">
+          <div className="mb-8 border-b border-gray-200 dark:border-gray-800 pb-6 flex flex-col md:flex-row md:items-end justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+                Cursos de Digitação
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 font-medium">
+                Meta para aprovação: Mínimo de{" "}
+                <span className="font-bold text-gray-700 dark:text-gray-300">
+                  {passMinWpm} PPM
+                </span>{" "}
+                e{" "}
+                <span className="font-bold text-gray-700 dark:text-gray-300">
+                  {passMinAccuracy}%
+                </span>{" "}
+                de Precisão.
+              </p>
+            </div>
+            <div className="mt-4 md:mt-0 text-sm font-bold text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-900/10 px-3 py-1.5 rounded-lg border border-green-200 dark:border-green-800/50">
+              {completedLessons.length} / {TYPING_LESSONS.length} Concluídas
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {TYPING_LESSONS.map((lesson, i) => {
+              const isCompleted = completedLessons.includes(lesson.id);
+              const isLocked =
+                i !== 0 &&
+                !completedLessons.includes(TYPING_LESSONS[i - 1].id) &&
+                !isStaff;
+              const activeVariantIndex = getLessonVariantIndex(
+                lesson,
+                lessonVariants
+              );
+              const previewText = lesson.variants[activeVariantIndex];
+
+              return (
+                <div
+                  key={lesson.id}
+                  className={`relative p-5 rounded-xl border-2 transition-colors ${
+                    isLocked
+                      ? "bg-gray-50 dark:bg-[#151515] border-gray-100 dark:border-gray-900 opacity-60 cursor-not-allowed"
+                      : isCompleted
+                      ? "bg-green-50 dark:bg-green-900/10 border-green-500 hover:bg-green-100 dark:hover:bg-green-900/20 cursor-pointer"
+                      : "bg-white dark:bg-[#18181b] border-gray-200 dark:border-gray-800 hover:border-[#ffcc02] dark:hover:border-[#ffcc02] cursor-pointer"
+                  }`}
+                  onClick={() => {
+                    if (!isLocked) launchLesson(lesson);
+                  }}
+                >
+                  <div className="flex flex-col h-full justify-between relative z-10">
+                    <div>
+                      <div className="flex justify-between items-start mb-3">
+                        <span className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest flex items-center">
+                          Lição {i + 1}
+                          {isLocked && (
+                            <Icon
+                              fafa="lock"
+                              width={10}
+                              className="ml-2 text-gray-400 dark:text-gray-500"
+                            />
+                          )}
+                        </span>
+                        {isCompleted && (
+                          <span className="bg-green-500 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded flex items-center">
+                            <Icon fafa="check" width={10} className="mr-1" />
+                            Concluída
+                          </span>
+                        )}
+                      </div>
+                      <h3
+                        className={`font-bold text-lg mb-2 ${
+                          isCompleted
+                            ? "text-green-700 dark:text-green-400"
+                            : isLocked
+                            ? "text-gray-500 dark:text-gray-600"
+                            : "text-gray-800 dark:text-gray-200"
+                        }`}
+                      >
+                        {lesson.title}
+                      </h3>
+                      <div className="flex items-center justify-between gap-3 text-[11px] font-bold uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
+                        <span>8 variações</span>
+                        <span>Ativa {activeVariantIndex + 1}/8</span>
+                      </div>
+                    </div>
+
+                    <div
+                      className={`mt-4 text-sm font-mono truncate p-2 rounded ${
+                        isCompleted
+                          ? "bg-green-100/50 dark:bg-green-900/30 text-green-800 dark:text-green-300"
+                          : isLocked
+                          ? "bg-gray-200/50 dark:bg-gray-800/50 text-gray-400 dark:text-gray-600"
+                          : "bg-gray-100 dark:bg-[#202024] text-gray-500 dark:text-gray-400"
+                      }`}
+                    >
+                      {previewText}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {view.startsWith("games") &&
+        view !== "games-pvp" &&
+        view !== "games-pvp-scores" && (
+          <TypingSpaceGame
             user={user}
             studentType="normal"
-            gameTab={view}
-            rankingTab={rankingTab}
             maxLives={maxGameLives}
             passMinWpm={gamePassMinWpm}
             passMinAccuracy={gamePassMinAccuracy}
-            isProfessor={isStaff}
-            turmas={turmas}
-            selectedTurmaId={selectedTurmaId}
-            onSelectedTurmaChange={setSelectedTurmaId}
             gameSpeed={gameSpeed}
             gameSpeedBoost={gameSpeedBoost}
-            pendingChallenge={wnapp.payload?.challenge}
+            isProfessor={isStaff}
+            turmaId={user?.turmaId || user?.turma_id}
+            turmas={turmas}
+            gameTab={view}
+            rankingTab={rankingTab}
           />
         )}
 
-        {view === "lesson" && currentLesson && (
-          <div
-            className={`absolute inset-0 flex flex-col p-2 md:p-4 overflow-hidden bg-white dark:bg-[#121212] transition-[transform,box-shadow] duration-200 ${
-              penaltyFlash
-                ? "typingPenaltyShake shadow-[inset_0_0_0_2px_rgba(239,68,68,0.35)]"
-                : ""
-            }`}
-          >
-            <input
-              type="text"
-              ref={inputRef}
-              className="opacity-0 absolute w-[1px] h-[1px] -z-10"
-              onBlur={handleBlur}
-              onBeforeInput={registerDeadKeyMark}
-              onKeyDown={registerDeadKeyMark}
-              onChange={handleInputChange}
-              value={userInput}
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="off"
-              spellCheck="false"
-              autoFocus
-            />
+      {(view === "games-pvp" || view === "games-pvp-scores") && (
+        <TypingPvpGame
+          user={user}
+          studentType="normal"
+          gameTab={view}
+          rankingTab={rankingTab}
+          maxLives={maxGameLives}
+          passMinWpm={gamePassMinWpm}
+          passMinAccuracy={gamePassMinAccuracy}
+          isProfessor={isStaff}
+          turmas={turmas}
+          selectedTurmaId={selectedTurmaId}
+          onSelectedTurmaChange={setSelectedTurmaId}
+          gameSpeed={gameSpeed}
+          gameSpeedBoost={gameSpeedBoost}
+          pendingChallenge={wnapp.payload?.challenge}
+        />
+      )}
 
-            <div className="w-full max-w-6xl mx-auto border-b border-gray-100 dark:border-gray-800 pb-4">
-              <div className="flex justify-between items-center">
-                <div className="text-left w-[250px] flex gap-4 items-center">
-                  <button
-                    onClick={() => setView("menu")}
-                    className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
-                    title="Voltar ao Menu"
+      {view === "lesson" && currentLesson && (
+        <div
+          className={`absolute inset-0 flex flex-col p-2 md:p-4 overflow-hidden bg-white dark:bg-[#121212] transition-[transform,box-shadow] duration-200 ${
+            penaltyFlash
+              ? "typingPenaltyShake shadow-[inset_0_0_0_2px_rgba(239,68,68,0.35)]"
+              : ""
+          }`}
+        >
+          <input
+            type="text"
+            ref={inputRef}
+            className="opacity-0 absolute w-[1px] h-[1px] -z-10"
+            onBlur={handleBlur}
+            onBeforeInput={registerDeadKeyMark}
+            onKeyDown={registerDeadKeyMark}
+            onChange={handleInputChange}
+            value={userInput}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck="false"
+            autoFocus
+          />
+
+          <div className="w-full max-w-6xl mx-auto border-b border-gray-100 dark:border-gray-800 pb-4">
+            <div className="flex justify-between items-center">
+              <div className="text-left w-[250px] flex gap-4 items-center">
+                <button
+                  onClick={() => setView("menu")}
+                  className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
+                  title="Voltar ao Menu"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                  </button>
-                  <div>
-                    <div className="text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest text-[10px]">
-                      Lição em andamento
-                    </div>
-                    <div className="text-gray-900 dark:text-white font-bold text-lg flex items-center gap-3">
-                      {currentLesson.title}
-                      <span className="text-xs font-black text-[#ffcc02] bg-amber-100/20 border border-amber-500/30 px-2 py-0.5 rounded whitespace-nowrap">
-                        Var {currentLesson.variantIndex + 1}/{currentLesson.variantCount}
-                      </span>
-                    </div>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                    />
+                  </svg>
+                </button>
+                <div>
+                  <div className="text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest text-[10px]">
+                    Lição em andamento
                   </div>
-                </div>
-
-                <div className="text-center flex justify-center gap-4 flex-grow">
-                  <div className="flex gap-4 md:gap-6 items-center">
-                    <div className="flex flex-col items-center">
-                      <span className="text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400 font-mono leading-none">{formatTime(elapsedMs)}</span>
-                      <span className="text-[9px] md:text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mt-1">Tempo</span>
-                    </div>
-                    <div className="w-px h-6 bg-gray-200 dark:bg-gray-800"></div>
-                    <div className="flex flex-col items-center">
-                      <span className={`text-lg md:text-xl font-bold font-mono leading-none ${displayWpm >= passMinWpm ? "text-orange-600 dark:text-orange-400" : "text-red-500 dark:text-red-400"}`}>{displayWpm}</span>
-                      <span className="text-[9px] md:text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mt-1">PPM</span>
-                    </div>
-                    <div className="w-px h-6 bg-gray-200 dark:bg-gray-800"></div>
-                    <div className="flex flex-col items-center">
-                      <span className={`text-lg md:text-xl font-bold font-mono leading-none ${accuracy >= passMinAccuracy ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}>{accuracy}%</span>
-                      <span className="text-[9px] md:text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mt-1">Precisão</span>
-                    </div>
-                    <div className="w-px h-6 bg-gray-200 dark:bg-gray-800 hidden sm:block"></div>
-                    <div className="flex flex-col items-center hidden sm:flex">
-                      <span className="text-lg md:text-xl font-bold text-purple-600 dark:text-purple-400 font-mono leading-none">{userInput.length}<span className="text-sm opacity-50">/{currentLesson.text.length}</span></span>
-                      <span className="text-[9px] md:text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mt-1">Progresso</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="w-[250px] flex justify-end">
-                  {isStaff && (
-                    <span className="text-[10px] text-purple-500 font-bold uppercase border border-purple-500/30 px-2 py-1 rounded">
-                      {isProfessor ? "Modo Professor" : "Modo Equipe"}
+                  <div className="text-gray-900 dark:text-white font-bold text-lg flex items-center gap-3">
+                    {currentLesson.title}
+                    <span className="text-xs font-black text-[#ffcc02] bg-amber-100/20 border border-amber-500/30 px-2 py-0.5 rounded whitespace-nowrap">
+                      Var {currentLesson.variantIndex + 1}/
+                      {currentLesson.variantCount}
                     </span>
-                  )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex-1 min-h-0 flex flex-col items-center justify-center w-full max-w-5xl mx-auto px-4 relative">
-              <div className="h-8 md:h-12 flex items-end justify-center pointer-events-none">
-                {feedbackPulse && !finished && (
-                  <div key={feedbackPulse.id} className="typingFeedbackPop">
-                    <div
-                      className={`rounded-[1.8rem] px-8 py-5 text-center shadow-[0_24px_70px_rgba(17,24,39,0.28)] ${
-                        feedbackPulse.type === "reward"
-                          ? "bg-[#ffcc02] text-black"
-                          : "bg-red-500 text-white"
+              <div className="text-center flex justify-center gap-4 flex-grow">
+                <div className="flex gap-4 md:gap-6 items-center">
+                  <div className="flex flex-col items-center">
+                    <span className="text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400 font-mono leading-none">
+                      {formatTime(elapsedMs)}
+                    </span>
+                    <span className="text-[9px] md:text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mt-1">
+                      Tempo
+                    </span>
+                  </div>
+                  <div className="w-px h-6 bg-gray-200 dark:bg-gray-800"></div>
+                  <div className="flex flex-col items-center">
+                    <span
+                      className={`text-lg md:text-xl font-bold font-mono leading-none ${
+                        displayWpm >= passMinWpm
+                          ? "text-orange-600 dark:text-orange-400"
+                          : "text-red-500 dark:text-red-400"
                       }`}
                     >
-                      <div className="text-sm font-black uppercase tracking-[0.28em]">
-                        {feedbackPulse.message}
-                      </div>
-                      {feedbackPulse.type === "reward" &&
-                      feedbackPulse.combo ? (
-                        <div className="mt-2 text-4xl font-black leading-none">
-                          x{feedbackPulse.combo}
-                        </div>
-                      ) : null}
-                    </div>
+                      {displayWpm}
+                    </span>
+                    <span className="text-[9px] md:text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mt-1">
+                      PPM
+                    </span>
                   </div>
-                )}
+                  <div className="w-px h-6 bg-gray-200 dark:bg-gray-800"></div>
+                  <div className="flex flex-col items-center">
+                    <span
+                      className={`text-lg md:text-xl font-bold font-mono leading-none ${
+                        accuracy >= passMinAccuracy
+                          ? "text-green-600 dark:text-green-400"
+                          : "text-red-500 dark:text-red-400"
+                      }`}
+                    >
+                      {accuracy}%
+                    </span>
+                    <span className="text-[9px] md:text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mt-1">
+                      Precisão
+                    </span>
+                  </div>
+                  <div className="w-px h-6 bg-gray-200 dark:bg-gray-800 hidden sm:block"></div>
+                  <div className="flex flex-col items-center hidden sm:flex">
+                    <span className="text-lg md:text-xl font-bold text-purple-600 dark:text-purple-400 font-mono leading-none">
+                      {userInput.length}
+                      <span className="text-sm opacity-50">
+                        /{currentLesson.text.length}
+                      </span>
+                    </span>
+                    <span className="text-[9px] md:text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mt-1">
+                      Progresso
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              {focusLost && !finished && (
-                <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/80 dark:bg-[#121212]/80 cursor-pointer">
-                  <div className="bg-gray-100 dark:bg-gray-800 px-6 py-3 rounded-full text-gray-600 dark:text-gray-300 font-bold flex items-center shadow-sm">
-                    <Icon fafa="mouse-pointer" width={14} className="mr-3" />
-                    Clique aqui para continuar a lição
+              <div className="w-[250px] flex justify-end">
+                {isStaff && (
+                  <span className="text-[10px] text-purple-500 font-bold uppercase border border-purple-500/30 px-2 py-1 rounded">
+                    {isProfessor ? "Modo Professor" : "Modo Equipe"}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1 min-h-0 flex flex-col items-center justify-center w-full max-w-5xl mx-auto px-4 relative">
+            <div className="h-8 md:h-12 flex items-end justify-center pointer-events-none">
+              {feedbackPulse && !finished && (
+                <div key={feedbackPulse.id} className="typingFeedbackPop">
+                  <div
+                    className={`rounded-[1.8rem] px-8 py-5 text-center shadow-[0_24px_70px_rgba(17,24,39,0.28)] ${
+                      feedbackPulse.type === "reward"
+                        ? "bg-[#ffcc02] text-black"
+                        : "bg-red-500 text-white"
+                    }`}
+                  >
+                    <div className="text-sm font-black uppercase tracking-[0.28em]">
+                      {feedbackPulse.message}
+                    </div>
+                    {feedbackPulse.type === "reward" && feedbackPulse.combo ? (
+                      <div className="mt-2 text-4xl font-black leading-none">
+                        x{feedbackPulse.combo}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               )}
+            </div>
 
-              <div
-                className={`w-full text-center flex-1 min-h-0 flex flex-col justify-center transition-all duration-300 ${
-                  focusLost && !finished ? "blur-sm opacity-50" : ""
-                }`}
-              >
-                <div className="inline-block rounded-[2rem] px-4 py-4 md:px-6 md:py-6 border border-gray-200 dark:border-gray-800 bg-gradient-to-br from-white via-white to-amber-50/50 dark:from-[#151515] dark:via-[#151515] dark:to-[#241d05] shadow-[0_18px_60px_rgba(17,24,39,0.08)] overflow-y-auto">
-                  <div className="text-[1.8rem] md:text-[2.2rem] lg:text-[2.6rem] leading-[1.4] font-mono tracking-tight whitespace-pre-wrap select-none inline-block text-center">
-                    {renderText()}
-                  </div>
+            {focusLost && !finished && (
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/80 dark:bg-[#121212]/80 cursor-pointer">
+                <div className="bg-gray-100 dark:bg-gray-800 px-6 py-3 rounded-full text-gray-600 dark:text-gray-300 font-bold flex items-center shadow-sm">
+                  <Icon fafa="mouse-pointer" width={14} className="mr-3" />
+                  Clique aqui para continuar a lição
+                </div>
+              </div>
+            )}
+
+            <div
+              className={`w-full text-center flex-1 min-h-0 flex flex-col justify-center transition-all duration-300 ${
+                focusLost && !finished ? "blur-sm opacity-50" : ""
+              }`}
+            >
+              <div className="inline-block rounded-[2rem] px-4 py-4 md:px-6 md:py-6 border border-gray-200 dark:border-gray-800 bg-gradient-to-br from-white via-white to-amber-50/50 dark:from-[#151515] dark:via-[#151515] dark:to-[#241d05] shadow-[0_18px_60px_rgba(17,24,39,0.08)] overflow-y-auto">
+                <div className="text-[1.8rem] md:text-[2.2rem] lg:text-[2.6rem] leading-[1.4] font-mono tracking-tight whitespace-pre-wrap select-none inline-block text-center">
+                  {renderText()}
                 </div>
               </div>
             </div>
+          </div>
 
-            <TypingKeyboard
-              text={currentLesson.text}
-              userInput={userInput}
-              pendingDeadKey={pendingDeadKey}
-              finished={finished}
-            />
+          <TypingKeyboard
+            text={currentLesson.text}
+            userInput={userInput}
+            pendingDeadKey={pendingDeadKey}
+            finished={finished}
+          />
 
-            {finished && (
+          {finished && (
+            <div
+              className={`typingResultOverlay absolute inset-0 z-30 flex items-center justify-center p-4 ${
+                passed ? "isPass" : "isFail"
+              }`}
+            >
               <div
-                className={`typingResultOverlay absolute inset-0 z-30 flex items-center justify-center p-4 ${
+                className={`typingResultCard relative max-w-md w-full overflow-hidden rounded-2xl border p-8 text-center ${
                   passed ? "isPass" : "isFail"
                 }`}
               >
                 <div
-                  className={`typingResultCard relative max-w-md w-full overflow-hidden rounded-2xl border p-8 text-center ${
+                  className={`typingResultIcon flex h-16 w-16 items-center justify-center rounded-full mx-auto mb-5 ${
                     passed ? "isPass" : "isFail"
                   }`}
                 >
-                  <div
-                    className={`typingResultIcon flex h-16 w-16 items-center justify-center rounded-full mx-auto mb-5 ${
-                      passed ? "isPass" : "isFail"
-                    }`}
-                  >
-                    <Icon fafa={passed ? "check" : "times"} width={28} />
-                  </div>
+                  <Icon fafa={passed ? "check" : "times"} width={28} />
+                </div>
 
-                  <h3 className="text-2xl font-black text-gray-950 dark:text-white mb-2">
-                    {passed ? "Lição Concluída!" : "Meta Não Atingida"}
-                  </h3>
+                <h3 className="text-2xl font-black text-gray-950 dark:text-white mb-2">
+                  {passed ? "Lição Concluída!" : "Meta Não Atingida"}
+                </h3>
 
-                  <div className="typingLessonResultStats">
-                    <div className="typingLessonResultStat">
-                      <span className="typingLessonResultStatLabel">
-                        Velocidade
-                      </span>
-                      <div
-                        className={`typingLessonResultStatValue ${
-                          passed ? "text-green-500" : "text-red-500"
-                        }`}
-                      >
-                        {wpm} <small>PPM</small>
-                      </div>
-                      {!passed && wpmGap > 0 && (
-                        <div className="typingLessonResultStatGap">
-                          Faltam {wpmGap} PPM
-                        </div>
-                      )}
+                <div className="typingLessonResultStats">
+                  <div className="typingLessonResultStat">
+                    <span className="typingLessonResultStatLabel">
+                      Velocidade
+                    </span>
+                    <div
+                      className={`typingLessonResultStatValue ${
+                        passed ? "text-green-500" : "text-red-500"
+                      }`}
+                    >
+                      {wpm} <small>PPM</small>
                     </div>
-                    <div className="typingLessonResultStat">
-                      <span className="typingLessonResultStatLabel">
-                        Precisão
-                      </span>
-                      <div
-                        className={`typingLessonResultStatValue ${
-                          passed ? "text-green-500" : "text-red-500"
-                        }`}
-                      >
-                        {accuracy}% <small>%</small>
+                    {!passed && wpmGap > 0 && (
+                      <div className="typingLessonResultStatGap">
+                        Faltam {wpmGap} PPM
                       </div>
-                      {!passed && accuracyGap > 0 && (
-                        <div className="typingLessonResultStatGap">
-                          Faltam {accuracyGap}%
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </div>
+                  <div className="typingLessonResultStat">
+                    <span className="typingLessonResultStatLabel">
+                      Precisão
+                    </span>
+                    <div
+                      className={`typingLessonResultStatValue ${
+                        passed ? "text-green-500" : "text-red-500"
+                      }`}
+                    >
+                      {accuracy}% <small>%</small>
+                    </div>
+                    {!passed && accuracyGap > 0 && (
+                      <div className="typingLessonResultStatGap">
+                        Faltam {accuracyGap}%
+                      </div>
+                    )}
+                  </div>
+                </div>
 
-                  <button
-                    className={`w-full py-3 font-black rounded-lg transition-all ${
-                      passed
-                        ? "bg-green-500 text-white hover:bg-green-600"
-                        : "bg-[#ffcc02] text-black hover:brightness-110"
-                    }`}
-                    onClick={handleResultPrimaryAction}
-                  >
-                    {passed
-                      ? nextLesson
-                        ? "Próxima Lição"
-                        : "Concluir"
-                      : "Tentar Novamente"}
-                  </button>
+                <button
+                  className={`w-full py-3 font-black rounded-lg transition-all ${
+                    passed
+                      ? "bg-green-500 text-white hover:bg-green-600"
+                      : "bg-[#ffcc02] text-black hover:brightness-110"
+                  }`}
+                  onClick={handleResultPrimaryAction}
+                >
+                  {passed
+                    ? nextLesson
+                      ? "Próxima Lição"
+                      : "Concluir"
+                    : "Tentar Novamente"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {view === "config" && isProfessor && (
+        <div className="max-w-4xl mx-auto p-6 md:p-10 animate-fade-in pb-20">
+          <div className="mb-8 border-b border-gray-200 dark:border-gray-800 pb-6">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+              Configurações de Digitação
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 font-medium">
+              Ajustes disponíveis somente para professor.
+            </p>
+          </div>
+
+          <TypingDifficultyAssignmentPanel
+            studentType="normal"
+            turmas={turmas}
+            enabled={view === "config" && isProfessor}
+          />
+
+          <div className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm mb-4">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+              Configurações do game
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-5">
+              Metas e vidas usadas somente no game Defesa Orbital.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                  PPM mínimo
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Velocidade mínima para entrar no ranking do game.
+                </p>
+                <div className="mt-4 flex items-center gap-4">
+                  <input
+                    type="range"
+                    min="10"
+                    max="120"
+                    value={typingGameSettings.draftSettings.passMinWpm}
+                    onChange={(event) =>
+                      typingGameSettings.updateDraftSettings(
+                        "passMinWpm",
+                        event.target.value
+                      )
+                    }
+                    className="w-full"
+                  />
+                  <input
+                    type="number"
+                    min="10"
+                    max="120"
+                    value={typingGameSettings.draftSettings.passMinWpm}
+                    onChange={(event) =>
+                      typingGameSettings.updateDraftSettings(
+                        "passMinWpm",
+                        event.target.value
+                      )
+                    }
+                    className="w-20 rounded-lg border border-gray-300 bg-white px-3 py-2 text-center font-mono font-black text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                  />
                 </div>
               </div>
-            )}
-          </div>
-        )}
 
-        {view === "config" && isProfessor && (
-          <div className="max-w-4xl mx-auto p-6 md:p-10 animate-fade-in pb-20">
-            <div className="mb-8 border-b border-gray-200 dark:border-gray-800 pb-6">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
-                Configurações de Digitação
-              </h1>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 font-medium">
-                Ajustes disponíveis somente para professor.
-              </p>
-            </div>
-
-            <TypingDifficultyAssignmentPanel
-              studentType="normal"
-              turmas={turmas}
-              enabled={view === "config" && isProfessor}
-            />
-
-            <div className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm mb-4">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                Configurações do game
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-5">
-                Metas e vidas usadas somente no game Defesa Orbital.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white">
-                    PPM mínimo
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Velocidade mínima para entrar no ranking do game.
-                  </p>
-                  <div className="mt-4 flex items-center gap-4">
-                    <input
-                      type="range"
-                      min="10"
-                      max="120"
-                      value={typingGameSettings.draftSettings.passMinWpm}
-                      onChange={(event) =>
-                        typingGameSettings.updateDraftSettings(
-                          "passMinWpm",
-                          event.target.value
-                        )
-                      }
-                      className="w-full"
-                    />
+              <div>
+                <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                  Precisão mínima
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Percentual mínimo para entrar no ranking do game.
+                </p>
+                <div className="mt-4 flex items-center gap-4">
+                  <input
+                    type="range"
+                    min="50"
+                    max="100"
+                    value={typingGameSettings.draftSettings.passMinAccuracy}
+                    onChange={(event) =>
+                      typingGameSettings.updateDraftSettings(
+                        "passMinAccuracy",
+                        event.target.value
+                      )
+                    }
+                    className="w-full"
+                  />
+                  <div className="flex items-center rounded-lg border border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-900">
                     <input
                       type="number"
-                      min="10"
-                      max="120"
-                      value={typingGameSettings.draftSettings.passMinWpm}
-                      onChange={(event) =>
-                        typingGameSettings.updateDraftSettings(
-                          "passMinWpm",
-                          event.target.value
-                        )
-                      }
-                      className="w-20 rounded-lg border border-gray-300 bg-white px-3 py-2 text-center font-mono font-black text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white">
-                    Precisão mínima
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Percentual mínimo para entrar no ranking do game.
-                  </p>
-                  <div className="mt-4 flex items-center gap-4">
-                    <input
-                      type="range"
                       min="50"
                       max="100"
                       value={typingGameSettings.draftSettings.passMinAccuracy}
@@ -1359,74 +1469,77 @@ export const TypingApp = ({ standalone = false }) => {
                           event.target.value
                         )
                       }
-                      className="w-full"
+                      className="w-20 rounded-l-lg bg-transparent px-3 py-2 text-center font-mono font-black text-gray-900 dark:text-white"
                     />
-                    <div className="flex items-center rounded-lg border border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-900">
-                      <input
-                        type="number"
-                        min="50"
-                        max="100"
-                        value={typingGameSettings.draftSettings.passMinAccuracy}
-                        onChange={(event) =>
-                          typingGameSettings.updateDraftSettings(
-                            "passMinAccuracy",
-                            event.target.value
-                          )
-                        }
-                        className="w-20 rounded-l-lg bg-transparent px-3 py-2 text-center font-mono font-black text-gray-900 dark:text-white"
-                      />
-                      <span className="pr-3 font-black text-gray-500 dark:text-gray-400">%</span>
-                    </div>
+                    <span className="pr-3 font-black text-gray-500 dark:text-gray-400">
+                      %
+                    </span>
                   </div>
                 </div>
+              </div>
 
-                <div>
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white">
-                    Vidas
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Quantidade de erros permitidos no game.
-                  </p>
-                  <div className="mt-4 flex items-center gap-4">
-                    <input
-                      type="range"
-                      min="3"
-                      max="10"
-                      value={typingGameSettings.draftSettings.maxLives}
-                      onChange={(event) =>
-                        typingGameSettings.updateDraftSettings(
-                          "maxLives",
-                          event.target.value
-                        )
-                      }
-                      className="w-full"
-                    />
+              <div>
+                <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                  Vidas
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Quantidade de erros permitidos no game.
+                </p>
+                <div className="mt-4 flex items-center gap-4">
+                  <input
+                    type="range"
+                    min="3"
+                    max="10"
+                    value={typingGameSettings.draftSettings.maxLives}
+                    onChange={(event) =>
+                      typingGameSettings.updateDraftSettings(
+                        "maxLives",
+                        event.target.value
+                      )
+                    }
+                    className="w-full"
+                  />
+                  <input
+                    type="number"
+                    min="3"
+                    max="10"
+                    value={typingGameSettings.draftSettings.maxLives}
+                    onChange={(event) =>
+                      typingGameSettings.updateDraftSettings(
+                        "maxLives",
+                        event.target.value
+                      )
+                    }
+                    className="w-20 rounded-lg border border-gray-300 bg-white px-3 py-2 text-center font-mono font-black text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-base font-black text-gray-900 dark:text-white">
+                  Velocidade das palavras
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Percentual da velocidade inicial de descida no game.
+                </p>
+                <div className="mt-4 flex items-center gap-4">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={typingGameSettings.draftSettings.gameSpeed}
+                    onChange={(event) =>
+                      typingGameSettings.updateDraftSettings(
+                        "gameSpeed",
+                        event.target.value
+                      )
+                    }
+                    className="w-full"
+                  />
+                  <div className="flex items-center rounded-lg border border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-900">
                     <input
                       type="number"
-                      min="3"
-                      max="10"
-                      value={typingGameSettings.draftSettings.maxLives}
-                      onChange={(event) =>
-                        typingGameSettings.updateDraftSettings(
-                          "maxLives",
-                          event.target.value
-                        )
-                      }
-                      className="w-20 rounded-lg border border-gray-300 bg-white px-3 py-2 text-center font-mono font-black text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-base font-black text-gray-900 dark:text-white">
-                    Velocidade das palavras
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Percentual da velocidade inicial de descida no game.
-                  </p>
-                  <div className="mt-4 flex items-center gap-4">
-                    <input
-                      type="range"
                       min="0"
                       max="100"
                       step="1"
@@ -1437,38 +1550,40 @@ export const TypingApp = ({ standalone = false }) => {
                           event.target.value
                         )
                       }
-                      className="w-full"
+                      className="w-20 rounded-l-lg bg-transparent px-3 py-2 text-center font-mono font-black text-gray-900 dark:text-white"
                     />
-                    <div className="flex items-center rounded-lg border border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-900">
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="1"
-                        value={typingGameSettings.draftSettings.gameSpeed}
-                        onChange={(event) =>
-                          typingGameSettings.updateDraftSettings(
-                            "gameSpeed",
-                            event.target.value
-                          )
-                        }
-                        className="w-20 rounded-l-lg bg-transparent px-3 py-2 text-center font-mono font-black text-gray-900 dark:text-white"
-                      />
-                      <span className="pr-3 font-black text-gray-500 dark:text-gray-400">%</span>
-                    </div>
+                    <span className="pr-3 font-black text-gray-500 dark:text-gray-400">
+                      %
+                    </span>
                   </div>
                 </div>
+              </div>
 
-                <div>
-                  <h3 className="text-base font-black text-gray-900 dark:text-white">
-                    Aceleração
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Percentual a mais por palavra destruída no game.
-                  </p>
-                  <div className="mt-4 flex items-center gap-4">
+              <div>
+                <h3 className="text-base font-black text-gray-900 dark:text-white">
+                  Aceleração
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Percentual a mais por palavra destruída no game.
+                </p>
+                <div className="mt-4 flex items-center gap-4">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={typingGameSettings.draftSettings.gameSpeedBoost}
+                    onChange={(event) =>
+                      typingGameSettings.updateDraftSettings(
+                        "gameSpeedBoost",
+                        event.target.value
+                      )
+                    }
+                    className="w-full"
+                  />
+                  <div className="flex items-center rounded-lg border border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-900">
                     <input
-                      type="range"
+                      type="number"
                       min="0"
                       max="100"
                       step="1"
@@ -1479,179 +1594,275 @@ export const TypingApp = ({ standalone = false }) => {
                           event.target.value
                         )
                       }
-                      className="w-full"
+                      className="w-20 rounded-l-lg bg-transparent px-3 py-2 text-center font-mono font-black text-gray-900 dark:text-white"
                     />
-                    <div className="flex items-center rounded-lg border border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-900">
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="1"
-                        value={typingGameSettings.draftSettings.gameSpeedBoost}
-                        onChange={(event) =>
-                          typingGameSettings.updateDraftSettings(
-                            "gameSpeedBoost",
-                            event.target.value
-                          )
-                        }
-                        className="w-20 rounded-l-lg bg-transparent px-3 py-2 text-center font-mono font-black text-gray-900 dark:text-white"
-                      />
-                      <span className="pr-3 font-black text-gray-500 dark:text-gray-400">%</span>
-                    </div>
+                    <span className="pr-3 font-black text-gray-500 dark:text-gray-400">
+                      %
+                    </span>
                   </div>
                 </div>
               </div>
-              <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-t border-gray-100 pt-5 dark:border-gray-800">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
-                  {typingGameSettings.loading
-                    ? "Carregando configuração salva do game..."
-                    : `Meta ativa do game: ${gamePassMinWpm} PPM, ${gamePassMinAccuracy}% de precisão, ${maxGameLives} vidas, ${gameSpeed}% de velocidade e ${gameSpeedBoost}% de aceleração.`}
-                </p>
-                <button
-                  type="button"
-                  disabled={
-                    typingGameSettings.saving || !typingGameSettings.dirty
-                  }
-                  onClick={typingGameSettings.saveDraftSettings}
-                  className="px-5 py-3 rounded-lg bg-[#ffcc02] text-black font-black hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {typingGameSettings.saving
-                    ? "Salvando..."
-                    : "Salvar configurações do game"}
-                </button>
-              </div>
-              {typingGameSettings.status && (
-                <div
-                  className={`mt-4 rounded-lg px-4 py-3 text-sm font-bold ${
-                    typingGameSettings.status.type === "success"
-                      ? "bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800"
-                      : "bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800"
-                  }`}
-                >
-                  {typingGameSettings.status.text}
-                </div>
-              )}
             </div>
-
-            <form
-              className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm"
-              onSubmit={handleResetTurmaRanking}
-            >
-              <div className="flex flex-col md:flex-row md:items-end gap-4">
-                <div className="flex-1">
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                    Zerar ranking de turma
-                  </h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Selecione uma turma Normal para remover apenas as pontuações
-                    vinculadas a ela.
-                  </p>
-                  <select
-                    value={selectedResetTurmaId}
-                    onChange={(event) => {
-                      setSelectedResetTurmaId(event.target.value);
-                      setResetRankingStatus(null);
-                    }}
-                    className="mt-4 w-full max-w-sm rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-black text-gray-900 outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                  >
-                    {turmas.length === 0 ? (
-                      <option value="">Nenhuma turma Normal cadastrada</option>
-                    ) : (
-                      turmas.map((turma) => (
-                        <option key={turma.id} value={turma.id}>
-                          {turma.nome} ({turma.code})
-                        </option>
-                      ))
-                    )}
-                  </select>
-                </div>
-                <button
-                  type="submit"
-                  disabled={resettingRanking || !selectedResetTurmaId}
-                  className="px-5 py-3 rounded-lg bg-red-600 text-white font-black hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {resettingRanking ? "Zerando..." : "Zerar ranking"}
-                </button>
+            <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-t border-gray-100 pt-5 dark:border-gray-800">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
+                {typingGameSettings.loading
+                  ? "Carregando configuração salva do game..."
+                  : `Meta ativa do game: ${gamePassMinWpm} PPM, ${gamePassMinAccuracy}% de precisão, ${maxGameLives} vidas, ${gameSpeed}% de velocidade e ${gameSpeedBoost}% de aceleração.`}
+              </p>
+              <button
+                type="button"
+                disabled={
+                  typingGameSettings.saving || !typingGameSettings.dirty
+                }
+                onClick={typingGameSettings.saveDraftSettings}
+                className="px-5 py-3 rounded-lg bg-[#ffcc02] text-black font-black hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {typingGameSettings.saving
+                  ? "Salvando..."
+                  : "Salvar configurações do game"}
+              </button>
+            </div>
+            {typingGameSettings.status && (
+              <div
+                className={`mt-4 rounded-lg px-4 py-3 text-sm font-bold ${
+                  typingGameSettings.status.type === "success"
+                    ? "bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800"
+                    : "bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800"
+                }`}
+              >
+                {typingGameSettings.status.text}
               </div>
-              {resetRankingStatus && (
-                <div
-                  className={`mt-4 rounded-lg px-4 py-3 text-sm font-bold ${
-                    resetRankingStatus.type === "success"
-                      ? "bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800"
-                      : "bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800"
-                  }`}
-                >
-                  {resetRankingStatus.text}
-                </div>
-              )}
-            </form>
-
-            <form
-              className="mt-4 bg-white dark:bg-[#18181b] border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm"
-              onSubmit={handleResetGameTurmaRanking}
-            >
-              <div className="flex flex-col md:flex-row md:items-end gap-4">
-                <div className="flex-1">
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                    Zerar ranking de turma do game
-                  </h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Selecione uma turma Normal para remover apenas as pontuações
-                    do game vinculadas a ela.
-                  </p>
-                  <select
-                    value={selectedGameResetTurmaId}
-                    onChange={(event) => {
-                      setSelectedGameResetTurmaId(event.target.value);
-                      setResetGameRankingStatus(null);
-                    }}
-                    className="mt-4 w-full max-w-sm rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-black text-gray-900 outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                  >
-                    {turmas.length === 0 ? (
-                      <option value="">Nenhuma turma Normal cadastrada</option>
-                    ) : (
-                      turmas.map((turma) => (
-                        <option key={turma.id} value={turma.id}>
-                          {turma.nome} ({turma.code})
-                        </option>
-                      ))
-                    )}
-                  </select>
-                </div>
-                <button
-                  type="submit"
-                  disabled={resettingGameRanking || !selectedGameResetTurmaId}
-                  className="px-5 py-3 rounded-lg bg-red-600 text-white font-black hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {resettingGameRanking
-                    ? "Zerando..."
-                    : "Zerar ranking do game"}
-                </button>
-              </div>
-              {resetGameRankingStatus && (
-                <div
-                  className={`mt-4 rounded-lg px-4 py-3 text-sm font-bold ${
-                    resetGameRankingStatus.type === "success"
-                      ? "bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800"
-                      : "bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800"
-                  }`}
-                >
-                  {resetGameRankingStatus.text}
-                </div>
-              )}
-            </form>
+            )}
           </div>
-        )}
 
-        {view === "ranking" && (
-          <div className="max-w-4xl mx-auto p-6 md:p-10 animate-fade-in pb-20">
-            {loadingRanking ? (
-              <div className="flex justify-center items-center min-h-[280px] text-[#ffcc02]">
-                <Icon fafa="spinner" width={32} className="animate-spin" />
+          <TypingLessonResetSection
+            turmas={turmas}
+            onResetSuccess={() => {
+              fetchRanking();
+              api
+                .getTypingProgress()
+                .then((data) => {
+                  if (data && Array.isArray(data.completedLessons)) {
+                    setCompletedLessons(data.completedLessons);
+                    localStorage.setItem(
+                      `completedTypingLessons_${user.username}`,
+                      JSON.stringify(data.completedLessons)
+                    );
+                  }
+                })
+                .catch(() => {});
+            }}
+          />
+
+          <form
+            className="mt-4 bg-white dark:bg-[#18181b] border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm"
+            onSubmit={handleResetTurmaRanking}
+          >
+            <div className="flex flex-col md:flex-row md:items-end gap-4">
+              <div className="flex-1">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                  Zerar ranking de turma
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Selecione uma turma Normal para remover apenas as pontuações
+                  vinculadas a ela.
+                </p>
+                <select
+                  value={selectedResetTurmaId}
+                  onChange={(event) => {
+                    setSelectedResetTurmaId(event.target.value);
+                    setResetRankingStatus(null);
+                  }}
+                  className="mt-4 w-full max-w-sm rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-black text-gray-900 outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                >
+                  {turmas.length === 0 ? (
+                    <option value="">Nenhuma turma Normal cadastrada</option>
+                  ) : (
+                    turmas.map((turma) => (
+                      <option key={turma.id} value={turma.id}>
+                        {turma.nome} ({turma.code})
+                      </option>
+                    ))
+                  )}
+                </select>
               </div>
-            ) : (
-              <div className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
-                {rankingTab === "global" ? (
+              <button
+                type="submit"
+                disabled={resettingRanking || !selectedResetTurmaId}
+                className="px-5 py-3 rounded-lg bg-red-600 text-white font-black hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {resettingRanking ? "Zerando..." : "Zerar ranking"}
+              </button>
+            </div>
+            {resetRankingStatus && (
+              <div
+                className={`mt-4 rounded-lg px-4 py-3 text-sm font-bold ${
+                  resetRankingStatus.type === "success"
+                    ? "bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800"
+                    : "bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800"
+                }`}
+              >
+                {resetRankingStatus.text}
+              </div>
+            )}
+          </form>
+
+          <form
+            className="mt-4 bg-white dark:bg-[#18181b] border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm"
+            onSubmit={handleResetGameTurmaRanking}
+          >
+            <div className="flex flex-col md:flex-row md:items-end gap-4">
+              <div className="flex-1">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                  Zerar ranking de turma do game
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Selecione uma turma Normal para remover apenas as pontuações
+                  do game vinculadas a ela.
+                </p>
+                <select
+                  value={selectedGameResetTurmaId}
+                  onChange={(event) => {
+                    setSelectedGameResetTurmaId(event.target.value);
+                    setResetGameRankingStatus(null);
+                  }}
+                  className="mt-4 w-full max-w-sm rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-black text-gray-900 outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                >
+                  {turmas.length === 0 ? (
+                    <option value="">Nenhuma turma Normal cadastrada</option>
+                  ) : (
+                    turmas.map((turma) => (
+                      <option key={turma.id} value={turma.id}>
+                        {turma.nome} ({turma.code})
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+              <button
+                type="submit"
+                disabled={resettingGameRanking || !selectedGameResetTurmaId}
+                className="px-5 py-3 rounded-lg bg-red-600 text-white font-black hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {resettingGameRanking ? "Zerando..." : "Zerar ranking do game"}
+              </button>
+            </div>
+            {resetGameRankingStatus && (
+              <div
+                className={`mt-4 rounded-lg px-4 py-3 text-sm font-bold ${
+                  resetGameRankingStatus.type === "success"
+                    ? "bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800"
+                    : "bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800"
+                }`}
+              >
+                {resetGameRankingStatus.text}
+              </div>
+            )}
+          </form>
+        </div>
+      )}
+
+      {view === "ranking" && (
+        <div className="max-w-4xl mx-auto p-6 md:p-10 animate-fade-in pb-20">
+          {loadingRanking ? (
+            <div className="flex justify-center items-center min-h-[280px] text-[#ffcc02]">
+              <Icon fafa="spinner" width={32} className="animate-spin" />
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
+              {rankingTab === "global" ? (
+                <TypingRankingScrollArea variant="normal">
+                  <table className="w-full text-left">
+                    <thead className="text-xs uppercase text-gray-400 bg-gray-50 dark:bg-[#18181b] border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10">
+                      <tr>
+                        <th className="px-6 py-3 w-16 text-center">Pos</th>
+                        <th className="px-6 py-3">Usuário</th>
+                        <th className="px-6 py-3 text-right">Pontos</th>
+                        <th className="px-6 py-3 text-right">Lições</th>
+                        <th className="px-6 py-3 text-right">PPM</th>
+                        <th className="px-6 py-3 text-right">Precisão</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                      {ranking.global.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan="6"
+                            className="p-12 text-center text-gray-500 dark:text-gray-400 font-medium"
+                          >
+                            Nenhum recorde registrado.
+                          </td>
+                        </tr>
+                      ) : (
+                        ranking.global.map((item, i) => {
+                          const isMe = item.name === user.username;
+                          return (
+                            <tr
+                              key={i}
+                              className={`hover:bg-gray-50 dark:hover:bg-[#202024] ${
+                                isMe ? "bg-[#ffcc02]/20" : ""
+                              }`}
+                            >
+                              <td className="px-6 py-4 text-center">
+                                {i === 0 ? (
+                                  <span className="text-xl">🥇</span>
+                                ) : i === 1 ? (
+                                  <span className="text-xl">🥈</span>
+                                ) : i === 2 ? (
+                                  <span className="text-xl">🥉</span>
+                                ) : (
+                                  <span className="font-bold text-gray-400 dark:text-gray-500">
+                                    {i + 1}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 font-bold text-gray-900 dark:text-gray-100">
+                                {item.name}
+                                {isMe && (
+                                  <span className="ml-2 text-[10px] bg-[#ffcc02] text-black px-2 py-0.5 rounded uppercase">
+                                    Você
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 text-right font-mono font-black text-[#ffcc02] dark:text-[#ffcc02]">
+                                {item.points || 0}
+                              </td>
+                              <td className="px-6 py-4 text-right font-mono font-bold text-gray-700 dark:text-gray-300">
+                                {item.lessons_completed || 0}
+                              </td>
+                              <td className="px-6 py-4 text-right font-mono font-bold text-gray-900 dark:text-gray-100">
+                                {item.best_wpm || 0}
+                              </td>
+                              <td className="px-6 py-4 text-right font-mono text-gray-500 dark:text-gray-400">
+                                {Math.floor(item.best_accuracy || 0)}%
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </TypingRankingScrollArea>
+              ) : (
+                <div className="p-0">
+                  {isStaff && turmas.length > 0 && (
+                    <div className="px-6 py-3 bg-gray-50 dark:bg-[#18181b] border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                      <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Visualizar Turma:
+                      </span>
+                      <select
+                        className="text-xs bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded px-2 py-1 outline-none text-gray-900 dark:text-gray-100"
+                        value={selectedTurmaId}
+                        onChange={(e) => setSelectedTurmaId(e.target.value)}
+                      >
+                        {turmas.map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.nome}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                   <TypingRankingScrollArea variant="normal">
                     <table className="w-full text-left">
                       <thead className="text-xs uppercase text-gray-400 bg-gray-50 dark:bg-[#18181b] border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10">
@@ -1665,17 +1876,26 @@ export const TypingApp = ({ standalone = false }) => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                        {ranking.global.length === 0 ? (
+                        {!(user.turmaId || user.turma_id) && !isStaff ? (
                           <tr>
                             <td
                               colSpan="6"
                               className="p-12 text-center text-gray-500 dark:text-gray-400 font-medium"
                             >
-                              Nenhum recorde registrado.
+                              Você não está vinculado a uma turma.
+                            </td>
+                          </tr>
+                        ) : ranking.turma.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan="6"
+                              className="p-12 text-center text-gray-500 dark:text-gray-400 font-medium"
+                            >
+                              Sua turma ainda não tem recordes. Seja o primeiro!
                             </td>
                           </tr>
                         ) : (
-                          ranking.global.map((item, i) => {
+                          ranking.turma.map((item, i) => {
                             const isMe = item.name === user.username;
                             return (
                               <tr
@@ -1686,11 +1906,7 @@ export const TypingApp = ({ standalone = false }) => {
                               >
                                 <td className="px-6 py-4 text-center">
                                   {i === 0 ? (
-                                    <span className="text-xl">🥇</span>
-                                  ) : i === 1 ? (
-                                    <span className="text-xl">🥈</span>
-                                  ) : i === 2 ? (
-                                    <span className="text-xl">🥉</span>
+                                    <span className="text-xl">👑</span>
                                   ) : (
                                     <span className="font-bold text-gray-400 dark:text-gray-500">
                                       {i + 1}
@@ -1724,111 +1940,13 @@ export const TypingApp = ({ standalone = false }) => {
                       </tbody>
                     </table>
                   </TypingRankingScrollArea>
-                ) : (
-                  <div className="p-0">
-                    {isStaff && turmas.length > 0 && (
-                      <div className="px-6 py-3 bg-gray-50 dark:bg-[#18181b] border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-                        <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Visualizar Turma:
-                        </span>
-                        <select
-                          className="text-xs bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded px-2 py-1 outline-none text-gray-900 dark:text-gray-100"
-                          value={selectedTurmaId}
-                          onChange={(e) => setSelectedTurmaId(e.target.value)}
-                        >
-                          {turmas.map((t) => (
-                            <option key={t.id} value={t.id}>
-                              {t.nome}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                    <TypingRankingScrollArea variant="normal">
-                      <table className="w-full text-left">
-                        <thead className="text-xs uppercase text-gray-400 bg-gray-50 dark:bg-[#18181b] border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10">
-                          <tr>
-                            <th className="px-6 py-3 w-16 text-center">Pos</th>
-                            <th className="px-6 py-3">Usuário</th>
-                            <th className="px-6 py-3 text-right">Pontos</th>
-                            <th className="px-6 py-3 text-right">Lições</th>
-                            <th className="px-6 py-3 text-right">PPM</th>
-                            <th className="px-6 py-3 text-right">Precisão</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                          {!(user.turmaId || user.turma_id) && !isStaff ? (
-                            <tr>
-                              <td
-                                colSpan="6"
-                                className="p-12 text-center text-gray-500 dark:text-gray-400 font-medium"
-                              >
-                                Você não está vinculado a uma turma.
-                              </td>
-                            </tr>
-                          ) : ranking.turma.length === 0 ? (
-                            <tr>
-                              <td
-                                colSpan="6"
-                                className="p-12 text-center text-gray-500 dark:text-gray-400 font-medium"
-                              >
-                                Sua turma ainda não tem recordes. Seja o
-                                primeiro!
-                              </td>
-                            </tr>
-                          ) : (
-                            ranking.turma.map((item, i) => {
-                              const isMe = item.name === user.username;
-                              return (
-                                <tr
-                                  key={i}
-                                  className={`hover:bg-gray-50 dark:hover:bg-[#202024] ${
-                                    isMe ? "bg-[#ffcc02]/20" : ""
-                                  }`}
-                                >
-                                  <td className="px-6 py-4 text-center">
-                                    {i === 0 ? (
-                                      <span className="text-xl">👑</span>
-                                    ) : (
-                                      <span className="font-bold text-gray-400 dark:text-gray-500">
-                                        {i + 1}
-                                      </span>
-                                    )}
-                                  </td>
-                                  <td className="px-6 py-4 font-bold text-gray-900 dark:text-gray-100">
-                                    {item.name}
-                                    {isMe && (
-                                      <span className="ml-2 text-[10px] bg-[#ffcc02] text-black px-2 py-0.5 rounded uppercase">
-                                        Você
-                                      </span>
-                                    )}
-                                  </td>
-                                  <td className="px-6 py-4 text-right font-mono font-black text-[#ffcc02] dark:text-[#ffcc02]">
-                                    {item.points || 0}
-                                  </td>
-                                  <td className="px-6 py-4 text-right font-mono font-bold text-gray-700 dark:text-gray-300">
-                                    {item.lessons_completed || 0}
-                                  </td>
-                                  <td className="px-6 py-4 text-right font-mono font-bold text-gray-900 dark:text-gray-100">
-                                    {item.best_wpm || 0}
-                                  </td>
-                                  <td className="px-6 py-4 text-right font-mono text-gray-500 dark:text-gray-400">
-                                    {Math.floor(item.best_accuracy || 0)}%
-                                  </td>
-                                </tr>
-                              );
-                            })
-                          )}
-                        </tbody>
-                      </table>
-                    </TypingRankingScrollArea>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 
   if (standalone) {

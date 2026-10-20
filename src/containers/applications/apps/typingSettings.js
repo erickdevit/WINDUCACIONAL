@@ -51,7 +51,9 @@ export const clampTypingSetting = (value, fallback, min, max) => {
 };
 
 export const normalizeTypingStudentType = (studentType) =>
-  String(studentType || "normal").trim().toLowerCase() === "kids"
+  String(studentType || "normal")
+    .trim()
+    .toLowerCase() === "kids"
     ? "kids"
     : "normal";
 
@@ -135,7 +137,9 @@ const normalizeCacheScope = (scope) =>
   String(scope || "global").replace(/[^a-z0-9_-]/gi, "_");
 
 const getCacheKey = (studentType, cachePrefix, cacheScope = "global") =>
-  `${cachePrefix}_${normalizeCacheScope(cacheScope)}_${normalizeTypingStudentType(studentType)}`;
+  `${cachePrefix}_${normalizeCacheScope(
+    cacheScope
+  )}_${normalizeTypingStudentType(studentType)}`;
 
 const readCachedSettings = (
   studentType,
@@ -175,6 +179,7 @@ const useSyncedTypingSettings = ({
   loadErrorText,
   saveSuccessText,
   saveErrorText,
+  onProgress = null,
 }) => {
   const normalizedType = normalizeTypingStudentType(studentType);
   const dirtyRef = useRef(false);
@@ -255,13 +260,23 @@ const useSyncedTypingSettings = ({
       onSettings: (nextSettings) => {
         applySettings(nextSettings);
       },
+      onProgress: (progress) => {
+        onProgress?.(progress);
+      },
       onError: () => {},
     });
 
     return () => {
       subscription?.close?.();
     };
-  }, [enabled, normalizedType, isProfessor, subscribeSettings, cacheScope]);
+  }, [
+    enabled,
+    normalizedType,
+    isProfessor,
+    subscribeSettings,
+    cacheScope,
+    onProgress,
+  ]);
 
   const updateDraftSettings = (field, value) => {
     setDraftSettings((current) =>
@@ -316,6 +331,7 @@ export const useTypingSettings = ({
   isProfessor = false,
   enabled = true,
   userId = null,
+  onProgress = null,
 }) =>
   useSyncedTypingSettings({
     studentType,
@@ -331,6 +347,7 @@ export const useTypingSettings = ({
     saveSuccessText:
       "Configurações salvas. Alunos conectados receberão a atualização em tempo real.",
     saveErrorText: "Não foi possível salvar as configurações.",
+    onProgress,
   });
 
 export const useTypingGameSettings = ({

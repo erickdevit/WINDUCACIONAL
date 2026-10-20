@@ -286,7 +286,12 @@ module.exports = function injectTypingRoutes(ctx) {
         error.status = 404;
         throw error;
       }
-      return { scope, studentType: turma.rows[0].student_type, turmaId, studentId: null };
+      return {
+        scope,
+        studentType: turma.rows[0].student_type,
+        turmaId,
+        studentId: null,
+      };
     }
     const student = await pool.query(
       `SELECT u.id, u.turma_id, COALESCE(t.student_type, u.student_type) AS student_type,
@@ -318,72 +323,109 @@ module.exports = function injectTypingRoutes(ctx) {
     };
   };
 
-  app.get("/api/typing/difficulty", requireAuth, requireProfessor, async (req, res, next) => {
-    try {
-      const mode = normalizeTypingDifficultyMode(req.query.mode);
-      const target = await resolveDifficultyTarget({ mode, query: req.query, allowEmpty: true });
-      const result = await getEffectiveTypingSettings({
-        mode,
-        studentType: target.studentType,
-        turmaId: target.turmaId,
-        studentId: target.studentId,
-      });
-      return res.json({ ...result, target });
-    } catch (error) {
-      return next(error);
-    }
-  });
-
-  app.put("/api/typing/difficulty", requireAuth, requireProfessor, async (req, res, next) => {
-    try {
-      const mode = normalizeTypingDifficultyMode(req.body?.mode);
-      const target = await resolveDifficultyTarget({ mode, body: req.body, allowEmpty: false });
-      const override = await saveTypingDifficultyOverride({
-        mode,
-        ...target,
-        payload: { ...(req.body?.settings || {}), studentType: target.studentType },
-      });
-      const result = await getEffectiveTypingSettings({
-        mode,
-        studentType: target.studentType,
-        turmaId: target.turmaId,
-        studentId: target.studentId,
-      });
-      if (target.scope === "type") {
-        if (mode === "game") await broadcastTypingGameSettings(result.settings);
-        else await broadcastTypingSettings(result.settings);
-      } else if (mode === "game") {
-        await broadcastTypingGameSettings(result.settings, target);
-      } else {
-        await broadcastTypingSettings(result.settings, target);
+  app.get(
+    "/api/typing/difficulty",
+    requireAuth,
+    requireProfessor,
+    async (req, res, next) => {
+      try {
+        const mode = normalizeTypingDifficultyMode(req.query.mode);
+        const target = await resolveDifficultyTarget({
+          mode,
+          query: req.query,
+          allowEmpty: true,
+        });
+        const result = await getEffectiveTypingSettings({
+          mode,
+          studentType: target.studentType,
+          turmaId: target.turmaId,
+          studentId: target.studentId,
+        });
+        return res.json({ ...result, target });
+      } catch (error) {
+        return next(error);
       }
-      return res.json({ ...result, override });
-    } catch (error) {
-      return next(error);
     }
-  });
+  );
 
-  app.delete("/api/typing/difficulty", requireAuth, requireProfessor, async (req, res, next) => {
-    try {
-      const mode = normalizeTypingDifficultyMode(req.body?.mode || req.query.mode);
-      const target = await resolveDifficultyTarget({ mode, body: req.body, query: req.query, allowEmpty: true });
-      if (target.scope === "type") {
-        return res.status(400).json({ error: "A configuração base não pode ser removida." });
+  app.put(
+    "/api/typing/difficulty",
+    requireAuth,
+    requireProfessor,
+    async (req, res, next) => {
+      try {
+        const mode = normalizeTypingDifficultyMode(req.body?.mode);
+        const target = await resolveDifficultyTarget({
+          mode,
+          body: req.body,
+          allowEmpty: false,
+        });
+        const override = await saveTypingDifficultyOverride({
+          mode,
+          ...target,
+          payload: {
+            ...(req.body?.settings || {}),
+            studentType: target.studentType,
+          },
+        });
+        const result = await getEffectiveTypingSettings({
+          mode,
+          studentType: target.studentType,
+          turmaId: target.turmaId,
+          studentId: target.studentId,
+        });
+        if (target.scope === "type") {
+          if (mode === "game")
+            await broadcastTypingGameSettings(result.settings);
+          else await broadcastTypingSettings(result.settings);
+        } else if (mode === "game") {
+          await broadcastTypingGameSettings(result.settings, target);
+        } else {
+          await broadcastTypingSettings(result.settings, target);
+        }
+        return res.json({ ...result, override });
+      } catch (error) {
+        return next(error);
       }
-      await deleteTypingDifficultyOverride({ mode, ...target });
-      const result = await getEffectiveTypingSettings({
-        mode,
-        studentType: target.studentType,
-        turmaId: target.turmaId,
-        studentId: target.studentId,
-      });
-      if (mode === "game") await broadcastTypingGameSettings(result.settings, target);
-      else await broadcastTypingSettings(result.settings, target);
-      return res.json(result);
-    } catch (error) {
-      return next(error);
     }
-  });
+  );
+
+  app.delete(
+    "/api/typing/difficulty",
+    requireAuth,
+    requireProfessor,
+    async (req, res, next) => {
+      try {
+        const mode = normalizeTypingDifficultyMode(
+          req.body?.mode || req.query.mode
+        );
+        const target = await resolveDifficultyTarget({
+          mode,
+          body: req.body,
+          query: req.query,
+          allowEmpty: true,
+        });
+        if (target.scope === "type") {
+          return res
+            .status(400)
+            .json({ error: "A configuração base não pode ser removida." });
+        }
+        await deleteTypingDifficultyOverride({ mode, ...target });
+        const result = await getEffectiveTypingSettings({
+          mode,
+          studentType: target.studentType,
+          turmaId: target.turmaId,
+          studentId: target.studentId,
+        });
+        if (mode === "game")
+          await broadcastTypingGameSettings(result.settings, target);
+        else await broadcastTypingSettings(result.settings, target);
+        return res.json(result);
+      } catch (error) {
+        return next(error);
+      }
+    }
+  );
 
   app.post("/api/typing/score", requireAuth, async (req, res, next) => {
     try {
@@ -398,6 +440,30 @@ module.exports = function injectTypingRoutes(ctx) {
        VALUES ($1, $2, $3, $4, $5, $6)`,
         [id, req.user.id, lessonId, wpm, accuracy, timeMs || 0]
       );
+
+      if (req.user.role === "aluno") {
+        try {
+          const effective = await getEffectiveTypingSettings({
+            mode: "lesson",
+            studentType: req.user.student_type,
+            turmaId: req.user.turma_id,
+            studentId: req.user.id,
+          });
+          const minWpm = effective?.settings?.passMinWpm ?? 40;
+          const minAcc = effective?.settings?.passMinAccuracy ?? 95;
+          if (wpm >= minWpm && accuracy >= minAcc) {
+            await pool.query(
+              `INSERT INTO typing_lesson_progress (user_id, lesson_id, completed_at)
+               VALUES ($1, $2, NOW())
+               ON CONFLICT (user_id, lesson_id) DO NOTHING`,
+              [req.user.id, lessonId]
+            );
+          }
+        } catch (_) {
+          // Mantém integridade do registro de score mesmo se a consulta de settings falhar
+        }
+      }
+
       res.status(201).json({ ok: true });
     } catch (error) {
       next(error);
@@ -683,5 +749,230 @@ module.exports = function injectTypingRoutes(ctx) {
         next(error);
       }
     }
+  );
+
+  const broadcastTypingProgressReset = (targetUserIds) => {
+    const targetSet = new Set(targetUserIds);
+    const payload = {
+      type: "reset",
+      completedLessons: [],
+      resetAt: new Date().toISOString(),
+    };
+    for (const client of typingSettingsClients) {
+      if (targetSet.has(client.userId)) {
+        try {
+          client.res.write("event: typing-progress\n");
+          client.res.write(`data: ${JSON.stringify(payload)}\n\n`);
+        } catch (_) {
+          typingSettingsClients.delete(client);
+        }
+      }
+    }
+  };
+
+  app.get("/api/typing/progress", requireAuth, async (req, res, next) => {
+    try {
+      const targetUserId =
+        req.user.role === "professor" && req.query.studentId
+          ? req.query.studentId
+          : req.user.id;
+
+      if (!isUuid(targetUserId)) {
+        return res
+          .status(400)
+          .json({ error: "Identificador de usuário inválido." });
+      }
+
+      const progressResult = await pool.query(
+        "SELECT lesson_id FROM typing_lesson_progress WHERE user_id = $1 ORDER BY lesson_id ASC",
+        [targetUserId]
+      );
+      const resetResult = await pool.query(
+        "SELECT reset_at FROM typing_lesson_resets WHERE user_id = $1",
+        [targetUserId]
+      );
+
+      const completedLessons = progressResult.rows.map((row) => row.lesson_id);
+      const lastResetAt = resetResult.rows[0]?.reset_at || null;
+
+      return res.json({ completedLessons, lastResetAt });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  app.post("/api/typing/progress", requireAuth, async (req, res, next) => {
+    try {
+      if (req.user.role !== "aluno") {
+        return res.status(200).json({ ok: true, ignored: true });
+      }
+
+      const lessonId = parseInt(req.body.lessonId, 10);
+      if (!Number.isInteger(lessonId) || lessonId < 1 || lessonId > 200) {
+        return res
+          .status(400)
+          .json({ error: "Identificador de lição inválido." });
+      }
+
+      await pool.query(
+        `INSERT INTO typing_lesson_progress (user_id, lesson_id, completed_at)
+         VALUES ($1, $2, NOW())
+         ON CONFLICT (user_id, lesson_id) DO NOTHING`,
+        [req.user.id, lessonId]
+      );
+
+      return res.status(201).json({ ok: true, lessonId });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  const handleTypingLessonReset = async (req, res, next) => {
+    try {
+      const rawScope = String(req.body?.scope || "")
+        .trim()
+        .toLowerCase();
+      const scope = rawScope === "aluno" ? "student" : rawScope;
+
+      if (scope !== "turma" && scope !== "student") {
+        return res.status(400).json({
+          error: "Escopo de reset inválido. Selecione 'turma' ou 'student'.",
+        });
+      }
+
+      const shouldClearRanking = Boolean(
+        req.body?.clearRanking ?? req.body?.clearScores
+      );
+
+      let targetUserIds = [];
+      let targetTurma = null;
+      let targetStudent = null;
+
+      if (scope === "turma") {
+        const turmaId = req.body?.turmaId;
+        if (!turmaId || !isUuid(turmaId)) {
+          return res.status(400).json({
+            error: "Identificador de turma inválido.",
+          });
+        }
+
+        const turmaResult = await pool.query(
+          "SELECT id, nome, code, student_type, active FROM turmas WHERE id = $1",
+          [turmaId]
+        );
+        if (turmaResult.rowCount === 0) {
+          return res.status(404).json({ error: "Turma não encontrada." });
+        }
+
+        targetTurma = turmaResult.rows[0];
+        if (String(targetTurma.student_type).toLowerCase() !== "normal") {
+          return res.status(400).json({
+            error:
+              "Apenas turmas do tipo Normal são permitidas para este reset.",
+          });
+        }
+
+        const studentsResult = await pool.query(
+          `SELECT id, username FROM users WHERE turma_id = $1 AND role = 'aluno'`,
+          [targetTurma.id]
+        );
+        targetUserIds = studentsResult.rows.map((row) => row.id);
+      } else {
+        const studentId = req.body?.studentId;
+        if (!studentId || !isUuid(studentId)) {
+          return res.status(400).json({
+            error: "Identificador de aluno inválido.",
+          });
+        }
+
+        const studentResult = await pool.query(
+          `SELECT u.id, u.username, u.role, u.turma_id,
+                  COALESCE(t.student_type, u.student_type) AS student_type,
+                  u.active, t.nome AS turma_nome, t.code AS turma_code
+           FROM users u
+           LEFT JOIN turmas t ON t.id = u.turma_id
+           WHERE u.id = $1`,
+          [studentId]
+        );
+        if (
+          studentResult.rowCount === 0 ||
+          studentResult.rows[0].role !== "aluno"
+        ) {
+          return res.status(404).json({ error: "Aluno não encontrado." });
+        }
+
+        targetStudent = studentResult.rows[0];
+        if (String(targetStudent.student_type).toLowerCase() !== "normal") {
+          return res.status(400).json({
+            error:
+              "Apenas alunos do tipo Normal são permitidos para este reset.",
+          });
+        }
+
+        if (req.body?.turmaId && req.body.turmaId !== targetStudent.turma_id) {
+          return res.status(400).json({
+            error: "Aluno não pertence à turma selecionada.",
+          });
+        }
+
+        targetUserIds = [targetStudent.id];
+      }
+
+      let deletedScores = 0;
+      if (targetUserIds.length > 0) {
+        await pool.query(
+          "DELETE FROM typing_lesson_progress WHERE user_id = ANY($1::uuid[])",
+          [targetUserIds]
+        );
+
+        await pool.query(
+          `INSERT INTO typing_lesson_resets (user_id, reset_at)
+           SELECT unnest($1::uuid[]), NOW()
+           ON CONFLICT (user_id) DO UPDATE SET reset_at = NOW()`,
+          [targetUserIds]
+        );
+
+        if (shouldClearRanking) {
+          const deleteScoreResult = await pool.query(
+            "DELETE FROM typing_scores WHERE user_id = ANY($1::uuid[])",
+            [targetUserIds]
+          );
+          deletedScores = deleteScoreResult.rowCount || 0;
+        }
+
+        broadcastTypingProgressReset(targetUserIds);
+      }
+
+      return res.json({
+        ok: true,
+        scope,
+        target: {
+          turmaId: targetTurma?.id || targetStudent?.turma_id || null,
+          turmaNome: targetTurma?.nome || targetStudent?.turma_nome || null,
+          turmaCode: targetTurma?.code || targetStudent?.turma_code || null,
+          studentId: targetStudent?.id || null,
+          studentUsername: targetStudent?.username || null,
+        },
+        affectedStudents: targetUserIds.length,
+        clearedRanking: shouldClearRanking,
+        deletedScores,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  app.post(
+    "/api/typing/lessons/reset",
+    requireAuth,
+    requireProfessor,
+    handleTypingLessonReset
+  );
+
+  app.post(
+    "/api/typing/progress/reset",
+    requireAuth,
+    requireProfessor,
+    handleTypingLessonReset
   );
 };
