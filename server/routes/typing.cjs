@@ -452,12 +452,22 @@ module.exports = function injectTypingRoutes(ctx) {
           const minWpm = effective?.settings?.passMinWpm ?? 40;
           const minAcc = effective?.settings?.passMinAccuracy ?? 95;
           if (wpm >= minWpm && accuracy >= minAcc) {
-            await pool.query(
-              `INSERT INTO typing_lesson_progress (user_id, lesson_id, completed_at)
-               VALUES ($1, $2, NOW())
-               ON CONFLICT (user_id, lesson_id) DO NOTHING`,
-              [req.user.id, lessonId]
-            );
+            let canProgress = lessonId === 1;
+            if (!canProgress && lessonId > 1) {
+              const prev = await pool.query(
+                "SELECT 1 FROM typing_lesson_progress WHERE user_id = $1 AND lesson_id = $2",
+                [req.user.id, lessonId - 1]
+              );
+              canProgress = prev.rowCount > 0;
+            }
+            if (canProgress) {
+              await pool.query(
+                `INSERT INTO typing_lesson_progress (user_id, lesson_id, completed_at)
+                 VALUES ($1, $2, NOW())
+                 ON CONFLICT (user_id, lesson_id) DO NOTHING`,
+                [req.user.id, lessonId]
+              );
+            }
           }
         } catch (_) {
           // Mantém integridade do registro de score mesmo se a consulta de settings falhar
@@ -751,15 +761,27 @@ module.exports = function injectTypingRoutes(ctx) {
     }
   );
 
+  const parseBooleanFlag = (value) => {
+    if (typeof value === "boolean") return value;
+    if (typeof value === "string") {
+      const s = value.trim().toLowerCase();
+      return s === "true" || s === "1" || s === "sim";
+    }
+    if (typeof value === "number") return value === 1;
+    return false;
+  };
+
   const broadcastTypingProgressReset = (targetUserIds) => {
-    const targetSet = new Set(targetUserIds);
+    const targetSet = new Set(
+      targetUserIds.map((id) => String(id).toLowerCase())
+    );
     const payload = {
       type: "reset",
       completedLessons: [],
       resetAt: new Date().toISOString(),
     };
     for (const client of typingSettingsClients) {
-      if (targetSet.has(client.userId)) {
+      if (client.userId && targetSet.has(String(client.userId).toLowerCase())) {
         try {
           client.res.write("event: typing-progress\n");
           client.res.write(`data: ${JSON.stringify(payload)}\n\n`);
@@ -814,6 +836,18 @@ module.exports = function injectTypingRoutes(ctx) {
           .json({ error: "Identificador de lição inválido." });
       }
 
+      if (lessonId > 1) {
+        const prevResult = await pool.query(
+          "SELECT 1 FROM typing_lesson_progress WHERE user_id = $1 AND lesson_id = $2",
+          [req.user.id, lessonId - 1]
+        );
+        if (prevResult.rowCount === 0) {
+          return res.status(400).json({
+            error: "A lição anterior deve ser concluída antes desta fase.",
+          });
+        }
+      }
+
       await pool.query(
         `INSERT INTO typing_lesson_progress (user_id, lesson_id, completed_at)
          VALUES ($1, $2, NOW())
@@ -840,9 +874,11 @@ module.exports = function injectTypingRoutes(ctx) {
         });
       }
 
-      const shouldClearRanking = Boolean(
-        req.body?.clearRanking ?? req.body?.clearScores
-      );
+      const rawRankingFlag =
+        req.body?.clearRanking !== undefined
+          ? req.body.clearRanking
+          : req.body?.clearScores;
+      const shouldClearRanking = parseBooleanFlag(rawRankingFlag);
 
       let targetUserIds = [];
       let targetTurma = null;
@@ -902,17 +938,27 @@ module.exports = function injectTypingRoutes(ctx) {
         }
 
         targetStudent = studentResult.rows[0];
-        if (String(targetStudent.student_type).toLowerCase() !== "normal") {
+        if (
+          !targetStudent.turma_id ||
+          String(targetStudent.student_type).toLowerCase() !== "normal"
+        ) {
           return res.status(400).json({
             error:
               "Apenas alunos do tipo Normal são permitidos para este reset.",
           });
         }
 
-        if (req.body?.turmaId && req.body.turmaId !== targetStudent.turma_id) {
-          return res.status(400).json({
-            error: "Aluno não pertence à turma selecionada.",
-          });
+        if (req.body?.turmaId) {
+          if (!isUuid(req.body.turmaId)) {
+            return res.status(400).json({
+              error: "Identificador de turma inválido.",
+            });
+          }
+          if (req.body.turmaId !== targetStudent.turma_id) {
+            return res.status(400).json({
+              error: "Aluno não pertence à turma selecionada.",
+            });
+          }
         }
 
         targetUserIds = [targetStudent.id];

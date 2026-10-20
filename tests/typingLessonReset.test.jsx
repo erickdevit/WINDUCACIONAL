@@ -788,4 +788,353 @@ describe("Componente TypingLessonResetSection", () => {
     expect(screen.getByRole("alert")).toBeDefined();
     expect(screen.getByText(/resetado com sucesso/)).toBeDefined();
   });
+
+  it("não exibe alunos quando selectedTurmaId estiver vazia", async () => {
+    render(<TypingLessonResetSection turmas={[]} />);
+
+    fireEvent.click(screen.getByLabelText("Aluno específico"));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Aluno")).toBeDefined();
+    });
+
+    expect(
+      screen.getByText("Nenhum aluno Normal cadastrado nesta turma")
+    ).toBeDefined();
+  });
+
+  it("reconhece alunos com propriedade turma_id em snake_case", async () => {
+    api.getUsers.mockResolvedValueOnce({
+      users: [
+        {
+          id: "student-snake",
+          username: "pedro",
+          displayName: "Pedro Santos",
+          role: "aluno",
+          student_type: "normal",
+          turma_id: "turma-1",
+          active: true,
+        },
+      ],
+    });
+
+    render(<TypingLessonResetSection turmas={turmasMock} />);
+
+    fireEvent.click(screen.getByLabelText("Aluno específico"));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Pedro Santos/)).toBeDefined();
+    });
+  });
+});
+
+describe("Casos de borda e robustez do reset e progresso", () => {
+  const normalTurmaId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+  const normalStudentId = "11111111-1111-4111-8111-111111111111";
+
+  it("trata clearRanking como string 'false' sem zerar pontuações no ranking", async () => {
+    const pool = {
+      query: vi.fn().mockImplementation((sql) => {
+        if (sql.includes("FROM users u")) {
+          return Promise.resolve({
+            rowCount: 1,
+            rows: [
+              {
+                id: normalStudentId,
+                username: "aluno1",
+                role: "aluno",
+                student_type: "normal",
+                turma_id: normalTurmaId,
+                turma_nome: "Turma A",
+                active: true,
+              },
+            ],
+          });
+        }
+        if (sql.includes("DELETE FROM typing_lesson_progress")) {
+          return Promise.resolve({ rowCount: 1 });
+        }
+        if (sql.includes("INSERT INTO typing_lesson_resets")) {
+          return Promise.resolve({ rowCount: 1 });
+        }
+        return Promise.resolve({ rowCount: 0, rows: [] });
+      }),
+    };
+
+    const routes = buildRoutes({ pool });
+    const req = {
+      user: { id: "99999999-9999-4999-8999-999999999999", role: "professor" },
+      body: {
+        scope: "student",
+        studentId: normalStudentId,
+        clearRanking: "false",
+      },
+    };
+    const res = mockResponse();
+
+    await executePipeline(routes["POST /api/typing/lessons/reset"], req, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.clearedRanking).toBe(false);
+    expect(res.body.deletedScores).toBe(0);
+
+    const scoreDeleteCall = pool.query.mock.calls.find(([sql]) =>
+      sql.includes("DELETE FROM typing_scores")
+    );
+    expect(scoreDeleteCall).toBeUndefined();
+  });
+
+  it("trata clearRanking como string 'true' e zera pontuações no ranking", async () => {
+    const pool = {
+      query: vi.fn().mockImplementation((sql) => {
+        if (sql.includes("FROM users u")) {
+          return Promise.resolve({
+            rowCount: 1,
+            rows: [
+              {
+                id: normalStudentId,
+                username: "aluno1",
+                role: "aluno",
+                student_type: "normal",
+                turma_id: normalTurmaId,
+                turma_nome: "Turma A",
+                active: true,
+              },
+            ],
+          });
+        }
+        if (sql.includes("DELETE FROM typing_lesson_progress")) {
+          return Promise.resolve({ rowCount: 1 });
+        }
+        if (sql.includes("INSERT INTO typing_lesson_resets")) {
+          return Promise.resolve({ rowCount: 1 });
+        }
+        if (sql.includes("DELETE FROM typing_scores")) {
+          return Promise.resolve({ rowCount: 3 });
+        }
+        return Promise.resolve({ rowCount: 0, rows: [] });
+      }),
+    };
+
+    const routes = buildRoutes({ pool });
+    const req = {
+      user: { id: "99999999-9999-4999-8999-999999999999", role: "professor" },
+      body: {
+        scope: "student",
+        studentId: normalStudentId,
+        clearRanking: "true",
+      },
+    };
+    const res = mockResponse();
+
+    await executePipeline(routes["POST /api/typing/lessons/reset"], req, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.clearedRanking).toBe(true);
+    expect(res.body.deletedScores).toBe(3);
+  });
+
+  it("rejeita aluno sem turma no reset com 400", async () => {
+    const pool = {
+      query: vi.fn().mockResolvedValue({
+        rowCount: 1,
+        rows: [
+          {
+            id: normalStudentId,
+            username: "aluno_sem_turma",
+            role: "aluno",
+            student_type: "normal",
+            turma_id: null,
+            active: true,
+          },
+        ],
+      }),
+    };
+    const routes = buildRoutes({ pool });
+    const req = {
+      user: { id: "99999999-9999-4999-8999-999999999999", role: "professor" },
+      body: { scope: "student", studentId: normalStudentId },
+    };
+    const res = mockResponse();
+
+    await executePipeline(routes["POST /api/typing/lessons/reset"], req, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toContain(
+      "Apenas alunos do tipo Normal são permitidos"
+    );
+  });
+
+  it("rejeita turmaId com formato inválido no reset de aluno com 400", async () => {
+    const pool = {
+      query: vi.fn().mockResolvedValue({
+        rowCount: 1,
+        rows: [
+          {
+            id: normalStudentId,
+            username: "aluno1",
+            role: "aluno",
+            student_type: "normal",
+            turma_id: normalTurmaId,
+            turma_nome: "Turma A",
+            active: true,
+          },
+        ],
+      }),
+    };
+    const routes = buildRoutes({ pool });
+    const req = {
+      user: { id: "99999999-9999-4999-8999-999999999999", role: "professor" },
+      body: {
+        scope: "student",
+        studentId: normalStudentId,
+        turmaId: "invalido-uuid",
+      },
+    };
+    const res = mockResponse();
+
+    await executePipeline(routes["POST /api/typing/lessons/reset"], req, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toContain("Identificador de turma inválido");
+  });
+
+  it("entrega evento SSE de reset mesmo com UUID em maiúsculas", async () => {
+    const pool = {
+      query: vi.fn().mockImplementation((sql) => {
+        if (sql.includes("FROM users u")) {
+          return Promise.resolve({
+            rowCount: 1,
+            rows: [
+              {
+                id: normalStudentId.toUpperCase(),
+                username: "aluno1",
+                role: "aluno",
+                student_type: "normal",
+                turma_id: normalTurmaId,
+                turma_nome: "Turma A",
+                active: true,
+              },
+            ],
+          });
+        }
+        if (sql.includes("DELETE FROM typing_lesson_progress")) {
+          return Promise.resolve({ rowCount: 1 });
+        }
+        if (sql.includes("INSERT INTO typing_lesson_resets")) {
+          return Promise.resolve({ rowCount: 1 });
+        }
+        return Promise.resolve({ rowCount: 0, rows: [] });
+      }),
+    };
+
+    const clientRes = mockResponse();
+    const typingSettingsClients = new Set([
+      {
+        userId: normalStudentId.toLowerCase(),
+        studentType: "normal",
+        res: clientRes,
+      },
+    ]);
+
+    const routes = buildRoutes({ pool, typingSettingsClients });
+    const req = {
+      user: { id: "99999999-9999-4999-8999-999999999999", role: "professor" },
+      body: {
+        scope: "student",
+        studentId: normalStudentId.toUpperCase(),
+      },
+    };
+    const res = mockResponse();
+
+    await executePipeline(routes["POST /api/typing/lessons/reset"], req, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(clientRes.write).toHaveBeenCalledWith("event: typing-progress\n");
+    expect(clientRes.write).toHaveBeenCalledWith(
+      expect.stringContaining('"type":"reset"')
+    );
+  });
+
+  it("bloqueia POST /api/typing/progress para Lição 2 se a Lição 1 não estiver concluída", async () => {
+    const pool = {
+      query: vi.fn().mockImplementation((sql) => {
+        if (sql.includes("SELECT 1 FROM typing_lesson_progress")) {
+          return Promise.resolve({ rowCount: 0, rows: [] });
+        }
+        return Promise.resolve({ rowCount: 0, rows: [] });
+      }),
+    };
+
+    const routes = buildRoutes({ pool });
+    const req = {
+      user: { id: normalStudentId, role: "aluno" },
+      body: { lessonId: 2 },
+    };
+    const res = mockResponse();
+
+    await executePipeline(routes["POST /api/typing/progress"], req, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toContain("A lição anterior deve ser concluída");
+
+    const insertCall = pool.query.mock.calls.find(([sql]) =>
+      sql.includes("INSERT INTO typing_lesson_progress")
+    );
+    expect(insertCall).toBeUndefined();
+  });
+
+  it("permite POST /api/typing/progress para Lição 2 quando a Lição 1 já foi concluída", async () => {
+    const pool = {
+      query: vi.fn().mockImplementation((sql, params) => {
+        if (sql.includes("SELECT 1 FROM typing_lesson_progress")) {
+          if (params[1] === 1) {
+            return Promise.resolve({ rowCount: 1, rows: [{ "?column?": 1 }] });
+          }
+        }
+        if (sql.includes("INSERT INTO typing_lesson_progress")) {
+          return Promise.resolve({ rowCount: 1 });
+        }
+        return Promise.resolve({ rowCount: 0, rows: [] });
+      }),
+    };
+
+    const routes = buildRoutes({ pool });
+    const req = {
+      user: { id: normalStudentId, role: "aluno" },
+      body: { lessonId: 2 },
+    };
+    const res = mockResponse();
+
+    await executePipeline(routes["POST /api/typing/progress"], req, res);
+
+    expect(res.statusCode).toBe(201);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.lessonId).toBe(2);
+  });
+
+  it("bloqueia avanço não-sequencial para Lição 4 se apenas Lições 1 e 2 estão concluídas", async () => {
+    const pool = {
+      query: vi.fn().mockImplementation((sql, params) => {
+        if (sql.includes("SELECT 1 FROM typing_lesson_progress")) {
+          return Promise.resolve({ rowCount: 0, rows: [] });
+        }
+        return Promise.resolve({ rowCount: 0, rows: [] });
+      }),
+    };
+
+    const routes = buildRoutes({ pool });
+    const req = {
+      user: { id: normalStudentId, role: "aluno" },
+      body: { lessonId: 4 },
+    };
+    const res = mockResponse();
+
+    await executePipeline(routes["POST /api/typing/progress"], req, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toContain("A lição anterior deve ser concluída");
+  });
 });

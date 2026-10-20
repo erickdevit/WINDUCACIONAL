@@ -148,17 +148,21 @@ export const TypingApp = ({ standalone = false }) => {
       ) {
         const next = progress.completedLessons || [];
         setCompletedLessons(next);
-        localStorage.setItem(
-          `completedTypingLessons_${user.username}`,
-          JSON.stringify(next)
-        );
+        if (user?.username) {
+          localStorage.setItem(
+            `completedTypingLessons_${user.username}`,
+            JSON.stringify(next)
+          );
+        }
         if (
           currentLesson &&
           currentLesson.id !== 1 &&
           !next.includes(TYPING_LESSONS[currentLesson.id - 2]?.id)
         ) {
           setCurrentLesson(TYPING_LESSONS[0]);
-          setView("menu");
+          if (view === "lesson") {
+            setView("menu");
+          }
         }
       }
     },
@@ -200,11 +204,24 @@ export const TypingApp = ({ standalone = false }) => {
       .then((data) => {
         if (!active) return;
         if (data && Array.isArray(data.completedLessons)) {
-          setCompletedLessons(data.completedLessons);
-          localStorage.setItem(
-            `completedTypingLessons_${user.username}`,
-            JSON.stringify(data.completedLessons)
-          );
+          const next = data.completedLessons;
+          setCompletedLessons(next);
+          if (user?.username) {
+            localStorage.setItem(
+              `completedTypingLessons_${user.username}`,
+              JSON.stringify(next)
+            );
+          }
+          if (
+            currentLesson &&
+            currentLesson.id !== 1 &&
+            !next.includes(TYPING_LESSONS[currentLesson.id - 2]?.id)
+          ) {
+            setCurrentLesson(TYPING_LESSONS[0]);
+            if (view === "lesson") {
+              setView("menu");
+            }
+          }
         }
       })
       .catch(() => {});

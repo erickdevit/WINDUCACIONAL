@@ -52,15 +52,15 @@ export const TypingLessonResetSection = ({
 
   const availableStudents = useMemo(
     () =>
-      students.filter(
-        (student) =>
-          student.role === "aluno" &&
-          student.active !== false &&
-          String(
-            student.studentType || student.student_type || "normal"
-          ).toLowerCase() === "normal" &&
-          (!selectedTurmaId || student.turmaId === selectedTurmaId)
-      ),
+      students.filter((student) => {
+        if (student.role !== "aluno" || student.active === false) return false;
+        const studentType = String(
+          student.studentType || student.student_type || "normal"
+        ).toLowerCase();
+        if (studentType !== "normal") return false;
+        const studentTurmaId = student.turmaId || student.turma_id;
+        return Boolean(selectedTurmaId && studentTurmaId === selectedTurmaId);
+      }),
     [students, selectedTurmaId]
   );
 
